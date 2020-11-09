@@ -20,9 +20,17 @@ project(uLib
 
 # Dependencies
 
-add_subdirectory("lib/uflags")
-add_subdirectory("lib/uhash")
-add_subdirectory("lib/uvec")
+if(NOT TARGET uflags)
+    add_subdirectory("lib/uflags")
+endif()
+
+if(NOT TARGET uhash)
+    add_subdirectory("lib/uhash")
+endif()
+
+if(NOT TARGET uvec)
+    add_subdirectory("lib/uvec")
+endif()
 
 # Interface library
 
