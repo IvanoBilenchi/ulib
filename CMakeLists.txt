@@ -14,6 +14,29 @@ project(uLib
         HOMEPAGE_URL "https://github.com/IvanoBilenchi/ulib"
         LANGUAGES C)
 
+# Options
+
+option(ULIB_EMBEDDED "Enable optimizations for embedded platforms" OFF)
+set(ULIB_MALLOC "malloc" CACHE STRING "malloc function override.")
+set(ULIB_REALLOC "realloc" CACHE STRING "realloc function override.")
+set(ULIB_FREE "free" CACHE STRING "free function override.")
+
+if(ULIB_EMBEDDED)
+    message(STATUS "Embedded build selected")
+    list(APPEND UHASH_DEFINES UHASH_TINY)
+    list(APPEND UVEC_DEFINES UVEC_TINY)
+endif()
+
+list(APPEND UHASH_DEFINES
+     UHASH_MALLOC=${ULIB_MALLOC}
+     UHASH_REALLOC=${ULIB_REALLOC}
+     UHASH_FREE=${ULIB_FREE})
+
+list(APPEND UVEC_DEFINES
+     UVEC_MALLOC=${ULIB_MALLOC}
+     UVEC_REALLOC=${ULIB_REALLOC}
+     UVEC_FREE=${ULIB_FREE})
+
 # Dependencies
 
 if(NOT TARGET uflags)
@@ -51,6 +74,11 @@ set(ULIB_HEADERS
 ###########
 # Targets #
 ###########
+
+# Sub-targets configuration
+
+target_compile_definitions(uhash INTERFACE ${UHASH_DEFINES})
+target_compile_definitions(uvec INTERFACE ${UVEC_DEFINES})
 
 # Interface library
 
