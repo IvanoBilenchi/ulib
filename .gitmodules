@@ -1,0 +1,9 @@
+[submodule "lib/uvec"]
+	path = lib/uvec
+	url = https://github.com/IvanoBilenchi/uvec.git
+[submodule "lib/uhash"]
+	path = lib/uhash
+	url = https://github.com/IvanoBilenchi/uhash.git
+[submodule "lib/uflags"]
+	path = lib/uflags
+	url = https://github.com/IvanoBilenchi/uflags.git
