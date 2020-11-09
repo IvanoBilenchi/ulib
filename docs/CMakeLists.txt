@@ -6,7 +6,6 @@ get_target_property(UFLAGS_HEADERS uflags INTERFACE_SOURCES)
 get_target_property(UHASH_HEADERS uhash INTERFACE_SOURCES)
 get_target_property(UVEC_HEADERS uvec INTERFACE_SOURCES)
 set(HEADERS ${UFLAGS_HEADERS} ${UHASH_HEADERS} ${UVEC_HEADERS})
-message(STATUS ${HEADERS})
 
 # Doxygen configuration
 
