@@ -22,7 +22,6 @@ set(ULIB_REALLOC "realloc" CACHE STRING "realloc function override.")
 set(ULIB_FREE "free" CACHE STRING "free function override.")
 
 if(ULIB_EMBEDDED)
-    message(STATUS "Embedded build selected")
     list(APPEND UHASH_DEFINES UHASH_TINY)
     list(APPEND UVEC_DEFINES UVEC_TINY)
 endif()
