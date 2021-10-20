@@ -2,11 +2,6 @@
 
 set(README_FILE "../README.md")
 
-get_target_property(UFLAGS_HEADERS uflags INTERFACE_SOURCES)
-get_target_property(UHASH_HEADERS uhash INTERFACE_SOURCES)
-get_target_property(UVEC_HEADERS uvec INTERFACE_SOURCES)
-set(HEADERS ${UFLAGS_HEADERS} ${UHASH_HEADERS} ${UVEC_HEADERS})
-
 # Doxygen configuration
 
 set(DOXYGEN_FULL_PATH_NAMES NO)
@@ -30,5 +25,6 @@ set(DOXYGEN_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 find_package(Doxygen)
 
 if(DOXYGEN_FOUND)
-    doxygen_add_docs(ulib-docs "${README_FILE}" ${HEADERS} COMMENT "Generate documentation")
+    doxygen_add_docs(ulib-docs "${README_FILE}" ${ULIB_PUBLIC_HEADERS}
+                     COMMENT "Generate the documentation")
 endif()

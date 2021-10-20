@@ -8,84 +8,157 @@ cmake_minimum_required(VERSION 3.13)
 
 # Project
 
+set(ULIB_VERSION_MAJOR 0)
+set(ULIB_VERSION_MINOR 1)
+set(ULIB_VERSION_PATCH 0)
+set(ULIB_VERSION "${ULIB_VERSION_MAJOR}.${ULIB_VERSION_MINOR}.${ULIB_VERSION_PATCH}")
+
+set(ULIB_AUTHOR "Ivano Bilenchi")
+set(ULIB_GIT_URL "https://github.com/IvanoBilenchi/ulib")
+
 project(uLib
-        VERSION 0.1.0
+        VERSION "${ULIB_VERSION}"
         DESCRIPTION "A modern, generic C library."
-        HOMEPAGE_URL "https://github.com/IvanoBilenchi/ulib"
+        HOMEPAGE_URL "${ULIB_GIT_URL}"
         LANGUAGES C)
 
 # Options
 
 option(ULIB_EMBEDDED "Enable optimizations for embedded platforms" OFF)
-set(ULIB_MALLOC "malloc" CACHE STRING "malloc function override.")
-set(ULIB_REALLOC "realloc" CACHE STRING "realloc function override.")
-set(ULIB_FREE "free" CACHE STRING "free function override.")
+option(ULIB_LTO "Enable link-time optimization, if available" ON)
+option(ULIB_LEAKS "Enable debugging of memory leaks (keep OFF in production builds)" OFF)
+set(ULIB_USER_HEADERS "" CACHE STRING "User-specified header files")
+set(ULIB_USER_SOURCES "" CACHE STRING "User-specified source files")
+set(ULIB_MALLOC "malloc" CACHE STRING "malloc function override")
+set(ULIB_CALLOC "calloc" CACHE STRING "calloc function override")
+set(ULIB_REALLOC "realloc" CACHE STRING "realloc function override")
+set(ULIB_FREE "free" CACHE STRING "free function override")
+
+# Directories
+
+set(ULIB_PROJECT_DIR "${CMAKE_CURRENT_LIST_DIR}")
+set(ULIB_OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}")
+set(ULIB_PUBLIC_HEADERS_DIR "${ULIB_PROJECT_DIR}/include")
+set(ULIB_SRC_DIR "${ULIB_PROJECT_DIR}/src")
+set(ULIB_PRIVATE_HEADERS_DIR "${ULIB_SRC_DIR}")
+set(ULIB_DOCS_DIR "${ULIB_PROJECT_DIR}/docs")
+set(ULIB_TEST_DIR "${ULIB_PROJECT_DIR}/test")
+set(ULIB_HEADERS_OUT_DIR "${ULIB_OUTPUT_DIR}/include")
+
+# Target settings
+
+set(ULIB_COMPILE_FEATURES c_std_11)
+
+if(ULIB_LEAKS)
+    set(ULIB_MALLOC p_utest_leak_malloc)
+    set(ULIB_CALLOC p_utest_leak_calloc)
+    set(ULIB_REALLOC p_utest_leak_realloc)
+    set(ULIB_FREE p_utest_leak_free)
+    list(APPEND ULIB_PRIVATE_DEFINES ULIB_LEAKS)
+    list(APPEND ULIB_USER_HEADERS "${ULIB_PUBLIC_HEADERS_DIR}/utest.h")
+endif()
+
+list(APPEND ULIB_PUBLIC_DEFINES
+     ulib_malloc=${ULIB_MALLOC}
+     ulib_calloc=${ULIB_CALLOC}
+     ulib_realloc=${ULIB_REALLOC}
+     ulib_free=${ULIB_FREE})
+
+list(APPEND ULIB_PRIVATE_DEFINES
+     ULIB_BUILDING
+     ULIB_VERSION_MAJOR=${ULIB_VERSION_MAJOR}
+     ULIB_VERSION_MINOR=${ULIB_VERSION_MINOR}
+     ULIB_VERSION_PATCH=${ULIB_VERSION_PATCH})
+
+if(MSVC)
+    set(ULIB_WARNING_OPTIONS /W3 /wd4996)
+else()
+    set(ULIB_WARNING_OPTIONS -Wall -Wextra)
+endif()
+
+if(ULIB_LTO)
+    include(CheckIPOSupported)
+    check_ipo_supported(RESULT ULIB_LTO_ENABLED)
+endif()
 
 if(ULIB_EMBEDDED)
-    list(APPEND UHASH_DEFINES UHASH_TINY)
-    list(APPEND UVEC_DEFINES UVEC_TINY)
+    list(APPEND ULIB_PUBLIC_DEFINES ULIB_TINY)
 endif()
 
-list(APPEND UHASH_DEFINES
-     UHASH_MALLOC=${ULIB_MALLOC}
-     UHASH_REALLOC=${ULIB_REALLOC}
-     UHASH_FREE=${ULIB_FREE})
+# Header files
 
-list(APPEND UVEC_DEFINES
-     UVEC_MALLOC=${ULIB_MALLOC}
-     UVEC_REALLOC=${ULIB_REALLOC}
-     UVEC_FREE=${ULIB_FREE})
+file(GLOB ULIB_PUBLIC_HEADERS CONFIGURE_DEPENDS "${ULIB_PUBLIC_HEADERS_DIR}/*.h")
 
-# Dependencies
+# Sources
 
-if(NOT TARGET uflags)
-    add_subdirectory("lib/uflags")
-endif()
-
-if(NOT TARGET uhash)
-    add_subdirectory("lib/uhash")
-endif()
-
-if(NOT TARGET uvec)
-    add_subdirectory("lib/uvec")
-endif()
-
-# Properties to propagate
-
-get_target_property(UFLAGS_INCLUDE_DIRECTORIES uflags INTERFACE_INCLUDE_DIRECTORIES)
-get_target_property(UHASH_INCLUDE_DIRECTORIES uhash INTERFACE_INCLUDE_DIRECTORIES)
-get_target_property(UVEC_INCLUDE_DIRECTORIES uvec INTERFACE_INCLUDE_DIRECTORIES)
-
-get_target_property(UFLAGS_HEADERS uflags INTERFACE_SOURCES)
-get_target_property(UHASH_HEADERS uhash INTERFACE_SOURCES)
-get_target_property(UVEC_HEADERS uvec INTERFACE_SOURCES)
-
-set(ULIB_INCLUDE_DIRECTORIES
-    ${UFLAGS_INCLUDE_DIRECTORIES}
-    ${UHASH_INCLUDE_DIRECTORIES}
-    ${UVEC_INCLUDE_DIRECTORIES})
-
-set(ULIB_HEADERS
-    ${UFLAGS_HEADERS}
-    ${UHASH_HEADERS}
-    ${UVEC_HEADERS})
+file(GLOB ULIB_SOURCES CONFIGURE_DEPENDS "${ULIB_SRC_DIR}/*.c")
+list(APPEND ULIB_SOURCES ${ULIB_USER_SOURCES})
 
 ###########
 # Targets #
 ###########
 
-# Sub-targets configuration
+# Copy headers
 
-target_compile_definitions(uhash INTERFACE ${UHASH_DEFINES})
-target_compile_definitions(uvec INTERFACE ${UVEC_DEFINES})
+add_custom_target(ulib-headers
+                  COMMAND "${CMAKE_COMMAND}" -E remove_directory "${ULIB_HEADERS_OUT_DIR}"
+                  COMMAND "${CMAKE_COMMAND}" -E make_directory "${ULIB_HEADERS_OUT_DIR}"
+                  COMMAND ${CMAKE_COMMAND} -E copy
+                          ${ULIB_PUBLIC_HEADERS} "${ULIB_HEADERS_OUT_DIR}"
+                  COMMENT "Copy headers to the build directory.")
 
-# Interface library
+# Static library
 
-add_library(ulib INTERFACE)
-target_include_directories(ulib INTERFACE ${ULIB_INCLUDE_DIRECTORIES})
-target_sources(ulib INTERFACE ${ULIB_HEADERS})
-target_link_libraries(ulib INTERFACE uflags uhash uvec)
+add_library(ulib-static STATIC EXCLUDE_FROM_ALL ${ULIB_SOURCES})
+set_target_properties(ulib-static PROPERTIES
+                      OUTPUT_NAME "ulib"
+                      PUBLIC_HEADER "${ULIB_PUBLIC_HEADERS}"
+                      C_VISIBILITY_PRESET hidden
+                      VISIBILITY_INLINES_HIDDEN ON)
+target_compile_features(ulib-static PRIVATE ${ULIB_COMPILE_FEATURES})
+target_compile_options(ulib-static PRIVATE ${ULIB_WARNING_OPTIONS})
+target_compile_definitions(ulib-static
+                           PUBLIC ${ULIB_PUBLIC_DEFINES}
+                           PRIVATE ${ULIB_PRIVATE_DEFINES})
+target_include_directories(ulib-static
+                           PUBLIC "${ULIB_PUBLIC_HEADERS_DIR}"
+                           PRIVATE "${ULIB_PRIVATE_HEADERS_DIR}")
+target_precompile_headers(ulib-static PUBLIC ${ULIB_USER_HEADERS})
+add_dependencies(ulib-static ulib-headers)
+
+if(ULIB_LTO_ENABLED)
+    set_property(TARGET ulib-static PROPERTY INTERPROCEDURAL_OPTIMIZATION ON)
+endif()
+
+# Shared library
+
+add_library(ulib-shared SHARED EXCLUDE_FROM_ALL ${ULIB_SOURCES})
+set_target_properties(ulib-shared PROPERTIES
+                      OUTPUT_NAME "ulib"
+                      PUBLIC_HEADER "${ULIB_PUBLIC_HEADERS}"
+                      C_VISIBILITY_PRESET hidden
+                      VISIBILITY_INLINES_HIDDEN ON)
+target_compile_features(ulib-shared PRIVATE ${ULIB_COMPILE_FEATURES})
+target_compile_options(ulib-shared PRIVATE ${ULIB_WARNING_OPTIONS})
+target_compile_definitions(ulib-shared
+                           PUBLIC ${ULIB_PUBLIC_DEFINES} "ULIB_SHARED"
+                           PRIVATE ${ULIB_PRIVATE_DEFINES})
+target_include_directories(ulib-shared
+                           PUBLIC "${ULIB_PUBLIC_HEADERS_DIR}"
+                           PRIVATE "${ULIB_PRIVATE_HEADERS_DIR}")
+target_precompile_headers(ulib-shared PUBLIC ${ULIB_USER_HEADERS})
+add_dependencies(ulib-shared ulib-headers)
+
+if(ULIB_LTO_ENABLED)
+    set_property(TARGET ulib-shared PROPERTY INTERPROCEDURAL_OPTIMIZATION ON)
+endif()
 
 # Subprojects
 
-add_subdirectory("docs")
+add_subdirectory("${ULIB_TEST_DIR}")
+add_subdirectory("${ULIB_DOCS_DIR}")
+
+# Main target
+
+add_custom_target(ulib ALL COMMENT "Build uLib")
+add_dependencies(ulib ulib-static ulib-shared)
