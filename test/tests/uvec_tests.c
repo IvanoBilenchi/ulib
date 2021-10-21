@@ -69,6 +69,14 @@ bool uvec_test_base(void) {
     uvec_remove_at(int, v, 1);
     uvec_assert_elements(int, v, 3, 4, 5, 1);
 
+    int items[] = {6, 7};
+    ret = uvec_set_range(int, v, items, 3, ulib_array_count(items));
+    utest_assert(ret == UVEC_OK);
+    uvec_assert_elements(int, v, 3, 4, 5, 6, 7);
+
+    ret = uvec_set_range(int, v, items, 10, ulib_array_count(items));
+    utest_assert(ret == UVEC_NO);
+
     uvec_remove_all(int, v);
     utest_assert(uvec_is_empty(v));
 

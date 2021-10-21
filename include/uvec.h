@@ -118,7 +118,7 @@ typedef enum uvec_ret {
     SCOPE UVec_##T* uvec_alloc_##T(void);                                                           \
     SCOPE void uvec_free_##T(UVec_##T *vec);                                                        \
     SCOPE uvec_ret uvec_reserve_capacity_##T(UVec_##T *vec, ulib_uint capacity);                    \
-    SCOPE uvec_ret uvec_append_array_##T(UVec_##T *vec, T const *array, ulib_uint n);               \
+    SCOPE uvec_ret uvec_set_range_##T(UVec_##T *vec, T const *array, ulib_uint start, ulib_uint n); \
     SCOPE UVec_##T* uvec_copy_##T(UVec_##T const *vec);                                             \
     SCOPE UVec_##T* uvec_deep_copy_##T(UVec_##T const *vec, T (*copy_func)(T));                     \
     SCOPE void uvec_copy_to_array_##T(UVec_##T const *vec, T array[]);                              \
@@ -210,24 +210,26 @@ typedef enum uvec_ret {
         return UVEC_OK;                                                                             \
     }                                                                                               \
                                                                                                     \
-    SCOPE uvec_ret uvec_append_array_##T(UVec_##T *vec, T const *array, ulib_uint n) {              \
+    SCOPE uvec_ret uvec_set_range_##T(UVec_##T *vec, T const *array,                                \
+                                      ulib_uint start, ulib_uint n) {                               \
         if (!(n && array)) return UVEC_OK;                                                          \
+        if (start > vec->allocated) return UVEC_NO;                                                 \
                                                                                                     \
-        ulib_uint old_count = vec->count;                                                           \
-        ulib_uint new_count = old_count + n;                                                        \
+        ulib_uint const old_c = vec->count, new_c = start + n;                                      \
                                                                                                     \
-        if (uvec_reserve_capacity_##T(vec, new_count)) return UVEC_ERR;                             \
+        if (new_c > old_c) {                                                                        \
+            if (uvec_reserve_capacity_##T(vec, new_c)) return UVEC_ERR;                             \
+            vec->count = new_c;                                                                     \
+        }                                                                                           \
                                                                                                     \
-        vec->count = new_count;                                                                     \
-        memcpy(&(vec->storage[old_count]), array, n * sizeof(T));                                   \
-                                                                                                    \
+        memcpy(&(vec->storage[start]), array, n * sizeof(T));                                       \
         return UVEC_OK;                                                                             \
     }                                                                                               \
                                                                                                     \
     SCOPE UVec_##T* uvec_copy_##T(UVec_##T const *vec) {                                            \
         UVec_##T* copy = uvec_alloc_##T();                                                          \
                                                                                                     \
-        if (copy && uvec_append_array_##T(copy, vec->storage, vec->count)) {                        \
+        if (copy && uvec_set_range_##T(copy, vec->storage, 0, vec->count)) {                        \
             uvec_free_##T(copy);                                                                    \
             copy = NULL;                                                                            \
         }                                                                                           \
@@ -863,6 +865,16 @@ typedef enum uvec_ret {
 #define uvec_set(vec, idx, item) ((vec)->storage[(idx)] = (item))
 
 /**
+ * Returns the raw array backing the vector.
+ *
+ * @param vec [UVec(T)*] Vector instance.
+ * @return [T*] Pointer to the first element of the raw array.
+ *
+ * @public @related UVec
+ */
+#define uvec_storage(vec) ((vec)->storage)
+
+/**
  * Returns the first element in the vector.
  *
  * @param vec [UVec(T)*] Vector instance.
@@ -975,7 +987,7 @@ typedef enum uvec_ret {
  * @public @related UVec
  */
 #define uvec_append(T, vec, source) \
-    P_ULIB_MACRO_CONCAT(uvec_append_array_, T)(vec, (source)->storage, (source)->count)
+    P_ULIB_MACRO_CONCAT(uvec_set_range_, T)(vec, (source)->storage, (vec)->count, (source)->count)
 
 /**
  * Appends an array to the specified vector.
@@ -989,7 +1001,7 @@ typedef enum uvec_ret {
  * @public @related UVec
  */
 #define uvec_append_array(T, vec, array, n) \
-    P_ULIB_MACRO_CONCAT(uvec_append_array_, T)(vec, array, n)
+    P_ULIB_MACRO_CONCAT(uvec_set_range_, T)(vec, array, (vec)->count, n)
 
 /**
  * Appends multiple items to the specified vector.
@@ -1002,8 +1014,24 @@ typedef enum uvec_ret {
  * @public @related UVec
  */
 #define uvec_append_items(T, vec, ...)                                                              \
-    P_ULIB_MACRO_CONCAT(uvec_append_array_, T)                                                      \
-        (vec, (T[]){ __VA_ARGS__ }, (sizeof((T[]){ __VA_ARGS__ }) / sizeof(T)))
+    P_ULIB_MACRO_CONCAT(uvec_set_range_, T)                                                         \
+        (vec, (T[]){ __VA_ARGS__ }, (vec)->count, (sizeof((T[]){ __VA_ARGS__ }) / sizeof(T)))
+
+/**
+ * Sets items in the specified range to those contained in an array.
+ *
+ * @param T [symbol] Vector type.
+ * @param vec [UVec(T)*] Vector instance.
+ * @param array [T*] Array containing the items.
+ * @param start [ulib_uint] Range start index.
+ * @param n [ulib_uint] Number of elements in the array.
+ * @return [uvec_ret] UVEC_OK on success, UVEC_ERR on memory error,
+ *                    UVEC_NO if start is greater than the vector's capacity.
+ *
+ * @public @related UVec
+ */
+#define uvec_set_range(T, vec, array, start, n) \
+    P_ULIB_MACRO_CONCAT(uvec_set_range_, T)(vec, array, start, n)
 
 /**
  * Reverses the vector.
@@ -1383,6 +1411,5 @@ typedef enum uvec_ret {
     if (p_v_##comp_func)                                                                            \
         qsort((p_v_##comp_func)->storage + (start), len, sizeof(T), comp_func);                     \
 } while(0)
-
 
 #endif // UVEC_H
