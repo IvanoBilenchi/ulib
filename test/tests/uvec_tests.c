@@ -150,7 +150,7 @@ bool uvec_test_contains(void) {
 
     utest_assert(uvec_index_of(int, v1, 5) == 2);
     utest_assert(uvec_index_of_reverse(int, v1, 5) == 4);
-    utest_assert(uvec_index_of(int, v1, 6) == UVEC_INDEX_NOT_FOUND);
+    utest_assert_false(uvec_index_is_valid(v1, uvec_index_of(int, v1, 6)));
 
     utest_assert(uvec_contains(int, v1, 2));
     utest_assert_false(uvec_contains(int, v1, 7));
@@ -212,7 +212,7 @@ bool uvec_test_higher_order(void) {
     utest_assert(idx == 2);
 
     uvec_first_index_where(int, v, idx, _vec_item > 5);
-    utest_assert(idx == UVEC_INDEX_NOT_FOUND);
+    utest_assert_false(uvec_index_is_valid(v, idx));
 
     uvec_free(int, v);
     return true;
@@ -241,7 +241,7 @@ bool uvec_test_comparable(void) {
     utest_assert(uvec_contains_sorted(int, v, 6));
     utest_assert_false(uvec_contains_sorted(int, v, -1));
     utest_assert(uvec_index_of_sorted(int, v, 3) == 4);
-    utest_assert(uvec_index_of_sorted(int, v, 7) == UVEC_INDEX_NOT_FOUND);
+    utest_assert_false(uvec_index_is_valid(v, uvec_index_of_sorted(int, v, 7)));
 
     uvec_remove_all(int, v);
 

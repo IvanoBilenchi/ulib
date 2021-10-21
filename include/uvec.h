@@ -57,9 +57,6 @@ typedef enum uvec_ret {
 // # Constants #
 // #############
 
-/// Index returned by find-like functions when a matching element cannot be found.
-#define UVEC_INDEX_NOT_FOUND ULIB_UINT_MAX
-
 /// Cache line size (B).
 #ifndef UVEC_CACHE_LINE_SIZE
     #define UVEC_CACHE_LINE_SIZE 64
@@ -346,20 +343,20 @@ typedef enum uvec_ret {
         for (ulib_uint i = 0; i < vec->count; ++i) {                                                \
             if (equal_func(vec->storage[i], item)) return i;                                        \
         }                                                                                           \
-        return UVEC_INDEX_NOT_FOUND;                                                                \
+        return vec->count;                                                                          \
     }                                                                                               \
                                                                                                     \
     SCOPE ulib_uint uvec_index_of_reverse_##T(UVec_##T const *vec, T item) {                        \
         for (ulib_uint i = vec->count; i-- != 0;) {                                                 \
             if (equal_func(vec->storage[i], item)) return i;                                        \
         }                                                                                           \
-        return UVEC_INDEX_NOT_FOUND;                                                                \
+        return vec->count;                                                                          \
     }                                                                                               \
                                                                                                     \
     SCOPE bool uvec_remove_##T(UVec_##T *vec, T item) {                                             \
         ulib_uint idx = uvec_index_of_##T(vec, item);                                               \
                                                                                                     \
-        if (idx != UVEC_INDEX_NOT_FOUND) {                                                          \
+        if (idx < vec->count) {                                                                     \
             uvec_remove_at_##T(vec, idx);                                                           \
             return true;                                                                            \
         }                                                                                           \
@@ -387,7 +384,7 @@ typedef enum uvec_ret {
         if (vec == other) return true;                                                              \
                                                                                                     \
         for (ulib_uint i = 0; i < other->count; ++i) {                                              \
-            if (uvec_index_of_##T(vec, other->storage[i]) == UVEC_INDEX_NOT_FOUND) return false;    \
+            if (uvec_index_of_##T(vec, other->storage[i]) >= vec->count) return false;              \
         }                                                                                           \
                                                                                                     \
         return true;                                                                                \
@@ -397,14 +394,14 @@ typedef enum uvec_ret {
         if (vec == other) return true;                                                              \
                                                                                                     \
         for (ulib_uint i = 0; i < other->count; ++i) {                                              \
-            if (uvec_index_of_##T(vec, other->storage[i]) != UVEC_INDEX_NOT_FOUND) return true;     \
+            if (uvec_index_of_##T(vec, other->storage[i]) < vec->count) return true;                \
         }                                                                                           \
                                                                                                     \
         return false;                                                                               \
     }                                                                                               \
                                                                                                     \
     SCOPE uvec_ret uvec_push_unique_##T(UVec_##T *vec, T item) {                                    \
-        if (uvec_index_of_##T(vec, item) != UVEC_INDEX_NOT_FOUND) return UVEC_NO;                   \
+        if (uvec_index_of_##T(vec, item) < vec->count) return UVEC_NO;                              \
         return uvec_push_##T(vec, item);                                                            \
     }
 
@@ -419,8 +416,6 @@ typedef enum uvec_ret {
 #define P_UVEC_IMPL_COMPARABLE(T, SCOPE, equal_func, compare_func)                                  \
                                                                                                     \
     SCOPE ulib_uint uvec_index_of_min_##T(UVec_##T const *vec) {                                    \
-        if (!vec->count) return UVEC_INDEX_NOT_FOUND;                                               \
-                                                                                                    \
         ulib_uint min_idx = 0;                                                                      \
                                                                                                     \
         for (ulib_uint i = 1; i < vec->count; ++i) {                                                \
@@ -431,8 +426,6 @@ typedef enum uvec_ret {
     }                                                                                               \
                                                                                                     \
     SCOPE ulib_uint uvec_index_of_max_##T(UVec_##T const *vec) {                                    \
-        if (!vec->count) return UVEC_INDEX_NOT_FOUND;                                               \
-                                                                                                    \
         ulib_uint max_idx = 0;                                                                      \
                                                                                                     \
         for (ulib_uint i = 1; i < vec->count; ++i) {                                                \
@@ -494,7 +487,7 @@ typedef enum uvec_ret {
                                                                                                     \
     SCOPE ulib_uint uvec_index_of_sorted_##T(UVec_##T const *vec, T item) {                         \
         ulib_uint const i = uvec_insertion_index_sorted_##T(vec, item);                             \
-        return vec->storage && equal_func(vec->storage[i], item) ? i : UVEC_INDEX_NOT_FOUND;        \
+        return vec->storage && equal_func(vec->storage[i], item) ? i : vec->count;                  \
     }                                                                                               \
                                                                                                     \
     SCOPE uvec_ret uvec_insert_sorted_##T(UVec_##T *vec, T item, ulib_uint *idx) {                  \
@@ -919,6 +912,17 @@ typedef enum uvec_ret {
 #define uvec_count(vec) ((vec) ? (vec)->count : 0)
 
 /**
+ * Checks if the specified index is valid.
+ *
+ * @param vec [UVec(T)*] Vector instance.
+ * @param idx [ulib_uint] Index.
+ * @return True if the index is valid, false otherwise.
+ *
+ * @public @related UVec
+ */
+#define uvec_index_is_valid(vec, idx) ((idx) < (vec)->count)
+
+/**
  * Pushes the specified element to the top of the vector (last element).
  *
  * @param T [symbol] Vector type.
@@ -1125,7 +1129,8 @@ typedef enum uvec_ret {
  * @param T [symbol] Vector type.
  * @param vec [UVec(T)*] Vector instance.
  * @param item [T] Element to search.
- * @return [ulib_uint] Index of the found element, or UVEC_INDEX_NOT_FOUND.
+ * @return [ulib_uint] Index of the found element,
+ *                     or an invalid index if the element cannot be found.
  *
  * @public @related UVec
  */
@@ -1137,7 +1142,8 @@ typedef enum uvec_ret {
  * @param T [symbol] Vector type.
  * @param vec [UVec(T)*] Vector instance.
  * @param item [T] Element to search.
- * @return [ulib_uint] Index of the found element, or UVEC_INDEX_NOT_FOUND.
+ * @return [ulib_uint] Index of the found element,
+ *                     or an invalid index if the element cannot be found.
  *
  * @public @related UVec
  */
@@ -1155,7 +1161,7 @@ typedef enum uvec_ret {
  * @public @related UVec
  */
 #define uvec_contains(T, vec, item) \
-    (P_ULIB_MACRO_CONCAT(uvec_index_of_, T)(vec, item) != UVEC_INDEX_NOT_FOUND)
+    (P_ULIB_MACRO_CONCAT(uvec_index_of_, T)(vec, item) < (vec)->count)
 
 /**
  * Checks whether the vector contains all the elements present in another vector.
@@ -1303,7 +1309,7 @@ typedef enum uvec_ret {
  * @param T [symbol] Vector type.
  * @param vec [UVec(T)*] Vector instance.
  * @param item [T] Element to search.
- * @return [ulib_uint] Index of the found element, or UVEC_INDEX_NOT_FOUND.
+ * @return [ulib_uint] Index of the found element, or an invalid index.
  *
  * @note The returned index is not necessarily the first occurrence of the item.
  *
@@ -1323,7 +1329,7 @@ typedef enum uvec_ret {
  * @public @related UVec
  */
 #define uvec_contains_sorted(T, vec, item) \
-    (P_ULIB_MACRO_CONCAT(uvec_index_of_sorted_, T)(vec, item) != UVEC_INDEX_NOT_FOUND)
+    (P_ULIB_MACRO_CONCAT(uvec_index_of_sorted_, T)(vec, item) < (vec)->count)
 
 /**
  * Inserts the specified element in a sorted vector.
@@ -1367,7 +1373,7 @@ typedef enum uvec_ret {
  * @public @related UVec
  */
 #define uvec_first_index_where(T, vec, idx_var, bool_exp) do {                                      \
-    idx_var = UVEC_INDEX_NOT_FOUND;                                                                 \
+    idx_var = (vec)->count;                                                                         \
     uvec_iterate(T, vec, _vec_item, p_i_##idx_var, {                                                \
         if ((bool_exp)) {                                                                           \
             idx_var = p_i_##idx_var;                                                                \
