@@ -27,6 +27,9 @@ project(uLib
 option(ULIB_EMBEDDED "Enable optimizations for embedded platforms" OFF)
 option(ULIB_LTO "Enable link-time optimization, if available" ON)
 option(ULIB_LEAKS "Enable debugging of memory leaks (keep OFF in production builds)" OFF)
+option(ULIB_STATIC "Generate static library target." ON)
+option(ULIB_SHARED "Generate shared library target." ON)
+option(ULIB_OBJECT "Generate object library target." OFF)
 set(ULIB_USER_HEADERS "" CACHE STRING "User-specified header files")
 set(ULIB_USER_SOURCES "" CACHE STRING "User-specified source files")
 set(ULIB_MALLOC "malloc" CACHE STRING "malloc function override")
@@ -139,9 +142,17 @@ function(ulib_library_target NAME TYPE)
     add_dependencies(ulib ${NAME})
 endfunction()
 
-ulib_library_target(ulib-static STATIC)
-ulib_library_target(ulib-shared SHARED ULIB_SHARED)
-ulib_library_target(ulib-object OBJECT)
+if(ULIB_STATIC)
+    ulib_library_target(ulib-static STATIC)
+endif()
+
+if(ULIB_SHARED)
+    ulib_library_target(ulib-shared SHARED ULIB_SHARED)
+endif()
+
+if(ULIB_OBJECT)
+    ulib_library_target(ulib-object OBJECT)
+endif()
 
 # Subprojects
 
