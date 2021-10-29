@@ -19,6 +19,8 @@
 #include "uhash.h"
 #include "umacros.h"
 #include "ustd.h"
+#include "ustrbuf.h"
+#include "ustring.h"
 #include "utest.h"
 #include "uvec.h"
 

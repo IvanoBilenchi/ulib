@@ -1,5 +1,5 @@
 /**
- * uVec - a type-safe, generic C vector.
+ * A type-safe, generic C vector.
  *
  * @author Ivano Bilenchi
  *
@@ -13,6 +13,8 @@
 #define UVEC_H
 
 #include "ustd.h"
+
+ULIB_BEGIN_DECLS
 
 // #########
 // # Types #
@@ -1417,5 +1419,13 @@ typedef enum uvec_ret {
     if (p_v_##comp_func)                                                                            \
         qsort((p_v_##comp_func)->storage + (start), len, sizeof(T), comp_func);                     \
 } while(0)
+
+// #######################
+// # Built-in UVec types #
+// #######################
+
+UVEC_DECL_COMPARABLE_SPEC(char, ULIB_PUBLIC)
+
+ULIB_END_DECLS
 
 #endif // UVEC_H

@@ -1,5 +1,5 @@
 /**
- * uFlags - collection of C primitives to safely manipulate bitmasks.
+ * Collection of C primitives to safely manipulate bitmasks.
  *
  * @author Ivano Bilenchi
  *

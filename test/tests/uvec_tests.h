@@ -7,6 +7,9 @@
  * @file
  */
 
+#ifndef UVEC_TESTS_H
+#define UVEC_TESTS_H
+
 #include "ustd.h"
 
 ULIB_BEGIN_DECLS
@@ -29,3 +32,5 @@ bool uvec_test_comparable(void);
     uvec_test_comparable
 
 ULIB_END_DECLS
+
+#endif // UVEC_TESTS_H

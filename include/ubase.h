@@ -3,9 +3,8 @@
  *
  * @author Ivano Bilenchi
  *
- * @copyright Copyright (c) 2019-2021 SisInf Lab, Polytechnic University of Bari
- * @copyright <http://sisinflab.poliba.it/swottools>
- * @copyright SPDX-License-Identifier: EPL-2.0
+ * @copyright Copyright (c) 2021 Ivano Bilenchi <https://ivanobilenchi.com>
+ * @copyright SPDX-License-Identifier: MIT
  *
  * @file
  */

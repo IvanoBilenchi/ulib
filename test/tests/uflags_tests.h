@@ -7,6 +7,9 @@
  * @file
  */
 
+#ifndef UFLAGS_TESTS_H
+#define UFLAGS_TESTS_H
+
 #include "ustd.h"
 
 ULIB_BEGIN_DECLS
@@ -23,3 +26,5 @@ bool uflags_test_64(void);
     uflags_test_64
 
 ULIB_END_DECLS
+
+#endif // UFLAGS_TESTS_H

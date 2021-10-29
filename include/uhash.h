@@ -1,5 +1,5 @@
 /**
- * uHash - a type-safe, generic C hash table.
+ * A type-safe, generic C hash table.
  *
  * @author Attractive Chaos (khash)
  * @author Ivano Bilenchi (uHash)
