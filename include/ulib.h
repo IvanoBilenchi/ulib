@@ -20,6 +20,7 @@
 #include "umacros.h"
 #include "ustd.h"
 #include "ustrbuf.h"
+#include "ustream.h"
 #include "ustring.h"
 #include "utest.h"
 #include "uvec.h"

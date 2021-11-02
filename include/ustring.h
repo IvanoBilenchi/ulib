@@ -297,9 +297,35 @@ ulib_uint ustring_hash(UString string);
  * @return Duplicated string.
  *
  * @note You are responsible for deallocating the returned string via ulib_free.
+ *
+ * @public @related UString
  */
 ULIB_PUBLIC
 char* ulib_str_dup(char const *string, size_t length);
+
+/**
+ * Returns the length of the specified formatted string.
+ *
+ * @param format Format string.
+ * @param ... Format arguments.
+ * @return Length of the formatted string.
+ *
+ * @public @related UString
+ */
+ULIB_PUBLIC
+size_t ulib_str_flength(char const *format, ...);
+
+/**
+ * Returns the length of the specified formatted string.
+ *
+ * @param format Format string.
+ * @param args Format arguments.
+ * @return Length of the formatted string.
+ *
+ * @public @related UString
+ */
+ULIB_PUBLIC
+size_t ulib_str_flength_list(char const *format, va_list args);
 
 ULIB_END_DECLS
 

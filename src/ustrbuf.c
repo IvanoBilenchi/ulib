@@ -16,14 +16,6 @@ static char* ustrbuf_deinit_get_storage(UStrBuf *buf) {
     return storage;
 }
 
-static ulib_uint ulib_cstring_length_of_formatted(char const *format, va_list argptr) {
-    va_list args;
-    va_copy(args, argptr);
-    int res = vsnprintf(NULL, 0, format, args);
-    va_end(args);
-    return res > 0 ? (ulib_uint)res : 0;
-}
-
 UStrBuf ustrbuf_init(void) {
     return uvec_init(char);
 }
@@ -41,13 +33,13 @@ uvec_ret ustrbuf_append_format(UStrBuf *buf, char const *format, ...) {
 }
 
 uvec_ret ustrbuf_append_format_list(UStrBuf *buf, char const *format, va_list args) {
-    ulib_uint length = ulib_cstring_length_of_formatted(format, args);
+    size_t length = ulib_str_flength_list(format, args);
     size_t size = length + 1;
     uvec_ret ret = uvec_expand(char, buf, (uvec_uint)size);
 
     if (ret == UVEC_OK) {
         vsnprintf(buf->storage + buf->count, size, format, args);
-        buf->count += length;
+        buf->count += (ulib_uint)length;
     }
 
     return ret;
