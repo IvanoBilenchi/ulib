@@ -14,10 +14,12 @@
 
 ULIB_BEGIN_DECLS
 
+bool ustring_utils_test(void);
 bool ustrbuf_test(void);
 bool ustring_test(void);
 
 #define ustring_tests                                                                               \
+    ustring_utils_test,                                                                             \
     ustrbuf_test,                                                                                   \
     ustring_test
 

@@ -12,6 +12,22 @@
 #include "ustring.h"
 #include "utest.h"
 
+bool ustring_utils_test(void) {
+    char const str[] = "12345";
+    size_t const str_len = sizeof(str) - 1;
+
+    char *string = ulib_str_dup(str, str_len);
+    utest_assert_not_null(string);
+    utest_assert(string != str);
+    utest_assert(memcmp(string, str, str_len) == 0);
+    ulib_free(string);
+
+    size_t const len = ulib_str_flength("%s", str);
+    utest_assert(len == str_len);
+
+    return true;
+}
+
 bool ustrbuf_test(void) {
     UStrBuf buf = ustrbuf_init();
     uvec_ret ret;
