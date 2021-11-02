@@ -86,8 +86,8 @@ bool uvec_test_base(void) {
 
 bool uvec_test_capacity(void) {
     UVec(int) *v = uvec_alloc(int);
-    uvec_uint const capacity = 5;
-    uvec_uint const expand = 3;
+    ulib_uint const capacity = 5;
+    ulib_uint const expand = 3;
 
     uvec_ret ret = uvec_reserve_capacity(int, v, capacity);
     utest_assert(ret == UVEC_OK);
@@ -207,7 +207,7 @@ bool uvec_test_higher_order(void) {
     uvec_ret ret = uvec_append_items(int, v, 3, 2, 4, 1);
     utest_assert(ret == UVEC_OK);
 
-    uvec_uint idx;
+    ulib_uint idx;
     uvec_first_index_where(int, v, idx, _vec_item > 3);
     utest_assert(idx == 2);
 
@@ -221,7 +221,7 @@ bool uvec_test_higher_order(void) {
 bool uvec_test_comparable(void) {
     UVec(int) *v = uvec_alloc(int);
 
-    uvec_uint idx = uvec_insertion_index_sorted(int, v, 0);
+    ulib_uint idx = uvec_insertion_index_sorted(int, v, 0);
     utest_assert(idx == 0);
 
     UVec(int) *values = uvec_alloc(int);

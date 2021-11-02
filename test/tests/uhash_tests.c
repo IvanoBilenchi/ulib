@@ -15,7 +15,7 @@
 UHASH_INIT(IntHash, uint32_t, uint32_t, uhash_int32_hash, uhash_identical)
 UHASH_INIT_PI(IntHashPi, uint32_t, uint32_t, NULL, NULL)
 
-static uhash_uint int32_hash(uint32_t num) {
+static ulib_uint int32_hash(uint32_t num) {
     return uhash_int32_hash(num);
 }
 
@@ -31,7 +31,7 @@ bool uhash_test_memory(void) {
     utest_assert(ret == UHASH_INSERTED);
     utest_assert(uhash_count(set) == 1);
 
-    uhash_uint buckets = set->n_buckets;
+    ulib_uint buckets = set->n_buckets;
     ret = uhash_resize(IntHash, set, 200);
     utest_assert(ret == UHASH_OK);
     utest_assert(set->n_buckets > buckets);
@@ -64,7 +64,7 @@ bool uhash_test_base(void) {
     utest_assert(uhash_count(set) == MAX_VAL);
 
     for (uint32_t i = 0; i < MAX_VAL; ++i) {
-        uhash_uint idx = uhash_get(IntHash, set, i);
+        ulib_uint idx = uhash_get(IntHash, set, i);
         utest_assert(idx != UHASH_INDEX_MISSING);
         utest_assert(uhash_exists(set, idx));
     }
@@ -72,7 +72,7 @@ bool uhash_test_base(void) {
     utest_assert(uhash_get(IntHash, set, 200) == UHASH_INDEX_MISSING);
 
     for (uint32_t i = 0; i < MAX_VAL; ++i) {
-        uhash_uint idx = uhash_get(IntHash, set, i);
+        ulib_uint idx = uhash_get(IntHash, set, i);
         uhash_delete(IntHash, set, idx);
         utest_assert_false(uhash_exists(set, idx));
         utest_assert(uhash_get(IntHash, set, i) == UHASH_INDEX_MISSING);

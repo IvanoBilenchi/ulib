@@ -21,5 +21,6 @@
 #include "ucompat.h"
 #include "ualloc.h"
 #include "ubase.h"
+#include "umacros.h"
 
 #endif // USTD_H
