@@ -74,8 +74,8 @@ bool uistream_tests(void) {
     for (unsigned i = 0; i < 2; ++i) {
         ret = uistream_read(&stream, buf, test_size * 2, &read);
         utest_assert(ret == USTREAM_OK);
-        utest_assert(read == test_size);
-        utest_assert(memcmp(buf, contents, test_size) == 0);
+        utest_assert_uint(read, ==, test_size);
+        utest_assert_buf(buf, ==, contents, test_size);
 
         ret = uistream_reset(&stream);
         utest_assert(ret == USTREAM_OK);
@@ -91,8 +91,8 @@ bool uistream_tests(void) {
         memset(buf, 0, test_size);
         ret = uistream_read(&stream, buf, test_size / 2, &read);
         utest_assert(ret == USTREAM_OK);
-        utest_assert(read == test_size / 2);
-        utest_assert(memcmp(buf, contents, test_size / 2) == 0);
+        utest_assert_uint(read, ==, test_size / 2);
+        utest_assert_buf(buf, ==, contents, test_size / 2);
 
         ret = uistream_reset(&stream);
         utest_assert(ret == USTREAM_OK);
@@ -119,7 +119,7 @@ bool uostream_tests(void) {
 
     ret = uostream_write(&stream, contents, test_size, &written);
     utest_assert(ret == USTREAM_OK);
-    utest_assert(written == test_size);
+    utest_assert_uint(written, ==, test_size);
     ret = uostream_flush(&stream);
     utest_assert(ret == USTREAM_OK);
     ret = uostream_deinit(&stream);
@@ -127,16 +127,16 @@ bool uostream_tests(void) {
 
     size_t buf_size;
     char *buf = ustream_test_get_file_contents(USTREAM_OUTPUT_FILE, &buf_size);
-    utest_assert(buf);
-    utest_assert(buf_size == test_size);
-    utest_assert(memcmp(buf, contents, buf_size) == 0);
+    utest_assert_not_null(buf);
+    utest_assert_uint(buf_size, ==, test_size);
+    utest_assert_buf(buf, ==, contents, buf_size);
 
     ret = uostream_to_buf(&stream, buf, buf_size / 2);
     utest_assert(ret == USTREAM_OK);
 
     ret = uostream_write(&stream, contents, test_size, &written);
     utest_assert(ret == USTREAM_ERR_BOUNDS);
-    utest_assert(written == buf_size / 2);
+    utest_assert_uint(written, ==, buf_size / 2);
 
     ret = uostream_deinit(&stream);
     utest_assert(ret == USTREAM_OK);
@@ -150,8 +150,8 @@ bool uostream_tests(void) {
 
     ret = uostream_writef(&stream, &written, "%s", string);
     utest_assert(ret == USTREAM_OK);
-    utest_assert(written == string_length);
-    utest_assert(memcmp(buf, string, string_length) == 0);
+    utest_assert_uint(written, ==, string_length);
+    utest_assert_buf(buf, ==, string, string_length);
 
     ret = uostream_deinit(&stream);
     utest_assert(ret == USTREAM_OK);
@@ -161,15 +161,15 @@ bool uostream_tests(void) {
 
     ret = uostream_writef(&stream, &written, "%s", string);
     utest_assert(ret == USTREAM_OK);
-    utest_assert(written == string_length);
+    utest_assert_uint(written, ==, string_length);
 
     ret = uostream_deinit(&stream);
     utest_assert(ret == USTREAM_OK);
 
     ulib_free(contents);
     contents = ustream_test_get_file_contents(USTREAM_OUTPUT_FILE, &written);
-    utest_assert(written == string_length);
-    utest_assert(memcmp(contents, string, string_length) == 0);
+    utest_assert_uint(written, ==, string_length);
+    utest_assert_buf(contents, ==, string, string_length);
 
     ulib_free(buf);
     ulib_free(contents);

@@ -19,7 +19,7 @@ bool uflags_test_16(void);
 bool uflags_test_32(void);
 bool uflags_test_64(void);
 
-#define uflags_tests                                                                                \
+#define UFLAGS_TESTS                                                                                \
     uflags_test_8,                                                                                  \
     uflags_test_16,                                                                                 \
     uflags_test_32,                                                                                 \

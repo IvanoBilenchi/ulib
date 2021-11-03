@@ -15,12 +15,12 @@
 
 #define uvec_assert_elements(T, vec, ...) do {                                                      \
     T const result[] = { __VA_ARGS__ };                                                             \
-    utest_assert((vec)->count == ulib_array_count(result));                                         \
-    utest_assert(memcmp((vec)->storage, result, sizeof(result)) == 0);                              \
+    utest_assert_uint((vec)->count, ==, ulib_array_count(result));                                  \
+    utest_assert_buf((vec)->storage, ==, result, sizeof(result));                                   \
 } while (0)
 
 #define uvec_assert_elements_array(T, vec, arr) \
-    utest_assert(memcmp((vec)->storage, arr, (vec)->count) == 0)
+    utest_assert_buf((vec)->storage, ==, arr, (vec)->count)
 
 /// @name Type definitions
 
@@ -48,12 +48,12 @@ bool uvec_test_base(void) {
     utest_assert_false(uvec_is_empty(v));
     uvec_assert_elements(int, v, 3, 2, 4, 1);
 
-    utest_assert(uvec_get(v, 2) == 4);
-    utest_assert(uvec_first(v) == 3);
-    utest_assert(uvec_last(v) == 1);
+    utest_assert_int(uvec_get(v, 2), ==, 4);
+    utest_assert_int(uvec_first(v), ==, 3);
+    utest_assert_int(uvec_last(v), ==, 1);
 
     uvec_set(v, 2, 5);
-    utest_assert(uvec_get(v, 2) == 5);
+    utest_assert_int(uvec_get(v, 2), ==, 5);
 
     ret = uvec_push(int, v, 4);
     utest_assert(ret == UVEC_OK);
@@ -91,22 +91,22 @@ bool uvec_test_capacity(void) {
 
     uvec_ret ret = uvec_reserve_capacity(int, v, capacity);
     utest_assert(ret == UVEC_OK);
-    utest_assert(v->allocated >= capacity);
+    utest_assert_uint(v->allocated, >=, capacity);
 
     ret = uvec_expand(int, v, expand);
     utest_assert(ret == UVEC_OK);
-    utest_assert(v->allocated >= capacity + expand);
+    utest_assert_uint(v->allocated, >=, capacity + expand);
 
     ret = uvec_push(int, v, 2);
     utest_assert(ret == UVEC_OK);
-    utest_assert(v->allocated >= uvec_count(v));
+    utest_assert_uint(v->allocated, >=, uvec_count(v));
 
     uvec_remove_all(int, v);
-    utest_assert(uvec_count(v) == 0);
+    utest_assert_uint(uvec_count(v), ==, 0);
 
     ret = uvec_shrink(int, v);
     utest_assert(ret == UVEC_OK);
-    utest_assert(v->allocated == 0);
+    utest_assert_uint(v->allocated, ==, 0);
 
     uvec_free(int, v);
     return true;
@@ -148,8 +148,8 @@ bool uvec_test_contains(void) {
     uvec_ret ret = uvec_append_items(int, v1, 3, 2, 5, 4, 5, 1);
     utest_assert(ret == UVEC_OK);
 
-    utest_assert(uvec_index_of(int, v1, 5) == 2);
-    utest_assert(uvec_index_of_reverse(int, v1, 5) == 4);
+    utest_assert_uint(uvec_index_of(int, v1, 5), ==, 2);
+    utest_assert_uint(uvec_index_of_reverse(int, v1, 5), ==, 4);
     utest_assert_false(uvec_index_is_valid(v1, uvec_index_of(int, v1, 6)));
 
     utest_assert(uvec_contains(int, v1, 2));
@@ -209,7 +209,7 @@ bool uvec_test_higher_order(void) {
 
     ulib_uint idx;
     uvec_first_index_where(int, v, idx, _vec_item > 3);
-    utest_assert(idx == 2);
+    utest_assert_uint(idx, ==, 2);
 
     uvec_first_index_where(int, v, idx, _vec_item > 5);
     utest_assert_false(uvec_index_is_valid(v, idx));
@@ -221,8 +221,7 @@ bool uvec_test_higher_order(void) {
 bool uvec_test_comparable(void) {
     UVec(int) *v = uvec_alloc(int);
 
-    ulib_uint idx = uvec_insertion_index_sorted(int, v, 0);
-    utest_assert(idx == 0);
+    utest_assert_uint(uvec_insertion_index_sorted(int, v, 0), ==, 0);
 
     UVec(int) *values = uvec_alloc(int);
     uvec_ret ret = uvec_append_items(int, values, 3, 2, 2, 2, 4, 1, 5, 6, 5);
@@ -230,8 +229,8 @@ bool uvec_test_comparable(void) {
 
     ret = uvec_append(int, v, values);
     utest_assert(ret == UVEC_OK);
-    utest_assert(uvec_index_of_min(int, v) == 5);
-    utest_assert(uvec_index_of_max(int, v) == 7);
+    utest_assert_uint(uvec_index_of_min(int, v), ==, 5);
+    utest_assert_uint(uvec_index_of_max(int, v), ==, 7);
 
     uvec_sort_range(int, v, 3, 3);
     uvec_assert_elements(int, v, 3, 2, 2, 1, 2, 4, 5, 6, 5);
@@ -256,26 +255,26 @@ bool uvec_test_comparable(void) {
     uvec_remove(int, v, 4);
     uvec_assert_elements(int, v, 1, 2, 3, 5, 6);
 
-    idx = uvec_insertion_index_sorted(int, v, 2);
-    utest_assert(idx == 1);
+    ulib_uint idx = uvec_insertion_index_sorted(int, v, 2);
+    utest_assert_uint(idx, ==, 1);
 
     uvec_insert_sorted(int, v, 0, &idx);
     uvec_assert_elements(int, v, 0, 1, 2, 3, 5, 6);
-    utest_assert(idx == 0);
+    utest_assert_uint(idx, ==, 0);
 
     uvec_insert_sorted(int, v, 3, &idx);
     uvec_assert_elements(int, v, 0, 1, 2, 3, 3, 5, 6);
-    utest_assert(idx == 3);
+    utest_assert_uint(idx, ==, 3);
 
     ret = uvec_insert_sorted_unique(int, v, 7, &idx);
     uvec_assert_elements(int, v, 0, 1, 2, 3, 3, 5, 6, 7);
     utest_assert(ret == UVEC_OK);
-    utest_assert(idx == 7);
+    utest_assert_uint(idx, ==, 7);
 
     ret = uvec_insert_sorted_unique(int, v, 3, &idx);
     uvec_assert_elements(int, v, 0, 1, 2, 3, 3, 5, 6, 7);
     utest_assert(ret == UVEC_NO);
-    utest_assert(idx == 3);
+    utest_assert_uint(idx, ==, 3);
 
     uvec_free(int, v);
     uvec_free(int, values);

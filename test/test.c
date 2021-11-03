@@ -6,9 +6,9 @@
 #include "uvec_tests.h"
 
 utest_main({
-    utest_run("uflags", uflags_tests);
-    utest_run("uhash", uhash_tests);
-    utest_run("ustream", ustream_tests);
-    utest_run("ustring", ustring_tests);
-    utest_run("uvec", uvec_tests);
+    utest_run("uflags", UFLAGS_TESTS);
+    utest_run("uhash", UHASH_TESTS);
+    utest_run("ustream", USTREAM_TESTS);
+    utest_run("ustring", USTRING_TESTS);
+    utest_run("uvec", UVEC_TESTS);
 })

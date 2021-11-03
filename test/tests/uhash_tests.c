@@ -29,22 +29,22 @@ bool uhash_test_memory(void) {
 
     uhash_ret ret = uhash_put(IntHash, set, 0, NULL);
     utest_assert(ret == UHASH_INSERTED);
-    utest_assert(uhash_count(set) == 1);
+    utest_assert_uint(uhash_count(set), ==, 1);
 
     ulib_uint buckets = set->n_buckets;
     ret = uhash_resize(IntHash, set, 200);
     utest_assert(ret == UHASH_OK);
-    utest_assert(set->n_buckets > buckets);
+    utest_assert_uint(set->n_buckets, >, buckets);
 
     buckets = set->n_buckets;
     ret = uhash_resize(IntHash, set, 100);
     utest_assert(ret == UHASH_OK);
-    utest_assert(set->n_buckets < buckets);
+    utest_assert_uint(set->n_buckets, <, buckets);
 
     buckets = set->n_buckets;
     uhash_clear(IntHash, set);
-    utest_assert(set->n_buckets == buckets);
-    utest_assert(uhash_count(set) == 0);
+    utest_assert_uint(set->n_buckets, ==, buckets);
+    utest_assert_uint(uhash_count(set), ==, 0);
 
     uhash_free(IntHash, set);
     return true;
@@ -55,13 +55,13 @@ bool uhash_test_base(void) {
     utest_assert_not_null(set);
 
     utest_assert(uhash_get(IntHash, set, 0) == UHASH_INDEX_MISSING);
-    utest_assert(uhash_count(set) == 0);
+    utest_assert_uint(uhash_count(set), ==, 0);
 
     for (uint32_t i = 0; i < MAX_VAL; ++i) {
         utest_assert(uhash_put(IntHash, set, i, NULL) == UHASH_INSERTED);
     }
 
-    utest_assert(uhash_count(set) == MAX_VAL);
+    utest_assert_uint(uhash_count(set), ==, MAX_VAL);
 
     for (uint32_t i = 0; i < MAX_VAL; ++i) {
         ulib_uint idx = uhash_get(IntHash, set, i);
@@ -78,7 +78,7 @@ bool uhash_test_base(void) {
         utest_assert(uhash_get(IntHash, set, i) == UHASH_INDEX_MISSING);
     }
 
-    utest_assert(uhash_count(set) == 0);
+    utest_assert_uint(uhash_count(set), ==, 0);
 
     uhash_free(IntHash, set);
     return true;
@@ -100,14 +100,14 @@ bool uhash_test_map(void) {
 
     uint32_t existing_val;
     utest_assert(uhmap_set(IntHash, map, 0, 1, &existing_val) == UHASH_PRESENT);
-    utest_assert(existing_val == 0);
+    utest_assert_uint(existing_val, ==, 0);
 
     utest_assert(uhmap_add(IntHash, map, 0, 1, &existing_val) == UHASH_PRESENT);
-    utest_assert(existing_val == 1);
+    utest_assert_uint(existing_val, ==, 1);
 
     utest_assert(uhmap_replace(IntHash, map, 0, 0, &existing_val));
-    utest_assert(uhmap_get(IntHash, map, 0, UINT32_MAX) == 0);
-    utest_assert(existing_val == 1);
+    utest_assert_uint(uhmap_get(IntHash, map, 0, UINT32_MAX), ==, 0);
+    utest_assert_uint(existing_val, ==, 1);
 
     utest_assert(uhmap_add(IntHash, map, MAX_VAL, MAX_VAL, &existing_val) == UHASH_INSERTED);
     utest_assert(uhmap_remove(IntHash, map, MAX_VAL));
@@ -115,8 +115,8 @@ bool uhash_test_map(void) {
     for (uint32_t i = 0; i < MAX_VAL; ++i) {
         uint32_t existing_key;
         utest_assert(uhmap_pop(IntHash, map, i, &existing_key, &existing_val));
-        utest_assert(existing_key == i);
-        utest_assert(existing_val == i);
+        utest_assert_uint(existing_key, ==, i);
+        utest_assert_uint(existing_val, ==, i);
     }
 
     uhash_free(IntHash, map);
@@ -132,12 +132,12 @@ bool uhash_test_set(void) {
     }
 
     utest_assert(uhset_insert(IntHash, set, 0) == UHASH_PRESENT);
-    utest_assert(uhash_count(set) == MAX_VAL);
+    utest_assert_uint(uhash_count(set), ==, MAX_VAL);
 
     for (uint32_t i = 0; i < MAX_VAL; ++i) {
         uint32_t existing;
         utest_assert(uhset_insert_get_existing(IntHash, set, i, &existing) == UHASH_PRESENT);
-        utest_assert(existing == i);
+        utest_assert_uint(existing, ==, i);
     }
 
     uint32_t elements[MAX_VAL + 1];
@@ -155,7 +155,7 @@ bool uhash_test_set(void) {
     for (uint32_t i = 0; i < MAX_VAL; ++i) {
         uint32_t existing;
         utest_assert(uhset_pop(IntHash, set, i, &existing));
-        utest_assert(existing == i);
+        utest_assert_uint(existing, ==, i);
     }
 
     UHash(IntHash) *other_set = uhset_alloc(IntHash);
@@ -190,15 +190,15 @@ bool uhash_test_set(void) {
     uhash_free(IntHash, other_set);
 
     uint32_t element = uhset_get_any(IntHash, set, MAX_VAL);
-    utest_assert(element != MAX_VAL);
+    utest_assert_uint(element, !=, MAX_VAL);
 
     uint32_t replaced;
     utest_assert(uhset_replace(IntHash, set, element, &replaced));
-    utest_assert(replaced == element);
+    utest_assert_uint(replaced, ==, element);
 
     uhash_clear(IntHash, set);
     element = uhset_get_any(IntHash, set, MAX_VAL);
-    utest_assert(element == MAX_VAL);
+    utest_assert_uint(element, ==, MAX_VAL);
 
     uhash_free(IntHash, set);
     return true;
@@ -214,14 +214,14 @@ bool uhash_test_per_instance(void) {
 
     uint32_t existing_val;
     utest_assert(uhmap_set(IntHashPi, map, 0, 1, &existing_val) == UHASH_PRESENT);
-    utest_assert(existing_val == 0);
+    utest_assert_uint(existing_val, ==, 0);
 
     utest_assert(uhmap_add(IntHashPi, map, 0, 1, &existing_val) == UHASH_PRESENT);
-    utest_assert(existing_val == 1);
+    utest_assert_uint(existing_val, ==, 1);
 
     utest_assert(uhmap_replace(IntHashPi, map, 0, 0, &existing_val));
-    utest_assert(uhmap_get(IntHashPi, map, 0, UINT32_MAX) == 0);
-    utest_assert(existing_val == 1);
+    utest_assert_uint(uhmap_get(IntHashPi, map, 0, UINT32_MAX), ==, 0);
+    utest_assert_uint(existing_val, ==, 1);
 
     utest_assert(uhmap_add(IntHashPi, map, MAX_VAL, MAX_VAL, &existing_val) == UHASH_INSERTED);
     utest_assert(uhmap_remove(IntHashPi, map, MAX_VAL));
@@ -229,8 +229,8 @@ bool uhash_test_per_instance(void) {
     for (uint32_t i = 0; i < MAX_VAL; ++i) {
         uint32_t existing_key;
         utest_assert(uhmap_pop(IntHashPi, map, i, &existing_key, &existing_val));
-        utest_assert(existing_key == i);
-        utest_assert(existing_val == i);
+        utest_assert_uint(existing_key, ==, i);
+        utest_assert_uint(existing_val, ==, i);
     }
 
     uhash_free(IntHashPi, map);

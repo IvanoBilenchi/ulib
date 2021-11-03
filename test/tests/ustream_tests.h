@@ -17,7 +17,7 @@ ULIB_BEGIN_DECLS
 bool uistream_tests(void);
 bool uostream_tests(void);
 
-#define ustream_tests                                                                               \
+#define USTREAM_TESTS                                                                               \
     uistream_tests,                                                                                 \
     uostream_tests
 

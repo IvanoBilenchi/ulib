@@ -87,6 +87,111 @@ ULIB_BEGIN_DECLS
     utest_assert_wrap(EXP,, "\"" #EXP "\" must not be NULL.")
 
 /**
+ * Assert that "A OP B" must be true, where `A` and `B` are integers.
+ *
+ * @param A [long long] First integer.
+ * @param OP Comparison operator.
+ * @param B [long long] Second integer.
+ *
+ * @public
+ */
+#define utest_assert_int(A, OP, B) do {                                                             \
+    long long utest_A = (long long)(A), utest_B = (long long)(B);                                   \
+    utest_assert_wrap(utest_A OP utest_B,,                                                          \
+                      "\"" #A "\" must be " #OP " \"%lld\", found \"%lld\".", utest_B, utest_A);    \
+} while (0)
+
+/**
+ * Assert that "A OP B" must be true, where `A` and `B` are unsigned integers.
+ *
+ * @param A [unsigned long long] First integer.
+ * @param OP Comparison operator.
+ * @param B [unsigned long long] Second integer.
+ *
+ * @public
+ */
+#define utest_assert_uint(A, OP, B) do {                                                            \
+    unsigned long long utest_A = (unsigned long long)(A), utest_B = (unsigned long long)(B);        \
+    utest_assert_wrap(utest_A OP utest_B,,                                                          \
+                      "\"" #A "\" must be " #OP " \"%llu\", found \"%llu\".", utest_B, utest_A);    \
+} while (0)
+
+/**
+ * Assert that "A OP B" must be true, where `A` and `B` are floating point numbers.
+ *
+ * @param A [double] First float.
+ * @param OP Comparison operator.
+ * @param B [double] Second float.
+ *
+ * @public
+ */
+#define utest_assert_float(A, OP, B) do {                                                           \
+    double utest_A = (double)(A), utest_B = (double)(B);                                            \
+    utest_assert_wrap(utest_A OP utest_B,,                                                          \
+                      "\"" #A "\" must be " #OP " \"%f\", found \"%f\".", utest_B, utest_A);        \
+} while (0)
+
+/**
+ * Assert that "A OP B" must be true, where `A` and `B` are pointers.
+ *
+ * @param A [void *] First pointer.
+ * @param OP Comparison operator.
+ * @param B [void *] Second pointer.
+ *
+ * @public
+ */
+#define utest_assert_ptr(A, OP, B) do {                                                             \
+    void *utest_A = (void *)(A), *utest_B = (void *)(B);                                            \
+    utest_assert_wrap(utest_A OP utest_B,,                                                          \
+                      "\"" #A "\" must be " #OP " \"%p\", found \"%p\".", utest_B, utest_A);        \
+} while (0)
+
+/**
+ * Assert that "strcmp(A, B) OP 0" must be true.
+ *
+ * @param A [char const *] First string.
+ * @param OP Comparison operator.
+ * @param B [char const *] Second string.
+ *
+ * @public
+ */
+#define utest_assert_string(A, OP, B) do {                                                          \
+    char const *utest_A = (A), *utest_B = (B);                                                      \
+    utest_assert_wrap(strcmp(utest_A, utest_B) OP 0,,                                               \
+                      "\"" #A "\" must be " #OP " \"%s\", found \"%s\".", utest_B, utest_A);        \
+} while (0)
+
+/**
+ * Assert that "memcmp(A, B, SIZE) OP 0" must be true.
+ *
+ * @param A [void *] First buffer.
+ * @param OP Comparison operator.
+ * @param B [void *] Second buffer.
+ * @param SIZE [size_t] Buffer size.
+ *
+ * @public
+ */
+#define utest_assert_buf(A, OP, B, SIZE)                                                            \
+    utest_assert_wrap(memcmp(A, B, SIZE) OP 0,,                                                     \
+                      "Contents of \"" #A "\" must be " #OP " to those of \"" #B "\".")
+
+/**
+ * Assert that "ustring_compare(A, B) OP 0" must be true.
+ *
+ * @param A [UString] First string.
+ * @param OP Comparison operator.
+ * @param B [UString] Second string.
+ *
+ * @public
+ */
+#define utest_assert_ustring(A, OP, B) do {                                                         \
+    UString utest_A = (A), utest_B = (B);                                                           \
+    utest_assert_wrap(ustring_compare(utest_A, utest_B) OP 0,,                                      \
+                      "\"" #A "\" must be " #OP " \"%s\", found \"%s\".",                           \
+                      utest_B.cstring, utest_A.cstring);                                            \
+} while (0)
+
+/**
  * Assert that the specified expression must be true.
  * Abort the tests if it is false.
  *

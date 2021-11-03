@@ -22,7 +22,7 @@ bool uvec_test_qsort_reverse(void);
 bool uvec_test_higher_order(void);
 bool uvec_test_comparable(void);
 
-#define uvec_tests                                                                                  \
+#define UVEC_TESTS                                                                                  \
     uvec_test_base,                                                                                 \
     uvec_test_capacity,                                                                             \
     uvec_test_equality,                                                                             \
