@@ -29,16 +29,10 @@
  * Unsigned integer type.
  *
  * @deprecated Use ulib_uint instead.
- *
- * @public @related UHash
  */
 #define uhash_uint ulib_uint
 
-/**
- * Return codes.
- *
- * @public @memberof UHash
- */
+/// Return codes.
 typedef enum uhash_ret {
 
     /**

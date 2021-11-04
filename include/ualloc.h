@@ -13,6 +13,13 @@
 #define UALLOC_H
 
 /**
+ * Declares the default allocator and allows specifying custom allocators.
+ *
+ * @defgroup alloc Allocation
+ * @{
+ */
+
+/**
  * Allocates size bytes of uninitialized storage.
  *
  * @param size [size_t] Number of bytes to allocate.
@@ -71,5 +78,7 @@
  * @public
  */
 #define ulib_alloc(ptr) ulib_malloc(sizeof(*(ptr)))
+
+/// @}
 
 #endif // UALLOC_H

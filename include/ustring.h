@@ -296,7 +296,7 @@ ulib_uint ustring_hash(UString string);
  * @param length Length of the string to duplicate.
  * @return Duplicated string.
  *
- * @note You are responsible for deallocating the returned string via ulib_free.
+ * @note You are responsible for deallocating the returned string via `ulib_free`.
  *
  * @public @related UString
  */

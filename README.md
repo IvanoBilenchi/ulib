@@ -1,27 +1,16 @@
-## uLib - a modern, generic C library.
+# uLib
 
-`uLib` is a modern C library featuring generic and type-safe data structures.
-
-### Usage
-
-If you are using [CMake](https://cmake.org) as your build system, you can add `uLib` as
-a subproject, then link against the `ulib` target.
+*uLib* is a modern C library featuring generic and type-safe data structures.
 
 ### Documentation
 
-Documentation for the project is provided in form of docstrings in public header files.
-You can also generate HTML docs via CMake, though you will also need
-[Doxygen](http://www.doxygen.nl). For usage examples, refer to the tests of each data structure.
+Documentation and build instructions are available [online][docs].
 
-### CMake targets
+### Copyright and License
 
-- `ulib`: library target, which you can link against.
-- `ulib-docs`: generates documentation via Doxygen.
+Copyright (c) 2018-2021 [Ivano Bilenchi][home]
 
-### Author
+uLib is distributed under the [MIT License](LICENSE).
 
-[Ivano Bilenchi](https://ivanobilenchi.com)
-
-### License
-
-`uLib` is available under the MIT license. See the [LICENSE](./LICENSE) file for more info.
+[docs]: https://ivanobilenchi.com/docs/ulib
+[home]: https://ivanobilenchi.com

@@ -29,16 +29,10 @@ ULIB_BEGIN_DECLS
  * Unsigned integer type.
  *
  * @deprecated Use ulib_uint instead.
- *
- * @public @related UVec
  */
 #define uvec_uint ulib_uint
 
-/**
- * Return codes.
- *
- * @public @memberof UVec
- */
+/// Return codes.
 typedef enum uvec_ret {
 
     /**

@@ -1,6 +1,7 @@
 # Files and directories
 
 set(README_FILE "../README.md")
+set(SPHINX_INPUT_DIRECTORY "${ULIB_DOCS_DIR}")
 
 # Doxygen configuration
 
@@ -13,18 +14,34 @@ set(DOXYGEN_TYPEDEF_HIDES_STRUCT YES)
 set(DOXYGEN_FORCE_LOCAL_INCLUDES YES)
 set(DOXYGEN_MAX_INITIALIZER_LINES 0)
 set(DOXYGEN_WARN_NO_PARAMDOC YES)
+set(DOXYGEN_WARN_AS_ERROR YES)
 set(DOXYGEN_EXCLUDE_SYMBOLS "P_*" "p_*")
 set(DOXYGEN_USE_MDFILE_AS_MAINPAGE "${README_FILE}")
 set(DOXYGEN_ALPHABETICAL_INDEX NO)
 set(DOXYGEN_IGNORE_PREFIX "U" "u")
+set(DOXYGEN_GENERATE_XML YES)
 set(DOXYGEN_MACRO_EXPANSION YES)
-set(DOXYGEN_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
+set(DOXYGEN_INCLUDE_PATH ${ULIB_PUBLIC_HEADERS_DIR})
+set(DOXYGEN_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/doxygen")
+set(DOXYGEN_XML_OUTPUT_DIRECTORY "${DOXYGEN_OUTPUT_DIRECTORY}/xml")
 
-# Documentation target
+# Documentation targets
 
 find_package(Doxygen)
 
 if(DOXYGEN_FOUND)
-    doxygen_add_docs(ulib-docs "${README_FILE}" ${ULIB_PUBLIC_HEADERS}
-                     COMMENT "Generate the documentation")
+    find_package(Sphinx)
+    set(DOCS_TARGET_NAME ulib-docs)
+
+    if(SPHINX_FOUND)
+        set(DOXYGEN_TARGET_NAME ulib-doxygen)
+        sphinx_add_docs("${DOCS_TARGET_NAME}" "${SPHINX_INPUT_DIRECTORY}" ARGS -W
+                        COMMENT "Generate documentation via Sphinx")
+        add_dependencies("${DOCS_TARGET_NAME}" "${DOXYGEN_TARGET_NAME}")
+    else()
+        set(DOXYGEN_TARGET_NAME "${DOCS_TARGET_NAME}")
+    endif()
+
+    doxygen_add_docs("${DOXYGEN_TARGET_NAME}" ${ULIB_PUBLIC_HEADERS}
+                     COMMENT "Generate documentation via Doxygen")
 endif()

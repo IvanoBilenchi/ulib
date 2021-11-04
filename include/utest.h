@@ -18,6 +18,13 @@
 ULIB_BEGIN_DECLS
 
 /**
+ * Essential test utilities.
+ *
+ * @defgroup test UTest
+ * @{
+ */
+
+/**
  * Defines the main test function.
  *
  * @param CODE Code to execute, generally a sequence of utest_run statements.
@@ -87,7 +94,7 @@ ULIB_BEGIN_DECLS
     utest_assert_wrap(EXP,, "\"" #EXP "\" must not be NULL.")
 
 /**
- * Assert that "A OP B" must be true, where `A` and `B` are integers.
+ * Assert that `A OP B` must be true, where `A` and `B` are integers.
  *
  * @param A [long long] First integer.
  * @param OP Comparison operator.
@@ -102,7 +109,7 @@ ULIB_BEGIN_DECLS
 } while (0)
 
 /**
- * Assert that "A OP B" must be true, where `A` and `B` are unsigned integers.
+ * Assert that `A OP B` must be true, where `A` and `B` are unsigned integers.
  *
  * @param A [unsigned long long] First integer.
  * @param OP Comparison operator.
@@ -117,7 +124,7 @@ ULIB_BEGIN_DECLS
 } while (0)
 
 /**
- * Assert that "A OP B" must be true, where `A` and `B` are floating point numbers.
+ * Assert that `A OP B` must be true, where `A` and `B` are floating point numbers.
  *
  * @param A [double] First float.
  * @param OP Comparison operator.
@@ -132,7 +139,7 @@ ULIB_BEGIN_DECLS
 } while (0)
 
 /**
- * Assert that "A OP B" must be true, where `A` and `B` are pointers.
+ * Assert that `A OP B` must be true, where `A` and `B` are pointers.
  *
  * @param A [void *] First pointer.
  * @param OP Comparison operator.
@@ -147,7 +154,7 @@ ULIB_BEGIN_DECLS
 } while (0)
 
 /**
- * Assert that "strcmp(A, B) OP 0" must be true.
+ * Assert that `strcmp(A, B) OP 0` must be true.
  *
  * @param A [char const *] First string.
  * @param OP Comparison operator.
@@ -162,7 +169,7 @@ ULIB_BEGIN_DECLS
 } while (0)
 
 /**
- * Assert that "memcmp(A, B, SIZE) OP 0" must be true.
+ * Assert that `memcmp(A, B, SIZE) OP 0` must be true.
  *
  * @param A [void *] First buffer.
  * @param OP Comparison operator.
@@ -176,7 +183,7 @@ ULIB_BEGIN_DECLS
                       "Contents of \"" #A "\" must be " #OP " to those of \"" #B "\".")
 
 /**
- * Assert that "ustring_compare(A, B) OP 0" must be true.
+ * Assert that `ustring_compare(A, B) OP 0` must be true.
  *
  * @param A [UString] First string.
  * @param OP Comparison operator.
@@ -241,6 +248,8 @@ bool utest_leak_start(void);
  */
 ULIB_PUBLIC
 bool utest_leak_end(void);
+
+/// @}
 
 // Private API
 

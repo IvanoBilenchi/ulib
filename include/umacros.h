@@ -15,6 +15,13 @@
 #define UMACROS_H
 
 /**
+ * Miscellaneous macros.
+ *
+ * @defgroup macros Macros
+ * @{
+ */
+
+/**
  * Returns the minimum between two numbers.
  *
  * @param a First number.
@@ -115,5 +122,7 @@
     #define ulib_vla_init(T, name, count) T name[ulib_max(count, 1)]
     #define ulib_vla_deinit(name) do {} while (0)
 #endif
+
+/// @}
 
 #endif // UMACROS_H

@@ -5,6 +5,7 @@
 # CMake
 
 cmake_minimum_required(VERSION 3.13)
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake" "${CMAKE_MODULE_PATH}")
 
 # Project
 
@@ -14,6 +15,8 @@ set(ULIB_VERSION_PATCH 0)
 set(ULIB_VERSION "${ULIB_VERSION_MAJOR}.${ULIB_VERSION_MINOR}.${ULIB_VERSION_PATCH}")
 
 set(ULIB_AUTHOR "Ivano Bilenchi")
+set(ULIB_AUTHOR_URL "https://ivanobilenchi.com")
+set(ULIB_COPYRIGHT_YEAR "2018-2021")
 set(ULIB_GIT_URL "https://github.com/IvanoBilenchi/ulib")
 
 project(uLib

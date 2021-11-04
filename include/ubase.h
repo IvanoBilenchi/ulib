@@ -37,6 +37,8 @@ ULIB_BEGIN_DECLS
  * Maximum value of a ulib_uint variable.
  *
  * @def ULIB_UINT_MAX
+ *
+ * @related ulib_uint
  */
 
 /**
