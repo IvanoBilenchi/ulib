@@ -171,7 +171,7 @@ ustream_ret uistream_from_file(UIStream *stream, FILE *file);
  * @public @memberof UIStream
  */
 ULIB_PUBLIC
-ustream_ret uistream_from_buf(UIStream *stream, void *buf, size_t size);
+ustream_ret uistream_from_buf(UIStream *stream, void const *buf, size_t size);
 
 /// Models an output stream.
 typedef struct UOStream {
@@ -191,7 +191,7 @@ typedef struct UOStream {
      * @param[out] rcount Number of bytes actually written.
      * @return Return code.
      */
-    ustream_ret (*write)(void *ctx, void *buf, size_t count, size_t *written);
+    ustream_ret (*write)(void *ctx, void const *buf, size_t count, size_t *written);
 
     /**
      * Pointer to a function that writes a formatted string into the stream.
@@ -261,7 +261,7 @@ typedef struct UOStream {
  * @public @related UOStream
  */
 #define uostream_write_literal(stream, literal, written) \
-    uostream_write(stream, (char *)literal, sizeof(literal) - 1, written)
+    uostream_write(stream, literal, sizeof(literal) - 1, written)
 
 /**
  * Deinitializes the stream, releasing any reserved resource.
@@ -297,7 +297,7 @@ ustream_ret uostream_flush(UOStream *stream);
  * @public @memberof UOStream
  */
 ULIB_PUBLIC
-ustream_ret uostream_write(UOStream *stream, void *buf, size_t count, size_t *written);
+ustream_ret uostream_write(UOStream *stream, void const *buf, size_t count, size_t *written);
 
 /**
  * Writes a formatted string into the stream.

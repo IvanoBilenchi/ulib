@@ -22,7 +22,7 @@ static ustream_ret ustream_file_read(void *file, void *buf, size_t count, size_t
     return count != read_size && ferror(file) ? USTREAM_ERR_IO : USTREAM_OK;
 }
 
-static ustream_ret ustream_file_write(void *file, void *buf, size_t count, size_t *written) {
+static ustream_ret ustream_file_write(void *file, void const *buf, size_t count, size_t *written) {
     size_t const written_size = fwrite(buf, 1, count, file);
     if (written) *written = written_size;
     return count != written_size ? USTREAM_ERR_IO : USTREAM_OK;
@@ -69,7 +69,7 @@ static ustream_ret ustream_buf_read(void *ctx, void *buf, size_t count, size_t *
     return USTREAM_OK;
 }
 
-static ustream_ret ustream_buf_write(void *ctx, void *buf, size_t count, size_t *written) {
+static ustream_ret ustream_buf_write(void *ctx, void const *buf, size_t count, size_t *written) {
     UStreamBuf *ibuf = ctx;
     ustream_ret ret;
     size_t written_size;
@@ -127,7 +127,7 @@ static ustream_ret ustream_buf_free(void *buf) {
     return USTREAM_OK;
 }
 
-static ustream_ret ustream_strbuf_write(void *ctx, void *buf, size_t count, size_t *written) {
+static ustream_ret ustream_strbuf_write(void *ctx, void const *buf, size_t count, size_t *written) {
     UStrBuf *str_buf = ctx;
     ulib_uint start_count = uvec_count(str_buf);
     uvec_ret ret = ustrbuf_append_cstring(str_buf, buf, (ulib_uint)count);
@@ -175,12 +175,12 @@ ustream_ret uistream_from_file(UIStream *stream, FILE *file) {
     return state;
 }
 
-ustream_ret uistream_from_buf(UIStream *stream, void *buf, size_t size) {
+ustream_ret uistream_from_buf(UIStream *stream, void const *buf, size_t size) {
     UStreamBuf *raw_buf = ulib_alloc(raw_buf);
     ustream_ret state = raw_buf ? USTREAM_OK : USTREAM_ERR_MEM;
     *stream = (UIStream) { .state = state };
     if (state == USTREAM_OK) {
-        raw_buf->orig = raw_buf->cur = buf;
+        raw_buf->orig = raw_buf->cur = (void *)buf;
         raw_buf->size = size;
         stream->ctx = raw_buf;
         stream->read = ustream_buf_read;
@@ -198,7 +198,7 @@ ustream_ret uostream_flush(UOStream *stream) {
     return stream->state = stream->flush ? stream->flush(stream->ctx) : USTREAM_OK;
 }
 
-ustream_ret uostream_write(UOStream *stream, void *buf, size_t count, size_t *written) {
+ustream_ret uostream_write(UOStream *stream, void const *buf, size_t count, size_t *written) {
     if (!stream->state) stream->state = stream->write(stream->ctx, buf, count, written);
     return stream->state;
 }
