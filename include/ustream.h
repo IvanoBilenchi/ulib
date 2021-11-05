@@ -347,6 +347,8 @@ ustream_ret uostream_to_path(UOStream *stream, char const *path);
  * @param file The output file.
  * @return Return code.
  *
+ * @note You are responsible for closing the file.
+ *
  * @public @memberof UOStream
  */
 ULIB_PUBLIC
@@ -371,6 +373,9 @@ ustream_ret uostream_to_buf(UOStream *stream, void *buf, size_t size);
  * @param stream Output stream.
  * @param buf The output buffer.
  * @return Return code.
+ *
+ * @note If `buf` is NULL, the stream will allocate a new string buffer and set it as its context.
+ *       In this case, the string buffer will be deinitialized when calling `uostream_deinit`.
  *
  * @public @memberof UOStream
  */

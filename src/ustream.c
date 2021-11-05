@@ -144,6 +144,12 @@ static ustream_ret ustream_strbuf_writef(void *ctx, size_t *written,
     return ret == UVEC_OK ? USTREAM_OK : USTREAM_ERR_MEM;
 }
 
+static ustream_ret ustream_strbuf_free(void *ctx) {
+    ustrbuf_deinit(ctx);
+    ulib_free(ctx);
+    return USTREAM_OK;
+}
+
 ustream_ret uistream_deinit(UIStream *stream) {
     return stream->state = stream->free ? stream->free(stream->ctx) : USTREAM_OK;
 }
@@ -276,12 +282,22 @@ ustream_ret uostream_to_buf(UOStream *stream, void *buf, size_t size) {
 }
 
 ustream_ret uostream_to_strbuf(UOStream *stream, UStrBuf *buf) {
-    ustream_ret state = buf ? USTREAM_OK : USTREAM_ERR_MEM;
-    *stream = (UOStream) { .state = state };
-    if (state == USTREAM_OK) {
+    *stream = (UOStream) { .state = USTREAM_OK };
+
+    if (!buf) {
+        if ((buf = ulib_alloc(buf))) {
+            *buf = ustrbuf_init();
+            stream->free = ustream_strbuf_free;
+        } else {
+            stream->state = USTREAM_ERR_MEM;
+        }
+    }
+
+    if (stream->state == USTREAM_OK) {
         stream->ctx = buf;
         stream->write = ustream_strbuf_write;
         stream->writef = ustream_strbuf_writef;
     }
-    return state;
+
+    return stream->state;
 }
