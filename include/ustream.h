@@ -243,6 +243,19 @@ typedef struct UOStream {
 })
 
 /**
+ * Writes the specified string literal into the stream.
+ *
+ * @param stream [UOStream *] Output stream.
+ * @param literal [char const []] String literal.
+ * @param[out] written [size_t *] Number of bytes written.
+ * @return Return code.
+ *
+ * @public @related UOStream
+ */
+#define uostream_write_literal(stream, literal, written) \
+    uostream_write(stream, (char *)literal, sizeof(literal) - 1, written)
+
+/**
  * Deinitializes the stream, releasing any reserved resource.
  *
  * @param stream Output stream.

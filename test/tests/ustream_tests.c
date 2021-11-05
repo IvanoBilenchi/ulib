@@ -141,7 +141,7 @@ bool uostream_tests(void) {
     ret = uostream_deinit(&stream);
     utest_assert(ret == USTREAM_OK);
 
-    buf_size = 8;
+    buf_size = 16;
     ret = uostream_to_buf(&stream, buf, buf_size);
     utest_assert(ret == USTREAM_OK);
 
@@ -152,6 +152,11 @@ bool uostream_tests(void) {
     utest_assert(ret == USTREAM_OK);
     utest_assert_uint(written, ==, string_length);
     utest_assert_buf(buf, ==, string, string_length);
+
+    ret = uostream_write_literal(&stream, string, &written);
+    utest_assert(ret == USTREAM_OK);
+    utest_assert_uint(written, ==, string_length);
+    utest_assert_buf(buf + string_length, ==, string, string_length);
 
     ret = uostream_deinit(&stream);
     utest_assert(ret == USTREAM_OK);
