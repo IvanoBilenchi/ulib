@@ -41,6 +41,9 @@ typedef enum ustream_ret {
 /// Models an input stream.
 typedef struct UIStream {
 
+    /// Stream state.
+    ustream_ret state;
+
     /// Stream context, can be anything.
     void *ctx;
 
@@ -90,6 +93,7 @@ typedef struct UIStream {
  * @public @related UIStream
  */
 #define uistream_init(ctx, read_func, reset_func, free_func) ((UIStream){                           \
+    .state = USTREAM_OK,                                                                            \
     .ctx = (ctx),                                                                                   \
     .read = (read_func),                                                                            \
     .reset (reset_func),                                                                            \
@@ -130,7 +134,7 @@ ustream_ret uistream_reset(UIStream *stream);
  * @public @memberof UIStream
  */
 ULIB_PUBLIC
-ustream_ret uistream_read(UIStream const *stream, void *buf, size_t count, size_t *read);
+ustream_ret uistream_read(UIStream *stream, void *buf, size_t count, size_t *read);
 
 /**
  * Initializes a stream that reads from the file at the specified path.
@@ -171,6 +175,9 @@ ustream_ret uistream_from_buf(UIStream *stream, void *buf, size_t size);
 
 /// Models an output stream.
 typedef struct UOStream {
+
+    /// Stream state.
+    ustream_ret state;
 
     /// Stream context, can be anything.
     void *ctx;
@@ -235,6 +242,7 @@ typedef struct UOStream {
  * @public @related UOStream
  */
 #define uostream_init(ctx, write_func, writef_func, flush_func, free_func) ((UOStream){             \
+    .state = USTREAM_OK,                                                                            \
     .ctx = (ctx),                                                                                   \
     .write = (write_func),                                                                          \
     .writef = (writef_func),                                                                        \

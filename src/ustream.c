@@ -145,67 +145,62 @@ static ustream_ret ustream_strbuf_writef(void *ctx, size_t *written,
 }
 
 ustream_ret uistream_deinit(UIStream *stream) {
-    return stream->free ? stream->free(stream->ctx) : USTREAM_OK;
+    return stream->state = stream->free ? stream->free(stream->ctx) : USTREAM_OK;
 }
 
 ustream_ret uistream_reset(UIStream *stream) {
-    return stream->reset ? stream->reset(stream->ctx) : USTREAM_OK;
+    return stream->state = stream->reset ? stream->reset(stream->ctx) : USTREAM_OK;
 }
 
-ustream_ret uistream_read(UIStream const *stream, void *buf, size_t count, size_t *read) {
-    return stream->read(stream->ctx, buf, count, read);
+ustream_ret uistream_read(UIStream *stream, void *buf, size_t count, size_t *read) {
+    if (!stream->state) stream->state = stream->read(stream->ctx, buf, count, read);
+    return stream->state;
 }
 
 ustream_ret uistream_from_path(UIStream *stream, char const *path) {
     FILE *in_file = fopen(path, "rb");
-    ustream_ret ret;
-
-    if (in_file) {
-        ret = uistream_from_file(stream, in_file);
-        stream->free = ustream_file_close;
-    } else {
-        ret = USTREAM_ERR_IO;
-    }
-
+    ustream_ret ret = uistream_from_file(stream, in_file);
+    if (ret == USTREAM_OK) stream->free = ustream_file_close;
     return ret;
 }
 
 ustream_ret uistream_from_file(UIStream *stream, FILE *file) {
-    stream->ctx = file;
-    stream->read = ustream_file_read;
-    stream->reset = ustream_file_reset;
-    return USTREAM_OK;
+    ustream_ret state = file ? USTREAM_OK : USTREAM_ERR_IO;
+    *stream = (UIStream) { .state = state };
+    if (state == USTREAM_OK) {
+        stream->ctx = file;
+        stream->read = ustream_file_read;
+        stream->reset = ustream_file_reset;
+    }
+    return state;
 }
 
 ustream_ret uistream_from_buf(UIStream *stream, void *buf, size_t size) {
     UStreamBuf *raw_buf = ulib_alloc(raw_buf);
-    ustream_ret ret;
-
-    if (raw_buf) {
+    ustream_ret state = raw_buf ? USTREAM_OK : USTREAM_ERR_MEM;
+    *stream = (UIStream) { .state = state };
+    if (state == USTREAM_OK) {
         raw_buf->orig = raw_buf->cur = buf;
         raw_buf->size = size;
         stream->ctx = raw_buf;
         stream->read = ustream_buf_read;
         stream->reset = ustream_buf_reset;
         stream->free = ustream_buf_free;
-        ret = USTREAM_OK;
-    } else {
-        ret = USTREAM_ERR_MEM;
     }
-
-    return ret;
+    return state;
 }
 
 ustream_ret uostream_deinit(UOStream *stream) {
-    return stream->free ? stream->free(stream->ctx) : USTREAM_OK;
+    return stream->state = stream->free ? stream->free(stream->ctx) : USTREAM_OK;
 }
 
 ustream_ret uostream_flush(UOStream *stream) {
-    return stream->flush ? stream->flush(stream->ctx) : USTREAM_OK;
+    return stream->state = stream->flush ? stream->flush(stream->ctx) : USTREAM_OK;
 }
 
 ustream_ret uostream_write(UOStream *stream, void *buf, size_t count, size_t *written) {
-    return stream->write(stream->ctx, buf, count, written);
+    if (!stream->state) stream->state = stream->write(stream->ctx, buf, count, written);
+    return stream->state;
 }
 
 ustream_ret uostream_writef(UOStream *stream, size_t *written, char const *format, ...) {
@@ -216,75 +211,77 @@ ustream_ret uostream_writef(UOStream *stream, size_t *written, char const *forma
     return ret;
 }
 
-ustream_ret uostream_writef_list(UOStream *stream, size_t *written,
-                                 char const *format, va_list args) {
-    if (stream->writef) return stream->writef(stream->ctx, written, format, args);
-
-    // Fallback to `write`.
-    // This is less efficient as we need to allocate a sufficiently large temporary buffer
-    // to store the formatted string before feeding it to `write`.
+static ustream_ret uostream_writef_list_fallback(UOStream *stream, size_t *written,
+                                                 char const *format, va_list args) {
     size_t len = ulib_str_flength_list(format, args);
     size_t size = len + 1;
     char *buf = ulib_malloc(size);
 
-    if (!buf) {
+    if (buf) {
+        vsnprintf(buf, size, format, args);
+        stream->state = uostream_write(stream, buf, len, written);
+        ulib_free(buf);
+    } else {
         if (written) *written = 0;
-        return USTREAM_ERR_MEM;
+        stream->state = USTREAM_ERR_MEM;
     }
 
-    vsnprintf(buf, size, format, args);
-    ustream_ret ret = uostream_write(stream, buf, len, written);
-    ulib_free(buf);
+    return stream->state;
+}
 
-    return ret;
+ustream_ret uostream_writef_list(UOStream *stream, size_t *written,
+                                 char const *format, va_list args) {
+    if (!stream->state) {
+        if (stream->writef) {
+            stream->state = stream->writef(stream->ctx, written, format, args);
+        } else {
+            stream->state = uostream_writef_list_fallback(stream, written, format, args);
+        }
+    }
+    return stream->state;
 }
 
 ustream_ret uostream_to_path(UOStream *stream, char const *path) {
     FILE *out_file = fopen(path, "wb");
-    ustream_ret ret;
-
-    if (out_file) {
-        ret = uostream_to_file(stream, out_file);
-        stream->free = ustream_file_close;
-    } else {
-        ret = USTREAM_ERR_IO;
-    }
-
+    ustream_ret ret = uostream_to_file(stream, out_file);
+    if (ret == USTREAM_OK) stream->free = ustream_file_close;
     return ret;
 }
 
 ustream_ret uostream_to_file(UOStream *stream, FILE *file) {
-    stream->ctx = file;
-    stream->write = ustream_file_write;
-    stream->writef = ustream_file_writef;
-    stream->flush = ustream_file_flush;
-    return USTREAM_OK;
+    ustream_ret state = file ? USTREAM_OK : USTREAM_ERR_IO;
+    *stream = (UOStream) { .state = state };
+    if (state == USTREAM_OK) {
+        stream->ctx = file;
+        stream->write = ustream_file_write;
+        stream->writef = ustream_file_writef;
+        stream->flush = ustream_file_flush;
+    }
+    return state;
 }
 
 ustream_ret uostream_to_buf(UOStream *stream, void *buf, size_t size) {
     UStreamBuf *raw_buf = ulib_alloc(raw_buf);
-    ustream_ret ret;
-
-    if (raw_buf) {
+    ustream_ret state = raw_buf ? USTREAM_OK : USTREAM_ERR_MEM;
+    *stream = (UOStream) { .state = state };
+    if (state == USTREAM_OK) {
         raw_buf->orig = raw_buf->cur = buf;
         raw_buf->size = size;
         stream->ctx = raw_buf;
         stream->write = ustream_buf_write;
         stream->writef = ustream_buf_writef;
-        stream->flush = NULL;
         stream->free = ustream_buf_free;
-        ret = USTREAM_OK;
-    } else {
-        ret = USTREAM_ERR_MEM;
     }
-
-    return ret;
+    return state;
 }
 
 ustream_ret uostream_to_strbuf(UOStream *stream, UStrBuf *buf) {
-    stream->ctx = buf;
-    stream->write = ustream_strbuf_write;
-    stream->writef = ustream_strbuf_writef;
-    stream->flush = NULL;
-    return USTREAM_OK;
+    ustream_ret state = buf ? USTREAM_OK : USTREAM_ERR_MEM;
+    *stream = (UOStream) { .state = state };
+    if (state == USTREAM_OK) {
+        stream->ctx = buf;
+        stream->write = ustream_strbuf_write;
+        stream->writef = ustream_strbuf_writef;
+    }
+    return state;
 }
