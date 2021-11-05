@@ -23,19 +23,23 @@
 
 typedef void* AllocPtr;
 UHASH_INIT(AllocTable, AllocPtr, char*, uhash_ptr_hash, uhash_identical)
-static UHash(AllocTable) *alloc_table;
+static UHash(AllocTable) *alloc_table = NULL;
 
 #define alloc_table_add(PTR, FILE, FN, LINE) do {                                                   \
-    char const fmt[] = "%s, %s, line %d";                                                           \
-    size_t buf_size = (size_t)snprintf(NULL, 0, fmt, FILE, FN, LINE) + 1;                           \
-    char *loc = malloc(buf_size);                                                                   \
-    if (loc) snprintf(loc, buf_size, fmt, FILE, FN, LINE);                                          \
-    uhmap_set(AllocTable, alloc_table, PTR, loc, NULL);                                             \
+    if (alloc_table) {                                                                              \
+        char const fmt[] = "%s, %s, line %d";                                                       \
+        size_t buf_size = (size_t)snprintf(NULL, 0, fmt, FILE, FN, LINE) + 1;                       \
+        char *loc = malloc(buf_size);                                                               \
+        if (loc) snprintf(loc, buf_size, fmt, FILE, FN, LINE);                                      \
+        uhmap_set(AllocTable, alloc_table, PTR, loc, NULL);                                         \
+    }                                                                                               \
 } while (0)
 
 #define alloc_table_remove(PTR) do {                                                                \
-    char *buf;                                                                                      \
-    if (uhmap_pop(AllocTable, alloc_table, PTR, NULL, &buf)) free(buf);                             \
+    if (alloc_table) {                                                                              \
+        char *buf;                                                                                  \
+        if (uhmap_pop(AllocTable, alloc_table, PTR, NULL, &buf)) free(buf);                         \
+    }                                                                                               \
 } while (0)
 
 bool utest_leak_start(void) {
