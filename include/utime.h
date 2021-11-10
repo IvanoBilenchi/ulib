@@ -75,8 +75,6 @@ typedef enum utime_unit {
  *
  * @param t Time interval in nanoseconds.
  * @return Appropriate time unit.
- *
- * @public
  */
 ULIB_PUBLIC
 utime_unit utime_unit_auto(utime_ns t);
@@ -85,8 +83,6 @@ utime_unit utime_unit_auto(utime_ns t);
  * Retrieves a timestamp in nanoseconds.
  *
  * @return Timestamp in nanoseconds.
- *
- * @public
  */
 ULIB_PUBLIC
 utime_ns utime_get_ns(void);
@@ -97,8 +93,6 @@ utime_ns utime_get_ns(void);
  * @param t Time interval.
  * @param unit Time unit.
  * @return Converted time interval.
- *
- * @public
  */
 ULIB_PUBLIC
 double utime_convert(utime_ns t, utime_unit unit);
@@ -111,8 +105,6 @@ double utime_convert(utime_ns t, utime_unit unit);
  * @return Time interval in string form.
  *
  * @note You are responsible for deinitializing the returned string.
- *
- * @public
  */
 ULIB_PUBLIC
 UString utime_convert_string(utime_ns t, utime_unit unit);

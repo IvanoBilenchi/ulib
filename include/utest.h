@@ -28,8 +28,6 @@ ULIB_BEGIN_DECLS
  * Defines the main test function.
  *
  * @param CODE Code to execute, generally a sequence of utest_run statements.
- *
- * @public
  */
 #define utest_main(CODE)                                                                            \
     int main(void) {                                                                                \
@@ -45,8 +43,6 @@ ULIB_BEGIN_DECLS
  *
  * @param NAME Name of the test batch (must be a string literal).
  * @param ... Comma separated list of [void] -> bool test functions.
- *
- * @public
  */
 #define utest_run(NAME, ...) do {                                                                   \
     int run_exit_code = EXIT_SUCCESS;                                                               \
@@ -69,8 +65,6 @@ ULIB_BEGIN_DECLS
  * Assert that the specified expression must be true.
  *
  * @param EXP Boolean expression.
- *
- * @public
  */
 #define utest_assert(EXP) utest_assert_wrap(EXP,, "\"" #EXP "\" must be true.")
 
@@ -78,8 +72,6 @@ ULIB_BEGIN_DECLS
  * Assert that the specified expression must be false.
  *
  * @param EXP Boolean expression.
- *
- * @public
  */
 #define utest_assert_false(EXP) utest_assert_wrap(!(EXP),, "\"" #EXP "\" must be false.")
 
@@ -87,8 +79,6 @@ ULIB_BEGIN_DECLS
  * Assert that the specified expression must not be NULL.
  *
  * @param EXP Expression returning any pointer.
- *
- * @public
  */
 #define utest_assert_not_null(EXP) \
     utest_assert_wrap(EXP,, "\"" #EXP "\" must not be NULL.")
@@ -99,8 +89,6 @@ ULIB_BEGIN_DECLS
  * @param A [long long] First integer.
  * @param OP Comparison operator.
  * @param B [long long] Second integer.
- *
- * @public
  */
 #define utest_assert_int(A, OP, B) do {                                                             \
     long long utest_A = (long long)(A), utest_B = (long long)(B);                                   \
@@ -114,8 +102,6 @@ ULIB_BEGIN_DECLS
  * @param A [unsigned long long] First integer.
  * @param OP Comparison operator.
  * @param B [unsigned long long] Second integer.
- *
- * @public
  */
 #define utest_assert_uint(A, OP, B) do {                                                            \
     unsigned long long utest_A = (unsigned long long)(A), utest_B = (unsigned long long)(B);        \
@@ -129,8 +115,6 @@ ULIB_BEGIN_DECLS
  * @param A [double] First float.
  * @param OP Comparison operator.
  * @param B [double] Second float.
- *
- * @public
  */
 #define utest_assert_float(A, OP, B) do {                                                           \
     double utest_A = (double)(A), utest_B = (double)(B);                                            \
@@ -144,8 +128,6 @@ ULIB_BEGIN_DECLS
  * @param A [void *] First pointer.
  * @param OP Comparison operator.
  * @param B [void *] Second pointer.
- *
- * @public
  */
 #define utest_assert_ptr(A, OP, B) do {                                                             \
     void *utest_A = (void *)(A), *utest_B = (void *)(B);                                            \
@@ -159,8 +141,6 @@ ULIB_BEGIN_DECLS
  * @param A [char const *] First string.
  * @param OP Comparison operator.
  * @param B [char const *] Second string.
- *
- * @public
  */
 #define utest_assert_string(A, OP, B) do {                                                          \
     char const *utest_A = (A), *utest_B = (B);                                                      \
@@ -175,8 +155,6 @@ ULIB_BEGIN_DECLS
  * @param OP Comparison operator.
  * @param B [void *] Second buffer.
  * @param SIZE [size_t] Buffer size.
- *
- * @public
  */
 #define utest_assert_buf(A, OP, B, SIZE)                                                            \
     utest_assert_wrap(memcmp(A, B, SIZE) OP 0,,                                                     \
@@ -188,8 +166,6 @@ ULIB_BEGIN_DECLS
  * @param A [UString] First string.
  * @param OP Comparison operator.
  * @param B [UString] Second string.
- *
- * @public
  */
 #define utest_assert_ustring(A, OP, B) do {                                                         \
     UString utest_A = (A), utest_B = (B);                                                           \
@@ -203,8 +179,6 @@ ULIB_BEGIN_DECLS
  * Abort the tests if it is false.
  *
  * @param EXP Boolean expression.
- *
- * @public
  */
 #define utest_assert_critical(EXP)                                                                  \
     utest_assert_wrap(EXP, exit(EXIT_FAILURE),                                                      \
@@ -216,8 +190,6 @@ ULIB_BEGIN_DECLS
  * @param EXP Expression.
  * @param CODE Any custom code to run after printing the failure reason.
  * @param ... Failure reason as printf arguments.
- *
- * @public
  */
 #define utest_assert_wrap(EXP, CODE, ...) do {                                                      \
     if (!(EXP)) {                                                                                   \
@@ -233,8 +205,6 @@ ULIB_BEGIN_DECLS
  * Start detection of memory leaks.
  *
  * @return True if detection started successfully, false otherwise.
- *
- * @public
  */
 ULIB_PUBLIC
 bool utest_leak_start(void);
@@ -243,8 +213,6 @@ bool utest_leak_start(void);
  * Ends detection of memory leaks and prints detected leaks to the console.
  *
  * @return True if no leaks were detected, false otherwise.
- *
- * @public
  */
 ULIB_PUBLIC
 bool utest_leak_end(void);

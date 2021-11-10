@@ -27,8 +27,6 @@
  * @param a First number.
  * @param b Second number.
  * @return Minimum between the two numbers.
- *
- * @public
  */
 #define ulib_min(a, b) (((a) < (b)) ? (a) : (b))
 
@@ -38,8 +36,6 @@
  * @param a First number.
  * @param b Second number.
  * @return Maximum between the two numbers.
- *
- * @public
  */
 #define ulib_max(a, b) (((a) > (b)) ? (a) : (b))
 
@@ -48,8 +44,6 @@
  *
  * @param x The number.
  * @return Absolute value of the number.
- *
- * @public
  */
 #define ulib_abs(x) (((x) < 0) ? -(x) : (x))
 
@@ -60,8 +54,6 @@
  * @param xmin Minumum value.
  * @param xmax Maximum value.
  * @return Clamped value.
- *
- * @public
  */
 #define ulib_clamp(x, xmin, xmax) (((x) > (xmax)) ? (xmax) : (((x) < (xmin)) ? (xmin) : (x)))
 
@@ -71,8 +63,6 @@
  * @param a First number.
  * @param b Second number.
  * @return Absolute difference.
- *
- * @public
  */
 #define ulib_diff(a, b) (((a) > (b)) ? ((a) - (b)) : ((b) - (a)))
 
@@ -82,8 +72,6 @@
  * @param T Variable type.
  * @param x First variable.
  * @param y Second variable.
- *
- * @public
  */
 #define ulib_swap(T, x, y) do { T p_ulib_swap_temp = x; x = y; y = p_ulib_swap_temp; } while (0)
 
@@ -92,8 +80,6 @@
  *
  * @param array The array.
  * @return Number of elements.
- *
- * @public
  */
 #define ulib_array_count(array) (sizeof(array) / sizeof(*(array)))
 
