@@ -130,7 +130,7 @@ function(ulib_library_target NAME TYPE)
     target_compile_features(${NAME} PRIVATE ${ULIB_COMPILE_FEATURES})
     target_compile_options(${NAME} PRIVATE ${ULIB_WARNING_OPTIONS})
     target_compile_definitions(${NAME}
-                               PUBLIC ${ULIB_PUBLIC_DEFINES} ${ARGN}
+                               PUBLIC ${ULIB_PUBLIC_DEFINES}
                                PRIVATE ${ULIB_PRIVATE_DEFINES})
     target_include_directories(${NAME}
                                PUBLIC "${ULIB_PUBLIC_HEADERS_DIR}"
@@ -150,7 +150,8 @@ if(ULIB_STATIC)
 endif()
 
 if(ULIB_SHARED)
-    ulib_library_target(ulib-shared SHARED ULIB_SHARED)
+    ulib_library_target(ulib-shared SHARED)
+    target_compile_definitions(ulib-shared PUBLIC ULIB_SHARED)
 endif()
 
 if(ULIB_OBJECT)
