@@ -14,7 +14,8 @@ Welcome to ULib's documentation!
 
    api/alloc
    api/base
-   api/collections
    api/macros
+   api/time
+   api/collections
    api/streams
    api/test

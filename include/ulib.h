@@ -23,6 +23,7 @@
 #include "ustream.h"
 #include "ustring.h"
 #include "utest.h"
+#include "utime.h"
 #include "uvec.h"
 
 #endif // ULIB_H

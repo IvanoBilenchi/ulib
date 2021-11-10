@@ -6,7 +6,7 @@ env:
   build_dir: build
   build_config: Release
   cflags_gnuc: -Werror
-  cflags_msvc: /wd5105 /WX
+  cflags_msvc: /WX
   test_target: ulib-test
   docs_target: ulib-docs
 
@@ -38,6 +38,7 @@ jobs:
       run: >
         cmake -B ${{env.build_dir}}
         -DULIB_LEAKS=ON
+        -DCMAKE_SYSTEM_VERSION=''
         -DCMAKE_BUILD_TYPE=${{env.build_config}}
         -DCMAKE_C_FLAGS=${{env.cflags}}
 
