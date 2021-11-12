@@ -1118,7 +1118,7 @@ p_uhash_static_inline ulib_uint p_uhash_x31_str_hash(char const *key) {
  *
  * @public @related UHash
  */
-#define uhash_count(h) ((h) ? (h)->count : 0)
+#define uhash_count(h) ((void *)(h) == NULL ? 0 : (h)->count)
 
 /**
  * Resets the specified hash table without deallocating it.

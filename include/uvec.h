@@ -864,7 +864,7 @@ typedef enum uvec_ret {
  *
  * @public @related UVec
  */
-#define uvec_count(vec) ((vec) ? (vec)->count : 0)
+#define uvec_count(vec) ((void *)(vec) == NULL ? 0 : (vec)->count)
 
 /**
  * Checks if the specified index is valid.

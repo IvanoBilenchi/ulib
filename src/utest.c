@@ -56,7 +56,6 @@ bool utest_leak_start(void) {
 
 bool utest_leak_end(void) {
     ulib_uint leaks = uhash_count(alloc_table);
-    uhash_resize(AllocTable, alloc_table, leaks);
 
     if (leaks) {
         unsigned i = 0;
