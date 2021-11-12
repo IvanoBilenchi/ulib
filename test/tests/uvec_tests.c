@@ -41,11 +41,11 @@ static int int_increment(int a) {
 bool uvec_test_base(void) {
     UVec(int) *v = uvec_alloc(int);
     utest_assert_not_null(v);
-    utest_assert(uvec_is_empty(v));
+    utest_assert_uint(uvec_count(v), ==, 0);
 
     uvec_ret ret = uvec_append_items(int, v, 3, 2, 4, 1);
     utest_assert(ret == UVEC_OK);
-    utest_assert_false(uvec_is_empty(v));
+    utest_assert_uint(uvec_count(v), !=, 0);
     uvec_assert_elements(int, v, 3, 2, 4, 1);
 
     utest_assert_int(uvec_get(v, 2), ==, 4);
@@ -78,7 +78,7 @@ bool uvec_test_base(void) {
     utest_assert(ret == UVEC_NO);
 
     uvec_remove_all(int, v);
-    utest_assert(uvec_is_empty(v));
+    utest_assert_uint(uvec_count(v), ==, 0);
 
     uvec_free(int, v);
     return true;

@@ -855,18 +855,6 @@ typedef enum uvec_ret {
 #define uvec_last(vec) ((vec)->storage[(vec)->count-1])
 
 /**
- * Checks whether the specified vector is empty.
- *
- * @param vec [UVec(T)*] Vector instance.
- * @return [bool] True if the vector is empty, false otherwise.
- *
- * @note For convenience, this macro returns 'true' for NULL vectors.
- *
- * @public @related UVec
- */
-#define uvec_is_empty(vec) (!((vec) && (vec)->count))
-
-/**
  * Returns the number of elements in the vector.
  *
  * @param vec [UVec(T)*] Vector instance.
