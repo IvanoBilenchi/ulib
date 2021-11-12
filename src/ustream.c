@@ -150,6 +150,12 @@ static ustream_ret ustream_strbuf_free(void *ctx) {
     return USTREAM_OK;
 }
 
+static ustream_ret ustream_null_write(ulib_unused void *ctx, ulib_unused void const *buf,
+                                      ulib_unused size_t count, size_t *written) {
+    if (written) *written = 0;
+    return USTREAM_OK;
+}
+
 ustream_ret uistream_deinit(UIStream *stream) {
     return stream->state = stream->free ? stream->free(stream->ctx) : USTREAM_OK;
 }
@@ -300,4 +306,12 @@ ustream_ret uostream_to_strbuf(UOStream *stream, UStrBuf *buf) {
     }
 
     return stream->state;
+}
+
+ustream_ret uostream_to_null(UOStream *stream) {
+    *stream = (UOStream) {
+        .state = USTREAM_OK,
+        .write = ustream_null_write
+    };
+    return USTREAM_OK;
 }

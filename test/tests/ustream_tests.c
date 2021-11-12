@@ -114,7 +114,26 @@ bool uostream_tests(void) {
 
     UOStream stream;
     size_t written;
-    ustream_ret ret = uostream_to_path(&stream, USTREAM_OUTPUT_FILE);
+    ustream_ret ret;
+
+    ret = uostream_to_null(&stream);
+    utest_assert(ret == USTREAM_OK);
+
+    ret = uostream_write(&stream, contents, test_size, &written);
+    utest_assert(ret == USTREAM_OK);
+    utest_assert_uint(written, ==, 0);
+
+    ret = uostream_writef(&stream, &written, "12345");
+    utest_assert(ret == USTREAM_OK);
+    utest_assert_uint(written, ==, 0);
+
+    ret = uostream_flush(&stream);
+    utest_assert(ret == USTREAM_OK);
+
+    ret = uostream_deinit(&stream);
+    utest_assert(ret == USTREAM_OK);
+
+    ret = uostream_to_path(&stream, USTREAM_OUTPUT_FILE);
     utest_assert(ret == USTREAM_OK);
 
     ret = uostream_write(&stream, contents, test_size, &written);

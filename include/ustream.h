@@ -382,6 +382,17 @@ ustream_ret uostream_to_buf(UOStream *stream, void *buf, size_t size);
 ULIB_PUBLIC
 ustream_ret uostream_to_strbuf(UOStream *stream, UStrBuf *buf);
 
+/**
+ * Initializes a stream that discards its output.
+ *
+ * @param stream Output stream.
+ * @return Return code.
+ *
+ * @public @memberof UOStream
+ */
+ULIB_PUBLIC
+ustream_ret uostream_to_null(UOStream *stream);
+
 ULIB_END_DECLS
 
 #endif // USTREAM_H
