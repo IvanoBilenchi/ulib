@@ -112,8 +112,7 @@ typedef enum uvec_ret {
     SCOPE void uvec_free_##T(UVec_##T *vec);                                                        \
     SCOPE uvec_ret uvec_reserve_capacity_##T(UVec_##T *vec, ulib_uint capacity);                    \
     SCOPE uvec_ret uvec_set_range_##T(UVec_##T *vec, T const *array, ulib_uint start, ulib_uint n); \
-    SCOPE UVec_##T* uvec_copy_##T(UVec_##T const *vec);                                             \
-    SCOPE UVec_##T* uvec_deep_copy_##T(UVec_##T const *vec, T (*copy_func)(T));                     \
+    SCOPE uvec_ret uvec_copy_##T(UVec_##T const *src, UVec_##T *dest);                              \
     SCOPE void uvec_copy_to_array_##T(UVec_##T const *vec, T array[]);                              \
     SCOPE uvec_ret uvec_shrink_##T(UVec_##T *vec);                                                  \
     SCOPE uvec_ret uvec_push_##T(UVec_##T *vec, T item);                                            \
@@ -219,41 +218,23 @@ typedef enum uvec_ret {
         return UVEC_OK;                                                                             \
     }                                                                                               \
                                                                                                     \
-    SCOPE UVec_##T* uvec_copy_##T(UVec_##T const *vec) {                                            \
-        UVec_##T* copy = uvec_alloc_##T();                                                          \
+    SCOPE uvec_ret uvec_copy_##T(UVec_##T const *src, UVec_##T *dest) {                             \
+        uvec_ret ret = uvec_reserve_capacity_##T(dest, src->count);                                 \
                                                                                                     \
-        if (copy && uvec_set_range_##T(copy, vec->storage, 0, vec->count)) {                        \
-            uvec_free_##T(copy);                                                                    \
-            copy = NULL;                                                                            \
+        if (!ret) {                                                                                 \
+            memcpy(dest->storage, src->storage, src->count * sizeof(T));                            \
+            dest->count = src->count;                                                               \
         }                                                                                           \
                                                                                                     \
-        return copy;                                                                                \
+        return ret;                                                                                 \
     }                                                                                               \
                                                                                                     \
     SCOPE void uvec_copy_to_array_##T(UVec_##T const *vec, T array[]) {                             \
         if (vec->count) memcpy(array, vec->storage, vec->count * sizeof(T));                        \
     }                                                                                               \
                                                                                                     \
-    SCOPE UVec_##T* uvec_deep_copy_##T(UVec_##T const *vec, T (*copy_func)(T)) {                    \
-        UVec_##T *copy = uvec_alloc_##T();                                                          \
-                                                                                                    \
-        if (copy) {                                                                                 \
-            if (uvec_reserve_capacity_##T(copy, vec->count)) {                                      \
-                uvec_free_##T(copy);                                                                \
-                copy = NULL;                                                                        \
-            } else {                                                                                \
-                for (ulib_uint i = 0; i < vec->count; ++i) {                                        \
-                    copy->storage[i] = copy_func(vec->storage[i]);                                  \
-                }                                                                                   \
-                copy->count = vec->count;                                                           \
-            }                                                                                       \
-        }                                                                                           \
-                                                                                                    \
-        return copy;                                                                                \
-    }                                                                                               \
-                                                                                                    \
     SCOPE uvec_ret uvec_shrink_##T(UVec_##T *vec) {                                                 \
-        ulib_uint new_allocated = vec->count;                                                       \
+        uvec_uint new_allocated = vec->count;                                                       \
                                                                                                     \
         if (new_allocated) {                                                                        \
             ulib_uint_next_power_2(new_allocated);                                                  \
@@ -267,6 +248,7 @@ typedef enum uvec_ret {
             }                                                                                       \
         } else {                                                                                    \
             ulib_free(vec->storage);                                                                \
+            vec->storage = NULL;                                                                    \
             vec->allocated = 0;                                                                     \
         }                                                                                           \
                                                                                                     \
@@ -734,24 +716,13 @@ typedef enum uvec_ret {
  * Copies the specified vector.
  *
  * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector to copy.
- * @return [UVec(T)*] Copied vector instance, or NULL on error.
+ * @param src [UVec(T)*] Vector to copy.
+ * @param dest [UVec(T)*] Vector to copy into.
+ * @return [uvec_ret] UVEC_OK on success, otherwise UVEC_ERR.
  *
  * @public @related UVec
  */
-#define uvec_copy(T, vec) P_ULIB_MACRO_CONCAT(uvec_copy_, T)(vec)
-
-/**
- * Performs a deep copy of the specified vector.
- *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector to copy.
- * @param copy_func [(T) -> T] Copy function, invoked for each element.
- * @return [UVec(T)*] Copied vector instance, or NULL on error.
- *
- * @public @related UVec
- */
-#define uvec_deep_copy(T, vec, copy_func) P_ULIB_MACRO_CONCAT(uvec_deep_copy_, T)(vec, copy_func)
+#define uvec_copy(T, src, dest) P_ULIB_MACRO_CONCAT(uvec_copy_, T)(src, dest)
 
 /**
  * Copies the elements of the specified vector into the given array.
