@@ -164,19 +164,6 @@ bool uvec_test_contains(void) {
     ret = uvec_append_items(int, &v2, 1, 6, 4, 5);
     utest_assert(ret == UVEC_OK);
 
-    utest_assert_false(uvec_contains_all(int, &v1, &v2));
-    utest_assert(uvec_contains_any(int, &v1, &v2));
-
-    uvec_remove(int, &v2, 6);
-    utest_assert_false(uvec_contains(int, &v2, 6));
-    utest_assert(uvec_contains_all(int, &v1, &v2));
-    utest_assert(uvec_contains_any(int, &v1, &v2));
-
-    uvec_remove_all(int, &v2);
-    ret = uvec_append_items(int, &v2, 6, 7, 8);
-    utest_assert(ret == UVEC_OK);
-    utest_assert_false(uvec_contains_any(int, &v1, &v2));
-
     uvec_deinit(v1);
     uvec_deinit(v2);
     return true;

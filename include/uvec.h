@@ -135,8 +135,6 @@ typedef enum uvec_ret {
     SCOPE ulib_uint uvec_index_of_reverse_##T(UVec_##T const *vec, T item);                         \
     SCOPE bool uvec_remove_##T(UVec_##T *vec, T item);                                              \
     SCOPE bool uvec_equals_##T(UVec_##T const *vec, UVec_##T const *other);                         \
-    SCOPE bool uvec_contains_all_##T(UVec_##T const *vec, UVec_##T const *other);                   \
-    SCOPE bool uvec_contains_any_##T(UVec_##T const *vec, UVec_##T const *other);                   \
     SCOPE uvec_ret uvec_push_unique_##T(UVec_##T *vec, T item);                                     \
     /** @endcond */
 
@@ -356,26 +354,6 @@ typedef enum uvec_ret {
         }                                                                                           \
                                                                                                     \
         return true;                                                                                \
-    }                                                                                               \
-                                                                                                    \
-    SCOPE bool uvec_contains_all_##T(UVec_##T const *vec, UVec_##T const *other) {                  \
-        if (vec == other) return true;                                                              \
-                                                                                                    \
-        for (ulib_uint i = 0; i < other->count; ++i) {                                              \
-            if (uvec_index_of_##T(vec, other->storage[i]) >= vec->count) return false;              \
-        }                                                                                           \
-                                                                                                    \
-        return true;                                                                                \
-    }                                                                                               \
-                                                                                                    \
-    SCOPE bool uvec_contains_any_##T(UVec_##T const *vec, UVec_##T const *other) {                  \
-        if (vec == other) return true;                                                              \
-                                                                                                    \
-        for (ulib_uint i = 0; i < other->count; ++i) {                                              \
-            if (uvec_index_of_##T(vec, other->storage[i]) < vec->count) return true;                \
-        }                                                                                           \
-                                                                                                    \
-        return false;                                                                               \
     }                                                                                               \
                                                                                                     \
     SCOPE uvec_ret uvec_push_unique_##T(UVec_##T *vec, T item) {                                    \
@@ -790,7 +768,7 @@ typedef enum uvec_ret {
 
 /**
  * Shrinks the specified vector so that its allocated size
- * exactly matches the number of elements it contains.
+ * is just large enough to hold the elements it currently contains.
  *
  * @param T [symbol] Vector type.
  * @param vec [UVec(T)*] Vector to shrink.
@@ -1119,30 +1097,6 @@ typedef enum uvec_ret {
     (P_ULIB_MACRO_CONCAT(uvec_index_of_, T)(vec, item) < (vec)->count)
 
 /**
- * Checks whether the vector contains all the elements present in another vector.
- *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param other [UVec(T)*] Vector containing the elements to search.
- * @return [bool] True if the vector contains all the specified elements, false otherwise.
- *
- * @public @related UVec
- */
-#define uvec_contains_all(T, vec, other) P_ULIB_MACRO_CONCAT(uvec_contains_all_, T)(vec, other)
-
-/**
- * Checks whether the vector contains any of the elements contained in another vector.
- *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param other [UVec(T)*] Vector containing the elements to search.
- * @return [bool] True if the vector contains any of the specified elements, false otherwise.
- *
- * @public @related UVec
- */
-#define uvec_contains_any(T, vec, other) P_ULIB_MACRO_CONCAT(uvec_contains_any_, T)(vec, other)
-
-/**
  * Removes the specified element.
  *
  * @param T [symbol] Vector type.
@@ -1166,20 +1120,6 @@ typedef enum uvec_ret {
  * @public @related UVec
  */
 #define uvec_equals(T, vec_a, vec_b) P_ULIB_MACRO_CONCAT(uvec_equals_, T)(vec_a, vec_b)
-
-/**
- * Removes all the elements present in 'vec_to_remove' from 'vec'.
- *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param vec_to_remove [UVec(T)*] Vector containing the elements to remove.
- *
- * @public @related UVec
- */
-#define uvec_remove_all_from(T, vec, vec_to_remove)                                                 \
-    uvec_foreach(T, vec_to_remove, p_item, {                                                        \
-        P_ULIB_MACRO_CONCAT(uvec_remove_, T)(vec, p_item);                                          \
-    })
 
 /**
  * Pushes the specified element to the top of the vector if it does not already contain it.
