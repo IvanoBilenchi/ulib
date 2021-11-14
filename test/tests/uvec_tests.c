@@ -233,8 +233,9 @@ bool uvec_test_comparable(void) {
     });
 
     uvec_sort(int, &v);
-    uvec_remove(int, &v, 4);
+    utest_assert(uvec_remove_sorted(int, &v, 4));
     uvec_assert_elements(int, &v, 1, 2, 3, 5, 6);
+    utest_assert_false(uvec_remove_sorted(int, &v, 7));
 
     ulib_uint idx = uvec_insertion_index_sorted(int, &v, 2);
     utest_assert_uint(idx, ==, 1);

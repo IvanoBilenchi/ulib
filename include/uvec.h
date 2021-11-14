@@ -153,6 +153,7 @@ typedef enum uvec_ret {
     SCOPE ulib_uint uvec_index_of_sorted_##T(UVec_##T const *vec, T item);                          \
     SCOPE uvec_ret uvec_insert_sorted_##T(UVec_##T *vec, T item, ulib_uint *idx);                   \
     SCOPE uvec_ret uvec_insert_sorted_unique_##T(UVec_##T *vec, T item, ulib_uint *idx);            \
+    SCOPE bool uvec_remove_sorted_##T(UVec_##T *vec, T item);                                       \
     /** @endcond */
 
 /**
@@ -460,6 +461,17 @@ typedef enum uvec_ret {
         } else {                                                                                    \
             return UVEC_NO;                                                                         \
         }                                                                                           \
+    }                                                                                               \
+                                                                                                    \
+    SCOPE bool uvec_remove_sorted_##T(UVec_##T *vec, T item) {                                      \
+        ulib_uint i = uvec_index_of_sorted_##T(vec, item);                                          \
+                                                                                                    \
+        if (i < vec->count) {                                                                       \
+            uvec_remove_at_##T(vec, i);                                                             \
+            return true;                                                                            \
+        }                                                                                           \
+                                                                                                    \
+        return false;                                                                               \
     }
 
 // ##############
@@ -1254,6 +1266,18 @@ typedef enum uvec_ret {
  */
 #define uvec_insert_sorted_unique(T, vec, item, idx) \
     P_ULIB_MACRO_CONCAT(uvec_insert_sorted_unique_, T)(vec, item, idx)
+
+/**
+ * Removes the specified element from a sorted vector.
+ *
+ * @param T [symbol] Vector type.
+ * @param vec [UVec(T)*] Vector instance.
+ * @param item [T] Element to remove.
+ * @return [bool] True if the element was found and removed, false otherwise.
+ *
+ * @public @related UVec
+ */
+#define uvec_remove_sorted(T, vec, item) P_ULIB_MACRO_CONCAT(uvec_remove_sorted_, T)(vec, item)
 
 /// @name Higher order
 
