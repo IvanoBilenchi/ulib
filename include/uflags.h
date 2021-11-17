@@ -21,18 +21,14 @@
 /**
  * Bitmask manipulation API.
  *
- * @note This is not a real data structure, though it is declared as such
- *       for better grouping in the generated documentation.
- *
- * @struct UFlags
+ * @defgroup flags Bitmask manipulation API
+ * @{
  */
 
 /**
  * Bitmask type.
  *
  * @param N Bitmask size in bits. Allowed values: 8, 16, 32 and 64.
- *
- * @public @related UFlags
  */
 #define UFlags(N) P_ULIB_MACRO_CONCAT(P_ULIB_MACRO_CONCAT(uint, N), _t)
 
@@ -41,8 +37,6 @@
  *
  * @param N Bitmask size in bits.
  * @return Bitmask with all bits set to zero.
- *
- * @public @related UFlags
  */
 #define uflags_none(N) ((UFlags(N))0)
 
@@ -51,8 +45,6 @@
  *
  * @param N Bitmask size in bits.
  * @return Bitmask with all bits set to one.
- *
- * @public @related UFlags
  */
 #define uflags_all(N) ((UFlags(N))~uflags_none(N))
 
@@ -62,8 +54,6 @@
  * @param N Bitmask size in bits.
  * @param BIT Bit to set.
  * @return Bitmask with the specified bit set.
- *
- * @public @related UFlags
  */
 #define uflags_bit(N, BIT) P_ULIB_MACRO_CONCAT(p_uflags_bit_, N)(BIT)
 
@@ -74,8 +64,6 @@
  * @param FLAGS Bitmask.
  * @param FLAG Bit(s) to check.
  * @return True if the bits are set, false otherwise.
- *
- * @public @related UFlags
  */
 #define uflags_is_set(N, FLAGS, FLAG) \
     (((FLAGS) & (UFlags(N))(FLAG)) == (UFlags(N))(FLAG))
@@ -87,8 +75,6 @@
  * @param FLAGS Bitmask.
  * @param FLAG Bit(s) to check.
  * @return True if at least one of the specified bits is set, false otherwise.
- *
- * @public @related UFlags
  */
 #define uflags_is_any_set(N, FLAGS, FLAG) (((FLAGS) & (UFlags(N))(FLAG)) != 0)
 
@@ -98,8 +84,6 @@
  * @param N Bitmask size in bits.
  * @param FLAGS Bitmask.
  * @param FLAG Bit(s) to set.
- *
- * @public @related UFlags
  */
 #define uflags_set(N, FLAGS, FLAG) ((FLAGS) |= (UFlags(N))(FLAG))
 
@@ -109,8 +93,6 @@
  * @param N Bitmask size in bits.
  * @param FLAGS Bitmask.
  * @param FLAG Bit(s) to unset.
- *
- * @public @related UFlags
  */
 #define uflags_unset(N, FLAGS, FLAG) ((FLAGS) &= (UFlags(N))(~(UFlags(N))(FLAG)))
 
@@ -121,8 +103,6 @@
  * @param FLAGS Bitmask.
  * @param FLAG Bit(s) to set or unset.
  * @param BOOL True to set, false to unset.
- *
- * @public @related UFlags
  */
 #define uflags_set_bool(N, FLAGS, FLAG, BOOL) \
     ((BOOL) ? uflags_set(N, FLAGS, FLAG) : uflags_unset(N, FLAGS, FLAG))
@@ -133,8 +113,6 @@
  * @param N Bitmask size in bits.
  * @param FLAGS Bitmask.
  * @param FLAG Bit(s) to toggle.
- *
- * @public @related UFlags
  */
 #define uflags_toggle(N, FLAGS, FLAG) ((FLAGS) ^= (UFlags(N))(FLAG))
 
@@ -144,8 +122,6 @@
  * @param N Bitmask size in bits.
  * @param FLAGS Bitmask.
  * @return Number of set bits.
- *
- * @public @related UFlags
  */
 #define uflags_count_set(N, FLAGS) P_ULIB_MACRO_CONCAT(p_uflags_count_set_, N)(FLAGS)
 
@@ -155,8 +131,6 @@
  * @param N Bitmask size in bits.
  * @param FLAGS Bitmask.
  * @return Number of unset bits.
- *
- * @public @related UFlags
  */
 #define uflags_count_unset(N, FLAGS) ((N) - uflags_count_set(N, FLAGS))
 
@@ -198,5 +172,7 @@ p_uflags_count_set_def(64)
 ULIB_END_DECLS
 
 #endif
+
+/// @}
 
 #endif // UFLAGS_H

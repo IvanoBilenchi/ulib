@@ -8,7 +8,6 @@
  */
 
 #include "uflags.h"
-#include "umacros.h"
 #include "utest.h"
 
 #define uflags_test_impl(N) {                                                                       \

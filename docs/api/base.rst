@@ -12,7 +12,8 @@ Integers
 Bitmasks
 ========
 
-.. doxygenstruct:: UFlags
+.. doxygengroup:: flags
+   :content-only:
 
 Strings
 =======
