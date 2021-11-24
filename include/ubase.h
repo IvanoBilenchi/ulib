@@ -16,6 +16,7 @@
 
 #include <float.h>
 #include <inttypes.h>
+#include <math.h>
 
 ULIB_BEGIN_DECLS
 
@@ -119,6 +120,24 @@ ULIB_BEGIN_DECLS
  * @def ULIB_FLOAT_EPSILON
  */
 
+/**
+ * Returns the previous representable float value.
+ *
+ * @param x [ulib_float] Float number.
+ * @return Previous representable float value.
+ *
+ * @def ulib_float_prev
+ */
+
+/**
+ * Returns the next representable float value.
+ *
+ * @param x [ulib_float] Float number.
+ * @return Next representable float value.
+ *
+ * @def ulib_float_next
+ */
+
 #if defined ULIB_TINY
     typedef uint16_t ulib_uint;
     #define ULIB_UINT_MAX UINT16_MAX
@@ -138,6 +157,8 @@ ULIB_BEGIN_DECLS
     #define ULIB_FLOAT_MIN FLT_MIN
     #define ULIB_FLOAT_MAX FLT_MAX
     #define ULIB_FLOAT_EPSILON FLT_EPSILON
+    #define ulib_float_prev(x) nextafterf(x, ULIB_FLOAT_MIN)
+    #define ulib_float_next(x) nextafterf(x, ULIB_FLOAT_MAX)
 #elif defined ULIB_HUGE
     typedef uint64_t ulib_uint;
     #define ULIB_UINT_MAX UINT64_MAX
@@ -157,6 +178,8 @@ ULIB_BEGIN_DECLS
     #define ULIB_FLOAT_MIN DBL_MIN
     #define ULIB_FLOAT_MAX DBL_MAX
     #define ULIB_FLOAT_EPSILON DBL_EPSILON
+    #define ulib_float_prev(x) nextafter(x, ULIB_FLOAT_MIN)
+    #define ulib_float_next(x) nextafter(x, ULIB_FLOAT_MAX)
 #else
     typedef uint32_t ulib_uint;
     #define ULIB_UINT_MAX UINT32_MAX
@@ -176,6 +199,8 @@ ULIB_BEGIN_DECLS
     #define ULIB_FLOAT_MIN DBL_MIN
     #define ULIB_FLOAT_MAX DBL_MAX
     #define ULIB_FLOAT_EPSILON DBL_EPSILON
+    #define ulib_float_prev(x) nextafter(x, ULIB_FLOAT_MIN)
+    #define ulib_float_next(x) nextafter(x, ULIB_FLOAT_MAX)
 #endif
 
 /// Minimum value of a ulib_uint variable.

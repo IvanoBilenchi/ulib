@@ -9,6 +9,7 @@ Integers
 .. doxygendefine:: ULIB_UINT_MIN
 .. doxygendefine:: ULIB_UINT_MAX
 .. doxygendefine:: ULIB_UINT_FMT
+.. doxygendefine:: ulib_uint_next_power_2
 
 .. doxygentypedef:: ulib_int
 .. doxygendefine:: ULIB_INT_MIN
@@ -23,6 +24,8 @@ Floating point numbers
 .. doxygendefine:: ULIB_FLOAT_MAX
 .. doxygendefine:: ULIB_FLOAT_EPSILON
 .. doxygendefine:: ULIB_FLOAT_FMT
+.. doxygendefine:: ulib_float_prev
+.. doxygendefine:: ulib_float_next
 
 Bitmasks
 ========
