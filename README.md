@@ -6,6 +6,10 @@
 
 Documentation and build instructions are available [online][docs].
 
+### Changelog
+
+See [CHANGELOG.md](CHANGELOG.md).
+
 ### Copyright and License
 
 Copyright (c) 2018-2021 [Ivano Bilenchi][home]
