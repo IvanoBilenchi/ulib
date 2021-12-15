@@ -1,0 +1,46 @@
+/**
+ * @author Ivano Bilenchi
+ *
+ * @copyright Copyright (c) 2021 Ivano Bilenchi <https://ivanobilenchi.com>
+ * @copyright SPDX-License-Identifier: MIT
+ *
+ * @file
+ */
+
+#include "uversion_tests.h"
+#include "umeta.h"
+#include "uversion.h"
+
+bool uversion_test(void) {
+    UVersion a = ulib_get_version(), b = uversion(0, 0, 0);
+    utest_assert_int(uversion_compare(a, b), ==, 1);
+
+    a = uversion(0, 0, 1);
+    utest_assert_int(uversion_compare(a, b), ==, 1);
+
+    b = uversion(0, 0, 2);
+    utest_assert_int(uversion_compare(a, b), ==, -1);
+
+    a = uversion (0, 0, 2);
+    utest_assert_int(uversion_compare(a, b), ==, 0);
+
+    a = uversion(0, 1, 0);
+    utest_assert_int(uversion_compare(a, b), ==, 1);
+
+    b = uversion(0, 2, 0);
+    utest_assert_int(uversion_compare(a, b), ==, -1);
+
+    a = uversion(0, 2, 0);
+    utest_assert_int(uversion_compare(a, b), ==, 0);
+
+    a = uversion(1, 0, 0);
+    utest_assert_int(uversion_compare(a, b), ==, 1);
+
+    b = uversion(2, 0, 0);
+    utest_assert_int(uversion_compare(a, b), ==, -1);
+
+    a = uversion(2, 0, 0);
+    utest_assert_int(uversion_compare(a, b), ==, 0);
+
+    return true;
+}

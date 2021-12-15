@@ -18,6 +18,7 @@
 #include "uflags.h"
 #include "uhash.h"
 #include "umacros.h"
+#include "umeta.h"
 #include "ustd.h"
 #include "ustrbuf.h"
 #include "ustream.h"
@@ -25,5 +26,6 @@
 #include "utest.h"
 #include "utime.h"
 #include "uvec.h"
+#include "uversion.h"
 
 #endif // ULIB_H

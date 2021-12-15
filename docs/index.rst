@@ -19,3 +19,4 @@ Welcome to ULib's documentation!
    api/collections
    api/streams
    api/test
+   api/version
