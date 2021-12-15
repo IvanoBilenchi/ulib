@@ -2,7 +2,7 @@
 Welcome to ULib's documentation!
 ================================
 
-*uLib* is a modern C library featuring generic and type-safe data structures.
+*uLib* is a modern library for C applications.
 
 .. toctree::
    :caption: Howto
