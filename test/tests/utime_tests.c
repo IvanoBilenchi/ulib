@@ -18,30 +18,30 @@ struct utime_test_s {
     char const *str;
 };
 
-bool utime_test(void) {
+bool utime_test_ns(void) {
     utime_ns t = utime_get_ns();
     utest_assert_uint(t, <=, utime_get_ns());
 
     struct utime_test_s test_data[] = {
-        { UTIME_NS_PER_US - 1, UTIME_UNIT_NS, "999.00 ns" },
-        { UTIME_NS_PER_US, UTIME_UNIT_US, "1.00 us" },
-        { UTIME_NS_PER_MS - UTIME_NS_PER_US / 200 - 1, UTIME_UNIT_US, "999.99 us" },
-        { UTIME_NS_PER_MS - UTIME_NS_PER_US / 200, UTIME_UNIT_MS, "1.00 ms" },
-        { UTIME_NS_PER_S - UTIME_NS_PER_MS / 200 -1, UTIME_UNIT_MS, "999.99 ms" },
-        { UTIME_NS_PER_S - UTIME_NS_PER_MS / 200, UTIME_UNIT_S, "1.00 s" },
-        { UTIME_NS_PER_M - UTIME_NS_PER_S / 200 - 1, UTIME_UNIT_S, "59.99 s" },
-        { UTIME_NS_PER_M - UTIME_NS_PER_S / 200, UTIME_UNIT_M, "1.00 m" },
-        { UTIME_NS_PER_H - UTIME_NS_PER_M / 200 - 1, UTIME_UNIT_M, "59.99 m" },
-        { UTIME_NS_PER_H - UTIME_NS_PER_M / 200, UTIME_UNIT_H, "1.00 h" },
-        { UTIME_NS_PER_D - UTIME_NS_PER_H / 200 - 1, UTIME_UNIT_H, "23.99 h" },
-        { UTIME_NS_PER_D - UTIME_NS_PER_H / 200, UTIME_UNIT_D, "1.00 d" }
+        { 999,              UTIME_NANOSECONDS,      "999.00 ns" },
+        { 1000,             UTIME_MICROSECONDS,     "1.00 us" },
+        { 999994,           UTIME_MICROSECONDS,     "999.99 us" },
+        { 999995,           UTIME_MILLISECONDS,     "1.00 ms" },
+        { 999994999,        UTIME_MILLISECONDS,     "999.99 ms" },
+        { 999995000,        UTIME_SECONDS,          "1.00 s" },
+        { 59994999999,      UTIME_SECONDS,          "59.99 s" },
+        { 59995000000,      UTIME_MINUTES,          "1.00 m" },
+        { 3599699999999,    UTIME_MINUTES,          "59.99 m" },
+        { 3599700000000,    UTIME_HOURS,            "1.00 h" },
+        { 86381999999999,   UTIME_HOURS,            "23.99 h" },
+        { 86382000000000,   UTIME_DAYS,             "1.00 d" }
     };
 
     for (unsigned i = 0; i < ulib_array_count(test_data); ++i) {
         struct utime_test_s data = test_data[i];
-        utest_assert_uint(utime_unit_auto(data.t), ==, data.unit);
+        utest_assert_uint(utime_interval_unit_auto(data.t), ==, data.unit);
 
-        UString str = utime_convert_string(data.t, data.unit);
+        UString str = utime_interval_convert_string(data.t, data.unit);
         utest_assert_ustring(str, ==, ustring_init(data.str, strlen(data.str), false));
         ustring_deinit(str);
     }
@@ -52,8 +52,60 @@ bool utime_test(void) {
     do time(&end); while(difftime(end, start) <= 1.0);
     t = utime_get_ns() - t;
 
-    utest_assert_uint(t, >, UTIME_NS_PER_S);
-    utest_assert_uint(t, <, 10 * UTIME_NS_PER_S);
+    utest_assert_uint(t, >, 1000000000);
+    utest_assert_uint(t, <, 10000000000);
+
+    return true;
+}
+
+bool utime_test_date(void) {
+    unsigned days_in_month[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+    for (unsigned m = 1; m <= 12; ++m) {
+        utest_assert_uint(days_in_month[m - 1], ==, utime_days_in_month(1, m));
+    }
+
+    utest_assert(utime_is_leap_year(16));
+    utest_assert(utime_is_leap_year(2000));
+    utest_assert_false(utime_is_leap_year(17));
+    utest_assert_false(utime_is_leap_year(1000));
+
+    UTime a = { .year = 2021, .month = 2, .day = 14, .hour = 1, .minute = 30 };
+    UTime b = utime_from_timestamp(utime_to_timestamp(&a));
+    utest_assert(utime_equals(&a, &b));
+
+    b.day += 1;
+
+    utest_assert_int(utime_diff(&a, &b, UTIME_SECONDS), ==, -86400);
+    utest_assert_int(utime_diff(&a, &b, UTIME_MINUTES), ==, -1440);
+    utest_assert_int(utime_diff(&a, &b, UTIME_HOURS), ==, -24);
+
+    b.year -= 2;
+    b.month += 5;
+
+    utest_assert_int(utime_diff(&a, &b, UTIME_YEARS), ==, 1);
+    utest_assert_int(utime_diff(&a, &b, UTIME_MONTHS), ==, 19);
+
+    utime_add(&b, 19, UTIME_MONTHS);
+    utime_add(&a, 24 * 60 * 60, UTIME_SECONDS);
+    utest_assert(utime_equals(&a, &b));
+
+    utime_normalize_to_utc(&b, 1, 31);
+    utest_assert_int(utime_diff(&a, &b, UTIME_MINUTES), ==, 91);
+
+    UString str = ustring_literal("abcd");
+    utest_assert_false(utime_from_string(&a, &str));
+
+    str = ustring_literal("1990-02-14T14:30:00-1:29");
+    utest_assert(utime_from_string(&a, &str));
+
+    b.year = 1990;
+    b.month = 2;
+    b.day = 14;
+    b.hour = 15;
+    b.minute = 59;
+    b.second = 0;
+
+    utest_assert(utime_equals(&a, &b));
 
     return true;
 }
