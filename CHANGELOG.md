@@ -5,6 +5,22 @@ All notable changes to uLib will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] - 2022-01-27
+### Added
+- Datetime type: `UTime`.
+- Builtin UVec types: `UVec(ulib_byte)`, `UVec(ulib_int)`, `UVec(ulib_uint)`,
+                      `UVec(ulib_float)`, `UVec(ulib_ptr)`, `UVec(UString)`.
+- Builtin UHash types: `UHash(ulib_int)`, `UHash(ulib_uint)`, `UHash(ulib_ptr)`,
+                       `UHash(UString)`.
+
+### Changed
+- Renamed `utime_unit` enum values.
+- Renamed `utime_unit_auto`, `utime_convert` and `utime_convert_string` to
+  `utime_interval_unit_auto`, `utime_interval_convert` and `utime_interval_convert_string`.
+
+### Fixed
+- Use `FLT_TRUE_MIN` and `DBL_TRUE_MIN` to define `ULIB_FLT_MIN`.
+
 ## [0.1.0] - 2021-12-15
 ### Added
 - Numeric types: `ulib_int`, `ulib_uint`, `ulib_float`, `ulib_byte`.
@@ -18,4 +34,5 @@ uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Test utilities.
 - Miscellaneous helper macros.
 
+[0.1.1]: https://github.com/ivanobilenchi/ulib/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/ivanobilenchi/ulib/releases/tag/v0.1.0
