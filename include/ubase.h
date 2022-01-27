@@ -102,7 +102,7 @@ ULIB_BEGIN_DECLS
  */
 
 /**
- * Minimum value of a ulib_float variable.
+ * Minimum positive value of a ulib_float variable.
  *
  * @def ULIB_FLOAT_MIN
  */
@@ -154,7 +154,7 @@ ULIB_BEGIN_DECLS
     #define ULIB_INT_FMT PRId16
 
     typedef float ulib_float;
-    #define ULIB_FLOAT_MIN FLT_MIN
+    #define ULIB_FLOAT_MIN FLT_TRUE_MIN
     #define ULIB_FLOAT_MAX FLT_MAX
     #define ULIB_FLOAT_EPSILON FLT_EPSILON
     #define ulib_float_prev(x) nextafterf(x, ULIB_FLOAT_MIN)
@@ -175,7 +175,7 @@ ULIB_BEGIN_DECLS
     #define ULIB_INT_FMT PRId64
 
     typedef double ulib_float;
-    #define ULIB_FLOAT_MIN DBL_MIN
+    #define ULIB_FLOAT_MIN DBL_TRUE_MIN
     #define ULIB_FLOAT_MAX DBL_MAX
     #define ULIB_FLOAT_EPSILON DBL_EPSILON
     #define ulib_float_prev(x) nextafter(x, ULIB_FLOAT_MIN)
@@ -196,7 +196,7 @@ ULIB_BEGIN_DECLS
     #define ULIB_INT_FMT PRId32
 
     typedef double ulib_float;
-    #define ULIB_FLOAT_MIN DBL_MIN
+    #define ULIB_FLOAT_MIN DBL_TRUE_MIN
     #define ULIB_FLOAT_MAX DBL_MAX
     #define ULIB_FLOAT_EPSILON DBL_EPSILON
     #define ulib_float_prev(x) nextafter(x, ULIB_FLOAT_MIN)
