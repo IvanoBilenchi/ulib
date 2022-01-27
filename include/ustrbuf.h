@@ -13,7 +13,7 @@
 #define USTRBUF_H
 
 #include "ustring.h"
-#include "uvec.h"
+#include "uvec_builtin.h"
 
 ULIB_BEGIN_DECLS
 

@@ -3,7 +3,7 @@
  *
  * @author Ivano Bilenchi
  *
- * @copyright Copyright (c) 2018-2021 Ivano Bilenchi <https://ivanobilenchi.com>
+ * @copyright Copyright (c) 2018-2022 Ivano Bilenchi <https://ivanobilenchi.com>
  * @copyright SPDX-License-Identifier: MIT
  *
  * @file
@@ -1336,12 +1336,6 @@ typedef enum uvec_ret {
     if (p_v_##comp_func)                                                                            \
         qsort((p_v_##comp_func)->storage + (start), len, sizeof(T), comp_func);                     \
 } while(0)
-
-// #######################
-// # Built-in UVec types #
-// #######################
-
-UVEC_DECL_COMPARABLE_SPEC(char, ULIB_PUBLIC)
 
 ULIB_END_DECLS
 

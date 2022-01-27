@@ -3,7 +3,7 @@
  *
  * @author Ivano Bilenchi
  *
- * @copyright Copyright (c) 2021 Ivano Bilenchi <https://ivanobilenchi.com>
+ * @copyright Copyright (c) 2021-2022 Ivano Bilenchi <https://ivanobilenchi.com>
  * @copyright SPDX-License-Identifier: MIT
  *
  * @file
@@ -211,6 +211,9 @@ ULIB_BEGIN_DECLS
 
 /// Byte type.
 typedef uint8_t ulib_byte;
+
+/// Pointer type.
+typedef void* ulib_ptr;
 
 ULIB_END_DECLS
 
