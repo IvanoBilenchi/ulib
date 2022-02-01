@@ -41,7 +41,7 @@ bool utime_test_ns(void) {
         struct utime_test_s data = test_data[i];
         utest_assert_uint(utime_interval_unit_auto(data.t), ==, data.unit);
 
-        UString str = utime_interval_convert_string(data.t, data.unit);
+        UString str = utime_interval_to_string(data.t, data.unit);
         utest_assert_ustring(str, ==, ustring_init(data.str, strlen(data.str), false));
         ustring_deinit(str);
     }

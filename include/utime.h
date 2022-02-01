@@ -259,7 +259,7 @@ double utime_interval_convert(utime_ns t, utime_unit unit);
  * @note You are responsible for deinitializing the returned string.
  */
 ULIB_PUBLIC
-UString utime_interval_convert_string(utime_ns t, utime_unit unit);
+UString utime_interval_to_string(utime_ns t, utime_unit unit);
 
 /// @}
 

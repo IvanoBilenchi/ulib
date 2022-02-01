@@ -243,7 +243,7 @@ double utime_interval_convert(utime_ns t, utime_unit unit) {
     return (double)(t) / (double)unit_ns[ulib_clamp(unit, UTIME_NANOSECONDS, UTIME_DAYS)];
 }
 
-UString utime_interval_convert_string(utime_ns t, utime_unit unit) {
+UString utime_interval_to_string(utime_ns t, utime_unit unit) {
     UOStream stream;
     UStrBuf buf = ustrbuf_init();
 
