@@ -14,8 +14,13 @@
 
 #include "ustd.h"
 #include "ustrbuf.h"
+#include "utime.h"
 
 ULIB_BEGIN_DECLS
+
+/// @cond
+typedef struct UString UString;
+/// @endcond
 
 /// Return codes for IO streams.
 typedef enum ustream_ret {
@@ -327,6 +332,48 @@ ustream_ret uostream_writef(UOStream *stream, size_t *written, char const *forma
 ULIB_PUBLIC
 ustream_ret uostream_writef_list(UOStream *stream, size_t *written,
                                  char const *format, va_list args);
+
+/**
+ * Writes a string into the stream.
+ *
+ * @param stream Output stream.
+ * @param string String.
+ * @param[out] written Number of bytes written.
+ * @return Return code.
+ *
+ * @public @memberof UOStream
+ */
+ULIB_PUBLIC
+ustream_ret uostream_write_string(UOStream *stream, UString const *string, size_t *written);
+
+/**
+ * Writes the specified date and time into the stream.
+ *
+ * @param stream Output stream.
+ * @param time Date and time.
+ * @param[out] written Number of bytes written.
+ * @return Return code.
+ *
+ * @public @memberof UOStream
+ */
+ULIB_PUBLIC
+ustream_ret uostream_write_time(UOStream *stream, UTime const *time, size_t *written);
+
+/**
+ * Writes the specified time interval into the stream.
+ *
+ * @param stream Output stream.
+ * @param interval Time interval.
+ * @param unit Time unit.
+ * @param decimal_digits Number of decimal digits to write.
+ * @param[out] written Number of bytes written.
+ * @return Return code.
+ *
+ * @public @memberof UOStream
+ */
+ULIB_PUBLIC
+ustream_ret uostream_write_time_interval(UOStream *stream, utime_ns interval, utime_unit unit,
+                                         unsigned decimal_digits, size_t *written);
 
 /**
  * Initializes a stream that writes to the file at the specified path.

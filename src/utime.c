@@ -10,6 +10,7 @@
  */
 
 #include "utime.h"
+#include "ustream.h"
 #include <time.h>
 
 #define NS_PER_NS (utime_ns)1
@@ -31,7 +32,6 @@
 #define MONTHS_PER_YEAR 12
 #define SECONDS_PER_HOUR (SECONDS_PER_MINUTE * MINUTES_PER_HOUR)
 #define SECONDS_PER_DAY (SECONDS_PER_HOUR * HOURS_PER_DAY)
-#define SECONDS_PER_YEAR (SECONDS_PER_DAY * DAYS_PER_YEAR)
 
 bool utime_equals(UTime const *a, UTime const *b) {
     return a->year == b->year && a->month == b->month && a->day == b->day &&
@@ -149,9 +149,15 @@ long long utime_diff(UTime const *a, UTime const *b, utime_unit unit) {
 }
 
 UString utime_to_string(UTime const *time) {
-    return ustring_with_format("%lld/%u/%u-%u:%u:%u",
-                               time->year, time->month, time->day,
-                               time->hour, time->minute, time->second);
+    UOStream stream;
+    UStrBuf buf = ustrbuf_init();
+
+    if (uostream_to_strbuf(&stream, &buf) ||
+        uostream_write_time(&stream, time, NULL)) {
+        return ustring_null;
+    }
+
+    return ustrbuf_to_ustring(&buf);
 }
 
 bool utime_from_string(UTime *time, UString const *string) {
@@ -238,9 +244,15 @@ double utime_interval_convert(utime_ns t, utime_unit unit) {
 }
 
 UString utime_interval_convert_string(utime_ns t, utime_unit unit) {
-    static char const* str[] = { "ns", "us", "ms", "s", "m", "h", "d" };
-    unit = ulib_clamp(unit, UTIME_NANOSECONDS, UTIME_DAYS);
-    return ustring_with_format("%.*f %s", FMT_FDIGITS, utime_interval_convert(t, unit), str[unit]);
+    UOStream stream;
+    UStrBuf buf = ustrbuf_init();
+
+    if (uostream_to_strbuf(&stream, &buf) ||
+        uostream_write_time_interval(&stream, t, unit, FMT_FDIGITS, NULL)) {
+        return ustring_null;
+    }
+
+    return ustrbuf_to_ustring(&buf);
 }
 
 utime_stamp utime_get_timestamp(void) {

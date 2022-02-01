@@ -253,6 +253,24 @@ ustream_ret uostream_writef_list(UOStream *stream, size_t *written,
     return stream->state;
 }
 
+ustream_ret uostream_write_string(UOStream *stream, UString const *string, size_t *written) {
+    return uostream_write(stream, string->cstring, (size_t)string->length, written);
+}
+
+ustream_ret uostream_write_time(UOStream *stream, UTime const *time, size_t *written) {
+    return uostream_writef(stream, written, "%lld/%02u/%02u-%02u:%02u:%02u",
+                           time->year, time->month, time->day,
+                           time->hour, time->minute, time->second);
+}
+
+ustream_ret uostream_write_time_interval(UOStream *stream, utime_ns interval, utime_unit unit,
+                                         unsigned decimal_digits, size_t *written) {
+    static char const* str[] = { "ns", "us", "ms", "s", "m", "h", "d" };
+    unit = ulib_clamp(unit, UTIME_NANOSECONDS, UTIME_DAYS);
+    double c_interval = utime_interval_convert(interval, unit);
+    return uostream_writef(stream, written, "%.*f %s", decimal_digits, c_interval, str[unit]);
+}
+
 ustream_ret uostream_to_path(UOStream *stream, char const *path) {
     FILE *out_file = fopen(path, "wb");
     ustream_ret ret = uostream_to_file(stream, out_file);
