@@ -5,6 +5,18 @@ All notable changes to uLib will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.2] - 2022-02-01
+### Added
+- `uostream_write_string`, `uostream_write_time`,
+  `uostream_write_time_interval`, `uostream_write_version`.
+- `uversion_to_string`.
+
+### Changed
+- Renamed `utime_interval_convert_string` to `utime_interval_to_string`.
+
+### Fixed
+- Date and time format for `utime_to_string`.
+
 ## [0.1.1] - 2022-01-27
 ### Added
 - Datetime type: `UTime`.
@@ -34,5 +46,6 @@ uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Test utilities.
 - Miscellaneous helper macros.
 
+[0.1.2]: https://github.com/ivanobilenchi/ulib/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/ivanobilenchi/ulib/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/ivanobilenchi/ulib/releases/tag/v0.1.0
