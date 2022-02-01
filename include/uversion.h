@@ -13,6 +13,7 @@
 #define UVERSION_H
 
 #include "ucompat.h"
+#include "ustring.h"
 
 ULIB_BEGIN_DECLS
 
@@ -53,6 +54,17 @@ typedef struct UVersion {
  */
 ULIB_PUBLIC
 int uversion_compare(UVersion lhs, UVersion rhs);
+
+/**
+ * Converts the version into a string.
+ *
+ * @param version Version.
+ * @return String.
+ *
+ * @public @memberof UVersion
+ */
+ULIB_PUBLIC
+UString uversion_to_string(UVersion const *version);
 
 ULIB_END_DECLS
 

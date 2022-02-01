@@ -20,6 +20,7 @@ ULIB_BEGIN_DECLS
 
 /// @cond
 typedef struct UString UString;
+typedef struct UVersion UVersion;
 /// @endcond
 
 /// Return codes for IO streams.
@@ -374,6 +375,19 @@ ustream_ret uostream_write_time(UOStream *stream, UTime const *time, size_t *wri
 ULIB_PUBLIC
 ustream_ret uostream_write_time_interval(UOStream *stream, utime_ns interval, utime_unit unit,
                                          unsigned decimal_digits, size_t *written);
+
+/**
+ * Writes the specified version into the stream.
+ *
+ * @param stream Output stream.
+ * @param version Version.
+ * @param[out] written Number of bytes written.
+ * @return Return code.
+ *
+ * @public @memberof UOStream
+ */
+ULIB_PUBLIC
+ustream_ret uostream_write_version(UOStream *stream, UVersion const *version, size_t *written);
 
 /**
  * Initializes a stream that writes to the file at the specified path.

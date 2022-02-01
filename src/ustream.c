@@ -9,6 +9,7 @@
 
 #include "ustream.h"
 #include "ustring.h"
+#include "uversion.h"
 
 typedef struct UStreamBuf {
     size_t size;
@@ -269,6 +270,11 @@ ustream_ret uostream_write_time_interval(UOStream *stream, utime_ns interval, ut
     unit = ulib_clamp(unit, UTIME_NANOSECONDS, UTIME_DAYS);
     double c_interval = utime_interval_convert(interval, unit);
     return uostream_writef(stream, written, "%.*f %s", decimal_digits, c_interval, str[unit]);
+}
+
+ustream_ret uostream_write_version(UOStream *stream, UVersion const *version, size_t *written) {
+    return uostream_writef(stream, written, "%u.%u.%u",
+                           version->major, version->minor, version->patch);
 }
 
 ustream_ret uostream_to_path(UOStream *stream, char const *path) {
