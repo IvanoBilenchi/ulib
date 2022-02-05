@@ -123,7 +123,7 @@ UString ustring_repeating(UString string, ulib_uint times);
  * @param string String to search into.
  * @param needle Character to find.
  * @return Index of the first occurrence of the specified character.
- *         If it cannot be found, returns an index larger than the string's length.
+ *         If it cannot be found, returns an index greater than or equal to the string's length.
  *
  * @public @memberof UString
  */
@@ -136,7 +136,7 @@ ulib_uint ustring_index_of(UString string, char needle);
  * @param string String to search into.
  * @param needle String to find.
  * @return Index of the first occurrence of the specified string.
- *         If it cannot be found, returns an index larger than the string's length.
+ *         If it cannot be found, returns an index greater than or equal to the string's length.
  *
  * @public @memberof UString
  */
