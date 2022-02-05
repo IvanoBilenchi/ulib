@@ -947,13 +947,13 @@ p_uhash_static_inline ulib_uint p_uhash_x31_str_hash(char const *key) {
 #define UHash(T) UHash_##T
 
 /**
- * Expands to 'struct UHash_T', useful for forward-declarations.
+ * Hash table type forward declaration.
  *
  * @param T [symbol] Hash table name.
  *
  * @public @related UHash
  */
-#define uhash_struct(T) struct UHash_##T
+#define uhash_decl(T) typedef struct UHash(T) UHash(T)
 
 /// @name Memory management
 

@@ -23,7 +23,7 @@ ULIB_BEGIN_DECLS
  * @struct UStrBuf
  * @extends UVec
  */
-typedef uvec_struct(char) UStrBuf;
+typedef struct UVec(char) UStrBuf;
 
 /**
  * Initializes a new string buffer.

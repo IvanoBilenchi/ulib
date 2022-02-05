@@ -672,13 +672,13 @@ typedef enum uvec_ret {
 #define UVec(T) P_ULIB_MACRO_CONCAT(UVec_, T)
 
 /**
- * Expands to 'struct UVec_T', useful for forward-declarations.
+ * Vector type forward declaration.
  *
  * @param T [symbol] Vector type.
  *
  * @public @related UVec
  */
-#define uvec_struct(T) struct P_ULIB_MACRO_CONCAT(UVec_, T)
+#define uvec_decl(T) typedef struct UVec(T) UVec(T)
 
 /// @name Memory management
 
