@@ -25,13 +25,6 @@
  * @struct UHash
  */
 
-/**
- * Unsigned integer type.
- *
- * @deprecated Use ulib_uint instead.
- */
-#define uhash_uint ulib_uint
-
 /// Return codes.
 typedef enum uhash_ret {
 

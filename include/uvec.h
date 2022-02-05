@@ -25,13 +25,6 @@ ULIB_BEGIN_DECLS
  * @struct UVec
  */
 
-/**
- * Unsigned integer type.
- *
- * @deprecated Use ulib_uint instead.
- */
-#define uvec_uint ulib_uint
-
 /// Return codes.
 typedef enum uvec_ret {
 
@@ -233,7 +226,7 @@ typedef enum uvec_ret {
     }                                                                                               \
                                                                                                     \
     SCOPE uvec_ret uvec_shrink_##T(UVec_##T *vec) {                                                 \
-        uvec_uint new_allocated = vec->count;                                                       \
+        ulib_uint new_allocated = vec->count;                                                       \
                                                                                                     \
         if (new_allocated) {                                                                        \
             ulib_uint_next_power_2(new_allocated);                                                  \
