@@ -809,23 +809,6 @@ p_uhash_static_inline ulib_uint p_uhash_x31_str_hash(char const *key) {
     P_UHASH_IMPL_ALLOC_PI(T, p_uhash_static_inline, uh_key, default_hfunc, default_efunc)           \
     P_UHASH_IMPL_COMMON(T, p_uhash_static_inline, uh_key, uh_val, h->hfunc, h->efunc)
 
-/// @name Memory allocation
-
-/// malloc override.
-#ifndef UHASH_MALLOC
-    #define UHASH_MALLOC malloc
-#endif
-
-/// realloc override.
-#ifndef ulib_realloc
-    #define ulib_realloc realloc
-#endif
-
-/// free override.
-#ifndef ulib_free
-    #define ulib_free free
-#endif
-
 /// @name Hash and equality functions
 
 /**
