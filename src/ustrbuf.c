@@ -9,13 +9,6 @@
 
 #include "ustrbuf.h"
 
-static char* ustrbuf_deinit_get_storage(UStrBuf *buf) {
-    char *storage = buf->storage;
-    buf->storage = NULL;
-    ustrbuf_deinit(buf);
-    return storage;
-}
-
 UStrBuf ustrbuf_init(void) {
     return uvec_init(char);
 }
@@ -38,7 +31,7 @@ uvec_ret ustrbuf_append_format_list(UStrBuf *buf, char const *format, va_list ar
     uvec_ret ret = uvec_expand(char, buf, (ulib_uint)size);
 
     if (ret == UVEC_OK) {
-        vsnprintf(buf->storage + buf->count, size, format, args);
+        vsnprintf(uvec_storage(char, buf) + buf->count, size, format, args);
         buf->count += (ulib_uint)length;
     }
 
@@ -53,15 +46,17 @@ UString ustrbuf_to_ustring(UStrBuf *buf) {
         return ustring_empty;
     }
 
-    char *buffer = ustrbuf_deinit_get_storage(buf);
-    char *cstring = ulib_realloc(buffer, length + 1);
+    char *nbuf = buf->allocated ? ulib_realloc(buf->storage, length + 1) : ulib_malloc(length + 1);
 
-    if (cstring) {
-        cstring[length] = '\0';
-    } else {
-        ulib_free(buffer);
-        length = 0;
+    if (!nbuf) {
+        ustrbuf_deinit(buf);
+        return ustring_null;
     }
 
-    return ustring_init(cstring, length, false);
+    if (!buf->allocated) memcpy(nbuf, &buf->storage, length);
+    buf->storage = NULL;
+    ustrbuf_deinit(buf);
+
+    nbuf[length] = '\0';
+    return ustring_init(nbuf, length, false);
 }
