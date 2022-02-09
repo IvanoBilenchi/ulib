@@ -5,6 +5,24 @@ All notable changes to uLib will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.3] - 2022-02-09
+### Added
+- `uvec_decl` and `uhash_decl`.
+- `uvec_capacity`.
+
+### Changed
+- Renamed `utime_interval_convert_string` to `utime_interval_to_string`.
+- Signature of `uvec_storage`, `uvec_get`, `uvec_set`, `uvec_first` and `uvec_last`.
+- `UVec` now stores elements inside its storage pointer when possible.
+
+### Removed
+- `uvec_struct` and `uhash_struct`.
+- `uvec_uint` and `uhash_uint`.
+
+### Fixed
+- Potential memory leaks due to missing `ustrbuf_deinit`.
+- Docs for `ustring_index_of` and `ustring_find`.
+
 ## [0.1.2] - 2022-02-01
 ### Added
 - `uostream_write_string`, `uostream_write_time`,
@@ -46,6 +64,7 @@ uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Test utilities.
 - Miscellaneous helper macros.
 
+[0.1.3]: https://github.com/ivanobilenchi/ulib/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/ivanobilenchi/ulib/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/ivanobilenchi/ulib/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/ivanobilenchi/ulib/releases/tag/v0.1.0
