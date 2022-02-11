@@ -179,6 +179,42 @@ ustream_ret uistream_from_file(UIStream *stream, FILE *file);
 ULIB_PUBLIC
 ustream_ret uistream_from_buf(UIStream *stream, void const *buf, size_t size);
 
+/**
+ * Initializes a stream that reads from the specified string buffer.
+ *
+ * @param stream Input stream.
+ * @param buf String buffer.
+ * @return Return code.
+ *
+ * @public @memberof UIStream
+ */
+ULIB_PUBLIC
+ustream_ret uistream_from_strbuf(UIStream *stream, UStrBuf const *buf);
+
+/**
+ * Initializes a stream that reads from the specified null-terminated string.
+ *
+ * @param stream Input stream.
+ * @param string String.
+ * @return Return code.
+ *
+ * @public @memberof UIStream
+ */
+ULIB_PUBLIC
+ustream_ret uistream_from_string(UIStream *stream, char const *string);
+
+/**
+ * Initializes a stream that reads from the specified string.
+ *
+ * @param stream Input stream.
+ * @param string String.
+ * @return Return code.
+ *
+ * @public @memberof UIStream
+ */
+ULIB_PUBLIC
+ustream_ret uistream_from_ustring(UIStream *stream, UString const *string);
+
 /// Models an output stream.
 typedef struct UOStream {
 

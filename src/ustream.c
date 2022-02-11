@@ -204,6 +204,18 @@ ustream_ret uistream_from_buf(UIStream *stream, void const *buf, size_t size) {
     return state;
 }
 
+ustream_ret uistream_from_strbuf(UIStream *stream, UStrBuf const *buf) {
+    return uistream_from_buf(stream, ustrbuf_data(buf), ustrbuf_size(buf));
+}
+
+ustream_ret uistream_from_string(UIStream *stream, char const *string) {
+    return uistream_from_buf(stream, string, strlen(string));
+}
+
+ustream_ret uistream_from_ustring(UIStream *stream, UString const *string) {
+    return uistream_from_buf(stream, ustring_data(*string), ustring_length(*string));
+}
+
 ustream_ret uostream_deinit(UOStream *stream) {
     return stream->state = stream->free ? stream->free(stream->ctx) : USTREAM_OK;
 }
