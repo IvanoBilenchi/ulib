@@ -30,7 +30,7 @@ typedef struct UVec(char) UStrBuf;
  *
  * @return Initialized string buffer.
  *
- * @public @related UStrBuf
+ * @public @memberof UStrBuf
  */
 ULIB_PUBLIC
 UStrBuf ustrbuf_init(void);
@@ -40,10 +40,40 @@ UStrBuf ustrbuf_init(void);
  *
  * @param buf String buffer.
  *
- * @public @related UStrBuf
+ * @public @memberof UStrBuf
  */
 ULIB_PUBLIC
 void ustrbuf_deinit(UStrBuf *buf);
+
+/**
+ * Returns the number of characters in the string buffer.
+ *
+ * @param buf [UStrBuf *] String buffer.
+ * @return Number of characters.
+ *
+ * @public @related UStrBuf
+ */
+#define ustrbuf_count(buf) ((buf)->count)
+
+/**
+ * Returns the size of the string buffer.
+ *
+ * @param buf [UStrBuf *] String buffer.
+ * @return Size.
+ *
+ * @public @related UStrBuf
+ */
+#define ustrbuf_size(buf) ((buf)->allocated)
+
+/**
+ * Returns a pointer to the first character of the string buffer.
+ *
+ * @param buf [UStrBuf *] String buffer.
+ * @return Pointer to the first character.
+ *
+ * @public @related UStrBuf
+ */
+#define ustrbuf_data(buf) uvec_storage(char, buf)
 
 /**
  * Appends the specified formatted string to the string buffer.
@@ -53,7 +83,7 @@ void ustrbuf_deinit(UStrBuf *buf);
  * @param ... Format arguments.
  * @return UVEC_OK on success, otherwise UVEC_ERR.
  *
- * @public @related UStrBuf
+ * @public @memberof UStrBuf
  */
 ULIB_PUBLIC
 uvec_ret ustrbuf_append_format(UStrBuf *buf, char const *format, ...);
@@ -66,7 +96,7 @@ uvec_ret ustrbuf_append_format(UStrBuf *buf, char const *format, ...);
  * @param args Format arguments.
  * @return UVEC_OK on success, otherwise UVEC_ERR.
  *
- * @public @related UStrBuf
+ * @public @memberof UStrBuf
  */
 ULIB_PUBLIC
 uvec_ret ustrbuf_append_format_list(UStrBuf *buf, char const *format, va_list args);
@@ -79,7 +109,7 @@ uvec_ret ustrbuf_append_format_list(UStrBuf *buf, char const *format, va_list ar
  *
  * @note After calling this function, the string buffer must not be used anymore.
  *
- * @public @related UStrBuf
+ * @public @memberof UStrBuf
  */
 ULIB_PUBLIC
 UString ustrbuf_to_ustring(UStrBuf *buf);
