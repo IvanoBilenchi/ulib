@@ -310,13 +310,25 @@ ulib_uint ustring_hash(UString string);
 /**
  * Deinitializes the specified string.
  *
- * @param string [UString] String to deinitialize.
+ * @param string String to deinitialize.
  *
- * @public @related UString
+ * @public @memberof UString
  */
-#define ustring_deinit(string) do {                                                                 \
-    if (!p_ustring_is_small(string)) ulib_free((void *)(string)._l._data);                        \
-} while (0)
+ULIB_PUBLIC
+void ustring_deinit(UString string);
+
+/**
+ * Deinitializes the specified string, returning its underlying buffer.
+ *
+ * @param string String to deinitialize.
+ * @return Buffer.
+ *
+ * @note You are responsible for deallocating the returned buffer.
+ *
+ * @public @memberof UString
+ */
+ULIB_PUBLIC
+char const* ustring_deinit_return_data(UString string);
 
 /**
  * Initializes an empty string.
