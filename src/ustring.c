@@ -12,10 +12,8 @@
 #include "ustrbuf.h"
 #include <stdarg.h>
 
-#define ustring_length_is_small(len) ((len) < (2 * sizeof(char*) - sizeof(ulib_uint)))
-
 static inline UString ustring_small(char const *cstring, size_t length) {
-    UString ret = {.small = {.size = (ulib_uint)length + 1, .data = {0}}};
+    UString ret = {.small = {.size = (ulib_uint)length + 1}};
     memcpy(ret.small.data, cstring, length);
     return ret;
 }
@@ -30,7 +28,7 @@ UString ustring_assign(char const *cstring, size_t length) {
 
     if (!cstring) goto end;
 
-    if (ustring_length_is_small(length)) {
+    if (p_ustring_length_is_small(length)) {
         ret = ustring_small(cstring, length);
         goto end;
     }
@@ -45,13 +43,13 @@ end:
 
 UString ustring_copy(char const *cstring, size_t length) {
     if (!cstring) return ustring_null;
-    if (ustring_length_is_small(length)) return ustring_small(cstring, length);
+    if (p_ustring_length_is_small(length)) return ustring_small(cstring, length);
     return ustring_large(ulib_str_dup(cstring, length), length);
 }
 
 UString ustring_wrap(char const *cstring, size_t length) {
     if (!cstring) return ustring_null;
-    if (ustring_length_is_small(length)) return ustring_small(cstring, length);
+    if (p_ustring_length_is_small(length)) return ustring_small(cstring, length);
     return ustring_large(cstring, length);
 }
 

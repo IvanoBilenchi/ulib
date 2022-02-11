@@ -16,28 +16,34 @@
 
 ULIB_BEGIN_DECLS
 
+/// @cond
+struct p_ustring_sizing { ulib_uint s; char const *d; };
+#define P_USTRING_SMALL_SIZE (sizeof(struct p_ustring_sizing) - sizeof(ulib_uint))
+#define p_ustring_size_is_small(s) ((s) <= P_USTRING_SMALL_SIZE)
+#define p_ustring_length_is_small(l) ((l) < P_USTRING_SMALL_SIZE)
+#define p_ustring_is_small(string) p_ustring_size_is_small((string).size)
+/// @endcond
+
 /**
  * A counted string.
  *
  * @struct UString
  */
-typedef union UString {
+typedef struct UString {
     /// @cond
-    ulib_uint size;
-    struct {
+    union {
         ulib_uint size;
-        char data[2 * sizeof(char*) - sizeof(ulib_uint)];
-    } small;
-    struct {
-        ulib_uint size;
-        char const *data;
-    } large;
+        struct {
+            ulib_uint size;
+            char data[P_USTRING_SMALL_SIZE];
+        } small;
+        struct {
+            ulib_uint size;
+            char const *data;
+        } large;
+    };
     /// @endcond
 } UString;
-
-/// @cond
-#define p_ustring_is_small(string) ((string).size <= sizeof((string).small.data))
-/// @endcond
 
 /**
  * Returns the size of the string.
@@ -319,7 +325,7 @@ ulib_uint ustring_hash(UString string);
  *
  * @public @related UString
  */
-#define ustring_empty ((UString){.small = {.size = 1, .data = "" }})
+#define ustring_empty ((UString){.small = {.size = 1}})
 
 /**
  * Initializes a string with a NULL buffer.
