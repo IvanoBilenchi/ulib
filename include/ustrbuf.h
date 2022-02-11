@@ -119,7 +119,7 @@ UString ustrbuf_to_ustring(UStrBuf *buf);
  * @public @related UStrBuf
  */
 #define ustrbuf_append_ustring(buf, string) \
-    uvec_append_array(char, buf, (string).cstring, (string).length)
+    uvec_append_array(char, buf, ustring_data(string), ustring_length(string))
 
 ULIB_END_DECLS
 

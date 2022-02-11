@@ -42,7 +42,7 @@ bool utime_test_ns(void) {
         utest_assert_uint(utime_interval_unit_auto(data.t), ==, data.unit);
 
         UString str = utime_interval_to_string(data.t, data.unit);
-        utest_assert_ustring(str, ==, ustring_init(data.str, strlen(data.str), false));
+        utest_assert_ustring(str, ==, ustring_wrap(data.str, strlen(data.str)));
         ustring_deinit(str);
     }
 

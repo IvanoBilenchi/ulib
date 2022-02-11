@@ -10,52 +10,84 @@
 #include "ustring.h"
 #include "umacros.h"
 #include "ustrbuf.h"
+#include <stdarg.h>
 
-UString ustring_init(char const *cstring, size_t length, bool copy) {
-    if (!cstring) return ustring_null;
+#define ustring_length_is_small(len) ((len) < (2 * sizeof(char*) - sizeof(ulib_uint)))
 
-    if (copy) {
-        cstring = ulib_str_dup(cstring, length);
-        if (!cstring) return ustring_null;
+static inline UString ustring_small(char const *cstring, size_t length) {
+    UString ret = {.small = {.size = (ulib_uint)length + 1, .data = {0}}};
+    memcpy(ret.small.data, cstring, length);
+    return ret;
+}
+
+static inline UString ustring_large(char const *cstring, size_t length) {
+    return (UString) {.large = {.size = (ulib_uint)length + 1, .data = cstring}};
+}
+
+UString ustring_assign(char const *cstring, size_t length) {
+    bool should_free = true;
+    UString ret = ustring_null;
+
+    if (!cstring) goto end;
+
+    if (ustring_length_is_small(length)) {
+        ret = ustring_small(cstring, length);
+        goto end;
     }
 
-    return (UString) {
-        .length = (ulib_uint)length,
-        .cstring = cstring
-    };
+    ret = ustring_large(cstring, length);
+    should_free = false;
+
+end:
+    if (should_free) ulib_free((void *)cstring);
+    return ret;
 }
 
-UString ustring_init_cstring(char const *cstring, bool copy) {
-    return ustring_init(cstring, strlen(cstring), copy);
+UString ustring_copy(char const *cstring, size_t length) {
+    if (!cstring) return ustring_null;
+    if (ustring_length_is_small(length)) return ustring_small(cstring, length);
+    return ustring_large(ulib_str_dup(cstring, length), length);
 }
 
-UString ustring_copy(UString string) {
-    return ustring_init(string.cstring, string.length, true);
+UString ustring_wrap(char const *cstring, size_t length) {
+    if (!cstring) return ustring_null;
+    if (ustring_length_is_small(length)) return ustring_small(cstring, length);
+    return ustring_large(cstring, length);
+}
+
+UString ustring_dup(UString string) {
+    return ustring_copy(ustring_data(string), ustring_length(string));
 }
 
 ulib_uint ustring_index_of(UString string, char needle) {
-    char const *chr = memchr(string.cstring, needle, string.length);
-    return chr ? (ulib_uint)(chr - string.cstring) : string.length;
+    char const *data = ustring_data(string);
+    ulib_uint len = ustring_length(string);
+    char const *chr = memchr(data, needle, len);
+    return chr ? (ulib_uint)(chr - data) : len;
 }
 
 ulib_uint ustring_find(UString string, UString needle) {
-    ulib_uint i = 0, max_i = needle.length < string.length ? string.length - needle.length : 0;
-    for (; i < max_i && memcmp(string.cstring + i, needle.cstring, needle.length) != 0; ++i);
-    return i < max_i ? i : string.length;
+    ulib_uint str_len = ustring_length(string), n_len = ustring_length(needle);
+    ulib_uint i = 0, max_i = n_len < str_len ? str_len - n_len : 0;
+    for (; i < max_i && memcmp(ustring_data(string) + i, ustring_data(needle), n_len) != 0; ++i);
+    return i < max_i ? i : str_len;
 }
 
 bool ustring_starts_with(UString string, UString prefix) {
-    return prefix.length <= string.length &&
-           memcmp(string.cstring, prefix.cstring, prefix.length) == 0;
+    ulib_uint p_len = ustring_length(prefix);
+    return p_len <= ustring_length(string) &&
+           memcmp(ustring_data(string), ustring_data(prefix), p_len) == 0;
 }
 
 bool ustring_ends_with(UString string, UString suffix) {
-    return suffix.length <= string.length &&
-           memcmp(string.cstring + string.length - suffix.length, suffix.cstring, suffix.length) == 0;
+    ulib_uint str_len = ustring_length(string), s_len = ustring_length(suffix);
+    return s_len <= str_len &&
+           memcmp(ustring_data(string) + str_len - s_len, ustring_data(suffix), s_len) == 0;
 }
 
 bool ustring_equals(UString lhs, UString rhs) {
-    return lhs.length == rhs.length && memcmp(lhs.cstring, rhs.cstring, lhs.length) == 0;
+    ulib_uint len = ustring_length(lhs);
+    return len == ustring_length(rhs) && memcmp(ustring_data(lhs), ustring_data(rhs), len) == 0;
 }
 
 bool ustring_precedes(UString lhs, UString rhs) {
@@ -63,8 +95,9 @@ bool ustring_precedes(UString lhs, UString rhs) {
 }
 
 int ustring_compare(UString lhs, UString rhs) {
-    int const res = memcmp(lhs.cstring, rhs.cstring, ulib_min(lhs.length, rhs.length));
-    return res == 0 ? (lhs.length > rhs.length) - (lhs.length < rhs.length) : res;
+    ulib_uint l_len = ustring_length(lhs), r_len = ustring_length(rhs);
+    int const res = memcmp(ustring_data(lhs), ustring_data(rhs), ulib_min(l_len, r_len));
+    return res == 0 ? (l_len > r_len) - (l_len < r_len) : res;
 }
 
 ulib_uint ustring_hash(UString string) {
@@ -74,8 +107,8 @@ ulib_uint ustring_hash(UString string) {
         }                                                                                           \
     } while (0)
 
-    ulib_uint const length = string.length;
-    char const *cstr = string.cstring;
+    ulib_uint const length = ustring_length(string);
+    char const *cstr = ustring_data(string);
 
     ulib_uint const part_size = 32;
     ulib_uint hash = length;

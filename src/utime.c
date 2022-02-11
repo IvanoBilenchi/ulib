@@ -162,8 +162,8 @@ UString utime_to_string(UTime const *time) {
 }
 
 bool utime_from_string(UTime *time, UString const *string) {
-    char *ptr = (char *)string->cstring, *newptr;
-    char const *endptr = string->cstring + string->length;
+    char *ptr = (char *)ustring_data(*string), *newptr;
+    char const *endptr = ptr + ustring_length(*string);
 
     // Parse year
     long long y = strtoll(ptr, &newptr, 0);

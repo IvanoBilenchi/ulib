@@ -171,7 +171,7 @@ ULIB_BEGIN_DECLS
     UString utest_A = (A), utest_B = (B);                                                           \
     utest_assert_wrap(ustring_compare(utest_A, utest_B) OP 0,,                                      \
                       "\"" #A "\" must be " #OP " \"%s\", found \"%s\".",                           \
-                      utest_B.cstring, utest_A.cstring);                                            \
+                      ustring_data(utest_B), ustring_data(utest_A));                                \
 } while (0)
 
 /**

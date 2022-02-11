@@ -10,6 +10,7 @@
 #include "ustream.h"
 #include "ustring.h"
 #include "uversion.h"
+#include <stdarg.h>
 
 typedef struct UStreamBuf {
     size_t size;
@@ -255,7 +256,7 @@ ustream_ret uostream_writef_list(UOStream *stream, size_t *written,
 }
 
 ustream_ret uostream_write_string(UOStream *stream, UString const *string, size_t *written) {
-    return uostream_write(stream, string->cstring, (size_t)string->length, written);
+    return uostream_write(stream, ustring_data(*string), ustring_length(*string), written);
 }
 
 ustream_ret uostream_write_time(UOStream *stream, UTime const *time, size_t *written) {

@@ -13,7 +13,6 @@
 #define USTRING_H
 
 #include "ustd.h"
-#include <stdarg.h>
 
 ULIB_BEGIN_DECLS
 
@@ -22,39 +21,127 @@ ULIB_BEGIN_DECLS
  *
  * @struct UString
  */
-typedef struct UString {
-
-    /// String length (excluding the null terminator).
-    ulib_uint length;
-
-    /// String buffer.
-    char const *cstring;
-
+typedef union UString {
+    /// @cond
+    ulib_uint size;
+    struct {
+        ulib_uint size;
+        char data[2 * sizeof(char*) - sizeof(ulib_uint)];
+    } small;
+    struct {
+        ulib_uint size;
+        char const *data;
+    } large;
+    /// @endcond
 } UString;
 
+/// @cond
+#define p_ustring_is_small(string) ((string).size <= sizeof((string).small.data))
+/// @endcond
+
 /**
- * Initializes a new string.
+ * Returns the size of the string.
+ *
+ * @param string [UString] String.
+ * @return [ulib_uint] String size.
+ *
+ * @public @related UString
+ */
+#define ustring_size(string) ((string).size)
+
+/**
+ * Returns the length of the string, excluding the null terminator.
+ *
+ * @param string [UString] String.
+ * @return [ulib_uint] String length.
+ *
+ * @public @related UString
+ */
+#define ustring_length(string) ((string).size ? (string).size - 1 : 0)
+
+/**
+ * Returns the buffer backing the string.
+ *
+ * @param string [UString] String.
+ * @return [char const *] String buffer.
+ *
+ * @public @related UString
+ */
+#define ustring_data(string) \
+    ((char const *)(p_ustring_is_small(string) ? (string).small.data : (string).large.data))
+
+/**
+ * Initializes a new string by taking ownership of the specified buffer,
+ * which must have been dynamically allocated.
  *
  * @param cstring String buffer.
  * @param length Length of the string (excluding the null terminator).
- * @param copy If true, the string buffer is copied, otherwise it is just assigned.
+ * @return New string.
+ *
+ * @warning Due to the internals of UString, you must not attempt to access the buffer
+ *          after calling this function as it may have been deallocated.
+ *
+ * @public @memberof UString
+ */
+ULIB_PUBLIC
+UString ustring_assign(char const *cstring, size_t length);
+
+/**
+ * Initializes a new string by copying the specified buffer.
+ *
+ * @param cstring String buffer.
+ * @param length Length of the string (excluding the null terminator).
  * @return New string.
  *
  * @public @memberof UString
  */
 ULIB_PUBLIC
-UString ustring_init(char const *cstring, size_t length, bool copy);
+UString ustring_copy(char const *cstring, size_t length);
 
 /**
- * Copies the specified string.
+ * Initializes a new string by wrapping the specified buffer.
  *
- * @param string String to copy.
- * @return Copied string.
+ * @param cstring String buffer.
+ * @param length Length of the string (excluding the null terminator).
+ * @return New string.
  *
  * @public @memberof UString
  */
 ULIB_PUBLIC
-UString ustring_copy(UString string);
+UString ustring_wrap(char const *cstring, size_t length);
+
+/**
+ * Initializes a new string by copying the specified string literal.
+ *
+ * @param literal [char const []] String literal.
+ * @return [UString] Initialized string.
+ *
+ * @public @related UString
+ */
+#define ustring_copy_literal(literal) ustring_copy(literal, sizeof(literal) - 1)
+
+/**
+ * Wraps the specified literal in a string.
+ *
+ * @param literal [char const []] String literal.
+ * @return [UString] String.
+ *
+ * @note You must not deinitialize the resulting string.
+ *
+ * @public @related UString
+ */
+#define ustring_literal(literal) ustring_wrap(literal, sizeof(literal) - 1)
+
+/**
+ * Duplicates the specified string.
+ *
+ * @param string String to duplicate.
+ * @return Duplicated string.
+ *
+ * @public @memberof UString
+ */
+ULIB_PUBLIC
+UString ustring_dup(UString string);
 
 /**
  * Initializes a new string with the specified format.
@@ -215,41 +302,15 @@ ULIB_PUBLIC
 ulib_uint ustring_hash(UString string);
 
 /**
- * Initializes a new string with the specified string literal.
- *
- * @param literal [char const []] String literal.
- * @return [UString] Initialized string.
- *
- * @public @related UString
- */
-#define ustring_init_literal(literal) ((UString) {                                                  \
-    .length = sizeof(literal) - 1,                                                                  \
-    .cstring = ulib_str_dup(literal, sizeof(literal) - 1)                                           \
-})
-
-/**
- * Wraps the specified literal in a string.
- *
- * @param literal [char const []] String literal.
- * @return [UString] String.
- *
- * @note You must not deinitialize the resulting string.
- *
- * @public @related UString
- */
-#define ustring_literal(literal) ((UString) {                                                       \
-    .length = sizeof(literal) - 1,                                                                  \
-    .cstring = (literal)                                                                            \
-})
-
-/**
  * Deinitializes the specified string.
  *
  * @param string [UString] String to deinitialize.
  *
  * @public @related UString
  */
-#define ustring_deinit(string) ulib_free((void *)(string).cstring)
+#define ustring_deinit(string) do {                                                                 \
+    if (!p_ustring_is_small(string)) ulib_free((void *)(string).large.data);                        \
+} while (0)
 
 /**
  * Initializes an empty string.
@@ -258,7 +319,7 @@ ulib_uint ustring_hash(UString string);
  *
  * @public @related UString
  */
-#define ustring_empty ((UString){ .length = 0, .cstring = "" })
+#define ustring_empty ((UString){.small = {.size = 1, .data = "" }})
 
 /**
  * Initializes a string with a NULL buffer.
@@ -267,7 +328,7 @@ ulib_uint ustring_hash(UString string);
  *
  * @public @related UString
  */
-#define ustring_null ((UString){ .length = 0, .cstring = NULL })
+#define ustring_null ((UString){.small = {.size = 0 }})
 
 /**
  * Checks whether the string has a NULL buffer.
@@ -277,7 +338,7 @@ ulib_uint ustring_hash(UString string);
  *
  * @public @related UString
  */
-#define ustring_is_null(string) (!(string).cstring)
+#define ustring_is_null(string) (ustring_size(string) == 0)
 
 /**
  * Checks whether the string is empty.
@@ -287,7 +348,7 @@ ulib_uint ustring_hash(UString string);
  *
  * @public @related UString
  */
-#define ustring_is_empty(string) ((string).length == 0)
+#define ustring_is_empty(string) (ustring_size(string) == 1)
 
 /**
  * Duplicates the specified string.

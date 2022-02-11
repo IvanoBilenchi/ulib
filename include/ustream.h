@@ -19,7 +19,7 @@
 ULIB_BEGIN_DECLS
 
 /// @cond
-typedef struct UString UString;
+typedef union UString UString;
 typedef struct UVersion UVersion;
 /// @endcond
 

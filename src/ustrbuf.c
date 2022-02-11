@@ -8,6 +8,7 @@
  */
 
 #include "ustrbuf.h"
+#include <stdarg.h>
 
 UStrBuf ustrbuf_init(void) {
     return uvec_init(char);
@@ -46,17 +47,24 @@ UString ustrbuf_to_ustring(UStrBuf *buf) {
         return ustring_empty;
     }
 
-    char *nbuf = buf->allocated ? ulib_realloc(buf->storage, length + 1) : ulib_malloc(length + 1);
+    bool allocated = buf->allocated;
+    char *nbuf;
 
-    if (!nbuf) {
+    if (allocated) {
+        nbuf = ulib_realloc(buf->storage, length + 1);
+
+        if (!nbuf) {
+            ustrbuf_deinit(buf);
+            return ustring_null;
+        }
+
+        nbuf[length] = '\0';
+        buf->storage = NULL;
         ustrbuf_deinit(buf);
-        return ustring_null;
+        return ustring_assign(nbuf, length);
     }
 
-    if (!buf->allocated) memcpy(nbuf, &buf->storage, length);
-    buf->storage = NULL;
-    ustrbuf_deinit(buf);
-
+    nbuf = (char *)&buf->storage;
     nbuf[length] = '\0';
-    return ustring_init(nbuf, length, false);
+    return ustring_copy((char const *)nbuf, length);
 }

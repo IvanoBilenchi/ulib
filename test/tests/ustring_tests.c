@@ -13,6 +13,7 @@
 #include "utest.h"
 
 bool ustring_utils_test(void) {
+    size_t test = sizeof(UString);
     char const str[] = "12345";
     size_t const str_len = sizeof(str) - 1;
 
@@ -48,7 +49,7 @@ bool ustrbuf_test(void) {
     utest_assert_uint(cur_len, ==, 2 * str_len);
     utest_assert_buf(uvec_storage(char, &buf) + cur_len - str_len, ==, str, str_len);
 
-    UString string = ustring_init(str, str_len, false);
+    UString string = ustring_wrap(str, str_len);
     ret = ustrbuf_append_ustring(&buf, string);
     utest_assert(ret == UVEC_OK);
     cur_len = uvec_count(&buf);
@@ -64,8 +65,8 @@ bool ustrbuf_test(void) {
     char *raw_buf = ulib_str_dup(uvec_storage(char, &buf), cur_len);
     utest_assert_not_null(raw_buf);
     string = ustrbuf_to_ustring(&buf);
-    utest_assert_uint(string.length, ==, cur_len);
-    utest_assert_string(string.cstring, ==, raw_buf);
+    utest_assert_uint(ustring_length(string), ==, cur_len);
+    utest_assert_string(ustring_data(string), ==, raw_buf);
 
     ulib_free(raw_buf);
     ustring_deinit(string);
@@ -80,16 +81,16 @@ bool ustring_test(void) {
     char const str[] = "123456789";
     size_t const str_len = sizeof(str) - 1;
 
-    UString a = ustring_init_literal(str);
+    UString a = ustring_copy_literal(str);
 
     utest_assert_false(ustring_is_empty(a));
     utest_assert_false(ustring_is_null(a));
-    utest_assert_uint(a.length, ==, str_len);
-    utest_assert_string(a.cstring, ==, str);
+    utest_assert_uint(ustring_length(a), ==, str_len);
+    utest_assert_string(ustring_data(a), ==, str);
     utest_assert_uint(ustring_index_of(a, '5'), ==, 4);
-    utest_assert_uint(ustring_index_of(a, 'a'), >=, a.length);
+    utest_assert_uint(ustring_index_of(a, 'a'), >=, ustring_length(a));
     utest_assert_uint(ustring_find(a, ustring_literal("67")), ==, 5);
-    utest_assert_uint(ustring_find(a, ustring_literal("98")), >=, a.length);
+    utest_assert_uint(ustring_find(a, ustring_literal("98")), >=, ustring_length(a));
     utest_assert(ustring_starts_with(a, ustring_literal("12")));
     utest_assert_false(ustring_starts_with(a, ustring_literal("23")));
     utest_assert(ustring_ends_with(a, ustring_literal("89")));
@@ -121,9 +122,9 @@ bool ustring_test(void) {
     a = ustring_with_format("%d%d%d", 1, 2, 3);
     utest_assert_ustring(a, ==, ustring_literal("123"));
 
-    UString b = ustring_copy(a);
+    UString b = ustring_dup(a);
     utest_assert_ustring(a, ==, b);
-    utest_assert_ptr(a.cstring, !=, b.cstring);
+    utest_assert_ptr(ustring_data(a), !=, ustring_data(b));
 
     ustring_deinit(a);
     ustring_deinit(b);
