@@ -21,7 +21,7 @@ struct p_ustring_sizing { ulib_uint s; char const *d; };
 #define P_USTRING_SMALL_SIZE (sizeof(struct p_ustring_sizing) - sizeof(ulib_uint))
 #define p_ustring_size_is_small(s) ((s) <= P_USTRING_SMALL_SIZE)
 #define p_ustring_length_is_small(l) ((l) < P_USTRING_SMALL_SIZE)
-#define p_ustring_is_small(string) p_ustring_size_is_small((string).size)
+#define p_ustring_is_small(string) p_ustring_size_is_small((string)._size)
 /// @endcond
 
 /**
@@ -32,15 +32,15 @@ struct p_ustring_sizing { ulib_uint s; char const *d; };
 typedef struct UString {
     /// @cond
     union {
-        ulib_uint size;
+        ulib_uint _size;
         struct {
-            ulib_uint size;
-            char data[P_USTRING_SMALL_SIZE];
-        } small;
+            ulib_uint _size;
+            char _data[P_USTRING_SMALL_SIZE];
+        } _s;
         struct {
-            ulib_uint size;
-            char const *data;
-        } large;
+            ulib_uint _size;
+            char const *_data;
+        } _l;
     };
     /// @endcond
 } UString;
@@ -53,7 +53,7 @@ typedef struct UString {
  *
  * @public @related UString
  */
-#define ustring_size(string) ((string).size)
+#define ustring_size(string) ((string)._size)
 
 /**
  * Returns the length of the string, excluding the null terminator.
@@ -63,7 +63,7 @@ typedef struct UString {
  *
  * @public @related UString
  */
-#define ustring_length(string) ((string).size ? (string).size - 1 : 0)
+#define ustring_length(string) ((string)._size ? (string)._size - 1 : 0)
 
 /**
  * Returns the buffer backing the string.
@@ -74,7 +74,7 @@ typedef struct UString {
  * @public @related UString
  */
 #define ustring_data(string) \
-    ((char const *)(p_ustring_is_small(string) ? (string).small.data : (string).large.data))
+    ((char const *)(p_ustring_is_small(string) ? (string)._s._data : (string)._l._data))
 
 /**
  * Initializes a new string by taking ownership of the specified buffer,
@@ -315,7 +315,7 @@ ulib_uint ustring_hash(UString string);
  * @public @related UString
  */
 #define ustring_deinit(string) do {                                                                 \
-    if (!p_ustring_is_small(string)) ulib_free((void *)(string).large.data);                        \
+    if (!p_ustring_is_small(string)) ulib_free((void *)(string)._l._data);                        \
 } while (0)
 
 /**
@@ -325,7 +325,7 @@ ulib_uint ustring_hash(UString string);
  *
  * @public @related UString
  */
-#define ustring_empty ((UString){.small = {.size = 1}})
+#define ustring_empty ((UString){._s = {._size = 1}})
 
 /**
  * Initializes a string with a NULL buffer.
@@ -334,7 +334,7 @@ ulib_uint ustring_hash(UString string);
  *
  * @public @related UString
  */
-#define ustring_null ((UString){.small = {.size = 0 }})
+#define ustring_null ((UString){._s = {._size = 0 }})
 
 /**
  * Checks whether the string has a NULL buffer.

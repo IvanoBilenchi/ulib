@@ -13,13 +13,13 @@
 #include <stdarg.h>
 
 static inline UString ustring_small(char const *cstring, size_t length) {
-    UString ret = {.small = {.size = (ulib_uint)length + 1}};
-    memcpy(ret.small.data, cstring, length);
+    UString ret = {._s = {._size = (ulib_uint)length + 1}};
+    memcpy(ret._s._data, cstring, length);
     return ret;
 }
 
 static inline UString ustring_large(char const *cstring, size_t length) {
-    return (UString) {.large = {.size = (ulib_uint)length + 1, .data = cstring}};
+    return (UString) {._l = {._size = (ulib_uint)length + 1, ._data = cstring}};
 }
 
 UString ustring_assign(char const *cstring, size_t length) {
@@ -136,7 +136,7 @@ UString ustring_with_format_list(char const *format, va_list args) {
     UStrBuf buf = ustrbuf_init();
 
     if (ustrbuf_append_format_list(&buf, format, args)) {
-        ustrbuf_deinit(&buf);
+        ustrbuf_deinit(buf);
         return ustring_null;
     }
 
@@ -149,14 +149,14 @@ UString ustring_join(UString const *strings, ulib_uint count, UString sep) {
     UStrBuf buf = ustrbuf_init();
 
     if (ustrbuf_append_ustring(&buf, strings[0])) {
-        ustrbuf_deinit(&buf);
+        ustrbuf_deinit(buf);
         return ustring_null;
     }
 
     for (ulib_uint i = 1; i < count; ++i) {
         if (ustrbuf_append_ustring(&buf, sep) ||
             ustrbuf_append_ustring(&buf, strings[i])) {
-            ustrbuf_deinit(&buf);
+            ustrbuf_deinit(buf);
             return ustring_null;
         }
     }
@@ -173,7 +173,7 @@ UString ustring_repeating(UString string, ulib_uint times) {
 
     for (ulib_uint i = 0; i < times; ++i) {
         if (ustrbuf_append_ustring(&buf, string)) {
-            ustrbuf_deinit(&buf);
+            ustrbuf_deinit(buf);
             return ustring_null;
         }
     }

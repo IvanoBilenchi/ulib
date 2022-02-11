@@ -147,7 +147,7 @@ static ustream_ret ustream_strbuf_writef(void *ctx, size_t *written,
 }
 
 static ustream_ret ustream_strbuf_free(void *ctx) {
-    ustrbuf_deinit(ctx);
+    ustrbuf_deinit(*((UStrBuf *)ctx));
     ulib_free(ctx);
     return USTREAM_OK;
 }

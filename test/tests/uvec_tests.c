@@ -15,12 +15,12 @@
 
 #define uvec_assert_elements(T, vec, ...) do {                                                      \
     T const result[] = { __VA_ARGS__ };                                                             \
-    utest_assert_uint((vec)->count, ==, ulib_array_count(result));                                  \
-    utest_assert_buf(uvec_storage(T, vec), ==, result, sizeof(result));                             \
+    utest_assert_uint(uvec_count(vec), ==, ulib_array_count(result));                               \
+    utest_assert_buf(uvec_data(T, vec), ==, result, sizeof(result));                                \
 } while (0)
 
 #define uvec_assert_elements_array(T, vec, arr) \
-    utest_assert_buf(uvec_storage(T, vec), ==, arr, (vec)->count)
+    utest_assert_buf(uvec_data(T, vec), ==, arr, uvec_count(vec))
 
 /// @name Type definitions
 
@@ -85,25 +85,25 @@ bool uvec_test_capacity(void) {
     ulib_uint const capacity = 5;
     ulib_uint const expand = 3;
 
-    uvec_ret ret = uvec_reserve_capacity(VTYPE, &v, capacity);
+    uvec_ret ret = uvec_reserve(VTYPE, &v, capacity);
     utest_assert(ret == UVEC_OK);
-    utest_assert_uint(uvec_capacity(&v), >=, capacity);
+    utest_assert_uint(uvec_size(&v), >=, capacity);
 
     ret = uvec_expand(VTYPE, &v, expand);
     utest_assert(ret == UVEC_OK);
-    utest_assert_uint(uvec_capacity(&v), >=, capacity + expand);
+    utest_assert_uint(uvec_size(&v), >=, capacity + expand);
 
     ret = uvec_push(VTYPE, &v, 2);
     utest_assert(ret == UVEC_OK);
-    utest_assert_uint(uvec_capacity(&v), >=, uvec_count(&v));
+    utest_assert_uint(uvec_size(&v), >=, uvec_count(&v));
 
     uvec_remove_all(VTYPE, &v);
     utest_assert_uint(uvec_count(&v), ==, 0);
 
     ret = uvec_shrink(VTYPE, &v);
     utest_assert(ret == UVEC_OK);
-    utest_assert_uint(v.allocated, ==, 0);
-    utest_assert_uint(uvec_capacity(&v), ==, sizeof(void*) / sizeof(VTYPE));
+    utest_assert_uint(v._size, ==, 0);
+    utest_assert_uint(uvec_size(&v), ==, sizeof(void*) / sizeof(VTYPE));
 
     uvec_deinit(v);
     return true;

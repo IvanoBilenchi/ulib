@@ -38,26 +38,26 @@ bool ustrbuf_test(void) {
 
     ret = ustrbuf_append_literal(&buf, str);
     utest_assert(ret == UVEC_OK);
-    cur_len = ustrbuf_count(&buf);
+    cur_len = ustrbuf_length(&buf);
     utest_assert_uint(cur_len, ==, str_len);
     utest_assert_buf(ustrbuf_data(&buf), ==, str, str_len);
 
     ret = ustrbuf_append_string(&buf, str, str_len);
     utest_assert(ret == UVEC_OK);
-    cur_len = ustrbuf_count(&buf);
+    cur_len = ustrbuf_length(&buf);
     utest_assert_uint(cur_len, ==, 2 * str_len);
     utest_assert_buf(ustrbuf_data(&buf) + cur_len - str_len, ==, str, str_len);
 
     UString string = ustring_wrap(str, str_len);
     ret = ustrbuf_append_ustring(&buf, string);
     utest_assert(ret == UVEC_OK);
-    cur_len = ustrbuf_count(&buf);
+    cur_len = ustrbuf_length(&buf);
     utest_assert_uint(cur_len, ==, 3 * str_len);
     utest_assert_buf(ustrbuf_data(&buf) + cur_len - str_len, ==, str, str_len);
 
     ret = ustrbuf_append_format(&buf, "%s", str);
     utest_assert(ret == UVEC_OK);
-    cur_len = ustrbuf_count(&buf);
+    cur_len = ustrbuf_length(&buf);
     utest_assert_uint(cur_len, ==, 4 * str_len);
     utest_assert_buf(ustrbuf_data(&buf) + cur_len - str_len, ==, str, str_len);
 
@@ -75,7 +75,7 @@ bool ustrbuf_test(void) {
 
 bool ustring_test(void) {
     utest_assert_uint(sizeof(UString), ==, 2 * sizeof(char*));
-    utest_assert_uint(offsetof(UString, small.data), ==, sizeof(ulib_uint));
+    utest_assert_uint(offsetof(UString, _s._data), ==, sizeof(ulib_uint));
     utest_assert(ustring_is_empty(ustring_empty));
     utest_assert(ustring_data(ustring_empty)[0] == '\0');
     utest_assert(ustring_is_null(ustring_null));
