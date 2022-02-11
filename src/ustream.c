@@ -132,7 +132,7 @@ static ustream_ret ustream_buf_free(void *buf) {
 static ustream_ret ustream_strbuf_write(void *ctx, void const *buf, size_t count, size_t *written) {
     UStrBuf *str_buf = ctx;
     ulib_uint start_count = uvec_count(str_buf);
-    uvec_ret ret = ustrbuf_append_cstring(str_buf, buf, (ulib_uint)count);
+    uvec_ret ret = ustrbuf_append_string(str_buf, buf, (ulib_uint)count);
     if (written) *written = uvec_count(str_buf) - start_count;
     return ret == UVEC_OK ? USTREAM_OK : USTREAM_ERR_MEM;
 }

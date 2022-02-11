@@ -42,7 +42,7 @@ bool ustrbuf_test(void) {
     utest_assert_uint(cur_len, ==, str_len);
     utest_assert_buf(ustrbuf_data(&buf), ==, str, str_len);
 
-    ret = ustrbuf_append_cstring(&buf, str, str_len);
+    ret = ustrbuf_append_string(&buf, str, str_len);
     utest_assert(ret == UVEC_OK);
     cur_len = ustrbuf_count(&buf);
     utest_assert_uint(cur_len, ==, 2 * str_len);

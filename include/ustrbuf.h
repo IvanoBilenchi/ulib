@@ -136,7 +136,7 @@ UString ustrbuf_to_ustring(UStrBuf *buf);
  *
  * @public @related UStrBuf
  */
-#define ustrbuf_append_cstring(buf, string, length) \
+#define ustrbuf_append_string(buf, string, length) \
     uvec_append_array(char, buf, string, length)
 
 /**
