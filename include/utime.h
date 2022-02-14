@@ -200,7 +200,7 @@ bool utime_from_string(UTime *time, UString const *string);
  * @param y [long long] Year.
  * @return True if the specified year is a leap year, false otherwise.
  */
-#define utime_is_leap_year(y) (y % 4 == 0 && (y % 100 != 0 || y % 400 == 0))
+#define utime_is_leap_year(y) ((y) % 4 == 0 && ((y) % 100 != 0 || (y) % 400 == 0))
 
 /**
  * Returns the number of days in the specified month.
