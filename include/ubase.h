@@ -157,7 +157,7 @@ ULIB_BEGIN_DECLS
     #define ULIB_FLOAT_MIN FLT_TRUE_MIN
     #define ULIB_FLOAT_MAX FLT_MAX
     #define ULIB_FLOAT_EPSILON FLT_EPSILON
-    #define ulib_float_prev(x) nextafterf(x, ULIB_FLOAT_MIN)
+    #define ulib_float_prev(x) nextafterf(x, -ULIB_FLOAT_MAX)
     #define ulib_float_next(x) nextafterf(x, ULIB_FLOAT_MAX)
 #elif defined ULIB_HUGE
     typedef uint64_t ulib_uint;
@@ -178,7 +178,7 @@ ULIB_BEGIN_DECLS
     #define ULIB_FLOAT_MIN DBL_TRUE_MIN
     #define ULIB_FLOAT_MAX DBL_MAX
     #define ULIB_FLOAT_EPSILON DBL_EPSILON
-    #define ulib_float_prev(x) nextafter(x, ULIB_FLOAT_MIN)
+    #define ulib_float_prev(x) nextafter(x, -ULIB_FLOAT_MAX)
     #define ulib_float_next(x) nextafter(x, ULIB_FLOAT_MAX)
 #else
     typedef uint32_t ulib_uint;
@@ -199,7 +199,7 @@ ULIB_BEGIN_DECLS
     #define ULIB_FLOAT_MIN DBL_TRUE_MIN
     #define ULIB_FLOAT_MAX DBL_MAX
     #define ULIB_FLOAT_EPSILON DBL_EPSILON
-    #define ulib_float_prev(x) nextafter(x, ULIB_FLOAT_MIN)
+    #define ulib_float_prev(x) nextafter(x, -ULIB_FLOAT_MAX)
     #define ulib_float_next(x) nextafter(x, ULIB_FLOAT_MAX)
 #endif
 
