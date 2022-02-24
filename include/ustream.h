@@ -256,7 +256,7 @@ typedef struct UOStream {
      *
      * @note Can be NULL if the stream cannot be flushed.
      */
-    ustream_ret(*flush)(void *ctx);
+    ustream_ret (*flush)(void *ctx);
 
     /**
      * Pointer to a function that releases any resource reserved by the stream.
@@ -489,6 +489,40 @@ ustream_ret uostream_to_strbuf(UOStream *stream, UStrBuf *buf);
  */
 ULIB_PUBLIC
 ustream_ret uostream_to_null(UOStream *stream);
+
+/**
+ * Initializes a stream that writes to multiple substreams.
+ *
+ * @param stream Output stream.
+ * @return Return code.
+ *
+ * @note Multi-streams behave as follows:
+ *       - In case of error of any of the substreams, only the first detected error code
+ *         is returned. It is your responsibility to check the state of each individual
+ *         substream if that is important for your use case.
+ *       - The reported written bytes are the maximum bytes written by any of the underlying
+ *         substreams.
+ *       - Calling `uostream_deinit` deinitializes all substreams.
+ *
+ * @public @memberof UOStream
+ */
+ULIB_PUBLIC
+ustream_ret uostream_to_multi(UOStream *stream);
+
+/**
+ * Adds a new output stream to the specified multi-stream.
+ *
+ * @param stream Output stream.
+ * @param other Stream to add.
+ * @return Return code.
+ *
+ * @note Both streams must have been initialized beforehand, and `stream`
+ *       must have been initialized via `uostream_to_multi`.
+ *
+ * @public @memberof UOStream
+ */
+ULIB_PUBLIC
+ustream_ret uostream_add_substream(UOStream *stream, UOStream const *other);
 
 ULIB_END_DECLS
 

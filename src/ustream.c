@@ -158,6 +158,60 @@ static ustream_ret ustream_null_write(ulib_unused void *ctx, ulib_unused void co
     return USTREAM_OK;
 }
 
+static ustream_ret ustream_multi_write(void *ctx, void const *buf, size_t count, size_t *written) {
+    ustream_ret ret = USTREAM_OK;
+    if (written) *written = 0;
+
+    uvec_foreach(ulib_ptr, ctx, stream, {
+        size_t lwritten;
+        ustream_ret lret = uostream_write(stream, buf, count, &lwritten);
+        if (written && *written < lwritten) *written = lwritten;
+        if (ret == USTREAM_OK) ret = lret;
+    });
+
+    return ret;
+}
+
+static ustream_ret ustream_multi_writef(void *ctx, size_t *written,
+                                        char const *format, va_list args) {
+    ustream_ret ret = USTREAM_OK;
+    if (written) *written = 0;
+
+    uvec_foreach(ulib_ptr, ctx, stream, {
+        size_t lwritten;
+        va_list cargs;
+        va_copy(cargs, args);
+        ustream_ret lret = uostream_writef_list(stream, &lwritten, format, cargs);
+        if (written && *written < lwritten) *written = lwritten;
+        if (ret == USTREAM_OK) ret = lret;
+    });
+
+    return ret;
+}
+
+static ustream_ret ustream_multi_flush(void *ctx) {
+    ustream_ret ret = USTREAM_OK;
+
+    uvec_foreach(ulib_ptr, ctx, stream, {
+        ustream_ret lret = uostream_flush(stream);
+        if (ret == USTREAM_OK) ret = lret;
+    });
+
+    return ret;
+}
+
+static ustream_ret ustream_multi_free(void *ctx) {
+    ustream_ret ret = USTREAM_OK;
+
+    uvec_foreach(ulib_ptr, ctx, stream, {
+        ustream_ret lret = uostream_deinit(stream);
+        if (ret == USTREAM_OK) ret = lret;
+    });
+    uvec_free(ulib_ptr, ctx);
+
+    return ret;
+}
+
 ustream_ret uistream_deinit(UIStream *stream) {
     return stream->state = stream->free ? stream->free(stream->ctx) : USTREAM_OK;
 }
@@ -292,28 +346,29 @@ ustream_ret uostream_write_version(UOStream *stream, UVersion const *version, si
 
 ustream_ret uostream_to_path(UOStream *stream, char const *path) {
     FILE *out_file = fopen(path, "wb");
-    ustream_ret ret = uostream_to_file(stream, out_file);
-    if (ret == USTREAM_OK) stream->free = ustream_file_close;
-    return ret;
+    ustream_ret state = uostream_to_file(stream, out_file);
+    if (state == USTREAM_OK) stream->free = ustream_file_close;
+    return state;
 }
 
 ustream_ret uostream_to_file(UOStream *stream, FILE *file) {
-    ustream_ret state = file ? USTREAM_OK : USTREAM_ERR_IO;
-    *stream = (UOStream) { .state = state };
-    if (state == USTREAM_OK) {
+    *stream = (UOStream) { .state = file ? USTREAM_OK : USTREAM_ERR_IO };
+
+    if (stream->state == USTREAM_OK) {
         stream->ctx = file;
         stream->write = ustream_file_write;
         stream->writef = ustream_file_writef;
         stream->flush = ustream_file_flush;
     }
-    return state;
+
+    return stream->state;
 }
 
 ustream_ret uostream_to_buf(UOStream *stream, void *buf, size_t size) {
     UStreamBuf *raw_buf = ulib_alloc(raw_buf);
-    ustream_ret state = raw_buf ? USTREAM_OK : USTREAM_ERR_MEM;
-    *stream = (UOStream) { .state = state };
-    if (state == USTREAM_OK) {
+    *stream = (UOStream) { .state = raw_buf ? USTREAM_OK : USTREAM_ERR_MEM };
+
+    if (stream->state == USTREAM_OK) {
         raw_buf->orig = raw_buf->cur = buf;
         raw_buf->size = size;
         stream->ctx = raw_buf;
@@ -321,7 +376,8 @@ ustream_ret uostream_to_buf(UOStream *stream, void *buf, size_t size) {
         stream->writef = ustream_buf_writef;
         stream->free = ustream_buf_free;
     }
-    return state;
+
+    return stream->state;
 }
 
 ustream_ret uostream_to_strbuf(UOStream *stream, UStrBuf *buf) {
@@ -351,4 +407,24 @@ ustream_ret uostream_to_null(UOStream *stream) {
         .write = ustream_null_write
     };
     return USTREAM_OK;
+}
+
+ustream_ret uostream_to_multi(UOStream *stream) {
+    UVec(ulib_ptr) *vec = uvec_alloc(ulib_ptr);
+    *stream = (UOStream) { .state = vec ? USTREAM_OK : USTREAM_ERR_MEM };
+
+    if (stream->state == USTREAM_OK) {
+        stream->ctx = vec;
+        stream->write = ustream_multi_write;
+        stream->writef = ustream_multi_writef;
+        stream->flush = ustream_multi_flush;
+        stream->free = ustream_multi_free;
+    }
+
+    return stream->state;
+}
+
+ustream_ret uostream_add_substream(UOStream *stream, UOStream const *other) {
+    if (uvec_push(ulib_ptr, stream->ctx, (void *)other)) stream->state = USTREAM_ERR_MEM;
+    return stream->state;
 }

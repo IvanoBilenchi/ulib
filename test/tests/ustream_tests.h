@@ -19,13 +19,15 @@ bool uistream_buf_test(void);
 bool uostream_null_test(void);
 bool uostream_path_test(void);
 bool uostream_buf_test(void);
+bool uostream_multi_test(void);
 
 #define USTREAM_TESTS                                                                               \
     uistream_path_test,                                                                             \
     uistream_buf_test,                                                                              \
     uostream_null_test,                                                                             \
     uostream_path_test,                                                                             \
-    uostream_buf_test
+    uostream_buf_test,                                                                              \
+    uostream_multi_test
 
 ULIB_END_DECLS
 
