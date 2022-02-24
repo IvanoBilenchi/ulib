@@ -14,12 +14,18 @@
 
 ULIB_BEGIN_DECLS
 
-bool uistream_tests(void);
-bool uostream_tests(void);
+bool uistream_path_test(void);
+bool uistream_buf_test(void);
+bool uostream_null_test(void);
+bool uostream_path_test(void);
+bool uostream_buf_test(void);
 
 #define USTREAM_TESTS                                                                               \
-    uistream_tests,                                                                                 \
-    uostream_tests
+    uistream_path_test,                                                                             \
+    uistream_buf_test,                                                                              \
+    uostream_null_test,                                                                             \
+    uostream_path_test,                                                                             \
+    uostream_buf_test
 
 ULIB_END_DECLS
 
