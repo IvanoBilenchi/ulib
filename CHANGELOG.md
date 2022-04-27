@@ -5,6 +5,32 @@ All notable changes to uLib will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.4] - 2022-04-27
+### Added
+- `ustring_assign`, `ustring_copy` and `ustring_wrap` initializers.
+- `ustring_size`, `ustring_length` and `ustring_data`.
+- `ustrbuf_size`, `ustrbuf_length` and `ustrbuf_data`.
+- `ustring_deinit_return_data`.
+- `uistream_from_strbuf`, `uistream_from_string` and `uistream_from_ustring`.
+- `uostream_to_multi` and `uostream_add_substream`.
+
+### Changed
+- Reworked the internals of `UString`.
+- Renamed `UVec` and `UString` fields to better signal that they are private.
+- Renamed `uvec_reserve_capacity` to `uvec_reserve`.
+- Renamed `uvec_storage` to `uvec_data`.
+- Renamed `uvec_capacity` to `uvec_size`.
+- Renamed `ustring_copy` to `ustring_dup`.
+- Renamed `ustring_init_literal` to `ustring_copy_literal`.
+- Signature of `ustrbuf_deinit`.
+
+### Removed
+- `ustring_init`.
+
+### Fixed
+- Parentheses in `utime_is_leap_year`.
+- `ulib_float_prev` broken for negative values.
+
 ## [0.1.3] - 2022-02-09
 ### Added
 - `uvec_decl` and `uhash_decl`.
@@ -64,6 +90,7 @@ uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Test utilities.
 - Miscellaneous helper macros.
 
+[0.1.4]: https://github.com/ivanobilenchi/ulib/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/ivanobilenchi/ulib/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/ivanobilenchi/ulib/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/ivanobilenchi/ulib/compare/v0.1.0...v0.1.1
