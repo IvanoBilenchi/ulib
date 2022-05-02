@@ -154,7 +154,7 @@ UString utime_to_string(UTime const *time) {
 
     if (uostream_to_strbuf(&stream, &buf) ||
         uostream_write_time(&stream, time, NULL)) {
-        ustrbuf_deinit(buf);
+        ustrbuf_deinit(&buf);
         return ustring_null;
     }
 
@@ -250,7 +250,7 @@ UString utime_interval_to_string(utime_ns t, utime_unit unit) {
 
     if (uostream_to_strbuf(&stream, &buf) ||
         uostream_write_time_interval(&stream, t, unit, FMT_FDIGITS, NULL)) {
-        ustrbuf_deinit(buf);
+        ustrbuf_deinit(&buf);
         return ustring_null;
     }
 

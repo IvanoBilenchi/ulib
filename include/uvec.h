@@ -58,9 +58,6 @@ typedef enum uvec_ret {
 // # Private API #
 // ###############
 
-/// Specifier for static inline definitions.
-#define p_uvec_static_inline static inline ulib_unused
-
 /**
  * Identity macro.
  *
@@ -91,7 +88,11 @@ typedef enum uvec_ret {
         ulib_uint _count;                                                                           \
         T *_data;                                                                                   \
         /** @endcond */                                                                             \
-    } UVec_##T;
+    } UVec_##T;                                                                                     \
+                                                                                                    \
+    /** @cond */                                                                                    \
+    typedef struct UVec_Loop_##T { UVec(T) const *v; T *item; ulib_uint i; } UVec_Loop_##T;         \
+    /** @endcond */
 
 /**
  * Generates function declarations for the specified vector type.
@@ -117,6 +118,48 @@ typedef enum uvec_ret {
     /** @endcond */
 
 /**
+ * Generates inline function definitions for the specified vector type.
+ *
+ * @param T [symbol] Vector type.
+ * @param SCOPE [scope] Scope of the declarations.
+ */
+#define P_UVEC_DEF_INLINE(T, SCOPE)                                                                 \
+    /** @cond */                                                                                    \
+    SCOPE static inline T* uvec_data_##T(UVec_##T const *vec) {                                     \
+        return vec->_size ? vec->_data : (T*)&(vec)->_data;                                         \
+    }                                                                                               \
+                                                                                                    \
+    SCOPE static inline ulib_uint uvec_size_##T(UVec_##T const *vec) {                              \
+        return vec->_size ? vec->_size : (ulib_uint)(sizeof(void*) / sizeof(*vec->_data));          \
+    }                                                                                               \
+                                                                                                    \
+    SCOPE static inline T uvec_last_##T(UVec_##T const *vec) {                                      \
+        return uvec_data_##T(vec)[vec->_count - 1];                                                 \
+    }                                                                                               \
+                                                                                                    \
+    SCOPE static inline void uvec_deinit_##T(UVec_##T *vec) {                                       \
+        if (vec->_size) {                                                                           \
+            ulib_free(vec->_data);                                                                  \
+            vec->_data = NULL;                                                                      \
+        }                                                                                           \
+        vec->_count = vec->_size = 0;                                                               \
+    }                                                                                               \
+                                                                                                    \
+    SCOPE static inline uvec_ret uvec_expand_##T(UVec_##T *vec, ulib_uint size) {                   \
+        return uvec_reserve_##T(vec, vec->_count + size);                                           \
+    }                                                                                               \
+                                                                                                    \
+    SCOPE static inline uvec_ret uvec_append_##T(UVec_##T *vec, UVec_##T const *src) {              \
+        return uvec_set_range_##T(vec, uvec_data(T, src), vec->_count, src->_count);                \
+    }                                                                                               \
+                                                                                                    \
+    SCOPE static inline uvec_ret uvec_append_array_##T(UVec_##T *vec,                               \
+                                                              T const *src, ulib_uint n) {          \
+        return uvec_set_range_##T(vec, src, vec->_count, n);                                        \
+    }                                                                                               \
+    /** @endcond */
+
+/**
  * Generates function declarations for the specified equatable vector type.
  *
  * @param T [symbol] Vector type.
@@ -129,6 +172,19 @@ typedef enum uvec_ret {
     SCOPE bool uvec_remove_##T(UVec_##T *vec, T item);                                              \
     SCOPE bool uvec_equals_##T(UVec_##T const *vec, UVec_##T const *other);                         \
     SCOPE uvec_ret uvec_push_unique_##T(UVec_##T *vec, T item);                                     \
+    /** @endcond */
+
+/**
+ * Generates inline function definitions for the specified equatable vector type.
+ *
+ * @param T [symbol] Vector type.
+ * @param SCOPE [scope] Scope of the declarations.
+ */
+#define P_UVEC_DEF_INLINE_EQUATABLE(T, SCOPE)                                                       \
+    /** @cond */                                                                                    \
+    SCOPE static inline bool uvec_contains_##T(UVec_##T const *vec, T item) {                       \
+        return uvec_index_of_##T(vec, item) < vec->_count;                                          \
+    }                                                                                               \
     /** @endcond */
 
 /**
@@ -147,6 +203,23 @@ typedef enum uvec_ret {
     SCOPE uvec_ret uvec_insert_sorted_##T(UVec_##T *vec, T item, ulib_uint *idx);                   \
     SCOPE uvec_ret uvec_insert_sorted_unique_##T(UVec_##T *vec, T item, ulib_uint *idx);            \
     SCOPE bool uvec_remove_sorted_##T(UVec_##T *vec, T item);                                       \
+    /** @endcond */
+
+/**
+ * Generates inline function definitions for the specified comparable vector type.
+ *
+ * @param T [symbol] Vector type.
+ * @param SCOPE [scope] Scope of the declarations.
+ */
+#define P_UVEC_DEF_INLINE_COMPARABLE(T, SCOPE)                                                      \
+    /** @cond */                                                                                    \
+    SCOPE static inline void uvec_sort_##T(UVec_##T *vec) {                                         \
+        uvec_sort_range_##T(vec, 0, vec->_count);                                                   \
+    }                                                                                               \
+                                                                                                    \
+    SCOPE static inline bool uvec_contains_sorted_##T(UVec_##T const *vec, T item) {                \
+        return uvec_index_of_sorted_##T(vec, item) < vec->_count;                                   \
+    }                                                                                               \
     /** @endcond */
 
 /**
@@ -177,7 +250,7 @@ typedef enum uvec_ret {
     }                                                                                               \
                                                                                                     \
     static inline uvec_ret uvec_expand_if_required_##T(UVec_##T *vec) {                             \
-        ulib_uint size = uvec_size(vec);                                                            \
+        ulib_uint size = uvec_size_##T(vec);                                                        \
         return size > vec->_count ? UVEC_OK : uvec_resize_##T(vec, size ? size * 2 : 1);            \
     }                                                                                               \
                                                                                                     \
@@ -189,18 +262,18 @@ typedef enum uvec_ret {
                                                                                                     \
     SCOPE void uvec_free_##T(UVec_##T *vec) {                                                       \
         if (!vec) return;                                                                           \
-        uvec_deinit(*vec);                                                                          \
+        uvec_deinit(T, vec);                                                                        \
         ulib_free(vec);                                                                             \
     }                                                                                               \
                                                                                                     \
     SCOPE uvec_ret uvec_reserve_##T(UVec_##T *vec, ulib_uint size) {                                \
-        return uvec_size(vec) >= size ? UVEC_OK : uvec_resize_##T(vec, size);                       \
+        return uvec_size_##T(vec) >= size ? UVEC_OK : uvec_resize_##T(vec, size);                   \
     }                                                                                               \
                                                                                                     \
     SCOPE uvec_ret uvec_set_range_##T(UVec_##T *vec, T const *array,                                \
                                       ulib_uint start, ulib_uint n) {                               \
         if (!(n && array)) return UVEC_OK;                                                          \
-        if (start > uvec_size(vec)) return UVEC_NO;                                                 \
+        if (start > uvec_size_##T(vec)) return UVEC_NO;                                             \
                                                                                                     \
         ulib_uint const old_c = vec->_count, new_c = start + n;                                     \
                                                                                                     \
@@ -231,7 +304,7 @@ typedef enum uvec_ret {
                                                                                                     \
     SCOPE uvec_ret uvec_shrink_##T(UVec_##T *vec) {                                                 \
         if (!vec->_count) {                                                                         \
-            uvec_deinit(*vec);                                                                      \
+            uvec_deinit(T, vec);                                                                    \
             return UVEC_OK;                                                                         \
         }                                                                                           \
                                                                                                     \
@@ -500,7 +573,8 @@ typedef enum uvec_ret {
  */
 #define UVEC_DECL(T)                                                                                \
     P_UVEC_DEF_TYPE(T)                                                                              \
-    P_UVEC_DECL(T, ulib_unused)
+    P_UVEC_DECL(T, ulib_unused)                                                                     \
+    P_UVEC_DEF_INLINE(T, ulib_unused)
 
 /**
  * Declares a new vector type, prepending a specifier to the generated declarations.
@@ -512,7 +586,8 @@ typedef enum uvec_ret {
  */
 #define UVEC_DECL_SPEC(T, SPEC)                                                                     \
     P_UVEC_DEF_TYPE(T)                                                                              \
-    P_UVEC_DECL(T, SPEC ulib_unused)
+    P_UVEC_DECL(T, SPEC ulib_unused)                                                                \
+    P_UVEC_DEF_INLINE(T, ulib_unused)
 
 /**
  * Declares a new equatable vector type.
@@ -524,7 +599,9 @@ typedef enum uvec_ret {
 #define UVEC_DECL_EQUATABLE(T)                                                                      \
     P_UVEC_DEF_TYPE(T)                                                                              \
     P_UVEC_DECL(T, ulib_unused)                                                                     \
-    P_UVEC_DECL_EQUATABLE(T, ulib_unused)
+    P_UVEC_DECL_EQUATABLE(T, ulib_unused)                                                           \
+    P_UVEC_DEF_INLINE(T, ulib_unused)                                                               \
+    P_UVEC_DEF_INLINE_EQUATABLE(T, ulib_unused)
 
 /**
  * Declares a new equatable vector type, prepending a specifier to the generated declarations.
@@ -537,7 +614,9 @@ typedef enum uvec_ret {
 #define UVEC_DECL_EQUATABLE_SPEC(T, SPEC)                                                           \
     P_UVEC_DEF_TYPE(T)                                                                              \
     P_UVEC_DECL(T, SPEC ulib_unused)                                                                \
-    P_UVEC_DECL_EQUATABLE(T, SPEC ulib_unused)
+    P_UVEC_DECL_EQUATABLE(T, SPEC ulib_unused)                                                      \
+    P_UVEC_DEF_INLINE(T, ulib_unused)                                                               \
+    P_UVEC_DEF_INLINE_EQUATABLE(T, ulib_unused)
 
 /**
  * Declares a new comparable vector type.
@@ -550,7 +629,10 @@ typedef enum uvec_ret {
     P_UVEC_DEF_TYPE(T)                                                                              \
     P_UVEC_DECL(T, ulib_unused)                                                                     \
     P_UVEC_DECL_EQUATABLE(T, ulib_unused)                                                           \
-    P_UVEC_DECL_COMPARABLE(T, ulib_unused)
+    P_UVEC_DECL_COMPARABLE(T, ulib_unused)                                                          \
+    P_UVEC_DEF_INLINE(T, ulib_unused)                                                               \
+    P_UVEC_DEF_INLINE_EQUATABLE(T, ulib_unused)                                                     \
+    P_UVEC_DEF_INLINE_COMPARABLE(T, ulib_unused)
 
 /**
  * Declares a new comparable vector type, prepending a specifier to the generated declarations.
@@ -564,7 +646,10 @@ typedef enum uvec_ret {
     P_UVEC_DEF_TYPE(T)                                                                              \
     P_UVEC_DECL(T, SPEC ulib_unused)                                                                \
     P_UVEC_DECL_EQUATABLE(T, SPEC ulib_unused)                                                      \
-    P_UVEC_DECL_COMPARABLE(T, SPEC ulib_unused)
+    P_UVEC_DECL_COMPARABLE(T, SPEC ulib_unused)                                                     \
+    P_UVEC_DEF_INLINE(T, ulib_unused)                                                               \
+    P_UVEC_DEF_INLINE_EQUATABLE(T, ulib_unused)                                                     \
+    P_UVEC_DEF_INLINE_COMPARABLE(T, ulib_unused)
 
 /**
  * Implements a previously declared vector type.
@@ -627,7 +712,8 @@ typedef enum uvec_ret {
  */
 #define UVEC_INIT(T)                                                                                \
     P_UVEC_DEF_TYPE(T)                                                                              \
-    P_UVEC_IMPL(T, p_uvec_static_inline)
+    P_UVEC_IMPL(T, static inline ulib_unused)                                                       \
+    P_UVEC_DEF_INLINE(T, ulib_unused)
 
 /**
  * Defines a new static equatable vector type.
@@ -639,8 +725,10 @@ typedef enum uvec_ret {
  */
 #define UVEC_INIT_EQUATABLE(T, equal_func)                                                          \
     P_UVEC_DEF_TYPE(T)                                                                              \
-    P_UVEC_IMPL(T, p_uvec_static_inline)                                                            \
-    P_UVEC_IMPL_EQUATABLE(T, p_uvec_static_inline, equal_func, 0)
+    P_UVEC_IMPL(T, static inline ulib_unused)                                                       \
+    P_UVEC_IMPL_EQUATABLE(T, static inline ulib_unused, equal_func, 0)                              \
+    P_UVEC_DEF_INLINE(T, ulib_unused)                                                               \
+    P_UVEC_DEF_INLINE_EQUATABLE(T, ulib_unused)
 
 /**
  * Defines a new static comparable vector type.
@@ -653,9 +741,12 @@ typedef enum uvec_ret {
  */
 #define UVEC_INIT_COMPARABLE(T, equal_func, compare_func)                                           \
     P_UVEC_DEF_TYPE(T)                                                                              \
-    P_UVEC_IMPL(T, p_uvec_static_inline)                                                            \
-    P_UVEC_IMPL_EQUATABLE(T, p_uvec_static_inline, equal_func, 0)                                   \
-    P_UVEC_IMPL_COMPARABLE(T, p_uvec_static_inline, equal_func, compare_func)
+    P_UVEC_IMPL(T, static inline ulib_unused)                                                       \
+    P_UVEC_IMPL_EQUATABLE(T, static inline ulib_unused, equal_func, 0)                              \
+    P_UVEC_IMPL_COMPARABLE(T, static inline ulib_unused, equal_func, compare_func)                  \
+    P_UVEC_DEF_INLINE(T, ulib_unused)                                                               \
+    P_UVEC_DEF_INLINE_EQUATABLE(T, ulib_unused)                                                     \
+    P_UVEC_DEF_INLINE_COMPARABLE(T, ulib_unused)
 
 /**
  * Defines a new static equatable vector type
@@ -667,9 +758,12 @@ typedef enum uvec_ret {
  */
 #define UVEC_INIT_IDENTIFIABLE(T)                                                                   \
     P_UVEC_DEF_TYPE(T)                                                                              \
-    P_UVEC_IMPL(T, p_uvec_static_inline)                                                            \
-    P_UVEC_IMPL_EQUATABLE(T, p_uvec_static_inline, p_uvec_identical, 1)                             \
-    P_UVEC_IMPL_COMPARABLE(T, p_uvec_static_inline, p_uvec_identical, p_uvec_less_than)
+    P_UVEC_IMPL(T, static inline ulib_unused)                                                       \
+    P_UVEC_IMPL_EQUATABLE(T, static inline ulib_unused, p_uvec_identical, 1)                        \
+    P_UVEC_IMPL_COMPARABLE(T, static inline ulib_unused, p_uvec_identical, p_uvec_less_than)        \
+    P_UVEC_DEF_INLINE(T, ulib_unused)                                                               \
+    P_UVEC_DEF_INLINE_EQUATABLE(T, ulib_unused)                                                     \
+    P_UVEC_DEF_INLINE_COMPARABLE(T, ulib_unused)
 
 /// @name Declaration
 
@@ -739,7 +833,7 @@ typedef enum uvec_ret {
 #define uvec_copy_to_array(T, vec, array) P_ULIB_MACRO_CONCAT(uvec_copy_to_array_, T)(vec, array)
 
 /**
- * Initializes a new vector on the stack.
+ * Initializes a new vector.
  *
  * @param T [symbol] Vector type.
  * @return [UVec(T)] Initialized vector instance.
@@ -751,17 +845,12 @@ typedef enum uvec_ret {
 /**
  * De-initializes a vector previously initialized via uvec_init.
  *
- * @param vec [UVec(T)] Vector to de-initialize.
+ * @param T [symbol] Vector type.
+ * @param vec [UVec(T)*] Vector to de-initialize.
  *
  * @public @related UVec
  */
-#define uvec_deinit(vec) do {                                                                       \
-    if ((vec)._size) {                                                                              \
-        ulib_free((vec)._data);                                                                     \
-        (vec)._data = NULL;                                                                         \
-    }                                                                                               \
-    (vec)._count = (vec)._size = 0;                                                                 \
-} while(0)
+#define uvec_deinit(T, vec) P_ULIB_MACRO_CONCAT(uvec_deinit_, T)(vec)
 
 /**
  * Ensures the specified vector can hold at least as many elements as 'size'.
@@ -786,8 +875,7 @@ typedef enum uvec_ret {
  *
  * @public @related UVec
  */
-#define uvec_expand(T, vec, size) \
-    P_ULIB_MACRO_CONCAT(uvec_reserve_, T)(vec, (vec)->_count + (size))
+#define uvec_expand(T, vec, size) P_ULIB_MACRO_CONCAT(uvec_expand_, T)(vec, size)
 
 /**
  * Shrinks the specified vector so that its allocated size
@@ -812,7 +900,7 @@ typedef enum uvec_ret {
  *
  * @public @related UVec
  */
-#define uvec_data(T, vec) ((vec)->_size ? (vec)->_data : ((T*)&(vec)->_data))
+#define uvec_data(T, vec) P_ULIB_MACRO_CONCAT(uvec_data_, T)(vec)
 
 /**
  * Retrieves the element at the specified index.
@@ -858,42 +946,42 @@ typedef enum uvec_ret {
  *
  * @public @related UVec
  */
-#define uvec_last(T, vec) (uvec_data(T, vec)[(vec)->_count - 1])
+#define uvec_last(T, vec) P_ULIB_MACRO_CONCAT(uvec_last_, T)(vec)
 
 /**
  * Returns the number of elements in the vector.
  *
+ * @param T [symbol] Vector type.
  * @param vec [UVec(T)*] Vector instance.
  * @return [ulib_uint] Number of elements.
  *
- * @note For convenience, this macro returns '0' for NULL vectors.
- *
  * @public @related UVec
  */
-#define uvec_count(vec) ((void *)(vec) == NULL ? 0 : (vec)->_count)
+#define uvec_count(T, vec) (((UVec(T)*)(vec))->_count)
 
 /**
  * Returns the maximum number of elements that can be held by the raw array backing the vector,
  * i.e. the vector's capacity.
  *
+ * @param T [symbol] Vector type.
  * @param vec [UVec(T)*] Vector instance.
  * @return [ulib_uint] Capacity.
  *
  * @public @related UVec
  */
-#define uvec_size(vec) \
-    ((vec)->_size ? (vec)->_size : (ulib_uint)(sizeof(void*) / sizeof(*(vec)->_data)))
+#define uvec_size(T, vec) P_ULIB_MACRO_CONCAT(uvec_size_, T)(vec)
 
 /**
  * Checks if the specified index is valid.
  *
+ * @param T [symbol] Vector type.
  * @param vec [UVec(T)*] Vector instance.
  * @param idx [ulib_uint] Index.
  * @return True if the index is valid, false otherwise.
  *
  * @public @related UVec
  */
-#define uvec_index_is_valid(vec, idx) ((idx) < (vec)->_count)
+#define uvec_index_is_valid(T, vec, idx) ((idx) < uvec_count(T, vec))
 
 /**
  * Pushes the specified element to the top of the vector (last element).
@@ -963,8 +1051,7 @@ typedef enum uvec_ret {
  *
  * @public @related UVec
  */
-#define uvec_append(T, vec, src) \
-    P_ULIB_MACRO_CONCAT(uvec_set_range_, T)(vec, uvec_data(T, src), (vec)->_count, (src)->_count)
+#define uvec_append(T, vec, src) P_ULIB_MACRO_CONCAT(uvec_append_, T)(vec, src)
 
 /**
  * Appends an array to the specified vector.
@@ -978,7 +1065,7 @@ typedef enum uvec_ret {
  * @public @related UVec
  */
 #define uvec_append_array(T, vec, array, n) \
-    P_ULIB_MACRO_CONCAT(uvec_set_range_, T)(vec, array, (vec)->_count, n)
+    P_ULIB_MACRO_CONCAT(uvec_append_array_, T)(vec, array, n)
 
 /**
  * Appends multiple items to the specified vector.
@@ -991,8 +1078,8 @@ typedef enum uvec_ret {
  * @public @related UVec
  */
 #define uvec_append_items(T, vec, ...)                                                              \
-    P_ULIB_MACRO_CONCAT(uvec_set_range_, T)                                                         \
-        (vec, (T[]){ __VA_ARGS__ }, (vec)->_count, (sizeof((T[]){ __VA_ARGS__ }) / sizeof(T)))
+    P_ULIB_MACRO_CONCAT(uvec_append_array_, T)                                                      \
+        (vec, (T[]){ __VA_ARGS__ }, (sizeof((T[]){ __VA_ARGS__ }) / sizeof(T)))
 
 /**
  * Sets items in the specified range to those contained in an array.
@@ -1027,74 +1114,33 @@ typedef enum uvec_ret {
  *
  * @param T [symbol] Vector type.
  * @param vec [UVec(T)*] Vector instance.
- * @param item_name [symbol] Name of the element variable.
- * @param idx_name [symbol] Name of the index variable.
- * @param code [code] Code block to execute.
+ * @param enum_name [symbol] Name of the variable holding the current item and its index.
  *
  * @public @related UVec
  */
-#define uvec_iterate(T, vec, item_name, idx_name, code) do {                                        \
-    UVec(T) const *p_v_##idx_name = (vec);                                                          \
-    if (p_v_##idx_name) {                                                                           \
-        ulib_uint p_n_##idx_name = (p_v_##idx_name)->_count;                                        \
-        T *p_s_##idx_name = uvec_data(T, p_v_##idx_name);                                           \
-        for (ulib_uint idx_name = 0; idx_name != p_n_##idx_name; ++idx_name) {                      \
-            T item_name = p_s_##idx_name[(idx_name)];                                               \
-            code;                                                                                   \
-        }                                                                                           \
-    }                                                                                               \
-} while(0)
+#define uvec_foreach(T, vec, enum_name)                                                             \
+    for (P_ULIB_MACRO_CONCAT(UVec_Loop_, T) p_##enum_name = { (vec), NULL, 0 },                     \
+         enum_name = { p_##enum_name.v, uvec_data(T, p_##enum_name.v), 0 };                         \
+         enum_name.i != enum_name.v->_count;                                                        \
+         ++enum_name.item, ++enum_name.i)
 
 /**
- * Iterates over the vector in reverse order,
- * executing the specified code block for each element.
+ * Iterates over the vector in reverse order, executing the specified code block for each element.
  *
  * @param T [symbol] Vector type.
  * @param vec [UVec(T)*] Vector instance.
- * @param item_name [symbol] Name of the element variable.
- * @param idx_name [symbol] Name of the index variable.
- * @param code [code] Code block to execute.
+ * @param enum_name [symbol] Name of the variable holding the current item and its index.
  *
  * @public @related UVec
  */
-#define uvec_iterate_reverse(T, vec, item_name, idx_name, code) do {                                \
-    UVec(T) const *p_v_##idx_name = (vec);                                                          \
-    if (p_v_##idx_name) {                                                                           \
-        T *p_s_##idx_name = uvec_data(T, p_v_##idx_name);                                           \
-        for (ulib_uint idx_name = (p_v_##idx_name)->_count; idx_name-- != 0;) {                     \
-            T item_name = p_s_##idx_name[(idx_name)];                                               \
-            code;                                                                                   \
-        }                                                                                           \
-    }                                                                                               \
-} while(0)
-
-/**
- * Iterates over the vector,
- * executing the specified code block for each element.
- *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param item_name [symbol] Name of the element variable.
- * @param code [code] Code block to execute.
- *
- * @public @related UVec
- */
-#define uvec_foreach(T, vec, item_name, code) \
-    uvec_iterate(T, vec, item_name, p_i_##item_name, code)
-
-/**
- * Iterates over the vector in reverse order,
- * executing the specified code block for each element.
- *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param item_name [symbol] Name of the element variable.
- * @param code [code] Code block to execute.
- *
- * @public @related UVec
- */
-#define uvec_foreach_reverse(T, vec, item_name, code) \
-    uvec_iterate_reverse(T, vec, item_name, p_i_##item_name, code)
+#define uvec_foreach_reverse(T, vec, enum_name)                                                     \
+    for (P_ULIB_MACRO_CONCAT(UVec_Loop_, T) p_##enum_name = { (vec), NULL, 0 },                     \
+         enum_name = {                                                                              \
+             p_##enum_name.v,                                                                       \
+             uvec_data(T, p_##enum_name.v) + p_##enum_name.v->_count,                               \
+             p_##enum_name.v->_count                                                                \
+         };                                                                                         \
+         --enum_name.item, enum_name.i-- != 0;)
 
 /// @name Equatable
 
@@ -1135,8 +1181,7 @@ typedef enum uvec_ret {
  *
  * @public @related UVec
  */
-#define uvec_contains(T, vec, item) \
-    (P_ULIB_MACRO_CONCAT(uvec_index_of_, T)(vec, item) < (vec)->_count)
+#define uvec_contains(T, vec, item) P_ULIB_MACRO_CONCAT(uvec_contains_, T)(vec, item)
 
 /**
  * Removes the specified element.
@@ -1209,7 +1254,7 @@ typedef enum uvec_ret {
  *
  * @public @related UVec
  */
-#define uvec_sort(T, vec) P_ULIB_MACRO_CONCAT(uvec_sort_range_, T)(vec, 0, (vec)->_count)
+#define uvec_sort(T, vec) P_ULIB_MACRO_CONCAT(uvec_sort_, T)(vec)
 
 /**
  * Sorts the elements in the specified range.
@@ -1265,8 +1310,7 @@ typedef enum uvec_ret {
  *
  * @public @related UVec
  */
-#define uvec_contains_sorted(T, vec, item) \
-    (P_ULIB_MACRO_CONCAT(uvec_index_of_sorted_, T)(vec, item) < (vec)->_count)
+#define uvec_contains_sorted(T, vec, item) P_ULIB_MACRO_CONCAT(uvec_contains_sorted_, T)(vec, item)
 
 /**
  * Inserts the specified element in a sorted vector.
@@ -1308,64 +1352,6 @@ typedef enum uvec_ret {
  * @public @related UVec
  */
 #define uvec_remove_sorted(T, vec, item) P_ULIB_MACRO_CONCAT(uvec_remove_sorted_, T)(vec, item)
-
-/// @name Higher order
-
-/**
- * Returns the index of the first element that matches the specified boolean expression.
- *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param[out] idx_var [ulib_uint] Out variable (must be declared in outer scope).
- * @param bool_exp [expression] Boolean expression.
- *
- * @public @related UVec
- */
-#define uvec_first_index_where(T, vec, idx_var, bool_exp) do {                                      \
-    idx_var = (vec)->_count;                                                                        \
-    uvec_iterate(T, vec, _vec_item, p_i_##idx_var, {                                                \
-        if ((bool_exp)) {                                                                           \
-            idx_var = p_i_##idx_var;                                                                \
-            break;                                                                                  \
-        }                                                                                           \
-    });                                                                                             \
-} while(0)
-
-/**
- * Sorts the vector via qsort.
- *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param comp_func [(const void *, const void *) -> int] qsort-compatible sorting function.
- *
- * @see qsort
- *
- * @public @related UVec
- */
-#define uvec_qsort(T, vec, comp_func) do {                                                          \
-    UVec(T) *p_v_##comp_func = (vec);                                                               \
-    if (p_v_##comp_func)                                                                            \
-        qsort(uvec_data(T, p_v_##comp_func), (p_v_##comp_func)->_count, sizeof(T), comp_func);      \
-} while(0)
-
-/**
- * Sorts the elements in the specified range via qsort.
- *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param start [ulib_uint] Range start index.
- * @param len [ulib_uint] Range length.
- * @param comp_func [(const void *, const void *) -> int] qsort-compatible sorting function.
- *
- * @see qsort
- *
- * @public @related UVec
- */
-#define uvec_qsort_range(T, vec, start, len, comp_func) do {                                        \
-    UVec(T) *p_v_##comp_func = (vec);                                                               \
-    if (p_v_##comp_func)                                                                            \
-        qsort(uvec_data(T, p_v_##comp_func) + (start), len, sizeof(T), comp_func);                  \
-} while(0)
 
 ULIB_END_DECLS
 

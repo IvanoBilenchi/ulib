@@ -37,11 +37,11 @@ typedef struct UVec(char) UStrBuf;
 /**
  * Deinitializes a string buffer previously initialized with ustrbuf_init.
  *
- * @param buf [UStrBuf] String buffer.
+ * @param buf [UStrBuf *] String buffer.
  *
  * @public @related UStrBuf
  */
-#define ustrbuf_deinit(buf) uvec_deinit(buf)
+#define ustrbuf_deinit(buf) uvec_deinit(char, buf)
 
 /**
  * Returns the size of the string buffer.
@@ -51,7 +51,7 @@ typedef struct UVec(char) UStrBuf;
  *
  * @public @related UStrBuf
  */
-#define ustrbuf_size(buf) uvec_size(buf)
+#define ustrbuf_size(buf) uvec_size(char, buf)
 
 /**
  * Returns the number of characters in the string buffer.
@@ -61,7 +61,7 @@ typedef struct UVec(char) UStrBuf;
  *
  * @public @related UStrBuf
  */
-#define ustrbuf_length(buf) uvec_count(buf)
+#define ustrbuf_length(buf) uvec_count(char, buf)
 
 /**
  * Returns a pointer to the first character of the string buffer.

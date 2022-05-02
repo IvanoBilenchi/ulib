@@ -130,24 +130,22 @@ static ustream_ret ustream_buf_free(void *buf) {
 }
 
 static ustream_ret ustream_strbuf_write(void *ctx, void const *buf, size_t count, size_t *written) {
-    UStrBuf *str_buf = ctx;
-    ulib_uint start_count = uvec_count(str_buf);
-    uvec_ret ret = ustrbuf_append_string(str_buf, buf, (ulib_uint)count);
-    if (written) *written = uvec_count(str_buf) - start_count;
+    ulib_uint start_count = uvec_count(char, ctx);
+    uvec_ret ret = ustrbuf_append_string(ctx, buf, (ulib_uint)count);
+    if (written) *written = uvec_count(char, ctx) - start_count;
     return ret == UVEC_OK ? USTREAM_OK : USTREAM_ERR_MEM;
 }
 
 static ustream_ret ustream_strbuf_writef(void *ctx, size_t *written,
                                          char const *format, va_list args) {
-    UStrBuf *str_buf = ctx;
-    ulib_uint start_count = uvec_count(str_buf);
-    uvec_ret ret = ustrbuf_append_format_list(str_buf, format, args);
-    if (written) *written = uvec_count(str_buf) - start_count;
+    ulib_uint start_count = uvec_count(char, ctx);
+    uvec_ret ret = ustrbuf_append_format_list(ctx, format, args);
+    if (written) *written = uvec_count(char, ctx) - start_count;
     return ret == UVEC_OK ? USTREAM_OK : USTREAM_ERR_MEM;
 }
 
 static ustream_ret ustream_strbuf_free(void *ctx) {
-    ustrbuf_deinit(*((UStrBuf *)ctx));
+    ustrbuf_deinit(ctx);
     ulib_free(ctx);
     return USTREAM_OK;
 }
@@ -162,12 +160,12 @@ static ustream_ret ustream_multi_write(void *ctx, void const *buf, size_t count,
     ustream_ret ret = USTREAM_OK;
     if (written) *written = 0;
 
-    uvec_foreach(ulib_ptr, ctx, stream, {
+    uvec_foreach(ulib_ptr, ctx, stream) {
         size_t lwritten;
-        ustream_ret lret = uostream_write(stream, buf, count, &lwritten);
+        ustream_ret lret = uostream_write(*stream.item, buf, count, &lwritten);
         if (written && *written < lwritten) *written = lwritten;
         if (ret == USTREAM_OK) ret = lret;
-    });
+    }
 
     return ret;
 }
@@ -177,14 +175,14 @@ static ustream_ret ustream_multi_writef(void *ctx, size_t *written,
     ustream_ret ret = USTREAM_OK;
     if (written) *written = 0;
 
-    uvec_foreach(ulib_ptr, ctx, stream, {
+    uvec_foreach(ulib_ptr, ctx, stream) {
         size_t lwritten;
         va_list cargs;
         va_copy(cargs, args);
-        ustream_ret lret = uostream_writef_list(stream, &lwritten, format, cargs);
+        ustream_ret lret = uostream_writef_list(*stream.item, &lwritten, format, cargs);
         if (written && *written < lwritten) *written = lwritten;
         if (ret == USTREAM_OK) ret = lret;
-    });
+    }
 
     return ret;
 }
@@ -192,10 +190,10 @@ static ustream_ret ustream_multi_writef(void *ctx, size_t *written,
 static ustream_ret ustream_multi_flush(void *ctx) {
     ustream_ret ret = USTREAM_OK;
 
-    uvec_foreach(ulib_ptr, ctx, stream, {
-        ustream_ret lret = uostream_flush(stream);
+    uvec_foreach(ulib_ptr, ctx, stream) {
+        ustream_ret lret = uostream_flush(*stream.item);
         if (ret == USTREAM_OK) ret = lret;
-    });
+    }
 
     return ret;
 }
@@ -203,10 +201,10 @@ static ustream_ret ustream_multi_flush(void *ctx) {
 static ustream_ret ustream_multi_free(void *ctx) {
     ustream_ret ret = USTREAM_OK;
 
-    uvec_foreach(ulib_ptr, ctx, stream, {
-        ustream_ret lret = uostream_deinit(stream);
+    uvec_foreach(ulib_ptr, ctx, stream) {
+        ustream_ret lret = uostream_deinit(*stream.item);
         if (ret == USTREAM_OK) ret = lret;
-    });
+    }
     uvec_free(ulib_ptr, ctx);
 
     return ret;

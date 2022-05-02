@@ -32,10 +32,10 @@ uvec_ret ustrbuf_append_format_list(UStrBuf *buf, char const *format, va_list ar
 }
 
 UString ustrbuf_to_ustring(UStrBuf *buf) {
-    ulib_uint length = uvec_count(buf);
+    ulib_uint length = ustrbuf_length(buf);
 
     if (!length) {
-        ustrbuf_deinit(*buf);
+        ustrbuf_deinit(buf);
         return ustring_empty;
     }
 
@@ -45,13 +45,13 @@ UString ustrbuf_to_ustring(UStrBuf *buf) {
         nbuf = ulib_realloc(buf->_data, length + 1);
 
         if (!nbuf) {
-            ustrbuf_deinit(*buf);
+            ustrbuf_deinit(buf);
             return ustring_null;
         }
 
         nbuf[length] = '\0';
         buf->_data = NULL;
-        ustrbuf_deinit(*buf);
+        ustrbuf_deinit(buf);
         return ustring_assign(nbuf, length);
     }
 

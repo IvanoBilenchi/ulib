@@ -18,8 +18,6 @@ bool uvec_test_base(void);
 bool uvec_test_capacity(void);
 bool uvec_test_equality(void);
 bool uvec_test_contains(void);
-bool uvec_test_qsort_reverse(void);
-bool uvec_test_higher_order(void);
 bool uvec_test_comparable(void);
 
 #define UVEC_TESTS                                                                                  \
@@ -27,8 +25,6 @@ bool uvec_test_comparable(void);
     uvec_test_capacity,                                                                             \
     uvec_test_equality,                                                                             \
     uvec_test_contains,                                                                             \
-    uvec_test_qsort_reverse,                                                                        \
-    uvec_test_higher_order,                                                                         \
     uvec_test_comparable
 
 ULIB_END_DECLS
