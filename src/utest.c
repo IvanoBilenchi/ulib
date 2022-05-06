@@ -55,15 +55,15 @@ bool utest_leak_start(void) {
 }
 
 bool utest_leak_end(void) {
-    ulib_uint leaks = uhash_count(alloc_table);
+    ulib_uint leaks = uhash_count(AllocTable, alloc_table);
 
     if (leaks) {
         unsigned i = 0;
         printf("Detected %" ULIB_UINT_FMT " leaked objects.\n", leaks);
-        uhash_foreach(AllocTable, alloc_table, obj, loc, {
-            printf("Leak %u: %p (%s)\n", ++i, obj, loc);
-            free(loc);
-        });
+        uhash_foreach(AllocTable, alloc_table, alloc) {
+            printf("Leak %u: %p (%s)\n", ++i, *alloc.key, *alloc.val);
+            free(*alloc.key);
+        }
     } else {
         printf("No leaks detected.\n");
     }
