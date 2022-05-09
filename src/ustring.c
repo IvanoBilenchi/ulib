@@ -53,19 +53,19 @@ UString ustring_wrap(char const *cstring, size_t length) {
     return ustring_large(cstring, length);
 }
 
-void ustring_deinit(UString string) {
-    if (!p_ustring_is_small(string)) ulib_free((void *)(string)._l._data);
+void ustring_deinit(UString *string) {
+    if (!p_ustring_is_small(*string)) ulib_free((void *)(string)->_l._data);
 }
 
-char const* ustring_deinit_return_data(UString string) {
+char const* ustring_deinit_return_data(UString *string) {
     char *ret;
 
-    if (p_ustring_is_small(string)) {
-        ret = ulib_malloc(string._size);
-        if (ret) memcpy(ret, string._s._data, string._size);
+    if (p_ustring_is_small(*string)) {
+        ret = ulib_malloc(string->_size);
+        if (ret) memcpy(ret, string->_s._data, string->_size);
     } else {
-        ret = (char *)string._l._data;
-        string._l._data = NULL;
+        ret = (char *)string->_l._data;
+        string->_l._data = NULL;
     }
 
     return ret;

@@ -43,7 +43,7 @@ bool utime_test_ns(void) {
 
         UString str = utime_interval_to_string(data.t, data.unit);
         utest_assert_ustring(str, ==, ustring_wrap(data.str, strlen(data.str)));
-        ustring_deinit(str);
+        ustring_deinit(&str);
     }
 
     time_t start, end;
@@ -109,7 +109,7 @@ bool utime_test_date(void) {
 
     str = utime_to_string(&b);
     utest_assert_ustring(str, ==, ustring_literal("1990/02/14-15:59:00"));
-    ustring_deinit(str);
+    ustring_deinit(&str);
 
     return true;
 }

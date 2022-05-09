@@ -68,7 +68,7 @@ bool ustrbuf_test(void) {
     utest_assert_string(ustring_data(string), ==, raw_buf);
 
     ulib_free(raw_buf);
-    ustring_deinit(string);
+    ustring_deinit(&string);
 
     return true;
 }
@@ -106,20 +106,20 @@ bool ustring_test(void) {
     utest_assert_uint(ustring_compare(a, ustring_literal(str)), ==, 0);
     utest_assert_uint(ustring_hash(a), ==, ustring_hash(ustring_literal(str)));
     utest_assert_uint(ustring_hash(a), !=, ustring_hash(ustring_literal("012345678")));
-    ustring_deinit(a);
+    ustring_deinit(&a);
 
     UString strings[] = { ustring_literal("123"), ustring_literal("4"), ustring_literal("567") };
     a = ustring_concat(strings, ulib_array_count(strings));
     utest_assert_ustring(a, ==, ustring_literal("1234567"));
-    ustring_deinit(a);
+    ustring_deinit(&a);
 
     a = ustring_join(strings, ulib_array_count(strings), ustring_literal(" "));
     utest_assert_ustring(a, ==, ustring_literal("123 4 567"));
-    ustring_deinit(a);
+    ustring_deinit(&a);
 
     a = ustring_repeating(ustring_literal("123"), 4);
     utest_assert_ustring(a, ==, ustring_literal("123123123123"));
-    ustring_deinit(a);
+    ustring_deinit(&a);
 
     a = ustring_with_format("%d%d%d", 1, 2, 3);
     utest_assert_ustring(a, ==, ustring_literal("123"));
@@ -128,8 +128,8 @@ bool ustring_test(void) {
     utest_assert_ustring(a, ==, b);
     utest_assert_ptr(ustring_data(a), !=, ustring_data(b));
 
-    ustring_deinit(a);
-    ustring_deinit(b);
+    ustring_deinit(&a);
+    ustring_deinit(&b);
 
     return true;
 }

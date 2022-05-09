@@ -315,7 +315,7 @@ ulib_uint ustring_hash(UString string);
  * @public @memberof UString
  */
 ULIB_PUBLIC
-void ustring_deinit(UString string);
+void ustring_deinit(UString *string);
 
 /**
  * Deinitializes the specified string, returning its underlying buffer.
@@ -328,7 +328,7 @@ void ustring_deinit(UString string);
  * @public @memberof UString
  */
 ULIB_PUBLIC
-char const* ustring_deinit_return_data(UString string);
+char const* ustring_deinit_return_data(UString *string);
 
 /**
  * Initializes an empty string.

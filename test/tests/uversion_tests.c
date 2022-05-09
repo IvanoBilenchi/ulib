@@ -45,7 +45,7 @@ bool uversion_test(void) {
 
     UString str = uversion_to_string(&a);
     utest_assert_ustring(str, ==, ustring_literal("2.0.0"));
-    ustring_deinit(str);
+    ustring_deinit(&str);
 
     return true;
 }
