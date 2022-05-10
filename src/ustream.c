@@ -21,7 +21,7 @@ typedef struct UStreamBuf {
 static ustream_ret ustream_file_read(void *file, void *buf, size_t count, size_t *read) {
     size_t const read_size = fread(buf, 1, count, file);
     if (read) *read = read_size;
-    return count != read_size && ferror(file) ? USTREAM_ERR_IO : USTREAM_OK;
+    return count != read_size && ferror((FILE *)file) ? USTREAM_ERR_IO : USTREAM_OK;
 }
 
 static ustream_ret ustream_file_write(void *file, void const *buf, size_t count, size_t *written) {

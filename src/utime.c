@@ -280,19 +280,29 @@ utime_stamp utime_get_timestamp(void) {
 
         return (utime_ns)temp.QuadPart * NS_PER_S / clocks_per_sec;
     }
+#elif defined(ARDUINO)
+    #include <Arduino.h>
+    utime_ns utime_get_ns(void) {
+        return (utime_ns)micros() * 1000;
+    }
 #else
-    #ifdef CLOCK_MONOTONIC
+    #if defined(CLOCK_MONOTONIC)
+        typedef struct timespec utimespec;
         #ifdef CLOCK_MONOTONIC_RAW
             #define utime_get_timespec(t) clock_gettime(CLOCK_MONOTONIC_RAW, t)
         #else
             #define utime_get_timespec(t) clock_gettime(CLOCK_MONOTONIC, t)
         #endif
-    #else
+    #elif defined(TIME_UTC)
+        typedef struct timespec utimespec;
         #define utime_get_timespec(t) timespec_get(t, TIME_UTC)
+    #else
+        typedef struct utimespec { utime_ns tv_sec; utime_ns tv_nsec; } utimespec;
+        #define utime_get_timespec(t) (*(t) = (struct utimespec){0})
     #endif
 
     utime_ns utime_get_ns(void) {
-        struct timespec ts;
+        utimespec ts;
         utime_get_timespec(&ts);
         return (utime_ns)ts.tv_sec * NS_PER_S + (utime_ns)ts.tv_nsec;
     }
