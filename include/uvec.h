@@ -143,6 +143,12 @@ typedef enum uvec_ret {
         vec->_count = vec->_size = 0;                                                               \
     }                                                                                               \
                                                                                                     \
+    SCOPE static inline UVec_##T uvec_move_##T(UVec_##T *vec) {                                     \
+        UVec_##T temp = *vec;                                                                       \
+        *vec = (UVec_##T){0};                                                                       \
+        return temp;                                                                                \
+    }                                                                                               \
+                                                                                                    \
     SCOPE static inline uvec_ret uvec_expand_##T(UVec_##T *vec, ulib_uint size) {                   \
         return uvec_reserve_##T(vec, vec->_count + size);                                           \
     }                                                                                               \
@@ -792,6 +798,17 @@ typedef enum uvec_ret {
  * @public @related UVec
  */
 #define uvec_deinit(T, vec) P_ULIB_MACRO_CONCAT(uvec_deinit_, T)(vec)
+
+/**
+ * Invalidates the vector and returns its storage.
+ *
+ * @param T [symbol] Vector type.
+ * @param vec [UVec(T)*] Vector whose storage should be returned.
+ * @return [UVec(T)] Vector storage.
+ *
+ * @public @related UVec
+ */
+#define uvec_move(T, vec) P_ULIB_MACRO_CONCAT(uvec_move_, T)(vec)
 
 /**
  * Copies the specified vector.

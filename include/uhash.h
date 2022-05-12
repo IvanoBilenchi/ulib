@@ -263,6 +263,12 @@ static inline ulib_uint p_uhash_x31_str_hash(char const *key) {
         return h->_vals || h->_occupied > h->_size;                                                 \
     }                                                                                               \
                                                                                                     \
+    SCOPE static inline UHash_##T uhash_move_##T(UHash_##T *h) {                                    \
+        UHash_##T temp = *h;                                                                        \
+        *h = (UHash_##T){0};                                                                        \
+        return temp;                                                                                \
+    }                                                                                               \
+                                                                                                    \
     SCOPE static inline ulib_uint uhash_next_##T(UHash_##T const *h, ulib_uint i) {                 \
         for (; i < h->_size && !uhash_exists(T, h, i); ++i);                                        \
         return i;                                                                                   \
@@ -990,6 +996,17 @@ static inline ulib_uint p_uhash_x31_str_hash(char const *key) {
  * @public @related UHash
  */
 #define uhash_deinit(T, h) uhash_deinit_##T(h)
+
+/**
+ * Invalidates the hash table and returns its storage.
+ *
+ * @param T [symbol] Hash table name.
+ * @param h [UHash(T)*] Hash table whose storage should be returned.
+ * @return [UHash(T)] Hash table storage.
+ *
+ * @public @related UHash
+ */
+#define uhash_move(T, h) uhash_move_##T(h)
 
 /**
  * Copies the specified hash table.

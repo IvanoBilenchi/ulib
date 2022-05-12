@@ -78,6 +78,10 @@ bool uvec_test_base(void) {
     uvec_remove_all(VTYPE, &v);
     utest_assert_uint(uvec_count(VTYPE, &v), ==, 0);
 
+    UVec(VTYPE) ov = v, nv = uvec_move(VTYPE, &ov);
+    utest_assert(v._size == nv._size && v._count == nv._count && v._data == nv._data);
+    utest_assert(!ov._size && !ov._count && !ov._data);
+
     uvec_deinit(VTYPE, &v);
     return true;
 }
