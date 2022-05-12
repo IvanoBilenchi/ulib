@@ -43,13 +43,14 @@ static UHash(AllocTable) *alloc_table = NULL;
 } while (0)
 
 bool utest_leak_start(void) {
-    alloc_table = uhmap_alloc(AllocTable);
+    alloc_table = ulib_alloc(alloc_table);
 
     if (!alloc_table) {
         fprintf(stderr, "Could not allocate the allocation table.\n");
         return false;
     }
 
+    *alloc_table = uhmap_init(AllocTable);
     printf("Starting detection of memory leaks...\n");
     return true;
 }
@@ -68,7 +69,9 @@ bool utest_leak_end(void) {
         printf("No leaks detected.\n");
     }
 
-    uhash_free(AllocTable, alloc_table);
+    uhash_deinit(AllocTable, alloc_table);
+    ulib_free(alloc_table);
+
     return leaks == 0;
 }
 

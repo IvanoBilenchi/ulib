@@ -102,8 +102,6 @@ typedef enum uvec_ret {
  */
 #define P_UVEC_DECL(T, SCOPE)                                                                       \
     /** @cond */                                                                                    \
-    SCOPE UVec_##T* uvec_alloc_##T(void);                                                           \
-    SCOPE void uvec_free_##T(UVec_##T *vec);                                                        \
     SCOPE uvec_ret uvec_reserve_##T(UVec_##T *vec, ulib_uint size);                                 \
     SCOPE uvec_ret uvec_set_range_##T(UVec_##T *vec, T const *array, ulib_uint start, ulib_uint n); \
     SCOPE uvec_ret uvec_copy_##T(UVec_##T const *src, UVec_##T *dest);                              \
@@ -252,18 +250,6 @@ typedef enum uvec_ret {
     static inline uvec_ret uvec_expand_if_required_##T(UVec_##T *vec) {                             \
         ulib_uint size = uvec_size_##T(vec);                                                        \
         return size > vec->_count ? UVEC_OK : uvec_resize_##T(vec, size ? size * 2 : 1);            \
-    }                                                                                               \
-                                                                                                    \
-    SCOPE UVec_##T* uvec_alloc_##T(void) {                                                          \
-        UVec_##T *vec = ulib_alloc(vec);                                                            \
-        if (vec) *vec = uvec_init(T);                                                               \
-        return vec;                                                                                 \
-    }                                                                                               \
-                                                                                                    \
-    SCOPE void uvec_free_##T(UVec_##T *vec) {                                                       \
-        if (!vec) return;                                                                           \
-        uvec_deinit(T, vec);                                                                        \
-        ulib_free(vec);                                                                             \
     }                                                                                               \
                                                                                                     \
     SCOPE uvec_ret uvec_reserve_##T(UVec_##T *vec, ulib_uint size) {                                \
@@ -788,24 +774,24 @@ typedef enum uvec_ret {
 /// @name Memory management
 
 /**
- * Allocates a new vector.
+ * Initializes a new vector.
  *
  * @param T [symbol] Vector type.
- * @return [UVec(T)*] Vector instance, or NULL on error.
+ * @return [UVec(T)] Initialized vector instance.
  *
  * @public @related UVec
  */
-#define uvec_alloc(T) P_ULIB_MACRO_CONCAT(uvec_alloc_, T)()
+#define uvec_init(T) ((P_ULIB_MACRO_CONCAT(UVec_, T)){0})
 
 /**
- * Deallocates the specified vector.
+ * De-initializes a vector previously initialized via uvec_init.
  *
  * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector to free.
+ * @param vec [UVec(T)*] Vector to de-initialize.
  *
  * @public @related UVec
  */
-#define uvec_free(T, vec) P_ULIB_MACRO_CONCAT(uvec_free_, T)(vec)
+#define uvec_deinit(T, vec) P_ULIB_MACRO_CONCAT(uvec_deinit_, T)(vec)
 
 /**
  * Copies the specified vector.
@@ -831,26 +817,6 @@ typedef enum uvec_ret {
  * @public @related UVec
  */
 #define uvec_copy_to_array(T, vec, array) P_ULIB_MACRO_CONCAT(uvec_copy_to_array_, T)(vec, array)
-
-/**
- * Initializes a new vector.
- *
- * @param T [symbol] Vector type.
- * @return [UVec(T)] Initialized vector instance.
- *
- * @public @related UVec
- */
-#define uvec_init(T) ((P_ULIB_MACRO_CONCAT(UVec_, T)){0})
-
-/**
- * De-initializes a vector previously initialized via uvec_init.
- *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector to de-initialize.
- *
- * @public @related UVec
- */
-#define uvec_deinit(T, vec) P_ULIB_MACRO_CONCAT(uvec_deinit_, T)(vec)
 
 /**
  * Ensures the specified vector can hold at least as many elements as 'size'.

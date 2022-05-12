@@ -205,7 +205,9 @@ static ustream_ret ustream_multi_free(void *ctx) {
         ustream_ret lret = uostream_deinit(*stream.item);
         if (ret == USTREAM_OK) ret = lret;
     }
-    uvec_free(ulib_ptr, ctx);
+
+    uvec_deinit(ulib_ptr, ctx);
+    ulib_free(ctx);
 
     return ret;
 }
@@ -408,15 +410,20 @@ ustream_ret uostream_to_null(UOStream *stream) {
 }
 
 ustream_ret uostream_to_multi(UOStream *stream) {
-    UVec(ulib_ptr) *vec = uvec_alloc(ulib_ptr);
-    *stream = (UOStream) { .state = vec ? USTREAM_OK : USTREAM_ERR_MEM };
+    UVec(ulib_ptr) *vec = ulib_alloc(vec);
 
-    if (stream->state == USTREAM_OK) {
-        stream->ctx = vec;
-        stream->write = ustream_multi_write;
-        stream->writef = ustream_multi_writef;
-        stream->flush = ustream_multi_flush;
-        stream->free = ustream_multi_free;
+    if (vec) {
+        *vec = uvec_init(ulib_ptr);
+        *stream = (UOStream) {
+            .state = USTREAM_OK,
+            .ctx = vec,
+            .write = ustream_multi_write,
+            .writef = ustream_multi_writef,
+            .flush = ustream_multi_flush,
+            .free = ustream_multi_free
+        };
+    } else {
+        *stream = (UOStream) { .state = USTREAM_ERR_MEM };
     }
 
     return stream->state;
