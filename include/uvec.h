@@ -144,8 +144,8 @@ typedef enum uvec_ret {
     }                                                                                               \
                                                                                                     \
     SCOPE static inline UVec_##T uvec_move_##T(UVec_##T *vec) {                                     \
-        UVec_##T temp = *vec;                                                                       \
-        *vec = (UVec_##T){0};                                                                       \
+        UVec_##T temp = *vec, zero = {0};                                                           \
+        *vec = zero;                                                                                \
         return temp;                                                                                \
     }                                                                                               \
                                                                                                     \
@@ -157,8 +157,7 @@ typedef enum uvec_ret {
         return uvec_set_range_##T(vec, uvec_data(T, src), vec->_count, src->_count);                \
     }                                                                                               \
                                                                                                     \
-    SCOPE static inline uvec_ret uvec_append_array_##T(UVec_##T *vec,                               \
-                                                              T const *src, ulib_uint n) {          \
+    SCOPE static inline uvec_ret uvec_append_array_##T(UVec_##T *vec, T const *src, ulib_uint n) {  \
         return uvec_set_range_##T(vec, src, vec->_count, n);                                        \
     }                                                                                               \
     /** @endcond */

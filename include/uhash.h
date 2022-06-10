@@ -264,8 +264,8 @@ static inline ulib_uint p_uhash_x31_str_hash(char const *key) {
     }                                                                                               \
                                                                                                     \
     SCOPE static inline UHash_##T uhash_move_##T(UHash_##T *h) {                                    \
-        UHash_##T temp = *h;                                                                        \
-        *h = (UHash_##T){0};                                                                        \
+        UHash_##T temp = *h, zero = {0};                                                            \
+        *h = zero;                                                                                  \
         return temp;                                                                                \
     }                                                                                               \
                                                                                                     \
