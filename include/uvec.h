@@ -518,7 +518,7 @@ typedef enum uvec_ret {
     SCOPE ulib_uint uvec_index_of_sorted_##T(UVec_##T const *vec, T item) {                         \
         ulib_uint const i = uvec_insertion_index_sorted_##T(vec, item);                             \
         T *data = uvec_data(T, vec);                                                                \
-        return data && equal_func(data[i], item) ? i : vec->_count;                                 \
+        return data && i < vec->_count && equal_func(data[i], item) ? i : vec->_count;              \
     }                                                                                               \
                                                                                                     \
     SCOPE uvec_ret uvec_insert_sorted_##T(UVec_##T *vec, T item, ulib_uint *idx) {                  \
