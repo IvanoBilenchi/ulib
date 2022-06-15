@@ -234,7 +234,6 @@ typedef enum uvec_ret {
 #define P_UVEC_IMPL(T, SCOPE)                                                                       \
                                                                                                     \
     static inline uvec_ret uvec_resize_##T(UVec_##T *vec, ulib_uint size) {                         \
-        ulib_uint_next_power_2(size);                                                               \
         T *data;                                                                                    \
                                                                                                     \
         if (vec->_size) {                                                                           \
@@ -253,12 +252,24 @@ typedef enum uvec_ret {
     }                                                                                               \
                                                                                                     \
     static inline uvec_ret uvec_expand_if_required_##T(UVec_##T *vec) {                             \
-        ulib_uint size = uvec_size_##T(vec);                                                        \
-        return size > vec->_count ? UVEC_OK : uvec_resize_##T(vec, size ? size * 2 : 1);            \
+        ulib_uint const old_size = uvec_size_##T(vec);                                              \
+        if (old_size > vec->_count) return UVEC_OK;                                                 \
+                                                                                                    \
+        ulib_uint size;                                                                             \
+                                                                                                    \
+        if (old_size == 0) {                                                                        \
+            size = 1;                                                                               \
+        } else {                                                                                    \
+            size = old_size;                                                                        \
+            ulib_uint_next_power_2(size);                                                           \
+            if (size == old_size) size *= 2;                                                        \
+        }                                                                                           \
+                                                                                                    \
+        return uvec_resize_##T(vec, size);                                                          \
     }                                                                                               \
                                                                                                     \
     SCOPE uvec_ret uvec_reserve_##T(UVec_##T *vec, ulib_uint size) {                                \
-        return uvec_size_##T(vec) >= size ? UVEC_OK : uvec_resize_##T(vec, size);                   \
+        return size <= uvec_size_##T(vec) ? UVEC_OK : uvec_resize_##T(vec, size);                   \
     }                                                                                               \
                                                                                                     \
     SCOPE uvec_ret uvec_set_range_##T(UVec_##T *vec, T const *array,                                \
@@ -305,17 +316,12 @@ typedef enum uvec_ret {
             memcpy((T*)(&vec->_data), old_data, vec->_count * sizeof(T));                           \
             ulib_free(old_data);                                                                    \
             vec->_size = 0;                                                                         \
-        } else {                                                                                    \
-            ulib_uint size = vec->_count;                                                           \
-            ulib_uint_next_power_2(size);                                                           \
+        } else if (vec->_count < vec->_size) {                                                      \
+            T *data = ulib_realloc(vec->_data, vec->_count * sizeof(T));                            \
+            if (!data) return UVEC_ERR;                                                             \
                                                                                                     \
-            if (size < vec->_size) {                                                                \
-                T *data = ulib_realloc(vec->_data, size * sizeof(T));                               \
-                if (!data) return UVEC_ERR;                                                         \
-                                                                                                    \
-                vec->_size = size;                                                                  \
-                vec->_data = data;                                                                  \
-            }                                                                                       \
+            vec->_size = vec->_count;                                                               \
+            vec->_data = data;                                                                      \
         }                                                                                           \
                                                                                                     \
         return UVEC_OK;                                                                             \

@@ -89,19 +89,24 @@ bool uvec_test_base(void) {
 bool uvec_test_capacity(void) {
     UVec(VTYPE) v = uvec_init(VTYPE);
     ulib_uint const capacity = 5;
-    ulib_uint const expand = 3;
 
     uvec_ret ret = uvec_reserve(VTYPE, &v, capacity);
     utest_assert(ret == UVEC_OK);
     utest_assert_uint(uvec_size(VTYPE, &v), >=, capacity);
 
-    ret = uvec_expand(VTYPE, &v, expand);
-    utest_assert(ret == UVEC_OK);
-    utest_assert_uint(uvec_size(VTYPE, &v), >=, capacity + expand);
-
+    ret = uvec_push(VTYPE, &v, 1);
     ret = uvec_push(VTYPE, &v, 2);
+    ret = uvec_push(VTYPE, &v, 3);
     utest_assert(ret == UVEC_OK);
     utest_assert_uint(uvec_size(VTYPE, &v), >=, uvec_count(VTYPE, &v));
+
+    ret = uvec_expand(VTYPE, &v, capacity);
+    utest_assert(ret == UVEC_OK);
+    utest_assert_uint(uvec_size(VTYPE, &v), >=, uvec_count(VTYPE, &v) + capacity);
+
+    ret = uvec_shrink(VTYPE, &v);
+    utest_assert(ret == UVEC_OK);
+    utest_assert_uint(uvec_size(VTYPE, &v), ==, uvec_count(VTYPE, &v));
 
     uvec_remove_all(VTYPE, &v);
     utest_assert_uint(uvec_count(VTYPE, &v), ==, 0);
