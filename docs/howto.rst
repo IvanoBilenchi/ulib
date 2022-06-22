@@ -3,16 +3,15 @@ Building
 ========
 
 You can find uLib's code on its `git repository <git_url_>`_. If you are using `CMake`_
-as your build system, you can use the ``add_subdirectory`` command, then link against
-any of uLib's library targets. Alternatively, build one of the library targets
-and then link against it. Some of uLib's targets can be enabled or disabled via CMake options.
+as your build system, you can import it via the ``add_subdirectory`` command, then link against
+the ``ulib`` target. You can control the library type by setting the ``ULIB_LIBRARY_TYPE``
+CMake variable, which can be either ``STATIC`` (default), ``SHARED`` or ``OBJECT``.
 
 CMake targets
 =============
 
-- ``ulib-static``: static library (``ULIB_STATIC`` option, default ``ON``).
-- ``ulib-shared``: dynamic library (``ULIB_SHARED`` option, default ``ON``).
-- ``ulib-object``: object library (``ULIB_OBJECT`` option, default ``OFF``).
+- ``ulib``: builds the library.
+- ``ulib-tests``: builds the unit tests.
 - ``ulib-docs``: generates the documentation (requires `Doxygen`_ and optionally `Sphinx`_).
 
 ========

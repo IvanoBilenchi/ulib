@@ -30,9 +30,7 @@ project(uLib
 option(ULIB_EMBEDDED "Enable optimizations for embedded platforms" OFF)
 option(ULIB_LTO "Enable link-time optimization, if available" ON)
 option(ULIB_LEAKS "Enable debugging of memory leaks (keep OFF in production builds)" OFF)
-option(ULIB_STATIC "Generate static library target." ON)
-option(ULIB_SHARED "Generate shared library target." ON)
-option(ULIB_OBJECT "Generate object library target." OFF)
+set(ULIB_LIBRARY_TYPE "STATIC" CACHE STRING "Type of library to build.")
 set(ULIB_USER_HEADERS "" CACHE STRING "User-specified header files")
 set(ULIB_USER_SOURCES "" CACHE STRING "User-specified source files")
 set(ULIB_MALLOC "malloc" CACHE STRING "malloc function override")
@@ -104,10 +102,6 @@ list(APPEND ULIB_SOURCES ${ULIB_USER_SOURCES})
 # Targets #
 ###########
 
-# Main target
-
-add_custom_target(ulib ALL COMMENT "Build uLib")
-
 # Copy headers
 
 add_custom_target(ulib-headers
@@ -117,45 +111,31 @@ add_custom_target(ulib-headers
                           ${ULIB_PUBLIC_HEADERS} "${ULIB_HEADERS_OUT_DIR}"
                   COMMENT "Copy headers to the build directory.")
 
-# Libraries
+# Library
 
-function(ulib_library_target NAME TYPE)
-    add_library(${NAME} ${TYPE} EXCLUDE_FROM_ALL ${ULIB_SOURCES})
-    set_target_properties(${NAME} PROPERTIES
-                          OUTPUT_NAME "ulib"
-                          PREFIX ""
-                          PUBLIC_HEADER "${ULIB_PUBLIC_HEADERS}"
-                          C_VISIBILITY_PRESET hidden
-                          VISIBILITY_INLINES_HIDDEN ON)
-    target_compile_features(${NAME} PRIVATE ${ULIB_COMPILE_FEATURES})
-    target_compile_options(${NAME} PRIVATE ${ULIB_WARNING_OPTIONS})
-    target_compile_definitions(${NAME}
-                               PUBLIC ${ULIB_PUBLIC_DEFINES}
-                               PRIVATE ${ULIB_PRIVATE_DEFINES})
-    target_include_directories(${NAME}
-                               PUBLIC "${ULIB_PUBLIC_HEADERS_DIR}"
-                               PRIVATE "${ULIB_PRIVATE_HEADERS_DIR}")
-    target_precompile_headers(${NAME} PUBLIC ${ULIB_USER_HEADERS})
-    add_dependencies(${NAME} ulib-headers)
+add_library(ulib ${ULIB_LIBRARY_TYPE} ${ULIB_SOURCES})
+set_target_properties(ulib PROPERTIES
+                      PREFIX ""
+                      PUBLIC_HEADER "${ULIB_PUBLIC_HEADERS}"
+                      C_VISIBILITY_PRESET hidden
+                      VISIBILITY_INLINES_HIDDEN ON)
+target_compile_features(ulib PRIVATE ${ULIB_COMPILE_FEATURES})
+target_compile_options(ulib PRIVATE ${ULIB_WARNING_OPTIONS})
+target_compile_definitions(ulib
+                           PUBLIC ${ULIB_PUBLIC_DEFINES}
+                           PRIVATE ${ULIB_PRIVATE_DEFINES})
+target_include_directories(ulib
+                           PUBLIC "${ULIB_PUBLIC_HEADERS_DIR}"
+                           PRIVATE "${ULIB_PRIVATE_HEADERS_DIR}")
+target_precompile_headers(ulib PUBLIC ${ULIB_USER_HEADERS})
+add_dependencies(ulib ulib-headers)
 
-    if(ULIB_LTO_ENABLED)
-        set_property(TARGET ${NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION ON)
-    endif()
-
-    add_dependencies(ulib ${NAME})
-endfunction()
-
-if(ULIB_STATIC)
-    ulib_library_target(ulib-static STATIC)
+if(ULIB_LIBRARY_TYPE STREQUAL "SHARED")
+    target_compile_definitions(ulib PUBLIC ULIB_SHARED)
 endif()
 
-if(ULIB_SHARED)
-    ulib_library_target(ulib-shared SHARED)
-    target_compile_definitions(ulib-shared PUBLIC ULIB_SHARED)
-endif()
-
-if(ULIB_OBJECT)
-    ulib_library_target(ulib-object OBJECT)
+if(ULIB_LTO_ENABLED)
+    set_property(TARGET ulib PROPERTY INTERPROCEDURAL_OPTIMIZATION ON)
 endif()
 
 # Subprojects
