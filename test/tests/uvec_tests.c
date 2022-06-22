@@ -54,6 +54,9 @@ bool uvec_test_base(void) {
     utest_assert(ret == UVEC_OK);
     uvec_assert_elements(VTYPE, &v, 3, 2, 5, 1, 4);
 
+    UVec(VTYPE) range = uvec_get_range(VTYPE, &v, 2, 3);
+    uvec_assert_elements(VTYPE, &range, 5, 1, 4);
+
     utest_assert(uvec_pop(VTYPE, &v) == 4);
     uvec_assert_elements(VTYPE, &v, 3, 2, 5, 1);
 

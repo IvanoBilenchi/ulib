@@ -135,6 +135,16 @@ typedef enum uvec_ret {
         return uvec_data_##T(vec)[vec->_count - 1];                                                 \
     }                                                                                               \
                                                                                                     \
+    SCOPE static inline UVec_##T uvec_get_range_##T(UVec_##T const *vec,                            \
+                                                    ulib_uint start, ulib_uint len) {               \
+        UVec_##T ret = { len, len, uvec_data_##T(vec) + start };                                    \
+        return ret;                                                                                 \
+    }                                                                                               \
+                                                                                                    \
+    SCOPE static inline UVec_##T uvec_get_range_from_##T(UVec_##T const *vec, ulib_uint start) {    \
+        return uvec_get_range_##T(vec, start, vec->_count - start);                                 \
+    }                                                                                               \
+                                                                                                    \
     SCOPE static inline void uvec_deinit_##T(UVec_##T *vec) {                                       \
         if (vec->_size) {                                                                           \
             ulib_free(vec->_data);                                                                  \
@@ -1068,6 +1078,52 @@ typedef enum uvec_ret {
 #define uvec_append_items(T, vec, ...)                                                              \
     P_ULIB_MACRO_CONCAT(uvec_append_array_, T)                                                      \
         (vec, (T[]){ __VA_ARGS__ }, (sizeof((T[]){ __VA_ARGS__ }) / sizeof(T)))
+
+/**
+ * Returns a read-only range over the specified vector.
+ *
+ * @param T [symbol] Vector type.
+ * @param vec [UVec(T)*] Vector instance.
+ * @param start [ulib_uint] Start index of the range.
+ * @param len [ulib_uint] Length of the range.
+ * @return [UVec(T)] Range.
+ *
+ * @warning Mutating the range object is undefined behavior.
+ *
+ * @public @related UVec
+ */
+#define uvec_get_range(T, vec, start, len) \
+    P_ULIB_MACRO_CONCAT(uvec_get_range_, T)(vec, start, len)
+
+/**
+ * Returns a read-only range over the specified vector.
+ *
+ * @param T [symbol] Vector type.
+ * @param vec [UVec(T)*] Vector instance.
+ * @param start [ulib_uint] Start index of the range.
+ * @return [UVec(T)] Range.
+ *
+ * @warning Mutating the range object is undefined behavior.
+ *
+ * @public @related UVec
+ */
+#define uvec_get_range_from(T, vec, start) \
+    P_ULIB_MACRO_CONCAT(uvec_get_range_from_, T)(vec, start)
+
+/**
+ * Returns a read-only range over the specified vector.
+ *
+ * @param T [symbol] Vector type.
+ * @param vec [UVec(T)*] Vector instance.
+ * @param len [ulib_uint] Length of the range.
+ * @return [UVec(T)] Range.
+ *
+ * @warning Mutating the range object is undefined behavior.
+ *
+ * @public @related UVec
+ */
+#define uvec_get_range_to(T, vec, len) \
+    uvec_get_range(T, vec, 0, len)
 
 /**
  * Sets items in the specified range to those contained in an array.
