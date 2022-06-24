@@ -43,7 +43,7 @@ static UHash(AllocTable) *alloc_table = NULL;
 } while (0)
 
 bool utest_leak_start(void) {
-    alloc_table = ulib_alloc(alloc_table);
+    alloc_table = malloc(sizeof(*alloc_table));
 
     if (!alloc_table) {
         fprintf(stderr, "Could not allocate the allocation table.\n");
@@ -63,14 +63,14 @@ bool utest_leak_end(void) {
         printf("Detected %" ULIB_UINT_FMT " leaked objects.\n", leaks);
         uhash_foreach(AllocTable, alloc_table, alloc) {
             printf("Leak %u: %p (%s)\n", ++i, *alloc.key, *alloc.val);
-            free(*alloc.key);
+            free(*alloc.val);
         }
     } else {
         printf("No leaks detected.\n");
     }
 
     uhash_deinit(AllocTable, alloc_table);
-    ulib_free(alloc_table);
+    free(alloc_table);
 
     return leaks == 0;
 }

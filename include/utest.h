@@ -31,6 +31,7 @@ ULIB_BEGIN_DECLS
  */
 #define utest_main(CODE)                                                                            \
     int main(void) {                                                                                \
+        setbuf(stdout, NULL);                                                                       \
         if (!utest_leak_start()) return EXIT_FAILURE;                                               \
         int exit_code = EXIT_SUCCESS;                                                               \
         { CODE }                                                                                    \
