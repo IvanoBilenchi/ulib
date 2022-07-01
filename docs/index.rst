@@ -18,5 +18,6 @@ Welcome to ULib's documentation!
    api/time
    api/collections
    api/streams
+   api/rand
    api/test
    api/version

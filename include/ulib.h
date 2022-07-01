@@ -20,6 +20,7 @@
 #include "uhash_builtin.h"
 #include "umacros.h"
 #include "umeta.h"
+#include "urand.h"
 #include "ustd.h"
 #include "ustrbuf.h"
 #include "ustream.h"
