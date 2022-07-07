@@ -53,6 +53,27 @@ UString ustring_wrap(char const *cstring, size_t length) {
     return ustring_large(cstring, length);
 }
 
+UString ustring_with_length(size_t length, char **data) {
+    UString ret;
+    char *buf;
+
+    if (p_ustring_length_is_small(length)) {
+        ret = (UString) {._s = {._size = (ulib_uint)length + 1}};
+        buf = ret._s._data;
+    } else {
+        buf = ulib_malloc(length + 1);
+        if (buf) {
+            ret = (UString) {._l = {._size = (ulib_uint)length + 1, ._data = buf}};
+        } else {
+            ret = ustring_null;
+        }
+    }
+
+    if (buf) buf[length] = '\0';
+    if (data) *data = buf;
+    return ret;
+}
+
 void ustring_deinit(UString *string) {
     if (!p_ustring_is_small(*string)) ulib_free((void *)(string)->_l._data);
 }
@@ -187,16 +208,18 @@ UString ustring_concat(UString const *strings, ulib_uint count) {
 }
 
 UString ustring_repeating(UString string, ulib_uint times) {
-    UStrBuf buf = ustrbuf_init();
+    char *buf;
+    ulib_uint len = ustring_length(string);
+    char const *data = ustring_data(string);
 
-    for (ulib_uint i = 0; i < times; ++i) {
-        if (ustrbuf_append_ustring(&buf, string)) {
-            ustrbuf_deinit(&buf);
-            return ustring_null;
-        }
+    UString ret = ustring_with_length(len * times, &buf);
+    if (ustring_is_empty(ret)) return ret;
+
+    for (ulib_uint i = 0; i < times; ++i, buf += len) {
+        memcpy(buf, data, len);
     }
 
-    return ustrbuf_to_ustring(&buf);
+    return ret;
 }
 
 char* ulib_str_dup(char const *string, size_t length) {

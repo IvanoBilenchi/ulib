@@ -28,7 +28,7 @@ bool urand_int_test(void) {
 }
 
 bool urand_string_test(void) {
-    urand_set_seed(1234);
+    urand_set_seed(12345);
 
     ulib_uint const len = 32;
     UString s = urand_string(len, NULL);
@@ -36,6 +36,7 @@ bool urand_string_test(void) {
 
     UString charset = *urand_default_charset();
     char const *s_data = ustring_data(s);
+    utest_assert_uint(strlen(s_data), ==, len);
 
     for (unsigned i = 0; i < len; ++i) {
         utest_assert_uint(ustring_index_of(charset, s_data[i]), <, ustring_length(charset));
@@ -47,6 +48,8 @@ bool urand_string_test(void) {
     utest_assert_uint(ustring_length(s), ==, len);
 
     s_data = ustring_data(s);
+    utest_assert_uint(strlen(s_data), ==, len);
+
     for (unsigned i = 0; i < len; ++i) {
         utest_assert_uint(ustring_index_of(charset, s_data[i]), <, ustring_length(charset));
     }
