@@ -67,6 +67,16 @@ ulib_int urand_range(ulib_int start, ulib_uint len);
 ULIB_PUBLIC
 UString urand_string(ulib_uint len, UString const *charset);
 
+/**
+ * Populates the buffer with a random string.
+ *
+ * @param len Length of the random string.
+ * @param buf Buffer to populate.
+ * @param charset Character set, or NULL for the default alphanumeric character set.
+ */
+ULIB_PUBLIC
+void urand_str(ulib_uint len, char *buf, UString const *charset);
+
 /// @}
 
 ULIB_END_DECLS

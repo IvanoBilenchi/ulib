@@ -40,6 +40,12 @@ UString urand_string(ulib_uint len, UString const *charset) {
     char *buf;
     UString ret = ustring_with_length(len, &buf);
     if (ustring_is_empty(ret)) return ret;
+    urand_str(len, buf, charset);
+    return ret;
+}
+
+void urand_str(ulib_uint len, char *buf, UString const *charset) {
+    if (!len) return;
 
     char const *chars;
     ulib_uint char_len;
@@ -53,6 +59,4 @@ UString urand_string(ulib_uint len, UString const *charset) {
     }
 
     while (len--) buf[len] = chars[urand_range(0, char_len)];
-    return ret;
-
 }
