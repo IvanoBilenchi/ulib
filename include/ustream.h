@@ -143,6 +143,16 @@ ULIB_PUBLIC
 ustream_ret uistream_read(UIStream *stream, void *buf, size_t count, size_t *read);
 
 /**
+ * Returns a stream that reads from the standard input.
+ *
+ * @return Standard input stream.
+ *
+ * @public @memberof UIStream
+ */
+ULIB_PUBLIC
+UIStream* uistream_std(void);
+
+/**
  * Initializes a stream that reads from the file at the specified path.
  *
  * @param stream Input stream.
@@ -424,6 +434,16 @@ ustream_ret uostream_write_time_interval(UOStream *stream, utime_ns interval, ut
  */
 ULIB_PUBLIC
 ustream_ret uostream_write_version(UOStream *stream, UVersion const *version, size_t *written);
+
+/**
+ * Returns a stream that writes to the standard output.
+ *
+ * @return Standard output stream.
+ *
+ * @public @memberof UOStream
+ */
+ULIB_PUBLIC
+UOStream* uostream_std(void);
 
 /**
  * Initializes a stream that writes to the file at the specified path.

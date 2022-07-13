@@ -225,6 +225,12 @@ ustream_ret uistream_read(UIStream *stream, void *buf, size_t count, size_t *rea
     return stream->state;
 }
 
+UIStream* uistream_std(void) {
+    static UIStream std_in = {0};
+    if (!std_in.ctx) uistream_from_file(&std_in, stdin);
+    return &std_in;
+}
+
 ustream_ret uistream_from_path(UIStream *stream, char const *path) {
     FILE *in_file = fopen(path, "rb");
     ustream_ret ret = uistream_from_file(stream, in_file);
@@ -342,6 +348,12 @@ ustream_ret uostream_write_time_interval(UOStream *stream, utime_ns interval, ut
 ustream_ret uostream_write_version(UOStream *stream, UVersion const *version, size_t *written) {
     return uostream_writef(stream, written, "%u.%u.%u",
                            version->major, version->minor, version->patch);
+}
+
+UOStream* uostream_std(void) {
+    static UOStream std_out = {0};
+    if (!std_out.ctx) uostream_to_file(&std_out, stdout);
+    return &std_out;
 }
 
 ustream_ret uostream_to_path(UOStream *stream, char const *path) {
