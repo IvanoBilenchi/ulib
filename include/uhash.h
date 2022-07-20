@@ -364,12 +364,6 @@ static inline ulib_uint p_uhash_x31_str_hash(char const *key) {
         h->_size = h->_occupied = h->_count = 0;                                                    \
     }                                                                                               \
                                                                                                     \
-    SCOPE void uhash_free_##T(UHash_##T *h) {                                                       \
-        if (!h) return;                                                                             \
-        uhash_deinit(T, h);                                                                         \
-        ulib_free(h);                                                                               \
-    }                                                                                               \
-                                                                                                    \
     SCOPE uhash_ret uhash_copy_##T(UHash_##T const *src, UHash_##T *dest) {                         \
         uhash_ret ret = uhash_copy_as_set_##T(src, dest);                                           \
                                                                                                     \
