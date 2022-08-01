@@ -53,25 +53,23 @@ UString ustring_wrap(char const *cstring, size_t length) {
     return ustring_large(cstring, length);
 }
 
-UString ustring_with_length(size_t length, char **data) {
-    UString ret;
+char* ustring_init(UString *string, size_t length) {
     char *buf;
 
     if (p_ustring_length_is_small(length)) {
-        ret = (UString) {._s = {._size = (ulib_uint)length + 1}};
-        buf = ret._s._data;
+        *string = (UString) {._s = {._size = (ulib_uint)length + 1}};
+        buf = string->_s._data;
     } else {
         buf = ulib_malloc(length + 1);
         if (buf) {
-            ret = (UString) {._l = {._size = (ulib_uint)length + 1, ._data = buf}};
+            *string = (UString) {._l = {._size = (ulib_uint)length + 1, ._data = buf}};
         } else {
-            ret = ustring_null;
+            *string = ustring_null;
         }
     }
 
     if (buf) buf[length] = '\0';
-    if (data) *data = buf;
-    return ret;
+    return buf;
 }
 
 void ustring_deinit(UString *string) {
@@ -208,11 +206,11 @@ UString ustring_concat(UString const *strings, ulib_uint count) {
 }
 
 UString ustring_repeating(UString string, ulib_uint times) {
-    char *buf;
     ulib_uint len = ustring_length(string);
     char const *data = ustring_data(string);
 
-    UString ret = ustring_with_length(len * times, &buf);
+    UString ret;
+    char *buf = ustring_init(&ret, len * times);
     if (ustring_is_empty(ret)) return ret;
 
     for (ulib_uint i = 0; i < times; ++i, buf += len) {

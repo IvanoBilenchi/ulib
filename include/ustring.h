@@ -120,16 +120,16 @@ UString ustring_wrap(char const *cstring, size_t length);
  * Initializes a new string of the specified length and returns its underlying buffer.
  * This allows direct initialization of the buffer, avoiding unnecessary allocations or copies.
  *
+ * @param string String to initialize.
  * @param length Length of the string (excluding the null terminator).
- * @param data Underlying buffer.
- * @return New string.
+ * @return Underlying buffer.
  *
  * @warning The buffer is null-terminated but otherwise uninitialized.
  *
  * @public @memberof UString
  */
 ULIB_PUBLIC
-UString ustring_with_length(size_t length, char **data);
+char* ustring_init(UString *string, size_t length);
 
 /**
  * Initializes a new string by copying the specified string literal.

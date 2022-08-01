@@ -37,8 +37,8 @@ ulib_int urand_range(ulib_int start, ulib_uint len) {
 }
 
 UString urand_string(ulib_uint len, UString const *charset) {
-    char *buf;
-    UString ret = ustring_with_length(len, &buf);
+    UString ret;
+    char *buf = ustring_init(&ret, len);
     if (ustring_is_empty(ret)) return ret;
     urand_str(len, buf, charset);
     return ret;
