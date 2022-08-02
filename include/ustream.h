@@ -40,7 +40,10 @@ typedef enum ustream_ret {
      *
      * @note When this happens, *errno* is sometimes set to a more meaningful value.
      */
-    USTREAM_ERR_IO
+    USTREAM_ERR_IO,
+
+    /// Generic error.
+    USTREAM_ERR
 
 } ustream_ret;
 
