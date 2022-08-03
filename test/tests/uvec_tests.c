@@ -26,12 +26,6 @@
 
 #define VTYPE ulib_int
 
-static int type_comparator(const void * a, const void * b) {
-    VTYPE va = *(const VTYPE*)a;
-    VTYPE vb = *(const VTYPE*)b;
-    return (va > vb) - (va < vb);
-}
-
 /// @name Tests
 
 bool uvec_test_base(void) {
