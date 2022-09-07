@@ -48,22 +48,28 @@ typedef struct UString {
 /**
  * Returns the size of the string.
  *
- * @param string [UString] String.
- * @return [ulib_uint] String size.
+ * @param string String.
+ * @return String size.
  *
- * @public @related UString
+ * @public @memberof UString
  */
-#define ustring_size(string) ((string)._size)
+ULIB_INLINE
+ulib_uint ustring_size(UString string) {
+    return string._size;
+}
 
 /**
  * Returns the length of the string, excluding the null terminator.
  *
- * @param string [UString] String.
- * @return [ulib_uint] String length.
+ * @param string String.
+ * @return String length.
  *
- * @public @related UString
+ * @public @memberof UString
  */
-#define ustring_length(string) ((string)._size ? (string)._size - 1 : 0)
+ULIB_INLINE
+ulib_uint ustring_length(UString string) {
+    return string._size ? (string)._size - 1 : 0;
+}
 
 /**
  * Returns the buffer backing the string.
@@ -366,24 +372,30 @@ char const* ustring_deinit_return_data(UString *string);
 /**
  * Checks whether the string has a NULL buffer.
  *
- * @param string [UString] String instance.
- * @return [bool] True if the string has a NULL buffer, false otherwise.
+ * @param string String instance.
+ * @return True if the string has a NULL buffer, false otherwise.
  *
- * @public @related UString
+ * @public @memberof UString
  */
-#define ustring_is_null(string) (ustring_size(string) == 0)
+ULIB_INLINE
+bool ustring_is_null(UString string) {
+    return ustring_size(string) == 0;
+}
 
 /**
  * Checks whether the string is empty.
  *
- * @param string [UString] String instance.
- * @return [bool] True if the string is empty, false otherwise.
+ * @param string String instance.
+ * @return True if the string is empty, false otherwise.
  *
  * @note The null string is considered empty.
  *
- * @public @related UString
+ * @public @memberof UString
  */
-#define ustring_is_empty(string) (ustring_size(string) <= 1)
+ULIB_INLINE
+bool ustring_is_empty(UString string) {
+    return ustring_size(string) <= 1;
+}
 
 /**
  * Duplicates the specified string.

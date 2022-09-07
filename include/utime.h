@@ -197,20 +197,26 @@ bool utime_from_string(UTime *time, UString const *string);
 /**
  * Checks whether the specified year is a leap year.
  *
- * @param y [long long] Year.
+ * @param year Year.
  * @return True if the specified year is a leap year, false otherwise.
  */
-#define utime_is_leap_year(y) ((y) % 4 == 0 && ((y) % 100 != 0 || (y) % 400 == 0))
+ULIB_INLINE
+bool utime_is_leap_year(long long year) {
+    return year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+}
 
 /**
  * Returns the number of days in the specified month.
  *
- * @param y [long long] Year.
- * @param m [unsigned] Month.
+ * @param year Year.
+ * @param month Month.
  * @return Number of days in the specified month.
  */
-#define utime_days_in_month(y, m) \
-    ((m) == 2u ? (utime_is_leap_year(y) ? 29u : 28u) : (((m) - 1u) % 7u) % 2u ? 30u : 31u)
+ULIB_INLINE
+unsigned utime_days_in_month(long long year, unsigned month) {
+    if (month == 2) return utime_is_leap_year(year) ? 29 : 28;
+    return ((month - 1) % 7) % 2 ? 30 : 31;
+}
 
 /**
  * Retrieves a timestamp expressed as seconds since January 1 1970, 00:00:00.

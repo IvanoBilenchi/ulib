@@ -66,6 +66,9 @@
     #endif
 #endif
 
+/// Marks inline function definitions.
+#define ULIB_INLINE static inline
+
 /// Suppresses unused variable warnings.
 #ifndef ulib_unused
     #if (defined __clang__ && __clang_major__ >= 3) || (defined __GNUC__ && __GNUC__ >= 3)
