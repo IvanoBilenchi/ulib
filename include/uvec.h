@@ -719,8 +719,9 @@ typedef enum uvec_ret {
  */
 #define UVEC_INIT(T)                                                                                \
     P_UVEC_DEF_TYPE(T)                                                                              \
-    P_UVEC_IMPL(T, static inline ulib_unused)                                                       \
-    P_UVEC_DEF_INLINE(T, ulib_unused)
+    P_UVEC_DECL(T, static inline ulib_unused)                                                       \
+    P_UVEC_DEF_INLINE(T, ulib_unused)                                                               \
+    P_UVEC_IMPL(T, static inline ulib_unused)
 
 /**
  * Defines a new static equatable vector type.
@@ -732,10 +733,12 @@ typedef enum uvec_ret {
  */
 #define UVEC_INIT_EQUATABLE(T, equal_func)                                                          \
     P_UVEC_DEF_TYPE(T)                                                                              \
-    P_UVEC_IMPL(T, static inline ulib_unused)                                                       \
-    P_UVEC_IMPL_EQUATABLE(T, static inline ulib_unused, equal_func, 0)                              \
+    P_UVEC_DECL(T, static inline ulib_unused)                                                       \
+    P_UVEC_DECL_EQUATABLE(T, static inline ulib_unused)                                             \
     P_UVEC_DEF_INLINE(T, ulib_unused)                                                               \
-    P_UVEC_DEF_INLINE_EQUATABLE(T, ulib_unused)
+    P_UVEC_DEF_INLINE_EQUATABLE(T, ulib_unused)                                                     \
+    P_UVEC_IMPL(T, static inline ulib_unused)                                                       \
+    P_UVEC_IMPL_EQUATABLE(T, static inline ulib_unused, equal_func, 0)
 
 /**
  * Defines a new static comparable vector type.
@@ -748,12 +751,15 @@ typedef enum uvec_ret {
  */
 #define UVEC_INIT_COMPARABLE(T, equal_func, compare_func)                                           \
     P_UVEC_DEF_TYPE(T)                                                                              \
-    P_UVEC_IMPL(T, static inline ulib_unused)                                                       \
-    P_UVEC_IMPL_EQUATABLE(T, static inline ulib_unused, equal_func, 0)                              \
-    P_UVEC_IMPL_COMPARABLE(T, static inline ulib_unused, equal_func, compare_func)                  \
+    P_UVEC_DECL(T, static inline ulib_unused)                                                       \
+    P_UVEC_DECL_EQUATABLE(T, static inline ulib_unused)                                             \
+    P_UVEC_DECL_COMPARABLE(T, static inline ulib_unused)                                            \
     P_UVEC_DEF_INLINE(T, ulib_unused)                                                               \
     P_UVEC_DEF_INLINE_EQUATABLE(T, ulib_unused)                                                     \
-    P_UVEC_DEF_INLINE_COMPARABLE(T, ulib_unused)
+    P_UVEC_DEF_INLINE_COMPARABLE(T, ulib_unused)                                                    \
+    P_UVEC_IMPL(T, static inline ulib_unused)                                                       \
+    P_UVEC_IMPL_EQUATABLE(T, static inline ulib_unused, equal_func, 0)                              \
+    P_UVEC_IMPL_COMPARABLE(T, static inline ulib_unused, equal_func, compare_func)
 
 /**
  * Defines a new static equatable vector type
@@ -765,12 +771,15 @@ typedef enum uvec_ret {
  */
 #define UVEC_INIT_IDENTIFIABLE(T)                                                                   \
     P_UVEC_DEF_TYPE(T)                                                                              \
-    P_UVEC_IMPL(T, static inline ulib_unused)                                                       \
-    P_UVEC_IMPL_EQUATABLE(T, static inline ulib_unused, p_uvec_identical, 1)                        \
-    P_UVEC_IMPL_COMPARABLE(T, static inline ulib_unused, p_uvec_identical, p_uvec_less_than)        \
+    P_UVEC_DECL(T, static inline ulib_unused)                                                       \
+    P_UVEC_DECL_EQUATABLE(T, static inline ulib_unused)                                             \
+    P_UVEC_DECL_COMPARABLE(T, static inline ulib_unused)                                            \
     P_UVEC_DEF_INLINE(T, ulib_unused)                                                               \
     P_UVEC_DEF_INLINE_EQUATABLE(T, ulib_unused)                                                     \
-    P_UVEC_DEF_INLINE_COMPARABLE(T, ulib_unused)
+    P_UVEC_DEF_INLINE_COMPARABLE(T, ulib_unused)                                                    \
+    P_UVEC_IMPL(T, static inline ulib_unused)                                                       \
+    P_UVEC_IMPL_EQUATABLE(T, static inline ulib_unused, p_uvec_identical, 1)                        \
+    P_UVEC_IMPL_COMPARABLE(T, static inline ulib_unused, p_uvec_identical, p_uvec_less_than)
 
 /// @name Declaration
 
