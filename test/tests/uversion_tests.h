@@ -12,12 +12,8 @@
 
 #include "ustd.h"
 
-ULIB_BEGIN_DECLS
-
 bool uversion_test(void);
 
 #define UVERSION_TESTS uversion_test
-
-ULIB_END_DECLS
 
 #endif // UVERSION_TESTS_H

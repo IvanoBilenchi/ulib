@@ -46,6 +46,22 @@ typedef struct UString {
 } UString;
 
 /**
+ * String with a NULL buffer.
+ *
+ * @public @related UString
+ */
+ULIB_PUBLIC
+extern UString const ustring_null;
+
+/**
+ * Empty string.
+ *
+ * @public @related UString
+ */
+ULIB_PUBLIC
+extern UString const ustring_empty;
+
+/**
  * Returns the size of the string.
  *
  * @param string String.
@@ -350,24 +366,6 @@ void ustring_deinit(UString *string);
  */
 ULIB_PUBLIC
 char const* ustring_deinit_return_data(UString *string);
-
-/**
- * Initializes an empty string.
- *
- * @return [UString] Empty string.
- *
- * @public @related UString
- */
-#define ustring_empty ((UString){._s = {._size = 1}})
-
-/**
- * Initializes a string with a NULL buffer.
- *
- * @return [UString] Null string.
- *
- * @public @related UString
- */
-#define ustring_null ((UString){._s = {._size = 0 }})
 
 /**
  * Checks whether the string has a NULL buffer.

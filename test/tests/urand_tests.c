@@ -9,6 +9,7 @@
 
 #include "urand_tests.h"
 #include "urand.h"
+#include "utest.h"
 
 bool urand_int_test(void) {
     urand_set_seed(12345);

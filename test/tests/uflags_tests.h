@@ -12,8 +12,6 @@
 
 #include "ustd.h"
 
-ULIB_BEGIN_DECLS
-
 bool uflags_test_8(void);
 bool uflags_test_16(void);
 bool uflags_test_32(void);
@@ -24,7 +22,5 @@ bool uflags_test_64(void);
     uflags_test_16,                                                                                 \
     uflags_test_32,                                                                                 \
     uflags_test_64
-
-ULIB_END_DECLS
 
 #endif // UFLAGS_TESTS_H

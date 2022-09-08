@@ -123,6 +123,11 @@ typedef enum uvec_ret {
  */
 #define P_UVEC_DEF_INLINE(T, SCOPE)                                                                 \
     /** @cond */                                                                                    \
+    SCOPE static inline UVec_##T uvec_init_##T(void) {                                              \
+        UVec_##T vec = {0};                                                                         \
+        return vec;                                                                                 \
+    }                                                                                               \
+                                                                                                    \
     SCOPE static inline T* uvec_data_##T(UVec_##T const *vec) {                                     \
         return vec->_size ? vec->_data : (T*)&(vec)->_data;                                         \
     }                                                                                               \
@@ -247,9 +252,9 @@ typedef enum uvec_ret {
         T *data;                                                                                    \
                                                                                                     \
         if (vec->_size) {                                                                           \
-            data = ulib_realloc(vec->_data, size * sizeof(T));                                      \
+            data = (T*)ulib_realloc(vec->_data, size * sizeof(T));                                  \
         } else {                                                                                    \
-            data = ulib_malloc(size * sizeof(T));                                                   \
+            data = (T*)ulib_malloc(size * sizeof(T));                                               \
         }                                                                                           \
                                                                                                     \
         if (!data) return UVEC_ERR;                                                                 \
@@ -327,7 +332,7 @@ typedef enum uvec_ret {
             ulib_free(old_data);                                                                    \
             vec->_size = 0;                                                                         \
         } else if (vec->_count < vec->_size) {                                                      \
-            T *data = ulib_realloc(vec->_data, vec->_count * sizeof(T));                            \
+            T *data = (T*)ulib_realloc(vec->_data, vec->_count * sizeof(T));                        \
             if (!data) return UVEC_ERR;                                                             \
                                                                                                     \
             vec->_size = vec->_count;                                                               \
@@ -811,7 +816,7 @@ typedef enum uvec_ret {
  *
  * @public @related UVec
  */
-#define uvec_init(T) ((P_ULIB_MACRO_CONCAT(UVec_, T)){0})
+#define uvec_init(T) P_ULIB_MACRO_CONCAT(uvec_init_, T)()
 
 /**
  * De-initializes a vector previously initialized via uvec_init.
@@ -1073,20 +1078,6 @@ typedef enum uvec_ret {
  */
 #define uvec_append_array(T, vec, array, n) \
     P_ULIB_MACRO_CONCAT(uvec_append_array_, T)(vec, array, n)
-
-/**
- * Appends multiple items to the specified vector.
- *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param ... [T] Elements to append.
- * @return [uvec_ret] UVEC_OK on success, otherwise UVEC_ERR.
- *
- * @public @related UVec
- */
-#define uvec_append_items(T, vec, ...)                                                              \
-    P_ULIB_MACRO_CONCAT(uvec_append_array_, T)                                                      \
-        (vec, (T[]){ __VA_ARGS__ }, (sizeof((T[]){ __VA_ARGS__ }) / sizeof(T)))
 
 /**
  * Returns a read-only range over the specified vector.

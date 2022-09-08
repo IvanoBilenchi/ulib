@@ -34,14 +34,18 @@ typedef struct UVersion {
 /**
  * Initializes a version struct.
  *
- * @param maj Major revision.
- * @param min Minor revision.
- * @param pat Patch number.
+ * @param major Major revision.
+ * @param minor Minor revision.
+ * @param patch Patch number.
  * @return Initialized version struct.
  *
- * @public @related UVersion
+ * @public @memberof UVersion
  */
-#define uversion(maj, min, pat) ((UVersion){.major = (maj), .minor = (min), .patch = (pat)})
+ULIB_INLINE
+UVersion uversion(unsigned major, unsigned minor, unsigned patch) {
+    UVersion v = { major, minor, patch };
+    return v;
+}
 
 /**
  * Compares lhs and rhs.

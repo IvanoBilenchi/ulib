@@ -192,8 +192,8 @@ static inline ulib_uint p_uhash_x31_str_hash(char const *key) {
  */
 #define P_UHASH_DEF_TYPE_PI(T, uh_key, uh_val)                                                      \
     P_UHASH_DEF_TYPE_HEAD(T, uh_key, uh_val)                                                        \
-    ulib_uint (*hfunc)(uh_key key);                                                                 \
-    bool (*efunc)(uh_key lhs, uh_key rhs);                                                          \
+    ulib_uint (*_hfunc)(uh_key key);                                                                \
+    bool (*_efunc)(uh_key lhs, uh_key rhs);                                                         \
     P_UHASH_DEF_TYPE_FOOT(T, uh_key, uh_val)
 
 /*
@@ -298,7 +298,8 @@ static inline ulib_uint p_uhash_x31_str_hash(char const *key) {
     }                                                                                               \
                                                                                                     \
     SCOPE UHash_##T uhset_init_##T(void) {                                                          \
-        return (UHash_##T){0};                                                                      \
+        UHash_##T h = {0};                                                                          \
+        return h;                                                                                   \
     }
 
 /*
@@ -322,23 +323,23 @@ static inline ulib_uint p_uhash_x31_str_hash(char const *key) {
     SCOPE UHash_##T uhmap_init_pi_##T(ulib_uint (*hash_func)(uh_key key),                           \
                                       bool (*equal_func)(uh_key lhs, uh_key rhs)) {                 \
         UHash_##T h = uhmap_init_##T();                                                             \
-        h.hfunc = hash_func;                                                                        \
-        h.efunc = equal_func;                                                                       \
+        h._hfunc = hash_func;                                                                       \
+        h._efunc = equal_func;                                                                      \
         return h;                                                                                   \
     }                                                                                               \
                                                                                                     \
     SCOPE UHash_##T uhset_init_##T(void) {                                                          \
-        return (UHash_##T) {                                                                        \
-            .hfunc = default_hfunc,                                                                 \
-            .efunc = default_efunc                                                                  \
-        };                                                                                          \
+        UHash_##T h = {0};                                                                          \
+        h._hfunc = default_hfunc;                                                                   \
+        h._efunc = default_efunc;                                                                   \
+        return h;                                                                                   \
     }                                                                                               \
                                                                                                     \
     SCOPE UHash_##T uhset_init_pi_##T(ulib_uint (*hash_func)(uh_key key),                           \
                                       bool (*equal_func)(uh_key lhs, uh_key rhs)) {                 \
         UHash_##T h = uhset_init_##T();                                                             \
-        h.hfunc = hash_func;                                                                        \
-        h.efunc = equal_func;                                                                       \
+        h._hfunc = hash_func;                                                                       \
+        h._efunc = equal_func;                                                                      \
         return h;                                                                                   \
     }
 
@@ -373,7 +374,7 @@ static inline ulib_uint p_uhash_x31_str_hash(char const *key) {
                 return UHASH_OK;                                                                    \
             }                                                                                       \
                                                                                                     \
-            uh_val *new_vals = ulib_realloc(dest->_vals, src->_size * sizeof(uh_val));              \
+            uh_val *new_vals = (uh_val *)ulib_realloc(dest->_vals, src->_size * sizeof(uh_val));    \
             if (new_vals) {                                                                         \
                 memcpy(new_vals, src->_vals, src->_size * sizeof(uh_val));                          \
                 dest->_vals = new_vals;                                                             \
@@ -393,10 +394,10 @@ static inline ulib_uint p_uhash_x31_str_hash(char const *key) {
         }                                                                                           \
                                                                                                     \
         ulib_uint n_flags = p_uhf_size(src->_size);                                                 \
-        uint32_t *new_flags = ulib_realloc(dest->_flags, n_flags * sizeof(uint32_t));               \
+        uint32_t *new_flags = (uint32_t *)ulib_realloc(dest->_flags, n_flags * sizeof(uint32_t));   \
         if (!new_flags) return UHASH_ERR;                                                           \
                                                                                                     \
-        uh_key *new_keys = ulib_realloc(dest->_keys, src->_size * sizeof(uh_key));                  \
+        uh_key *new_keys = (uh_key *)ulib_realloc(dest->_keys, src->_size * sizeof(uh_key));        \
         if (!new_keys) {                                                                            \
             ulib_free(new_flags);                                                                   \
             return UHASH_ERR;                                                                       \
@@ -447,14 +448,14 @@ static inline ulib_uint p_uhash_x31_str_hash(char const *key) {
         }                                                                                           \
                                                                                                     \
         /* Hash table size needs to be changed (shrink or expand): rehash. */                       \
-        uint32_t *new_flags = ulib_malloc(p_uhf_size(new_size) * sizeof(uint32_t));                 \
+        uint32_t *new_flags = (uint32_t *)ulib_malloc(p_uhf_size(new_size) * sizeof(uint32_t));     \
         if (!new_flags) return UHASH_ERR;                                                           \
                                                                                                     \
         memset(new_flags, 0xaa, p_uhf_size(new_size) * sizeof(uint32_t));                           \
                                                                                                     \
         if (h->_size < new_size) {                                                                  \
             /* Expand. */                                                                           \
-            uh_key *new_keys = ulib_realloc(h->_keys, new_size * sizeof(uh_key));                   \
+            uh_key *new_keys = (uh_key *)ulib_realloc(h->_keys, new_size * sizeof(uh_key));         \
                                                                                                     \
             if (!new_keys) {                                                                        \
                 ulib_free(new_flags);                                                               \
@@ -464,7 +465,7 @@ static inline ulib_uint p_uhash_x31_str_hash(char const *key) {
             h->_keys = new_keys;                                                                    \
                                                                                                     \
             if (uhash_is_map_##T(h)) {                                                              \
-                uh_val *nvals = ulib_realloc(h->_vals, new_size * sizeof(uh_val));                  \
+                uh_val *nvals = (uh_val *)ulib_realloc(h->_vals, new_size * sizeof(uh_val));        \
                                                                                                     \
                 if (!nvals) {                                                                       \
                     ulib_free(new_flags);                                                           \
@@ -510,8 +511,8 @@ static inline ulib_uint p_uhash_x31_str_hash(char const *key) {
                                                                                                     \
         if (h->_size > new_size) {                                                                  \
             /* Shrink the hash table. */                                                            \
-            h->_keys = ulib_realloc(h->_keys, new_size * sizeof(uh_key));                           \
-            if (h->_vals) h->_vals = ulib_realloc(h->_vals, new_size * sizeof(uh_val));             \
+            h->_keys = (uh_key *)ulib_realloc(h->_keys, new_size * sizeof(uh_key));                 \
+            if (h->_vals) h->_vals = (uh_val *)ulib_realloc(h->_vals, new_size * sizeof(uh_val));   \
         }                                                                                           \
                                                                                                     \
         /* Free the working space. */                                                               \
@@ -822,7 +823,7 @@ static inline ulib_uint p_uhash_x31_str_hash(char const *key) {
  */
 #define UHASH_IMPL_PI(T, default_hfunc, default_efunc)                                              \
     P_UHASH_IMPL_INIT_PI(T, ulib_unused, uhash_##T##_key, default_hfunc, default_efunc)             \
-    P_UHASH_IMPL_COMMON(T, ulib_unused, uhash_##T##_key, uhash_##T##_val, h->hfunc, h->efunc)
+    P_UHASH_IMPL_COMMON(T, ulib_unused, uhash_##T##_key, uhash_##T##_val, h->_hfunc, h->_efunc)
 
 /**
  * Defines a new static hash table type.
@@ -858,7 +859,7 @@ static inline ulib_uint p_uhash_x31_str_hash(char const *key) {
     P_UHASH_DECL_PI(T, static inline ulib_unused, uh_key, uh_val)                                   \
     P_UHASH_DEF_INLINE(T, ulib_unused)                                                              \
     P_UHASH_IMPL_INIT_PI(T, static inline ulib_unused, uh_key, default_hfunc, default_efunc)        \
-    P_UHASH_IMPL_COMMON(T, static inline ulib_unused, uh_key, uh_val, h->hfunc, h->efunc)
+    P_UHASH_IMPL_COMMON(T, static inline ulib_unused, uh_key, uh_val, h->_hfunc, h->_efunc)
 
 /// @name Hash and equality functions
 

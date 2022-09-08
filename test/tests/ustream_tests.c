@@ -21,14 +21,16 @@ static char const test_data[] = "0123456789";
 static char* ustream_test_get_file_contents(char const *path, size_t *size) {
     char *contents = NULL;
     FILE *test_file = fopen(path, "rb");
+    long test_file_size = 0;
+    size_t read = 0;
     if (!(test_file && fseek(test_file, 0, SEEK_END) == 0)) goto end;
 
-    long test_file_size = ftell(test_file);
+    test_file_size = ftell(test_file);
     if (test_file_size < 0) goto end;
 
     rewind(test_file);
-    if (!(contents = ulib_malloc(test_file_size))) goto end;
-    size_t read = fread(contents, 1, test_file_size, test_file);
+    if (!(contents = (char *)ulib_malloc(test_file_size))) goto end;
+    read = fread(contents, 1, test_file_size, test_file);
 
     if (read != test_file_size) {
         ulib_free(contents);
@@ -55,7 +57,7 @@ bool uistream_path_test(void) {
     utest_assert_critical(ustream_generate_data(USTREAM_INPUT_FILE));
 
     UIStream stream;
-    char *buf = ulib_calloc(test_data_size, 1);
+    char *buf = (char *)ulib_calloc(test_data_size, 1);
     size_t read;
 
     ustream_ret ret = uistream_from_path(&stream, USTREAM_INPUT_FILE);
@@ -80,7 +82,7 @@ bool uistream_path_test(void) {
 
 bool uistream_buf_test(void) {
     UIStream  stream;
-    char *buf = ulib_malloc(test_data_size);
+    char *buf = (char *)ulib_malloc(test_data_size);
     size_t read;
 
     ustream_ret ret = uistream_from_buf(&stream, test_data, test_data_size);

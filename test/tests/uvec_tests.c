@@ -22,18 +22,20 @@
 #define uvec_assert_elements_array(T, vec, arr) \
     utest_assert_buf(uvec_data(T, vec), ==, arr, uvec_count(T, vec))
 
-/// @name Type definitions
-
-#define VTYPE ulib_int
+#define uvec_append_items(T, vec, ...) do {                                                         \
+    T const p_items[] = { __VA_ARGS__ };                                                            \
+    uvec_append_array(T, vec, p_items, ulib_array_count(p_items));                                  \
+} while (0)
 
 /// @name Tests
+
+#define VTYPE ulib_int
 
 bool uvec_test_base(void) {
     UVec(VTYPE) v = uvec_init(VTYPE);
     utest_assert_uint(uvec_count(VTYPE, &v), ==, 0);
 
-    uvec_ret ret = uvec_append_items(VTYPE, &v, 3, 2, 4, 1);
-    utest_assert(ret == UVEC_OK);
+    uvec_append_items(VTYPE, &v, 3, 2, 4, 1);
     utest_assert_uint(uvec_count(VTYPE, &v), !=, 0);
     uvec_assert_elements(VTYPE, &v, 3, 2, 4, 1);
 
@@ -44,7 +46,7 @@ bool uvec_test_base(void) {
     uvec_set(VTYPE, &v, 2, 5);
     utest_assert_int(uvec_get(VTYPE, &v, 2), ==, 5);
 
-    ret = uvec_push(VTYPE, &v, 4);
+    uvec_ret ret = uvec_push(VTYPE, &v, 4);
     utest_assert(ret == UVEC_OK);
     uvec_assert_elements(VTYPE, &v, 3, 2, 5, 1, 4);
 
@@ -119,14 +121,13 @@ bool uvec_test_capacity(void) {
 
 bool uvec_test_equality(void) {
     UVec(VTYPE) v1 = uvec_init(VTYPE);
-    uvec_ret ret = uvec_append_items(VTYPE, &v1, 3, 2, 4, 1);
-    utest_assert(ret == UVEC_OK);
+    uvec_append_items(VTYPE, &v1, 3, 2, 4, 1);
 
     UVec(VTYPE) v2 = uvec_init(VTYPE);
-    ret = uvec_copy(VTYPE, &v1, &v2);
+    uvec_ret ret = uvec_copy(VTYPE, &v1, &v2);
     utest_assert(uvec_equals(VTYPE, &v1, &v2));
 
-    VTYPE *arr = ulib_malloc(uvec_count(VTYPE, &v1) * sizeof(*arr));
+    VTYPE *arr = (VTYPE *)ulib_malloc(uvec_count(VTYPE, &v1) * sizeof(*arr));
     uvec_copy_to_array(VTYPE, &v1, arr);
     uvec_assert_elements_array(VTYPE, &v1, arr);
     ulib_free(arr);
@@ -145,8 +146,7 @@ bool uvec_test_equality(void) {
 
 bool uvec_test_contains(void) {
     UVec(VTYPE) v1 = uvec_init(VTYPE);
-    uvec_ret ret = uvec_append_items(VTYPE, &v1, 3, 2, 5, 4, 5, 1);
-    utest_assert(ret == UVEC_OK);
+    uvec_append_items(VTYPE, &v1, 3, 2, 5, 4, 5, 1);
 
     utest_assert_uint(uvec_index_of(VTYPE, &v1, 5), ==, 2);
     utest_assert_uint(uvec_index_of_reverse(VTYPE, &v1, 5), ==, 4);
@@ -155,7 +155,7 @@ bool uvec_test_contains(void) {
     utest_assert(uvec_contains(VTYPE, &v1, 2));
     utest_assert_false(uvec_contains(VTYPE, &v1, 7));
 
-    ret = uvec_push_unique(VTYPE, &v1, 7);
+    uvec_ret ret = uvec_push_unique(VTYPE, &v1, 7);
     utest_assert(ret == UVEC_OK);
     uvec_assert_elements(VTYPE, &v1, 3, 2, 5, 4, 5, 1, 7);
     utest_assert(uvec_contains(VTYPE, &v1, 7));
@@ -166,8 +166,7 @@ bool uvec_test_contains(void) {
     uvec_pop(VTYPE, &v1);
 
     UVec(VTYPE) v2 = uvec_init(VTYPE);
-    ret = uvec_append_items(VTYPE, &v2, 1, 6, 4, 5);
-    utest_assert(ret == UVEC_OK);
+    uvec_append_items(VTYPE, &v2, 1, 6, 4, 5);
 
     uvec_deinit(VTYPE, &v1);
     uvec_deinit(VTYPE, &v2);
@@ -179,10 +178,9 @@ bool uvec_test_comparable(void) {
     utest_assert_uint(uvec_insertion_index_sorted(VTYPE, &v, 0), ==, 0);
 
     UVec(VTYPE) values = uvec_init(VTYPE);
-    uvec_ret ret = uvec_append_items(VTYPE, &values, 3, 2, 2, 2, 4, 1, 5, 6, 5);
-    utest_assert(ret == UVEC_OK);
+    uvec_append_items(VTYPE, &values, 3, 2, 2, 2, 4, 1, 5, 6, 5);
 
-    ret = uvec_append(VTYPE, &v, &values);
+    uvec_ret ret = uvec_append(VTYPE, &v, &values);
     utest_assert(ret == UVEC_OK);
     utest_assert_uint(uvec_index_of_min(VTYPE, &v), ==, 5);
     utest_assert_uint(uvec_index_of_max(VTYPE, &v), ==, 7);

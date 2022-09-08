@@ -99,15 +99,15 @@ typedef struct UIStream {
  * @param free_func `free` function pointer.
  * @return Stream instance.
  *
- * @public @related UIStream
+ * @public @memberof UIStream
  */
-#define uistream_init(ctx, read_func, reset_func, free_func) ((UIStream){                           \
-    .state = USTREAM_OK,                                                                            \
-    .ctx = (ctx),                                                                                   \
-    .read = (read_func),                                                                            \
-    .reset (reset_func),                                                                            \
-    .free = (free_func)                                                                             \
-})
+ULIB_INLINE
+UIStream uistream_init(void *ctx, ustream_ret (*read_func)(void *, void *, size_t, size_t *),
+                       ustream_ret(*reset_func)(void *), ustream_ret (*free_func)(void *)) {
+    UIStream s = { .state = USTREAM_OK, .ctx = ctx,
+                   .read = read_func, .reset = reset_func, .free = free_func };
+    return s;
+}
 
 /**
  * Deinitializes the stream, releasing any reserved resource.
@@ -294,16 +294,16 @@ typedef struct UOStream {
  * @param free_func `free` function pointer.
  * @return Stream instance.
  *
- * @public @related UOStream
+ * @public @memberof UOStream
  */
-#define uostream_init(ctx, write_func, writef_func, flush_func, free_func) ((UOStream){             \
-    .state = USTREAM_OK,                                                                            \
-    .ctx = (ctx),                                                                                   \
-    .write = (write_func),                                                                          \
-    .writef = (writef_func),                                                                        \
-    .flush = (flush_func),                                                                          \
-    .free = (free_func)                                                                             \
-})
+ULIB_INLINE
+UOStream uostream_init(void *ctx, ustream_ret (*write_func)(void *, void const *, size_t, size_t *),
+                       ustream_ret (*writef_func)(void *, size_t *, char const *, va_list),
+                       ustream_ret (*flush_func)(void *), ustream_ret (*free_func)(void *)) {
+    UOStream s = { .state = USTREAM_OK, .ctx = ctx, .write = write_func,
+                   .writef = writef_func, .flush = flush_func, .free = free_func };
+    return s;
+}
 
 /**
  * Writes the specified string literal into the stream.

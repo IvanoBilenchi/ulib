@@ -12,6 +12,9 @@
 #include "ustrbuf.h"
 #include <stdarg.h>
 
+UString const ustring_null = {._s = {._size = 0}};
+UString const ustring_empty = {._s = {._size = 1}};
+
 static inline UString ustring_small(char const *cstring, size_t length) {
     UString ret = {._s = {._size = (ulib_uint)length + 1}};
     memcpy(ret._s._data, cstring, length);

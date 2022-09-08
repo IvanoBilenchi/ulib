@@ -12,8 +12,6 @@
 
 #include "ustd.h"
 
-ULIB_BEGIN_DECLS
-
 bool uvec_test_base(void);
 bool uvec_test_capacity(void);
 bool uvec_test_equality(void);
@@ -26,7 +24,5 @@ bool uvec_test_comparable(void);
     uvec_test_equality,                                                                             \
     uvec_test_contains,                                                                             \
     uvec_test_comparable
-
-ULIB_END_DECLS
 
 #endif // UVEC_TESTS_H

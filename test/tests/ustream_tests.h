@@ -12,8 +12,6 @@
 
 #include "ustd.h"
 
-ULIB_BEGIN_DECLS
-
 bool uistream_path_test(void);
 bool uistream_buf_test(void);
 bool uostream_null_test(void);
@@ -28,7 +26,5 @@ bool uostream_multi_test(void);
     uostream_path_test,                                                                             \
     uostream_buf_test,                                                                              \
     uostream_multi_test
-
-ULIB_END_DECLS
 
 #endif // USTREAM_TESTS_H
