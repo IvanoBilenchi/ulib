@@ -123,7 +123,7 @@ typedef enum uvec_ret {
  */
 #define P_UVEC_DEF_INLINE(T, SCOPE)                                                                 \
     /** @cond */                                                                                    \
-    SCOPE static inline UVec_##T uvec_init_##T(void) {                                              \
+    SCOPE static inline UVec_##T uvec_##T(void) {                                                   \
         UVec_##T vec = {0};                                                                         \
         return vec;                                                                                 \
     }                                                                                               \
@@ -816,10 +816,10 @@ typedef enum uvec_ret {
  *
  * @public @related UVec
  */
-#define uvec_init(T) P_ULIB_MACRO_CONCAT(uvec_init_, T)()
+#define uvec(T) P_ULIB_MACRO_CONCAT(uvec_, T)()
 
 /**
- * De-initializes a vector previously initialized via uvec_init.
+ * De-initializes a vector previously initialized via uvec(T).
  *
  * @param T [symbol] Vector type.
  * @param vec [UVec(T)*] Vector to de-initialize.

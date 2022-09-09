@@ -150,7 +150,7 @@ long long utime_diff(UTime const *a, UTime const *b, utime_unit unit) {
 
 UString utime_to_string(UTime const *time) {
     UOStream stream;
-    UStrBuf buf = ustrbuf_init();
+    UStrBuf buf = ustrbuf();
 
     if (uostream_to_strbuf(&stream, &buf) ||
         uostream_write_time(&stream, time, NULL)) {
@@ -246,7 +246,7 @@ double utime_interval_convert(utime_ns t, utime_unit unit) {
 
 UString utime_interval_to_string(utime_ns t, utime_unit unit) {
     UOStream stream;
-    UStrBuf buf = ustrbuf_init();
+    UStrBuf buf = ustrbuf();
 
     if (uostream_to_strbuf(&stream, &buf) ||
         uostream_write_time_interval(&stream, t, unit, FMT_FDIGITS, NULL)) {

@@ -50,7 +50,7 @@ bool utest_leak_start(void) {
         return false;
     }
 
-    *alloc_table = uhmap_init(AllocTable);
+    *alloc_table = uhmap(AllocTable);
     printf("Starting detection of memory leaks...\n");
     return true;
 }

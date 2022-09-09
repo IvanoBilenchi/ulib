@@ -56,7 +56,7 @@ UString ustring_wrap(char const *cstring, size_t length) {
     return ustring_large(cstring, length);
 }
 
-char* ustring_init(UString *string, size_t length) {
+char* ustring(UString *string, size_t length) {
     char *buf;
 
     if (p_ustring_length_is_small(length)) {
@@ -173,7 +173,7 @@ UString ustring_with_format(char const *format, ...) {
 }
 
 UString ustring_with_format_list(char const *format, va_list args) {
-    UStrBuf buf = ustrbuf_init();
+    UStrBuf buf = ustrbuf();
 
     if (ustrbuf_append_format_list(&buf, format, args)) {
         ustrbuf_deinit(&buf);
@@ -186,7 +186,7 @@ UString ustring_with_format_list(char const *format, va_list args) {
 UString ustring_join(UString const *strings, ulib_uint count, UString sep) {
     if (count == 0) return ustring_empty;
 
-    UStrBuf buf = ustrbuf_init();
+    UStrBuf buf = ustrbuf();
 
     if (ustrbuf_append_ustring(&buf, strings[0])) {
         ustrbuf_deinit(&buf);
@@ -213,7 +213,7 @@ UString ustring_repeating(UString string, ulib_uint times) {
     char const *data = ustring_data(string);
 
     UString ret;
-    char *buf = ustring_init(&ret, len * times);
+    char *buf = ustring(&ret, len * times);
     if (ustring_is_empty(ret)) return ret;
 
     for (ulib_uint i = 0; i < times; ++i, buf += len) {

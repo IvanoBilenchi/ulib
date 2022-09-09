@@ -214,13 +214,13 @@ static inline ulib_uint p_uhash_x31_str_hash(char const *key) {
     SCOPE uhash_ret uhash_resize_##T(UHash_##T *h, ulib_uint new_size);                             \
     SCOPE uhash_ret uhash_put_##T(UHash_##T *h, uh_key key, ulib_uint *idx);                        \
     SCOPE void uhash_delete_##T(UHash_##T *h, ulib_uint x);                                         \
-    SCOPE UHash_##T uhmap_init_##T(void);                                                           \
+    SCOPE UHash_##T uhmap_##T(void);                                                                \
     SCOPE uh_val uhmap_get_##T(UHash_##T const *h, uh_key key, uh_val if_missing);                  \
     SCOPE uhash_ret uhmap_set_##T(UHash_##T *h, uh_key key, uh_val value, uh_val *existing);        \
     SCOPE uhash_ret uhmap_add_##T(UHash_##T *h, uh_key key, uh_val value, uh_val *existing);        \
     SCOPE bool uhmap_replace_##T(UHash_##T *h, uh_key key, uh_val value, uh_val *replaced);         \
     SCOPE bool uhmap_remove_##T(UHash_##T *h, uh_key key, uh_key *r_key, uh_val *r_val);            \
-    SCOPE UHash_##T uhset_init_##T(void);                                                           \
+    SCOPE UHash_##T uhset_##T(void);                                                                \
     SCOPE uhash_ret uhset_insert_##T(UHash_##T *h, uh_key key, uh_key *existing);                   \
     SCOPE uhash_ret uhset_insert_all_##T(UHash_##T *h, uh_key const *items, ulib_uint n);           \
     SCOPE bool uhset_replace_##T(UHash_##T *h, uh_key key, uh_key *replaced);                       \
@@ -244,10 +244,10 @@ static inline ulib_uint p_uhash_x31_str_hash(char const *key) {
 #define P_UHASH_DECL_PI(T, SCOPE, uh_key, uh_val)                                                   \
     P_UHASH_DECL(T, SCOPE, uh_key, uh_val)                                                          \
     /** @cond */                                                                                    \
-    SCOPE UHash_##T uhmap_init_pi_##T(ulib_uint (*hash_func)(uh_key key),                           \
-                                        bool (*equal_func)(uh_key lhs, uh_key rhs));                \
-    SCOPE UHash_##T uhset_init_pi_##T(ulib_uint (*hash_func)(uh_key key),                           \
-                                        bool (*equal_func)(uh_key lhs, uh_key rhs));                \
+    SCOPE UHash_##T uhmap_pi_##T(ulib_uint (*hash_func)(uh_key key),                                \
+                                 bool (*equal_func)(uh_key lhs, uh_key rhs));                       \
+    SCOPE UHash_##T uhset_pi_##T(ulib_uint (*hash_func)(uh_key key),                                \
+                                 bool (*equal_func)(uh_key lhs, uh_key rhs));                       \
     /** @endcond */
 
 /*
@@ -291,13 +291,13 @@ static inline ulib_uint p_uhash_x31_str_hash(char const *key) {
  */
 #define P_UHASH_IMPL_INIT(T, SCOPE)                                                                 \
                                                                                                     \
-    SCOPE UHash_##T uhmap_init_##T(void) {                                                          \
-        UHash_##T h = uhset_init_##T();                                                             \
+    SCOPE UHash_##T uhmap_##T(void) {                                                               \
+        UHash_##T h = uhset_##T();                                                                  \
         h._occupied = 1;                                                                            \
         return h;                                                                                   \
     }                                                                                               \
                                                                                                     \
-    SCOPE UHash_##T uhset_init_##T(void) {                                                          \
+    SCOPE UHash_##T uhset_##T(void) {                                                               \
         UHash_##T h = {0};                                                                          \
         return h;                                                                                   \
     }
@@ -314,30 +314,30 @@ static inline ulib_uint p_uhash_x31_str_hash(char const *key) {
  */
 #define P_UHASH_IMPL_INIT_PI(T, SCOPE, uh_key, default_hfunc, default_efunc)                        \
                                                                                                     \
-    SCOPE UHash_##T uhmap_init_##T(void) {                                                          \
-        UHash_##T h = uhset_init_##T();                                                             \
+    SCOPE UHash_##T uhmap_##T(void) {                                                               \
+        UHash_##T h = uhset_##T();                                                                  \
         h._occupied = 1;                                                                            \
         return h;                                                                                   \
     }                                                                                               \
                                                                                                     \
-    SCOPE UHash_##T uhmap_init_pi_##T(ulib_uint (*hash_func)(uh_key key),                           \
-                                      bool (*equal_func)(uh_key lhs, uh_key rhs)) {                 \
-        UHash_##T h = uhmap_init_##T();                                                             \
+    SCOPE UHash_##T uhmap_pi_##T(ulib_uint (*hash_func)(uh_key key),                                \
+                                 bool (*equal_func)(uh_key lhs, uh_key rhs)) {                      \
+        UHash_##T h = uhmap_##T();                                                                  \
         h._hfunc = hash_func;                                                                       \
         h._efunc = equal_func;                                                                      \
         return h;                                                                                   \
     }                                                                                               \
                                                                                                     \
-    SCOPE UHash_##T uhset_init_##T(void) {                                                          \
+    SCOPE UHash_##T uhset_##T(void) {                                                               \
         UHash_##T h = {0};                                                                          \
         h._hfunc = default_hfunc;                                                                   \
         h._efunc = default_efunc;                                                                   \
         return h;                                                                                   \
     }                                                                                               \
                                                                                                     \
-    SCOPE UHash_##T uhset_init_pi_##T(ulib_uint (*hash_func)(uh_key key),                           \
-                                      bool (*equal_func)(uh_key lhs, uh_key rhs)) {                 \
-        UHash_##T h = uhset_init_##T();                                                             \
+    SCOPE UHash_##T uhset_pi_##T(ulib_uint (*hash_func)(uh_key key),                                \
+                                 bool (*equal_func)(uh_key lhs, uh_key rhs)) {                      \
+        UHash_##T h = uhset_##T();                                                                  \
         h._hfunc = hash_func;                                                                       \
         h._efunc = equal_func;                                                                      \
         return h;                                                                                   \
@@ -370,7 +370,7 @@ static inline ulib_uint p_uhash_x31_str_hash(char const *key) {
                                                                                                     \
         if (ret == UHASH_OK && uhash_is_map_##T(src)) {                                             \
             if (!src->_size) {                                                                      \
-                *dest = uhmap_init(T);                                                              \
+                *dest = uhmap(T);                                                                   \
                 return UHASH_OK;                                                                    \
             }                                                                                       \
                                                                                                     \
@@ -389,7 +389,7 @@ static inline ulib_uint p_uhash_x31_str_hash(char const *key) {
     SCOPE uhash_ret uhash_copy_as_set_##T(UHash_##T const *src, UHash_##T *dest) {                  \
         if (!src->_size) {                                                                          \
             uhash_deinit(T, dest);                                                                  \
-            *dest = uhset_init(T);                                                                  \
+            *dest = uhset(T);                                                                       \
             return UHASH_OK;                                                                        \
         }                                                                                           \
                                                                                                     \
@@ -1180,7 +1180,7 @@ static inline ulib_uint p_uhash_x31_str_hash(char const *key) {
  *
  * @public @related UHash
  */
-#define uhmap_init(T) uhmap_init_##T()
+#define uhmap(T) uhmap_##T()
 
 /**
  * Initializes a new hash map with per-instance hash and equality functions.
@@ -1192,7 +1192,7 @@ static inline ulib_uint p_uhash_x31_str_hash(char const *key) {
  *
  * @public @related UHash
  */
-#define uhmap_init_pi(T, hash_func, equal_func) uhmap_init_pi_##T(hash_func, equal_func)
+#define uhmap_pi(T, hash_func, equal_func) uhmap_pi_##T(hash_func, equal_func)
 
 /**
  * Returns the value associated with the specified key.
@@ -1285,7 +1285,7 @@ static inline ulib_uint p_uhash_x31_str_hash(char const *key) {
  *
  * @public @related UHash
  */
-#define uhset_init(T) uhset_init_##T()
+#define uhset(T) uhset_##T()
 
 /**
  * Initializes a new hash set with per-instance hash and equality functions.
@@ -1297,7 +1297,7 @@ static inline ulib_uint p_uhash_x31_str_hash(char const *key) {
  *
  * @public @related UHash
  */
-#define uhset_init_pi(T, hash_func, equal_func) uhset_init_pi_##T(hash_func, equal_func)
+#define uhset_pi(T, hash_func, equal_func) uhset_pi_##T(hash_func, equal_func)
 
 /**
  * Inserts an element in the set.

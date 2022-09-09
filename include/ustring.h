@@ -151,7 +151,7 @@ UString ustring_wrap(char const *cstring, size_t length);
  * @public @memberof UString
  */
 ULIB_PUBLIC
-char* ustring_init(UString *string, size_t length);
+char* ustring(UString *string, size_t length);
 
 /**
  * Initializes a new string by copying the specified string literal.

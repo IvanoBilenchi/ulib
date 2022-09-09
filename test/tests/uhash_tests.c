@@ -24,7 +24,7 @@ static bool int32_eq(uint32_t lhs, uint32_t rhs) {
 }
 
 bool uhash_test_memory(void) {
-    UHash(IntHash) set = uhset_init(IntHash);
+    UHash(IntHash) set = uhset(IntHash);
 
     uhash_ret ret = uhash_put(IntHash, &set, 0, NULL);
     utest_assert(ret == UHASH_INSERTED);
@@ -55,7 +55,7 @@ bool uhash_test_memory(void) {
 }
 
 bool uhash_test_base(void) {
-    UHash(IntHash) set = uhset_init(IntHash);
+    UHash(IntHash) set = uhset(IntHash);
 
     utest_assert(uhash_get(IntHash, &set, 0) == UHASH_INDEX_MISSING);
     utest_assert_uint(uhash_count(IntHash, &set), ==, 0);
@@ -88,13 +88,13 @@ bool uhash_test_base(void) {
 }
 
 bool uhash_test_map(void) {
-    UHash(IntHash) map = uhmap_init(IntHash);
+    UHash(IntHash) map = uhmap(IntHash);
 
     for (uint32_t i = 0; i < MAX_VAL; ++i) {
         utest_assert(uhmap_set(IntHash, &map, i, i, NULL) == UHASH_INSERTED);
     }
 
-    UHash(IntHash) set = uhset_init(IntHash);
+    UHash(IntHash) set = uhset(IntHash);
     utest_assert(uhash_copy_as_set(IntHash, &map, &set) == UHASH_OK);
     utest_assert(uhset_equals(IntHash, &set, &map));
     uhash_deinit(IntHash, &set);
@@ -125,7 +125,7 @@ bool uhash_test_map(void) {
 }
 
 bool uhash_test_set(void) {
-    UHash(IntHash) set = uhset_init(IntHash);
+    UHash(IntHash) set = uhset(IntHash);
 
     for (uint32_t i = 0; i < MAX_VAL; ++i) {
         utest_assert(uhset_insert(IntHash, &set, i) == UHASH_INSERTED);
@@ -158,7 +158,7 @@ bool uhash_test_set(void) {
         utest_assert_uint(existing, ==, i);
     }
 
-    UHash(IntHash) other_set = uhset_init(IntHash);
+    UHash(IntHash) other_set = uhset(IntHash);
     uhset_insert_all(IntHash, &set, elements, MAX_VAL);
     uhset_insert_all(IntHash, &other_set, elements, MAX_VAL / 2);
 
@@ -170,12 +170,12 @@ bool uhash_test_set(void) {
     utest_assert(uhset_equals(IntHash, &set, &other_set));
 
     uhash_deinit(IntHash, &other_set);
-    other_set = uhset_init(IntHash);
+    other_set = uhset(IntHash);
     utest_assert(uhash_copy(IntHash, &set, &other_set) == UHASH_OK);
     utest_assert(uhset_equals(IntHash, &set, &other_set));
     uhash_deinit(IntHash, &other_set);
 
-    other_set = uhset_init(IntHash);
+    other_set = uhset(IntHash);
     uhset_insert(IntHash, &other_set, MAX_VAL);
     utest_assert(uhset_union(IntHash, &other_set, &set) == UHASH_OK);
 
@@ -202,7 +202,7 @@ bool uhash_test_set(void) {
 }
 
 bool uhash_test_per_instance(void) {
-    UHash(IntHashPi) map = uhmap_init_pi(IntHashPi, int32_hash, int32_eq);
+    UHash(IntHashPi) map = uhmap_pi(IntHashPi, int32_hash, int32_eq);
 
     for (uint32_t i = 0; i < MAX_VAL; ++i) {
         utest_assert(uhmap_set(IntHashPi, &map, i, i, NULL) == UHASH_INSERTED);

@@ -29,7 +29,7 @@ bool ustring_utils_test(void) {
 }
 
 bool ustrbuf_test(void) {
-    UStrBuf buf = ustrbuf_init();
+    UStrBuf buf = ustrbuf();
     uvec_ret ret;
 
     char const str[] = "12345";

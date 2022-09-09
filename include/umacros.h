@@ -90,7 +90,7 @@
  * @param name Name of the array variable.
  * @param count Number of elements.
  *
- * @public @def ulib_vla_init
+ * @public @def ulib_vla
  */
 
 /**
@@ -101,10 +101,10 @@
  * @public @def ulib_vla_deinit
  */
 #ifdef _MSC_VER
-    #define ulib_vla_init(T, name, count) T *name = ulib_malloc(ulib_max(count, 1) * sizeof(*name))
+    #define ulib_vla(T, name, count) T *name = ulib_malloc(ulib_max(count, 1) * sizeof(*name))
     #define ulib_vla_deinit(name) ulib_free(name)
 #else
-    #define ulib_vla_init(T, name, count) T name[ulib_max(count, 1)]
+    #define ulib_vla(T, name, count) T name[ulib_max(count, 1)]
     #define ulib_vla_deinit(name) do {} while (0)
 #endif
 

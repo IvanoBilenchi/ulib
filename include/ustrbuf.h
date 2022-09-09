@@ -32,10 +32,10 @@ typedef struct UVec(char) UStrBuf;
  *
  * @public @related UStrBuf
  */
-#define ustrbuf_init() uvec_init(char)
+#define ustrbuf() uvec(char)
 
 /**
- * Deinitializes a string buffer previously initialized with ustrbuf_init.
+ * Deinitializes a string buffer previously initialized with ustrbuf().
  *
  * @param buf [UStrBuf *] String buffer.
  *

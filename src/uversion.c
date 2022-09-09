@@ -22,7 +22,7 @@ int uversion_compare(UVersion lhs, UVersion rhs) {
 
 UString uversion_to_string(UVersion const *version) {
     UOStream stream;
-    UStrBuf buf = ustrbuf_init();
+    UStrBuf buf = ustrbuf();
 
     if (uostream_to_strbuf(&stream, &buf) ||
         uostream_write_version(&stream, version, NULL)) {

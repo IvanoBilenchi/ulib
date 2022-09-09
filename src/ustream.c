@@ -397,7 +397,7 @@ ustream_ret uostream_to_strbuf(UOStream *stream, UStrBuf *buf) {
 
     if (!buf) {
         if ((buf = ulib_alloc(buf))) {
-            *buf = ustrbuf_init();
+            *buf = ustrbuf();
             stream->free = ustream_strbuf_free;
         } else {
             stream->state = USTREAM_ERR_MEM;
@@ -425,7 +425,7 @@ ustream_ret uostream_to_multi(UOStream *stream) {
     UVec(ulib_ptr) *vec = ulib_alloc(vec);
 
     if (vec) {
-        *vec = uvec_init(ulib_ptr);
+        *vec = uvec(ulib_ptr);
         *stream = (UOStream) {
             .state = USTREAM_OK,
             .ctx = vec,
