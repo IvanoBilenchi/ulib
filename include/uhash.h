@@ -526,11 +526,8 @@ static inline ulib_uint p_uhash_x31_str_hash(char const *key) {
                                                                                                     \
     SCOPE uhash_ret uhash_put_##T(UHash_##T *h, uh_key key, ulib_uint *idx) {                       \
         p_ulib_analyzer_assert(h->_flags);                                                          \
-                                                                                                    \
         ulib_uint x;                                                                                \
-        ulib_uint occupied = p_uhash_occupied_##T(h);                                               \
-                                                                                                    \
-        if (occupied >= p_uhash_upper_bound(h->_size)) {                                            \
+        if (p_uhash_occupied_##T(h) >= p_uhash_upper_bound(h->_size)) {                             \
             /* Update the hash table. */                                                            \
             if (h->_size > (h->_count << 1U)) {                                                     \
                 if (uhash_resize_##T(h, h->_size - 1)) {                                            \
@@ -582,7 +579,7 @@ static inline ulib_uint p_uhash_x31_str_hash(char const *key) {
             h->_keys[x] = key;                                                                      \
             p_uhf_set_isboth_false(h->_flags, x);                                                   \
             h->_count++;                                                                            \
-            h->_occupied = occupied + 1;                                                            \
+            h->_occupied++;                                                                         \
             ret = UHASH_INSERTED;                                                                   \
         } else if (p_uhf_isdel(h->_flags, x)) {                                                     \
             /* Deleted. */                                                                          \
