@@ -130,7 +130,7 @@ void utime_add(UTime *time, long long quantity, utime_unit unit) {
 }
 
 long long utime_diff(UTime const *a, UTime const *b, utime_unit unit) {
-    if (unit >= UTIME_MONTHS) {
+    if (unit == UTIME_MONTHS || unit == UTIME_YEARS) {
         long long months = (long long)a->month - b->month + (a->year - b->year) * MONTHS_PER_YEAR;
         return unit == UTIME_MONTHS ? months : months / MONTHS_PER_YEAR;
     }

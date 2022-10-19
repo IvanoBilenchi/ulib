@@ -21,8 +21,8 @@ static char const test_data[] = "0123456789";
 static char* ustream_test_get_file_contents(char const *path, size_t *size) {
     char *contents = NULL;
     FILE *test_file = fopen(path, "rb");
-    long test_file_size = 0;
-    size_t read = 0;
+    long test_file_size;
+    size_t read;
     if (!(test_file && fseek(test_file, 0, SEEK_END) == 0)) goto end;
 
     test_file_size = ftell(test_file);
