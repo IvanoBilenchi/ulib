@@ -27,6 +27,5 @@ target_link_libraries(ulib-test PRIVATE ulib)
 
 enable_language(CXX)
 add_executable(ulib-cpp-test EXCLUDE_FROM_ALL ${ULIB_CPP_TEST_SOURCES})
-target_compile_features(ulib-cpp-test PRIVATE cxx_std_20)
 target_include_directories(ulib-cpp-test PRIVATE tests)
 target_link_libraries(ulib-cpp-test PRIVATE ulib)

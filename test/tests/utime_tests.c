@@ -69,7 +69,7 @@ bool utime_test_date(void) {
     utest_assert_false(utime_is_leap_year(17));
     utest_assert_false(utime_is_leap_year(1000));
 
-    UTime a = { .year = 2021, .month = 2, .day = 14, .hour = 1, .minute = 30 };
+    UTime a = { 2021, 2, 14, 1, 30, 0 };
     UTime b = utime_from_timestamp(utime_to_timestamp(&a));
     utest_assert(utime_equals(&a, &b));
 

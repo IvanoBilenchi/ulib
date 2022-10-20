@@ -104,8 +104,7 @@ typedef struct UIStream {
 ULIB_INLINE
 UIStream uistream(void *ctx, ustream_ret (*read_func)(void *, void *, size_t, size_t *),
                   ustream_ret(*reset_func)(void *), ustream_ret (*free_func)(void *)) {
-    UIStream s = { .state = USTREAM_OK, .ctx = ctx,
-                   .read = read_func, .reset = reset_func, .free = free_func };
+    UIStream s = { USTREAM_OK, ctx, read_func, reset_func, free_func };
     return s;
 }
 
@@ -300,8 +299,7 @@ ULIB_INLINE
 UOStream uostream(void *ctx, ustream_ret (*write_func)(void *, void const *, size_t, size_t *),
                   ustream_ret (*writef_func)(void *, size_t *, char const *, va_list),
                   ustream_ret (*flush_func)(void *), ustream_ret (*free_func)(void *)) {
-    UOStream s = { .state = USTREAM_OK, .ctx = ctx, .write = write_func,
-                   .writef = writef_func, .flush = flush_func, .free = free_func };
+    UOStream s = { USTREAM_OK, ctx, write_func, writef_func, flush_func, free_func };
     return s;
 }
 
