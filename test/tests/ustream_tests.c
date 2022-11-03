@@ -107,23 +107,19 @@ bool uistream_buf_test(void) {
 }
 
 bool uostream_null_test(void) {
-    UOStream stream;
-    ustream_ret ret = uostream_to_null(&stream);
-    utest_assert(ret == USTREAM_OK);
-
+    UOStream *stream = uostream_null();
     size_t written;
-    ret = uostream_write(&stream, test_data, test_data_length, &written);
-    utest_assert(ret == USTREAM_OK);
-    utest_assert_uint(written, ==, 0);
 
-    ret = uostream_writef(&stream, &written, "12345");
+    ustream_ret ret = uostream_write(stream, test_data, test_data_length, &written);
     utest_assert(ret == USTREAM_OK);
-    utest_assert_uint(written, ==, 0);
+    utest_assert_uint(written, ==, test_data_length);
 
-    ret = uostream_flush(&stream);
+    char const fmt_str[] = "12345";
+    ret = uostream_writef(stream, &written, fmt_str);
     utest_assert(ret == USTREAM_OK);
+    utest_assert_uint(written, ==, sizeof(fmt_str) - 1);
 
-    ret = uostream_deinit(&stream);
+    ret = uostream_flush(stream);
     utest_assert(ret == USTREAM_OK);
 
     return true;

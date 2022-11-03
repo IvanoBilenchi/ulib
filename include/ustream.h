@@ -447,6 +447,16 @@ ULIB_PUBLIC
 UOStream* uostream_std(void);
 
 /**
+ * Returns a stream that discards its output.
+ *
+ * @return Null output stream.
+ *
+ * @public @memberof UOStream
+ */
+ULIB_PUBLIC
+UOStream* uostream_null(void);
+
+/**
  * Initializes a stream that writes to the file at the specified path.
  *
  * @param stream Output stream.
@@ -499,17 +509,6 @@ ustream_ret uostream_to_buf(UOStream *stream, void *buf, size_t size);
  */
 ULIB_PUBLIC
 ustream_ret uostream_to_strbuf(UOStream *stream, UStrBuf *buf);
-
-/**
- * Initializes a stream that discards its output.
- *
- * @param stream Output stream.
- * @return Return code.
- *
- * @public @memberof UOStream
- */
-ULIB_PUBLIC
-ustream_ret uostream_to_null(UOStream *stream);
 
 /**
  * Initializes a stream that writes to multiple substreams.

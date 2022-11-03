@@ -152,7 +152,7 @@ static ustream_ret ustream_strbuf_free(void *ctx) {
 
 static ustream_ret ustream_null_write(ulib_unused void *ctx, ulib_unused void const *buf,
                                       ulib_unused size_t count, size_t *written) {
-    if (written) *written = 0;
+    if (written) *written = count;
     return USTREAM_OK;
 }
 
@@ -356,6 +356,12 @@ UOStream* uostream_std(void) {
     return &std_out;
 }
 
+UOStream* uostream_null(void) {
+    static UOStream null_out = {0};
+    if (!null_out.write) null_out.write = ustream_null_write;
+    return &null_out;
+}
+
 ustream_ret uostream_to_path(UOStream *stream, char const *path) {
     FILE *out_file = fopen(path, "wb");
     ustream_ret state = uostream_to_file(stream, out_file);
@@ -411,14 +417,6 @@ ustream_ret uostream_to_strbuf(UOStream *stream, UStrBuf *buf) {
     }
 
     return stream->state;
-}
-
-ustream_ret uostream_to_null(UOStream *stream) {
-    *stream = (UOStream) {
-        .state = USTREAM_OK,
-        .write = ustream_null_write
-    };
-    return USTREAM_OK;
 }
 
 ustream_ret uostream_to_multi(UOStream *stream) {
