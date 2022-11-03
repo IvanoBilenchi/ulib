@@ -5,6 +5,37 @@ All notable changes to uLib will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2022-11-03
+### Added
+- Support for Arduino boards.
+- Random number and string generators (`urand.h`).
+- Per-instance hash and equality support for `UHash` (API identified by the `_pi` suffix).
+- `uhash_is_map`, `uhash_size`, `uhash_next`.
+- `uvec_move`, `uhash_move`.
+- `uvec_get_range`, `uvec_get_range_from`, `uvec_get_range_to`.
+- `uistream_std`, `uostream_std`, `uostream_null`.
+- `USTREAM_ERR` enum value.
+- `ULIB_LIBRARY_TYPE` CMake variable.
+
+### Changed
+- All `UVec` and `UHash` functions now require the type argument for consistency.
+- `uvec_count` and `uhash_count` do not account for NULL anymore.
+- `uvec_foreach` and `uhash_foreach` have been reworked, allowing their bodies to be debugged.
+- `uvec_shrink` and `uvec_reserve` do not over-allocate anymore.
+- Signature of `ustring_deinit` functions.
+
+### Removed
+- `uvec_first_index_where`, `uvec_qsort`, `uvec_qsort_range`,
+  `uvec_iterate`, `uvec_iterate_reverse`.
+- `uhash_foreach_key`, `uhash_foreach_value`.
+- `uvec_alloc`, `uvec_free`, `uhset_alloc`, `uhmap_alloc`, `uhash_free`.
+- `uostream_to_null`.
+- `ULIB_STATIC`, `ULIB_SHARED` and `ULIB_OBJECT` CMake variables.
+
+### Fixed
+- Compilation in C++ projects.
+- Out-of-bounds read in `uvec_index_of_sorted`.
+
 ## [0.1.4] - 2022-04-27
 ### Added
 - `ustring_assign`, `ustring_copy` and `ustring_wrap` initializers.
@@ -90,6 +121,7 @@ uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Test utilities.
 - Miscellaneous helper macros.
 
+[0.2.0]: https://github.com/ivanobilenchi/ulib/compare/v0.1.4...v0.2.0
 [0.1.4]: https://github.com/ivanobilenchi/ulib/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/ivanobilenchi/ulib/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/ivanobilenchi/ulib/compare/v0.1.1...v0.1.2
