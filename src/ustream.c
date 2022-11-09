@@ -356,6 +356,12 @@ UOStream* uostream_std(void) {
     return &std_out;
 }
 
+UOStream* uostream_stderr(void) {
+    static UOStream std_err = {0};
+    if (!std_err.ctx) uostream_to_file(&std_err, stderr);
+    return &std_err;
+}
+
 UOStream* uostream_null(void) {
     static UOStream null_out = {0};
     if (!null_out.write) null_out.write = ustream_null_write;

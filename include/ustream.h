@@ -447,6 +447,16 @@ ULIB_PUBLIC
 UOStream* uostream_std(void);
 
 /**
+ * Returns a stream that writes to the standard error.
+ *
+ * @return Standard error stream.
+ *
+ * @public @memberof UOStream
+ */
+ULIB_PUBLIC
+UOStream* uostream_stderr(void);
+
+/**
  * Returns a stream that discards its output.
  *
  * @return Null output stream.
