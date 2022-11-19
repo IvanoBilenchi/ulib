@@ -1,5 +1,5 @@
 #include "utest.h"
-#include "uflags_tests.h"
+#include "ubit_tests.h"
 #include "uhash_tests.h"
 #include "urand_tests.h"
 #include "ustream_tests.h"
@@ -9,7 +9,7 @@
 #include "uversion_tests.h"
 
 utest_main({
-    utest_run("uflags", UFLAGS_TESTS);
+    utest_run("ubit", UBIT_TESTS);
     utest_run("uhash", UHASH_TESTS);
     utest_run("urand", URAND_TESTS);
     utest_run("ustream", USTREAM_TESTS);

@@ -14,8 +14,8 @@
 
 #include "ualloc.h"
 #include "ubase.h"
+#include "ubit.h"
 #include "ucompat.h"
-#include "uflags.h"
 #include "uhash.h"
 #include "uhash_builtin.h"
 #include "umacros.h"

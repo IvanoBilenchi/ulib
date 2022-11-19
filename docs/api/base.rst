@@ -30,7 +30,7 @@ Floating point numbers
 Bitmasks
 ========
 
-.. doxygengroup:: flags
+.. doxygengroup:: bits
    :content-only:
 
 Strings
