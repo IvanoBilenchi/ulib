@@ -3,7 +3,7 @@
  *
  * @author Ivano Bilenchi
  *
- * @copyright Copyright (c) 2020-2021 Ivano Bilenchi <https://ivanobilenchi.com>
+ * @copyright Copyright (c) 2020-2022 Ivano Bilenchi <https://ivanobilenchi.com>
  * @copyright SPDX-License-Identifier: MIT
  *
  * @file
@@ -56,6 +56,17 @@
  * @return Bitmask with the specified bit set.
  */
 #define uflags_bit(N, BIT) P_ULIB_MACRO_CONCAT(p_uflags_bit_, N)(BIT)
+
+/**
+ * Returns a bitmask that has LEN bits set starting from START.
+ *
+ * @param N Bitmask size in bits.
+ * @param START Range start.
+ * @param LEN Range length.
+ * @return Bitmask with LEN bits set starting from START.
+ */
+#define uflags_range(N, START, LEN) \
+    ((uflags_all(N) >> (UFlags(N))(N - (LEN))) << (UFlags(N))(START))
 
 /**
  * Checks whether a bitmask has specific bits set.
@@ -115,6 +126,19 @@
  * @param FLAG Bit(s) to toggle.
  */
 #define uflags_toggle(N, FLAGS, FLAG) ((FLAGS) ^= (UFlags(N))(FLAG))
+
+/**
+ * Overwrites the bits in the bitmask with those from another bitmask.
+ *
+ * Example: if flags = 0101 0101, n_flags = 1010 1010 and mask = 0111 0000, flags becomes 0010 0101.
+ *
+ * @param N Bitmask size in bits.
+ * @param FLAGS Bitmask.
+ * @param N_FLAGS Other bitmask.
+ * @param MASK Bitmask indicating the bits that should be overwritten.
+ */
+#define uflags_overwrite(N, FLAGS, N_FLAGS, MASK) \
+    ((FLAGS) = ((FLAGS) & (~(UFlags(N))(MASK))) | ((UFlags(N))(N_FLAGS) & (UFlags(N))(MASK)))
 
 /**
  * Returns the number of bits that are set in a bitmask.

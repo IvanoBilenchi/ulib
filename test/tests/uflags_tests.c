@@ -72,6 +72,13 @@
     uflags_toggle(N, flags, uflags_bit(N, 1));                                                      \
     utest_assert_false(uflags_is_set(N, flags, uflags_bit(N, 1)));                                  \
                                                                                                     \
+    flags = uflags_range(N, 4, 3);                                                                  \
+    utest_assert_uint(flags, ==, 0x70);                                                             \
+                                                                                                    \
+    flags = (UFlags(N))0x55;                                                                        \
+    uflags_overwrite(N, flags, 0x20, 0x70);                                                         \
+    utest_assert_uint(flags, ==, 0x25);                                                             \
+                                                                                                    \
     return true;                                                                                    \
 }
 
