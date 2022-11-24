@@ -102,41 +102,46 @@ ulib_uint ustring_length(UString string) {
  * Initializes a new string by taking ownership of the specified buffer,
  * which must have been dynamically allocated.
  *
- * @param cstring String buffer.
+ * @param buf String buffer.
  * @param length Length of the string (excluding the null terminator).
  * @return New string.
  *
- * @warning Due to the internals of UString, you must not attempt to access the buffer
- *          after calling this function as it may have been deallocated.
+ * @note The buffer must be null-terminated.
+ * @note Due to the internals of UString, you must not attempt to access the buffer
+ *       after calling this function as it may have been deallocated.
  *
  * @public @memberof UString
  */
 ULIB_PUBLIC
-UString ustring_assign(char const *cstring, size_t length);
+UString ustring_assign(char const *buf, size_t length);
 
 /**
  * Initializes a new string by copying the specified buffer.
  *
- * @param cstring String buffer.
+ * @param buf String buffer.
  * @param length Length of the string (excluding the null terminator).
  * @return New string.
+ *
+ * @note The buffer must be null-terminated.
  *
  * @public @memberof UString
  */
 ULIB_PUBLIC
-UString ustring_copy(char const *cstring, size_t length);
+UString ustring_copy(char const *buf, size_t length);
 
 /**
  * Initializes a new string by wrapping the specified buffer.
  *
- * @param cstring String buffer.
+ * @param buf String buffer.
  * @param length Length of the string (excluding the null terminator).
  * @return New string.
+ *
+ * @note The buffer must be null-terminated.
  *
  * @public @memberof UString
  */
 ULIB_PUBLIC
-UString ustring_wrap(char const *cstring, size_t length);
+UString ustring_wrap(char const *buf, size_t length);
 
 /**
  * Initializes a new string of the specified length and returns its underlying buffer.
@@ -146,7 +151,7 @@ UString ustring_wrap(char const *cstring, size_t length);
  * @param length Length of the string (excluding the null terminator).
  * @return Underlying buffer.
  *
- * @warning The buffer is null-terminated but otherwise uninitialized.
+ * @note The returned buffer is null-terminated but otherwise uninitialized.
  *
  * @public @memberof UString
  */
@@ -174,6 +179,54 @@ char* ustring(UString *string, size_t length);
  * @public @related UString
  */
 #define ustring_literal(literal) ustring_wrap(literal, sizeof(literal) - 1)
+
+/**
+ * Initializes a new string by taking ownership of the specified buffer,
+ * which must have been dynamically allocated.
+ *
+ * @param buf String buffer.
+ * @return New string.
+ *
+ * @note The buffer must be null-terminated.
+ * @note Due to the internals of UString, you must not attempt to access the buffer
+ *       after calling this function as it may have been deallocated.
+ *
+ * @public @memberof UString
+ */
+ULIB_INLINE
+UString ustring_assign_buf(char const *buf) {
+    return ustring_assign(buf, strlen(buf));
+}
+
+/**
+ * Initializes a new string by copying the specified buffer.
+ *
+ * @param buf String buffer.
+ * @return New string.
+ *
+ * @note The buffer must be null-terminated.
+ *
+ * @public @memberof UString
+ */
+ULIB_INLINE
+UString ustring_copy_buf(char const *buf) {
+    return ustring_copy(buf, strlen(buf));
+}
+
+/**
+ * Initializes a new string by wrapping the specified buffer.
+ *
+ * @param buf String buffer.
+ * @return New string.
+ *
+ * @note The buffer must be null-terminated.
+ *
+ * @public @memberof UString
+ */
+ULIB_INLINE
+UString ustring_wrap_buf(char const *buf) {
+    return ustring_wrap(buf, strlen(buf));
+}
 
 /**
  * Duplicates the specified string.

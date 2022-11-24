@@ -15,45 +15,45 @@
 UString const ustring_null = {._s = {._size = 0}};
 UString const ustring_empty = {._s = {._size = 1}};
 
-static inline UString ustring_small(char const *cstring, size_t length) {
+static inline UString ustring_small(char const *buf, size_t length) {
     UString ret = {._s = {._size = (ulib_uint)length + 1}};
-    memcpy(ret._s._data, cstring, length);
+    memcpy(ret._s._data, buf, length);
     return ret;
 }
 
-static inline UString ustring_large(char const *cstring, size_t length) {
-    return (UString) {._l = {._size = (ulib_uint)length + 1, ._data = cstring}};
+static inline UString ustring_large(char const *buf, size_t length) {
+    return (UString) {._l = {._size = (ulib_uint)length + 1, ._data = buf}};
 }
 
-UString ustring_assign(char const *cstring, size_t length) {
+UString ustring_assign(char const *buf, size_t length) {
     bool should_free = true;
     UString ret = ustring_null;
 
-    if (!cstring) goto end;
+    if (!buf) goto end;
 
     if (p_ustring_length_is_small(length)) {
-        ret = ustring_small(cstring, length);
+        ret = ustring_small(buf, length);
         goto end;
     }
 
-    ret = ustring_large(cstring, length);
+    ret = ustring_large(buf, length);
     should_free = false;
 
 end:
-    if (should_free) ulib_free((void *)cstring);
+    if (should_free) ulib_free((void *)buf);
     return ret;
 }
 
-UString ustring_copy(char const *cstring, size_t length) {
-    if (!cstring) return ustring_null;
-    if (p_ustring_length_is_small(length)) return ustring_small(cstring, length);
-    return ustring_large(ulib_str_dup(cstring, length), length);
+UString ustring_copy(char const *buf, size_t length) {
+    if (!buf) return ustring_null;
+    if (p_ustring_length_is_small(length)) return ustring_small(buf, length);
+    return ustring_large(ulib_str_dup(buf, length), length);
 }
 
-UString ustring_wrap(char const *cstring, size_t length) {
-    if (!cstring) return ustring_null;
-    if (p_ustring_length_is_small(length)) return ustring_small(cstring, length);
-    return ustring_large(cstring, length);
+UString ustring_wrap(char const *buf, size_t length) {
+    if (!buf) return ustring_null;
+    if (p_ustring_length_is_small(length)) return ustring_small(buf, length);
+    return ustring_large(buf, length);
 }
 
 char* ustring(UString *string, size_t length) {
