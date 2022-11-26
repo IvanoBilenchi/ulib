@@ -137,6 +137,8 @@ UString ustring_copy(char const *buf, size_t length);
  * @return New string.
  *
  * @note The buffer must be null-terminated.
+ * @note If the buffer has been dynamically allocated, you are responsible for its deallocation.
+ * @note You must not call `ustring_deinit` on a string initialized with this function.
  *
  * @public @memberof UString
  */
@@ -174,7 +176,7 @@ char* ustring(UString *string, size_t length);
  * @param literal [char const []] String literal.
  * @return [UString] String.
  *
- * @note You must not deinitialize the resulting string.
+ * @note You must not call `ustring_deinit` on a string initialized with this function.
  *
  * @public @related UString
  */
@@ -220,6 +222,8 @@ UString ustring_copy_buf(char const *buf) {
  * @return New string.
  *
  * @note The buffer must be null-terminated.
+ * @note If the buffer has been dynamically allocated, you are responsible for its deallocation.
+ * @note You must not call `ustring_deinit` on a string initialized with this function.
  *
  * @public @memberof UString
  */
