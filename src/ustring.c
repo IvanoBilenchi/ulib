@@ -104,11 +104,34 @@ ulib_uint ustring_index_of(UString string, char needle) {
     return chr ? (ulib_uint)(chr - data) : len;
 }
 
+ulib_uint ustring_index_of_last(UString string, char needle) {
+    char const *data = ustring_data(string);
+    ulib_uint len = ustring_length(string);
+
+    for (ulib_uint i = len; i-- != 0;) {
+        if (data[i] == needle) return i;
+    }
+
+    return len;
+}
+
 ulib_uint ustring_find(UString string, UString needle) {
-    ulib_uint str_len = ustring_length(string), n_len = ustring_length(needle);
-    ulib_uint i = 0, max_i = n_len < str_len ? str_len - n_len : 0;
-    for (; i < max_i && memcmp(ustring_data(string) + i, ustring_data(needle), n_len) != 0; ++i);
-    return i < max_i ? i : str_len;
+    char const *const str_data = ustring_data(string), *const n_data = ustring_data(needle);
+    ulib_uint const str_len = ustring_length(string), n_len = ustring_length(needle);
+    ulib_uint const max_i = n_len < str_len ? str_len - n_len : 0;
+    for (ulib_uint i = 0; i < max_i; ++i) {
+        if (memcmp(str_data + i, n_data, n_len) == 0) return i;
+    }
+    return str_len;
+}
+
+ulib_uint ustring_find_last(UString string, UString needle) {
+    char const *const str_data = ustring_data(string), *const n_data = ustring_data(needle);
+    ulib_uint const str_len = ustring_length(string), n_len = ustring_length(needle);
+    for (ulib_uint i = n_len < str_len ? str_len - n_len : 0; i-- != 0;) {
+        if (memcmp(str_data + i, n_data, n_len) == 0) return i;
+    }
+    return str_len;
 }
 
 bool ustring_starts_with(UString string, UString prefix) {

@@ -318,6 +318,19 @@ ULIB_PUBLIC
 ulib_uint ustring_index_of(UString string, char needle);
 
 /**
+ * Returns the index of the last occurrence of the specified character.
+ *
+ * @param string String to search into.
+ * @param needle Character to find.
+ * @return Index of the last occurrence of the specified character.
+ *         If it cannot be found, returns an index greater than or equal to the string's length.
+ *
+ * @public @memberof UString
+ */
+ULIB_PUBLIC
+ulib_uint ustring_index_of_last(UString string, char needle);
+
+/**
  * Returns the index of the first occurrence of the specified string.
  *
  * @param string String to search into.
@@ -329,6 +342,19 @@ ulib_uint ustring_index_of(UString string, char needle);
  */
 ULIB_PUBLIC
 ulib_uint ustring_find(UString string, UString needle);
+
+/**
+ * Returns the index of the last occurrence of the specified string.
+ *
+ * @param string String to search into.
+ * @param needle String to find.
+ * @return Index of the last occurrence of the specified string.
+ *         If it cannot be found, returns an index greater than or equal to the string's length.
+ *
+ * @public @memberof UString
+ */
+ULIB_PUBLIC
+ulib_uint ustring_find_last(UString string, UString needle);
 
 /**
  * Checks whether the string starts with the specified prefix.

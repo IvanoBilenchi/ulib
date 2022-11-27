@@ -80,7 +80,7 @@ bool ustring_test(void) {
     utest_assert(ustring_data(ustring_empty)[0] == '\0');
     utest_assert(ustring_is_null(ustring_null));
 
-    char const str[] = "123456789";
+    char const str[] = "123ab456ab789";
     size_t const str_len = sizeof(str) - 1;
 
     UString a = ustring_copy_literal(str);
@@ -89,10 +89,14 @@ bool ustring_test(void) {
     utest_assert_false(ustring_is_null(a));
     utest_assert_uint(ustring_length(a), ==, str_len);
     utest_assert_string(ustring_data(a), ==, str);
-    utest_assert_uint(ustring_index_of(a, '5'), ==, 4);
-    utest_assert_uint(ustring_index_of(a, 'a'), >=, ustring_length(a));
-    utest_assert_uint(ustring_find(a, ustring_literal("67")), ==, 5);
-    utest_assert_uint(ustring_find(a, ustring_literal("98")), >=, ustring_length(a));
+    utest_assert_uint(ustring_index_of(a, 'b'), ==, 4);
+    utest_assert_uint(ustring_index_of(a, 'c'), >=, ustring_length(a));
+    utest_assert_uint(ustring_index_of_last(a, 'b'), ==, 9);
+    utest_assert_uint(ustring_index_of_last(a, 'c'), >=, ustring_length(a));
+    utest_assert_uint(ustring_find(a, ustring_literal("ab")), ==, 3);
+    utest_assert_uint(ustring_find(a, ustring_literal("cd")), >=, ustring_length(a));
+    utest_assert_uint(ustring_find_last(a, ustring_literal("ab")), ==, 8);
+    utest_assert_uint(ustring_find_last(a, ustring_literal("cd")), >=, ustring_length(a));
     utest_assert(ustring_starts_with(a, ustring_literal("12")));
     utest_assert_false(ustring_starts_with(a, ustring_literal("23")));
     utest_assert(ustring_ends_with(a, ustring_literal("89")));
