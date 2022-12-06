@@ -34,29 +34,21 @@ uvec_ret ustrbuf_append_format_list(UStrBuf *buf, char const *format, va_list ar
 UString ustrbuf_to_ustring(UStrBuf *buf) {
     ulib_uint length = ustrbuf_length(buf);
 
-    if (!length) {
+    if (length < P_USTRING_SMALL_SIZE) {
+        UString ret;
+        char *nbuf = ustring(&ret, length);
+        memcpy(nbuf, ustrbuf_data(buf), length);
         ustrbuf_deinit(buf);
-        return ustring_empty;
+        return ret;
     }
 
-    char *nbuf;
+    char *nbuf = ulib_realloc(buf->_data, length + 1);
 
-    if (buf->_size) {
-        nbuf = ulib_realloc(buf->_data, length + 1);
-
-        if (!nbuf) {
-            ustrbuf_deinit(buf);
-            return ustring_null;
-        }
-
-        nbuf[length] = '\0';
-        buf->_data = NULL;
+    if (!nbuf) {
         ustrbuf_deinit(buf);
-        return ustring_assign(nbuf, length);
+        return ustring_null;
     }
 
-    UString ret;
-    nbuf = ustring(&ret, length);
-    memcpy(nbuf, (char const *)&buf->_data, length);
-    return ret;
+    nbuf[length] = '\0';
+    return ustring_wrap(nbuf, length);
 }
