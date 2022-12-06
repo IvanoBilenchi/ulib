@@ -7,8 +7,10 @@ on:
 env:
   build_dir: build
   build_config: Release
-  cflags_gnuc: -Werror
+  cflags_gnuc: -Werror -fsanitize=address
+  lflags_gnuc: -fsanitize=address
   cflags_msvc: /WX
+  lflags_msvc:
   test_target: ulib-test
   cpp_test_target: ulib-cpp-test
   docs_target: ulib-docs
@@ -24,51 +26,55 @@ jobs:
         lib_type: [STATIC, SHARED]
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    - name: Configure runner
-      run: |
-        if [ $RUNNER_OS == 'Windows' ]; then
-          echo 'cflags="${{env.cflags_msvc}}"' >> $GITHUB_ENV
-        else
-          echo 'cflags="${{env.cflags_gnuc}}"' >> $GITHUB_ENV
-        fi
-      shell: bash
+      - name: Configure runner
+        run: |
+          if [ $RUNNER_OS == 'Windows' ]; then
+            echo 'cflags="${{env.cflags_msvc}}"' >> $GITHUB_ENV
+            echo 'lflags="${{env.lflags_msvc}}"' >> $GITHUB_ENV
+          else
+            echo 'cflags="${{env.cflags_gnuc}}"' >> $GITHUB_ENV
+            echo 'lflags="${{env.lflags_gnuc}}"' >> $GITHUB_ENV
+          fi
+        shell: bash
 
-    - name: Configure CMake
-      run: >
-        cmake -B ${{env.build_dir}}
-        -DULIB_LIBRARY_TYPE=${{matrix.lib_type}}
-        -DULIB_LEAKS=ON
-        -DCMAKE_SYSTEM_VERSION=''
-        -DCMAKE_BUILD_TYPE=${{env.build_config}}
-        -DCMAKE_C_FLAGS=${{env.cflags}}
-        -DCMAKE_CXX_FLAGS=${{env.cflags}}
+      - name: Configure CMake
+        run: >
+          cmake -B ${{env.build_dir}}
+          -DULIB_LIBRARY_TYPE=${{matrix.lib_type}}
+          -DULIB_LEAKS=ON
+          -DCMAKE_SYSTEM_VERSION=''
+          -DCMAKE_BUILD_TYPE=${{env.build_config}}
+          -DCMAKE_C_FLAGS=${{env.cflags}}
+          -DCMAKE_CXX_FLAGS=${{env.cflags}}
+          -DCMAKE_SHARED_LINKER_FLAGS=${{env.lflags}}
+          -DCMAKE_EXE_LINKER_FLAGS=${{env.lflags}}
 
-    - name: Build
-      run: >
-        cmake --build ${{env.build_dir}}
-        --config ${{env.build_config}}
-        --target ${{env.test_target}} ${{env.cpp_test_target}}
+      - name: Build
+        run: >
+          cmake --build ${{env.build_dir}}
+          --config ${{env.build_config}}
+          --target ${{env.test_target}} ${{env.cpp_test_target}}
 
-    - name: Configure tests
-      working-directory: ${{env.build_dir}}/test
-      if: matrix.os == 'windows-latest'
-      run: |
-        mv ${{env.build_config}}/*.exe ./
-        if [ ${{matrix.lib_type}} == 'SHARED' ]; then
-          mv ../${{env.build_config}}/*.dll ./
-        fi
-      shell: bash
+      - name: Configure tests
+        working-directory: ${{env.build_dir}}/test
+        if: matrix.os == 'windows-latest'
+        run: |
+          mv ${{env.build_config}}/*.exe ./
+          if [ ${{matrix.lib_type}} == 'SHARED' ]; then
+            mv ../${{env.build_config}}/*.dll ./
+          fi
+        shell: bash
 
-    - name: Test
-      working-directory: ${{env.build_dir}}/test
-      run: ./${{env.test_target}}
+      - name: Test
+        working-directory: ${{env.build_dir}}/test
+        run: ./${{env.test_target}}
 
-    - name: Test (C++)
-      working-directory: ${{env.build_dir}}/test
-      run: ./${{env.cpp_test_target}}
+      - name: Test (C++)
+        working-directory: ${{env.build_dir}}/test
+        run: ./${{env.cpp_test_target}}
 
   docs:
     name: Generate the documentation
