@@ -55,7 +55,8 @@ UString ustrbuf_to_ustring(UStrBuf *buf) {
         return ustring_assign(nbuf, length);
     }
 
-    nbuf = (char *)&buf->_data;
-    nbuf[length] = '\0';
-    return ustring_copy((char const *)nbuf, length);
+    UString ret;
+    nbuf = ustring(&ret, length);
+    memcpy(nbuf, (char const *)&buf->_data, length);
+    return ret;
 }
