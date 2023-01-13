@@ -17,10 +17,10 @@
 
 ULIB_BEGIN_DECLS
 
-UHASH_DECL_SPEC(ulib_int, ulib_int, void*, ULIB_PUBLIC)
-UHASH_DECL_SPEC(ulib_uint, ulib_uint, void*, ULIB_PUBLIC)
-UHASH_DECL_SPEC(ulib_ptr, ulib_ptr, void*, ULIB_PUBLIC)
-UHASH_DECL_SPEC(UString, UString, void*, ULIB_PUBLIC)
+UHASH_DECL_SPEC(ulib_int, ulib_int, void *, ULIB_PUBLIC)
+UHASH_DECL_SPEC(ulib_uint, ulib_uint, void *, ULIB_PUBLIC)
+UHASH_DECL_SPEC(ulib_ptr, ulib_ptr, void *, ULIB_PUBLIC)
+UHASH_DECL_SPEC(UString, UString, void *, ULIB_PUBLIC)
 
 ULIB_END_DECLS
 

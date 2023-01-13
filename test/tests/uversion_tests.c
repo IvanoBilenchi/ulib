@@ -22,7 +22,7 @@ bool uversion_test(void) {
     b = uversion(0, 0, 2);
     utest_assert_int(uversion_compare(a, b), ==, -1);
 
-    a = uversion (0, 0, 2);
+    a = uversion(0, 0, 2);
     utest_assert_int(uversion_compare(a, b), ==, 0);
 
     a = uversion(0, 1, 0);

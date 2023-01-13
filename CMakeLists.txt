@@ -107,8 +107,7 @@ list(APPEND ULIB_SOURCES ${ULIB_USER_SOURCES})
 add_custom_target(ulib-headers
                   COMMAND "${CMAKE_COMMAND}" -E remove_directory "${ULIB_HEADERS_OUT_DIR}"
                   COMMAND "${CMAKE_COMMAND}" -E make_directory "${ULIB_HEADERS_OUT_DIR}"
-                  COMMAND ${CMAKE_COMMAND} -E copy
-                          ${ULIB_PUBLIC_HEADERS} "${ULIB_HEADERS_OUT_DIR}"
+                  COMMAND ${CMAKE_COMMAND} -E copy ${ULIB_PUBLIC_HEADERS} "${ULIB_HEADERS_OUT_DIR}"
                   COMMENT "Copy headers to the build directory.")
 
 # Library

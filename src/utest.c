@@ -21,26 +21,28 @@
 
 #ifdef ULIB_LEAKS
 
-typedef void* AllocPtr;
-UHASH_INIT(AllocTable, AllocPtr, char*, uhash_ptr_hash, uhash_identical)
+typedef void *AllocPtr;
+UHASH_INIT(AllocTable, AllocPtr, char *, uhash_ptr_hash, uhash_identical)
 static UHash(AllocTable) *alloc_table = NULL;
 
-#define alloc_table_add(PTR, FILE, FN, LINE) do {                                                   \
-    if (alloc_table) {                                                                              \
-        char const fmt[] = "%s, %s, line %d";                                                       \
-        size_t buf_size = (size_t)snprintf(NULL, 0, fmt, FILE, FN, LINE) + 1;                       \
-        char *loc = malloc(buf_size);                                                               \
-        if (loc) snprintf(loc, buf_size, fmt, FILE, FN, LINE);                                      \
-        uhmap_set(AllocTable, alloc_table, PTR, loc, NULL);                                         \
-    }                                                                                               \
-} while (0)
+#define alloc_table_add(PTR, FILE, FN, LINE)                                                       \
+    do {                                                                                           \
+        if (alloc_table) {                                                                         \
+            char const fmt[] = "%s, %s, line %d";                                                  \
+            size_t buf_size = (size_t)snprintf(NULL, 0, fmt, FILE, FN, LINE) + 1;                  \
+            char *loc = malloc(buf_size);                                                          \
+            if (loc) snprintf(loc, buf_size, fmt, FILE, FN, LINE);                                 \
+            uhmap_set(AllocTable, alloc_table, PTR, loc, NULL);                                    \
+        }                                                                                          \
+    } while (0)
 
-#define alloc_table_remove(PTR) do {                                                                \
-    if (alloc_table) {                                                                              \
-        char *buf;                                                                                  \
-        if (uhmap_pop(AllocTable, alloc_table, PTR, NULL, &buf)) free(buf);                         \
-    }                                                                                               \
-} while (0)
+#define alloc_table_remove(PTR)                                                                    \
+    do {                                                                                           \
+        if (alloc_table) {                                                                         \
+            char *buf;                                                                             \
+            if (uhmap_pop(AllocTable, alloc_table, PTR, NULL, &buf)) free(buf);                    \
+        }                                                                                          \
+    } while (0)
 
 bool utest_leak_start(void) {
     alloc_table = malloc(sizeof(*alloc_table));
@@ -61,7 +63,7 @@ bool utest_leak_end(void) {
     if (leaks) {
         unsigned i = 0;
         printf("Detected %" ULIB_UINT_FMT " leaked objects.\n", leaks);
-        uhash_foreach(AllocTable, alloc_table, alloc) {
+        uhash_foreach (AllocTable, alloc_table, alloc) {
             printf("Leak %u: %p (%s)\n", ++i, *alloc.key, *alloc.val);
             free(*alloc.val);
         }
@@ -75,21 +77,21 @@ bool utest_leak_end(void) {
     return leaks == 0;
 }
 
-void* p_utest_leak_malloc_impl(size_t size, char const *file, char const *fn, int line) {
+void *p_utest_leak_malloc_impl(size_t size, char const *file, char const *fn, int line) {
     void *ptr = malloc(size);
     if (ptr) alloc_table_add(ptr, file, fn, line);
     return ptr;
 }
 
-void* p_utest_leak_calloc_impl(size_t num, size_t size,
-                               char const *file, char const *fn, int line) {
+void *
+p_utest_leak_calloc_impl(size_t num, size_t size, char const *file, char const *fn, int line) {
     void *ptr = calloc(num, size);
     if (ptr) alloc_table_add(ptr, file, fn, line);
     return ptr;
 }
 
-void* p_utest_leak_realloc_impl(void *ptr, size_t size,
-                                char const *file, char const *fn, int line) {
+void *
+p_utest_leak_realloc_impl(void *ptr, size_t size, char const *file, char const *fn, int line) {
     void *new_ptr = realloc(ptr, size);
 
     if (new_ptr && ptr != new_ptr) {
@@ -107,7 +109,12 @@ void p_utest_leak_free_impl(void *ptr) {
 
 #else
 
-bool utest_leak_start(void) { return true; }
-bool utest_leak_end(void) { return true; }
+bool utest_leak_start(void) {
+    return true;
+}
+
+bool utest_leak_end(void) {
+    return true;
+}
 
 #endif // ULIB_LEAKS

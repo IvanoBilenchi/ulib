@@ -12,17 +12,17 @@
 #ifndef USTD_H
 #define USTD_H
 
+#include <stdarg.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
-#include <stddef.h>
-#include <stdbool.h>
-#include <stdint.h>
 #include <string.h>
 
-#include "ucompat.h"
 #include "ualloc.h"
 #include "ubase.h"
+#include "ucompat.h"
 #include "umacros.h"
 
 #endif // USTD_H

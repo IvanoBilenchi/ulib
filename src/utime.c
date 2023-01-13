@@ -34,8 +34,8 @@
 #define SECONDS_PER_DAY (SECONDS_PER_HOUR * HOURS_PER_DAY)
 
 bool utime_equals(UTime const *a, UTime const *b) {
-    return a->year == b->year && a->month == b->month && a->day == b->day &&
-           a->hour == b->hour && a->minute == b->minute && a->second == b->second;
+    return a->year == b->year && a->month == b->month && a->day == b->day && a->hour == b->hour &&
+           a->minute == b->minute && a->second == b->second;
 }
 
 void utime_normalize_to_utc(UTime *time, int tz_hour, unsigned tz_minute) {
@@ -141,7 +141,8 @@ long long utime_diff(UTime const *a, UTime const *b, utime_unit unit) {
         case UTIME_DAYS: return diff / SECONDS_PER_DAY;
         case UTIME_HOURS: return diff / SECONDS_PER_HOUR;
         case UTIME_MINUTES: return diff / SECONDS_PER_MINUTE;
-        case UTIME_SECONDS: default: return diff;
+        case UTIME_SECONDS:
+        default: return diff;
         case UTIME_MILLISECONDS: return diff * MILLIS_PER_SECOND;
         case UTIME_MICROSECONDS: return diff * MICROS_PER_SECOND;
         case UTIME_NANOSECONDS: return diff * NANOS_PER_SECOND;
@@ -152,8 +153,7 @@ UString utime_to_string(UTime const *time) {
     UOStream stream;
     UStrBuf buf = ustrbuf();
 
-    if (uostream_to_strbuf(&stream, &buf) ||
-        uostream_write_time(&stream, time, NULL)) {
+    if (uostream_to_strbuf(&stream, &buf) || uostream_write_time(&stream, time, NULL)) {
         ustrbuf_deinit(&buf);
         return ustring_null;
     }
@@ -214,7 +214,7 @@ bool utime_from_string(UTime *time, UString const *string) {
         min = strtoul(ptr, &newptr, 0);
         if (newptr != endptr || newptr == ptr || min >= MINUTES_PER_HOUR) return false;
 
-        utime_normalize_to_utc(time, (int) tzh, min);
+        utime_normalize_to_utc(time, (int)tzh, min);
     }
 
     return true;
@@ -223,20 +223,12 @@ bool utime_from_string(UTime *time, UString const *string) {
 #define FMT_FDIGITS 2
 #define UNIT_DIV (utime_ns)(P_ULIB_MACRO_CONCAT(2e, FMT_FDIGITS))
 
-static utime_ns unit_ns[] = {
-        NS_PER_NS,
-        NS_PER_US,
-        NS_PER_MS,
-        NS_PER_S,
-        NS_PER_M,
-        NS_PER_H,
-        NS_PER_D,
-        NS_MAX
-};
+static utime_ns unit_ns[] = { NS_PER_NS, NS_PER_US, NS_PER_MS, NS_PER_S,
+                              NS_PER_M,  NS_PER_H,  NS_PER_D,  NS_MAX };
 
 utime_unit utime_interval_unit_auto(utime_ns t) {
     utime_unit unit = UTIME_MICROSECONDS;
-    for (; t > unit_ns[unit] - unit_ns[unit - 1] / UNIT_DIV - 1; ++unit);
+    for (; t > unit_ns[unit] - unit_ns[unit - 1] / UNIT_DIV - 1; ++unit) {}
     return (utime_unit)(unit - 1);
 }
 
@@ -260,6 +252,8 @@ UString utime_interval_to_string(utime_ns t, utime_unit unit) {
 utime_stamp utime_get_timestamp(void) {
     return (utime_stamp)time(NULL);
 }
+
+// clang-format off
 
 #if defined(_WIN32)
     #include <windows.h>

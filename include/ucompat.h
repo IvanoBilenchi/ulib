@@ -12,6 +12,8 @@
 #ifndef UCOMPAT_H
 #define UCOMPAT_H
 
+// clang-format off
+
 /**
  * Marks the beginning of declarations.
  * @def ULIB_BEGIN_DECLS

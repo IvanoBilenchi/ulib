@@ -18,7 +18,7 @@ static char const test_data[] = "0123456789";
 #define test_data_size sizeof(test_data)
 #define test_data_length (test_data_size - 1)
 
-static char* ustream_test_get_file_contents(char const *path, size_t *size) {
+static char *ustream_test_get_file_contents(char const *path, size_t *size) {
     char *contents = NULL;
     FILE *test_file = fopen(path, "rb");
     long test_file_size;
@@ -81,7 +81,7 @@ bool uistream_path_test(void) {
 }
 
 bool uistream_buf_test(void) {
-    UIStream  stream;
+    UIStream stream;
     char *buf = (char *)ulib_malloc(test_data_size);
     size_t read;
 

@@ -24,8 +24,7 @@ UString uversion_to_string(UVersion const *version) {
     UOStream stream;
     UStrBuf buf = ustrbuf();
 
-    if (uostream_to_strbuf(&stream, &buf) ||
-        uostream_write_version(&stream, version, NULL)) {
+    if (uostream_to_strbuf(&stream, &buf) || uostream_write_version(&stream, version, NULL)) {
         ustrbuf_deinit(&buf);
         return ustring_null;
     }

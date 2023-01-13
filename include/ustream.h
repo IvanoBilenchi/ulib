@@ -78,7 +78,7 @@ typedef struct UIStream {
      *
      * @note Can be NULL if the stream cannot be reset.
      */
-    ustream_ret(*reset)(void *ctx);
+    ustream_ret (*reset)(void *ctx);
 
     /**
      * Pointer to a function that releases any resource reserved by the stream.
@@ -106,7 +106,7 @@ typedef struct UIStream {
  */
 ULIB_INLINE
 UIStream uistream(void *ctx, ustream_ret (*read_func)(void *, void *, size_t, size_t *),
-                  ustream_ret(*reset_func)(void *), ustream_ret (*free_func)(void *)) {
+                  ustream_ret (*reset_func)(void *), ustream_ret (*free_func)(void *)) {
     UIStream s = { USTREAM_OK, 0, ctx, read_func, reset_func, free_func };
     return s;
 }
@@ -155,7 +155,7 @@ ustream_ret uistream_read(UIStream *stream, void *buf, size_t count, size_t *rea
  * @public @memberof UIStream
  */
 ULIB_PUBLIC
-UIStream* uistream_std(void);
+UIStream *uistream_std(void);
 
 /**
  * Initializes a stream that reads from the file at the specified path.
@@ -319,7 +319,7 @@ UOStream uostream(void *ctx, ustream_ret (*write_func)(void *, void const *, siz
  *
  * @public @related UOStream
  */
-#define uostream_write_literal(stream, literal, written) \
+#define uostream_write_literal(stream, literal, written)                                           \
     uostream_write(stream, literal, sizeof(literal) - 1, written)
 
 /**
@@ -384,8 +384,8 @@ ustream_ret uostream_writef(UOStream *stream, size_t *written, char const *forma
  * @public @memberof UOStream
  */
 ULIB_PUBLIC
-ustream_ret uostream_writef_list(UOStream *stream, size_t *written,
-                                 char const *format, va_list args);
+ustream_ret
+uostream_writef_list(UOStream *stream, size_t *written, char const *format, va_list args);
 
 /**
  * Writes a string into the stream.
@@ -450,7 +450,7 @@ ustream_ret uostream_write_version(UOStream *stream, UVersion const *version, si
  * @public @memberof UOStream
  */
 ULIB_PUBLIC
-UOStream* uostream_std(void);
+UOStream *uostream_std(void);
 
 /**
  * Returns a stream that writes to the standard error.
@@ -460,7 +460,7 @@ UOStream* uostream_std(void);
  * @public @memberof UOStream
  */
 ULIB_PUBLIC
-UOStream* uostream_stderr(void);
+UOStream *uostream_stderr(void);
 
 /**
  * Returns a stream that discards its output.
@@ -470,7 +470,7 @@ UOStream* uostream_stderr(void);
  * @public @memberof UOStream
  */
 ULIB_PUBLIC
-UOStream* uostream_null(void);
+UOStream *uostream_null(void);
 
 /**
  * Initializes a stream that writes to the file at the specified path.

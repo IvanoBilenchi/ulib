@@ -139,68 +139,67 @@ ULIB_BEGIN_DECLS
  */
 
 #if defined ULIB_TINY
-    typedef uint16_t ulib_uint;
-    #define ULIB_UINT_MAX UINT16_MAX
-    #define ULIB_UINT_FMT PRIu16
-    #define ulib_uint_next_power_2(x) (                                                             \
-        --(x),                                                                                      \
-        (x)|=(x)>>1u, (x)|=(x)>>2u, (x)|=(x)>>4u, (x)|=(x)>>8u,                                     \
-        ++(x)                                                                                       \
-    )
 
-    typedef int16_t ulib_int;
-    #define ULIB_INT_MIN INT16_MIN
-    #define ULIB_INT_MAX INT16_MAX
-    #define ULIB_INT_FMT PRId16
+typedef uint16_t ulib_uint;
+#define ULIB_UINT_MAX UINT16_MAX
+#define ULIB_UINT_FMT PRIu16
+#define ulib_uint_next_power_2(x)                                                                  \
+    (--(x), (x) |= (x) >> 1u, (x) |= (x) >> 2u, (x) |= (x) >> 4u, (x) |= (x) >> 8u, ++(x))
 
-    typedef float ulib_float;
-    #define ULIB_FLOAT_MIN FLT_TRUE_MIN
-    #define ULIB_FLOAT_MAX FLT_MAX
-    #define ULIB_FLOAT_EPSILON FLT_EPSILON
-    #define ulib_float_prev(x) nextafterf(x, -ULIB_FLOAT_MAX)
-    #define ulib_float_next(x) nextafterf(x, ULIB_FLOAT_MAX)
+typedef int16_t ulib_int;
+#define ULIB_INT_MIN INT16_MIN
+#define ULIB_INT_MAX INT16_MAX
+#define ULIB_INT_FMT PRId16
+
+typedef float ulib_float;
+#define ULIB_FLOAT_MIN FLT_TRUE_MIN
+#define ULIB_FLOAT_MAX FLT_MAX
+#define ULIB_FLOAT_EPSILON FLT_EPSILON
+#define ulib_float_prev(x) nextafterf(x, -ULIB_FLOAT_MAX)
+#define ulib_float_next(x) nextafterf(x, ULIB_FLOAT_MAX)
+
 #elif defined ULIB_HUGE
-    typedef uint64_t ulib_uint;
-    #define ULIB_UINT_MAX UINT64_MAX
-    #define ULIB_UINT_FMT PRIu64
-    #define ulib_uint_next_power_2(x) (                                                             \
-        --(x),                                                                                      \
-        (x)|=(x)>>1u, (x)|=(x)>>2u, (x)|=(x)>>4u, (x)|=(x)>>8u, (x)|=(x)>>16u, (x)|=(x)>>32u,       \
-        ++(x)                                                                                       \
-    )
 
-    typedef int64_t ulib_int;
-    #define ULIB_INT_MIN INT64_MIN
-    #define ULIB_INT_MAX INT64_MAX
-    #define ULIB_INT_FMT PRId64
+typedef uint64_t ulib_uint;
+#define ULIB_UINT_MAX UINT64_MAX
+#define ULIB_UINT_FMT PRIu64
+#define ulib_uint_next_power_2(x)                                                                  \
+    (--(x), (x) |= (x) >> 1u, (x) |= (x) >> 2u, (x) |= (x) >> 4u, (x) |= (x) >> 8u,                \
+     (x) |= (x) >> 16u, (x) |= (x) >> 32u, ++(x))
 
-    typedef double ulib_float;
-    #define ULIB_FLOAT_MIN DBL_TRUE_MIN
-    #define ULIB_FLOAT_MAX DBL_MAX
-    #define ULIB_FLOAT_EPSILON DBL_EPSILON
-    #define ulib_float_prev(x) nextafter(x, -ULIB_FLOAT_MAX)
-    #define ulib_float_next(x) nextafter(x, ULIB_FLOAT_MAX)
+typedef int64_t ulib_int;
+#define ULIB_INT_MIN INT64_MIN
+#define ULIB_INT_MAX INT64_MAX
+#define ULIB_INT_FMT PRId64
+
+typedef double ulib_float;
+#define ULIB_FLOAT_MIN DBL_TRUE_MIN
+#define ULIB_FLOAT_MAX DBL_MAX
+#define ULIB_FLOAT_EPSILON DBL_EPSILON
+#define ulib_float_prev(x) nextafter(x, -ULIB_FLOAT_MAX)
+#define ulib_float_next(x) nextafter(x, ULIB_FLOAT_MAX)
+
 #else
-    typedef uint32_t ulib_uint;
-    #define ULIB_UINT_MAX UINT32_MAX
-    #define ULIB_UINT_FMT PRIu32
-    #define ulib_uint_next_power_2(x) (                                                             \
-        --(x),                                                                                      \
-        (x)|=(x)>>1u, (x)|=(x)>>2u, (x)|=(x)>>4u, (x)|=(x)>>8u, (x)|=(x)>>16u,                      \
-        ++(x)                                                                                       \
-    )
 
-    typedef int32_t ulib_int;
-    #define ULIB_INT_MIN INT32_MIN
-    #define ULIB_INT_MAX INT32_MAX
-    #define ULIB_INT_FMT PRId32
+typedef uint32_t ulib_uint;
+#define ULIB_UINT_MAX UINT32_MAX
+#define ULIB_UINT_FMT PRIu32
+#define ulib_uint_next_power_2(x)                                                                  \
+    (--(x), (x) |= (x) >> 1u, (x) |= (x) >> 2u, (x) |= (x) >> 4u, (x) |= (x) >> 8u,                \
+     (x) |= (x) >> 16u, ++(x))
 
-    typedef double ulib_float;
-    #define ULIB_FLOAT_MIN DBL_TRUE_MIN
-    #define ULIB_FLOAT_MAX DBL_MAX
-    #define ULIB_FLOAT_EPSILON DBL_EPSILON
-    #define ulib_float_prev(x) nextafter(x, -ULIB_FLOAT_MAX)
-    #define ulib_float_next(x) nextafter(x, ULIB_FLOAT_MAX)
+typedef int32_t ulib_int;
+#define ULIB_INT_MIN INT32_MIN
+#define ULIB_INT_MAX INT32_MAX
+#define ULIB_INT_FMT PRId32
+
+typedef double ulib_float;
+#define ULIB_FLOAT_MIN DBL_TRUE_MIN
+#define ULIB_FLOAT_MAX DBL_MAX
+#define ULIB_FLOAT_EPSILON DBL_EPSILON
+#define ulib_float_prev(x) nextafter(x, -ULIB_FLOAT_MAX)
+#define ulib_float_next(x) nextafter(x, ULIB_FLOAT_MAX)
+
 #endif
 
 /// Minimum value of a ulib_uint variable.
@@ -213,7 +212,7 @@ ULIB_BEGIN_DECLS
 typedef uint8_t ulib_byte;
 
 /// Pointer type.
-typedef void* ulib_ptr;
+typedef void *ulib_ptr;
 
 ULIB_END_DECLS
 

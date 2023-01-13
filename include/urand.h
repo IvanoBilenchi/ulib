@@ -37,7 +37,7 @@ void urand_set_seed(ulib_uint seed);
  * @return Default character set.
  */
 ULIB_PUBLIC
-UString const* urand_default_charset(void);
+UString const *urand_default_charset(void);
 
 /**
  * Returns a random integer.

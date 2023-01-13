@@ -23,18 +23,12 @@ bool utime_test_ns(void) {
     utest_assert_uint(t, <=, utime_get_ns());
 
     struct utime_test_s test_data[] = {
-        { 999,              UTIME_NANOSECONDS,      "999.00 ns" },
-        { 1000,             UTIME_MICROSECONDS,     "1.00 us" },
-        { 999994,           UTIME_MICROSECONDS,     "999.99 us" },
-        { 999995,           UTIME_MILLISECONDS,     "1.00 ms" },
-        { 999994999,        UTIME_MILLISECONDS,     "999.99 ms" },
-        { 999995000,        UTIME_SECONDS,          "1.00 s" },
-        { 59994999999,      UTIME_SECONDS,          "59.99 s" },
-        { 59995000000,      UTIME_MINUTES,          "1.00 m" },
-        { 3599699999999,    UTIME_MINUTES,          "59.99 m" },
-        { 3599700000000,    UTIME_HOURS,            "1.00 h" },
-        { 86381999999999,   UTIME_HOURS,            "23.99 h" },
-        { 86382000000000,   UTIME_DAYS,             "1.00 d" }
+        { 999, UTIME_NANOSECONDS, "999.00 ns" },        { 1000, UTIME_MICROSECONDS, "1.00 us" },
+        { 999994, UTIME_MICROSECONDS, "999.99 us" },    { 999995, UTIME_MILLISECONDS, "1.00 ms" },
+        { 999994999, UTIME_MILLISECONDS, "999.99 ms" }, { 999995000, UTIME_SECONDS, "1.00 s" },
+        { 59994999999, UTIME_SECONDS, "59.99 s" },      { 59995000000, UTIME_MINUTES, "1.00 m" },
+        { 3599699999999, UTIME_MINUTES, "59.99 m" },    { 3599700000000, UTIME_HOURS, "1.00 h" },
+        { 86381999999999, UTIME_HOURS, "23.99 h" },     { 86382000000000, UTIME_DAYS, "1.00 d" }
     };
 
     for (unsigned i = 0; i < ulib_array_count(test_data); ++i) {
@@ -49,7 +43,9 @@ bool utime_test_ns(void) {
     time_t start, end;
     t = utime_get_ns();
     time(&start);
-    do time(&end); while(difftime(end, start) <= 1.0);
+    do {
+        time(&end);
+    } while (difftime(end, start) <= 1.0);
     t = utime_get_ns() - t;
 
     utest_assert_uint(t, >, 1000000000);

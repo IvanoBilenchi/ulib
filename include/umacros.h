@@ -73,7 +73,12 @@
  * @param x First variable.
  * @param y Second variable.
  */
-#define ulib_swap(T, x, y) do { T p_ulib_swap_temp = x; x = y; y = p_ulib_swap_temp; } while (0)
+#define ulib_swap(T, x, y)                                                                         \
+    do {                                                                                           \
+        T p_ulib_swap_temp = x;                                                                    \
+        x = y;                                                                                     \
+        y = p_ulib_swap_temp;                                                                      \
+    } while (0)
 
 /**
  * Returns the number of elements of an array.
@@ -101,11 +106,15 @@
  * @public @def ulib_vla_deinit
  */
 #ifdef _MSC_VER
-    #define ulib_vla(T, name, count) T *name = ulib_malloc(ulib_max(count, 1) * sizeof(*name))
-    #define ulib_vla_deinit(name) ulib_free(name)
+
+#define ulib_vla(T, name, count) T *name = ulib_malloc(ulib_max(count, 1) * sizeof(*name))
+#define ulib_vla_deinit(name) ulib_free(name)
+
 #else
-    #define ulib_vla(T, name, count) T name[ulib_max(count, 1)]
-    #define ulib_vla_deinit(name) do {} while (0)
+
+#define ulib_vla(T, name, count) T name[ulib_max(count, 1)]
+#define ulib_vla_deinit(name)
+
 #endif
 
 /// @}

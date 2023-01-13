@@ -14,10 +14,6 @@
 
 #include "ustd.h"
 
-// ###############
-// # Public API #
-// ###############
-
 /**
  * Bitmask manipulation API.
  *
@@ -145,7 +141,7 @@
  * @param exp True to set, false to unset.
  * @return Bitmask with the specified bits set or unset.
  */
-#define ubit_set_bool(N, mask, bits, exp) \
+#define ubit_set_bool(N, mask, bits, exp)                                                          \
     ((exp) ? ubit_set(N, mask, bits) : ubit_unset(N, mask, bits))
 
 /**
@@ -169,7 +165,7 @@
  * @param bits Bitmask indicating the bits that should be overwritten.
  * @return Bitmask with the specified bits overwritten.
  */
-#define ubit_overwrite(N, mask, n_mask, bits) \
+#define ubit_overwrite(N, mask, n_mask, bits)                                                      \
     ((ubit(N, mask) & ~ubit(N, bits)) | (ubit(N, n_mask) & ubit(N, bits)))
 
 /**
@@ -188,12 +184,9 @@
  * @param mask Bitmask.
  * @return Number of unset bits.
  */
-#define ubit_count_unset(N, mask) ((N) - ubit_count_set(N, mask))
+#define ubit_count_unset(N, mask) ((N)-ubit_count_set(N, mask))
 
-// ###############
-// # Private API #
-// ###############
-
+// Bit count implementations
 #if !defined(UBITS_NO_BUILTINS) && defined(__GNUC__)
 
 #define p_ubit_count_set_8(mask) __builtin_popcount(mask)
@@ -205,15 +198,15 @@
 
 #include <limits.h>
 
-#define p_ubit_count_set_def(N)                                                                     \
-static inline unsigned p_ubit_count_set_##N(UBit(N) mask) {                                         \
-    mask = mask - (ubit(N, mask >> 1U) & ubit(N, ubit_all(N) / 3));                                 \
-    mask = (mask & ubit(N, ubit_all(N) / 15 * 3)) +                                                 \
-            (ubit(N, mask >> 2U) & ubit(N, ubit_all(N) / 15 * 3));                                  \
-    mask = ubit(N, mask + (mask >> 4U)) & ubit(N, ubit_all(N) / 255 * 15);                          \
-    mask = ubit(N, mask * (ubit_all(N) / 255)) >> (unsigned)(N - CHAR_BIT);                         \
-    return (unsigned)mask;                                                                          \
-}
+#define p_ubit_count_set_def(N)                                                                    \
+    static inline unsigned p_ubit_count_set_##N(UBit(N) mask) {                                    \
+        mask = mask - (ubit(N, mask >> 1U) & ubit(N, ubit_all(N) / 3));                            \
+        mask = (mask & ubit(N, ubit_all(N) / 15 * 3)) +                                            \
+               (ubit(N, mask >> 2U) & ubit(N, ubit_all(N) / 15 * 3));                              \
+        mask = ubit(N, mask + (mask >> 4U)) & ubit(N, ubit_all(N) / 255 * 15);                     \
+        mask = ubit(N, mask * (ubit_all(N) / 255)) >> (unsigned)(N - CHAR_BIT);                    \
+        return (unsigned)mask;                                                                     \
+    }
 
 ULIB_BEGIN_DECLS
 

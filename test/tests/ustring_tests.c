@@ -74,7 +74,7 @@ bool ustrbuf_test(void) {
 }
 
 bool ustring_test(void) {
-    utest_assert_uint(sizeof(UString), ==, 2 * sizeof(char*));
+    utest_assert_uint(sizeof(UString), ==, 2 * sizeof(char *));
     utest_assert_uint(offsetof(UString, _s._data), ==, sizeof(ulib_uint));
     utest_assert(ustring_is_empty(ustring_empty));
     utest_assert(ustring_data(ustring_empty)[0] == '\0');

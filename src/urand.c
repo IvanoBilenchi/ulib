@@ -10,17 +10,17 @@
 #include "urand.h"
 
 #ifndef ULIB_RAND
-    #define ULIB_RAND rand
+#define ULIB_RAND rand
 #endif
 
 #ifndef ULIB_SRAND
-    #define ULIB_SRAND srand
+#define ULIB_SRAND srand
 #endif
 
 char const default_charset_buf[] = "0123456789abcdefghijklmnopqrstuvwxyz";
 UString const default_charset = { ._l = { sizeof(default_charset_buf), default_charset_buf } };
 
-UString const* urand_default_charset(void) {
+UString const *urand_default_charset(void) {
     return &default_charset;
 }
 

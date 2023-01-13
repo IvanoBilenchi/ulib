@@ -12,17 +12,17 @@
 #include "ustrbuf.h"
 #include <stdarg.h>
 
-UString const ustring_null = {._s = {._size = 0}};
-UString const ustring_empty = {._s = {._size = 1}};
+UString const ustring_null = { ._s = { ._size = 0 } };
+UString const ustring_empty = { ._s = { ._size = 1 } };
 
 static inline UString ustring_small(char const *buf, size_t length) {
-    UString ret = {._s = {._size = (ulib_uint)length + 1}};
+    UString ret = { ._s = { ._size = (ulib_uint)length + 1 } };
     memcpy(ret._s._data, buf, length);
     return ret;
 }
 
 static inline UString ustring_large(char const *buf, size_t length) {
-    return (UString) {._l = {._size = (ulib_uint)length + 1, ._data = buf}};
+    return (UString){ ._l = { ._size = (ulib_uint)length + 1, ._data = buf } };
 }
 
 UString ustring_assign(char const *buf, size_t length) {
@@ -56,16 +56,16 @@ UString ustring_wrap(char const *buf, size_t length) {
     return ustring_large(buf, length);
 }
 
-char* ustring(UString *string, size_t length) {
+char *ustring(UString *string, size_t length) {
     char *buf;
 
     if (p_ustring_length_is_small(length)) {
-        *string = (UString) {._s = {._size = (ulib_uint)length + 1}};
+        *string = (UString){ ._s = { ._size = (ulib_uint)length + 1 } };
         buf = string->_s._data;
     } else {
         buf = ulib_malloc(length + 1);
         if (buf) {
-            *string = (UString) {._l = {._size = (ulib_uint)length + 1, ._data = buf}};
+            *string = (UString){ ._l = { ._size = (ulib_uint)length + 1, ._data = buf } };
         } else {
             *string = ustring_null;
         }
@@ -79,7 +79,7 @@ void ustring_deinit(UString *string) {
     if (!p_ustring_is_small(*string)) ulib_free((void *)(string)->_l._data);
 }
 
-char const* ustring_deinit_return_data(UString *string) {
+char const *ustring_deinit_return_data(UString *string) {
     char *ret;
 
     if (p_ustring_is_small(*string)) {
@@ -162,10 +162,11 @@ int ustring_compare(UString lhs, UString rhs) {
 }
 
 ulib_uint ustring_hash(UString string) {
-    #define ulib_cstring_hash_range(HASH, STR, START, END) do {                                     \
-        for (ulib_uint i = (START); i < (END); ++i) {                                               \
-            (HASH) = ((HASH) << 5u) - (HASH) + (ulib_uint)(STR)[i];                                 \
-        }                                                                                           \
+#define ulib_cstring_hash_range(HASH, STR, START, END)                                             \
+    do {                                                                                           \
+        for (ulib_uint i = (START); i < (END); ++i) {                                              \
+            (HASH) = ((HASH) << 5u) - (HASH) + (ulib_uint)(STR)[i];                                \
+        }                                                                                          \
     } while (0)
 
     ulib_uint const length = ustring_length(string);
@@ -217,8 +218,7 @@ UString ustring_join(UString const *strings, ulib_uint count, UString sep) {
     }
 
     for (ulib_uint i = 1; i < count; ++i) {
-        if (ustrbuf_append_ustring(&buf, sep) ||
-            ustrbuf_append_ustring(&buf, strings[i])) {
+        if (ustrbuf_append_ustring(&buf, sep) || ustrbuf_append_ustring(&buf, strings[i])) {
             ustrbuf_deinit(&buf);
             return ustring_null;
         }
@@ -246,7 +246,7 @@ UString ustring_repeating(UString string, ulib_uint times) {
     return ret;
 }
 
-char* ulib_str_dup(char const *string, size_t length) {
+char *ulib_str_dup(char const *string, size_t length) {
     char *buf = ulib_malloc(length + 1);
 
     if (buf) {

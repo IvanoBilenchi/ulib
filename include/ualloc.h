@@ -26,7 +26,7 @@
  * @return Pointer to the beginning of the allocated memory, or NULL on failure.
  */
 #ifndef ulib_malloc
-    #define ulib_malloc(size) malloc(size)
+#define ulib_malloc(size) malloc(size)
 #endif
 
 /**
@@ -38,7 +38,7 @@
  * @return Pointer to the beginning of the allocated memory, or NULL on failure.
  */
 #ifndef ulib_calloc
-    #define ulib_calloc(num, size) calloc(num, size)
+#define ulib_calloc(num, size) calloc(num, size)
 #endif
 
 /**
@@ -49,7 +49,7 @@
  * @return Pointer to the beginning of the allocated memory, or NULL on failure.
  */
 #ifndef ulib_realloc
-    #define ulib_realloc(ptr, size) realloc(ptr, size)
+#define ulib_realloc(ptr, size) realloc(ptr, size)
 #endif
 
 /**
@@ -58,7 +58,7 @@
  * @param ptr [void *] Pointer to the memory area to deallocate.
  */
 #ifndef ulib_free
-    #define ulib_free(ptr) free(ptr)
+#define ulib_free(ptr) free(ptr)
 #endif
 
 /**

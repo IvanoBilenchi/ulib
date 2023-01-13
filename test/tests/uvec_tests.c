@@ -7,25 +7,27 @@
  * @file
  */
 
-#include "uvec_builtin.h"
 #include "umacros.h"
 #include "utest.h"
+#include "uvec_builtin.h"
 
 /// @name Utility macros
 
-#define uvec_assert_elements(T, vec, ...) do {                                                      \
-    T const result[] = { __VA_ARGS__ };                                                             \
-    utest_assert_uint(uvec_count(T, vec), ==, ulib_array_count(result));                            \
-    utest_assert_buf(uvec_data(T, vec), ==, result, sizeof(result));                                \
-} while (0)
+#define uvec_assert_elements(T, vec, ...)                                                          \
+    do {                                                                                           \
+        T const result[] = { __VA_ARGS__ };                                                        \
+        utest_assert_uint(uvec_count(T, vec), ==, ulib_array_count(result));                       \
+        utest_assert_buf(uvec_data(T, vec), ==, result, sizeof(result));                           \
+    } while (0)
 
-#define uvec_assert_elements_array(T, vec, arr) \
+#define uvec_assert_elements_array(T, vec, arr)                                                    \
     utest_assert_buf(uvec_data(T, vec), ==, arr, uvec_count(T, vec))
 
-#define uvec_append_items(T, vec, ...) do {                                                         \
-    T const p_items[] = { __VA_ARGS__ };                                                            \
-    uvec_append_array(T, vec, p_items, ulib_array_count(p_items));                                  \
-} while (0)
+#define uvec_append_items(T, vec, ...)                                                             \
+    do {                                                                                           \
+        T const p_items[] = { __VA_ARGS__ };                                                       \
+        uvec_append_array(T, vec, p_items, ulib_array_count(p_items));                             \
+    } while (0)
 
 /// @name Tests
 
@@ -63,7 +65,7 @@ bool uvec_test_base(void) {
     uvec_remove_at(VTYPE, &v, 1);
     uvec_assert_elements(VTYPE, &v, 3, 4, 5, 1);
 
-    VTYPE items[] = {6, 7};
+    VTYPE items[] = { 6, 7 };
     ret = uvec_set_range(VTYPE, &v, items, 3, ulib_array_count(items));
     utest_assert(ret == UVEC_OK);
     uvec_assert_elements(VTYPE, &v, 3, 4, 5, 6, 7);
@@ -113,7 +115,7 @@ bool uvec_test_capacity(void) {
     ret = uvec_shrink(VTYPE, &v);
     utest_assert(ret == UVEC_OK);
     utest_assert_uint(v._size, ==, 0);
-    utest_assert_uint(uvec_size(VTYPE, &v), ==, sizeof(void*) / sizeof(VTYPE));
+    utest_assert_uint(uvec_size(VTYPE, &v), ==, sizeof(void *) / sizeof(VTYPE));
 
     uvec_deinit(VTYPE, &v);
     return true;
@@ -197,7 +199,7 @@ bool uvec_test_comparable(void) {
 
     uvec_remove_all(VTYPE, &v);
 
-    uvec_foreach(VTYPE, &values, loop) {
+    uvec_foreach (VTYPE, &values, loop) {
         if (!uvec_contains(VTYPE, &v, *loop.item)) {
             ret = uvec_push(VTYPE, &v, *loop.item);
             utest_assert(ret == UVEC_OK);

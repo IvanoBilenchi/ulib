@@ -121,7 +121,7 @@ UString ustrbuf_to_ustring(UStrBuf *buf);
  *
  * @public @related UStrBuf
  */
-#define ustrbuf_append_literal(buf, literal) \
+#define ustrbuf_append_literal(buf, literal)                                                       \
     uvec_append_array(char, buf, literal, sizeof(literal) - 1)
 
 /**
@@ -134,8 +134,7 @@ UString ustrbuf_to_ustring(UStrBuf *buf);
  *
  * @public @related UStrBuf
  */
-#define ustrbuf_append_string(buf, string, length) \
-    uvec_append_array(char, buf, string, length)
+#define ustrbuf_append_string(buf, string, length) uvec_append_array(char, buf, string, length)
 
 /**
  * Appends the specified uString to the string buffer.
@@ -146,7 +145,7 @@ UString ustrbuf_to_ustring(UStrBuf *buf);
  *
  * @public @related UStrBuf
  */
-#define ustrbuf_append_ustring(buf, string) \
+#define ustrbuf_append_ustring(buf, string)                                                        \
     uvec_append_array(char, buf, ustring_data(string), ustring_length(string))
 
 ULIB_END_DECLS

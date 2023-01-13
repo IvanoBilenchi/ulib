@@ -17,7 +17,10 @@
 ULIB_BEGIN_DECLS
 
 /// @cond
-struct p_ustring_sizing { ulib_uint s; char const *d; };
+struct p_ustring_sizing {
+    ulib_uint s;
+    char const *d;
+};
 #define P_USTRING_SMALL_SIZE (sizeof(struct p_ustring_sizing) - sizeof(ulib_uint))
 #define p_ustring_size_is_small(s) ((s) <= P_USTRING_SMALL_SIZE)
 #define p_ustring_length_is_small(l) ((l) < P_USTRING_SMALL_SIZE)
@@ -95,7 +98,7 @@ ulib_uint ustring_length(UString string) {
  *
  * @public @related UString
  */
-#define ustring_data(string) \
+#define ustring_data(string)                                                                       \
     ((char const *)(p_ustring_is_small(string) ? (string)._s._data : (string)._l._data))
 
 /**
@@ -158,7 +161,7 @@ UString ustring_wrap(char const *buf, size_t length);
  * @public @memberof UString
  */
 ULIB_PUBLIC
-char* ustring(UString *string, size_t length);
+char *ustring(UString *string, size_t length);
 
 /**
  * Initializes a new string by copying the specified string literal.
@@ -448,7 +451,7 @@ void ustring_deinit(UString *string);
  * @public @memberof UString
  */
 ULIB_PUBLIC
-char const* ustring_deinit_return_data(UString *string);
+char const *ustring_deinit_return_data(UString *string);
 
 /**
  * Checks whether the string has a NULL buffer.
@@ -490,7 +493,7 @@ bool ustring_is_empty(UString string) {
  * @public @related UString
  */
 ULIB_PUBLIC
-char* ulib_str_dup(char const *string, size_t length);
+char *ulib_str_dup(char const *string, size_t length);
 
 /**
  * Returns the length of the specified formatted string.
