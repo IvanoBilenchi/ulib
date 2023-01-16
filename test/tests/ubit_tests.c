@@ -1,7 +1,7 @@
 /**
  * @author Ivano Bilenchi
  *
- * @copyright Copyright (c) 2019-2021 Ivano Bilenchi <https://ivanobilenchi.com>
+ * @copyright Copyright (c) 2019 Ivano Bilenchi <https://ivanobilenchi.com>
  * @copyright SPDX-License-Identifier: MIT
  *
  * @file

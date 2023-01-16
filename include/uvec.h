@@ -3,7 +3,7 @@
  *
  * @author Ivano Bilenchi
  *
- * @copyright Copyright (c) 2018-2022 Ivano Bilenchi <https://ivanobilenchi.com>
+ * @copyright Copyright (c) 2018 Ivano Bilenchi <https://ivanobilenchi.com>
  * @copyright SPDX-License-Identifier: MIT
  *
  * @file
