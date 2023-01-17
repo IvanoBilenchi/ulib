@@ -441,6 +441,8 @@ static inline ulib_uint p_uhash_int64_hash(uint64_t key) {
         return p_uhf_iseither(h->_flags, i) ? UHASH_INDEX_MISSING : i;                             \
     }                                                                                              \
                                                                                                    \
+    /* The kick-out process is bound to access uninitialized data. */                              \
+    /* NOLINTBEGIN(clang-analyzer-core.uninitialized.Assign) */                                    \
     SCOPE uhash_ret uhash_resize_##T(UHash_##T *h, ulib_uint new_size) {                           \
         /* Uses (0.25*size) bytes instead of [sizeof(uh_key+uh_val)+.25]*size. */                  \
         ulib_uint_next_power_2(new_size);                                                          \
@@ -535,6 +537,7 @@ static inline ulib_uint p_uhash_int64_hash(uint64_t key) {
                                                                                                    \
         return UHASH_OK;                                                                           \
     }                                                                                              \
+    /* NOLINTEND(clang-analyzer-core.uninitialized.Assign) */                                      \
                                                                                                    \
     SCOPE uhash_ret uhash_put_##T(UHash_##T *h, uh_key key, ulib_uint *idx) {                      \
         p_ulib_analyzer_assert(h->_flags);                                                         \
