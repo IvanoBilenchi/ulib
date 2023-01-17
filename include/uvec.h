@@ -65,6 +65,39 @@ typedef enum uvec_ret {
 #define p_uvec_less_than(a, b) ((a) < (b))
 
 /*
+ * Checks whether the vector stores its elements in the storage pointer itself.
+ *
+ * @param v [UVec(T) *] The vector.
+ * @return True if the vector stores its elements in the storage pointer, false otherwise.
+ */
+#define p_uvec_inline(v) (!(v)->_size)
+
+/*
+ * Checks whether the vector stores its elements in a dynamically allocated buffer.
+ *
+ * @param v [UVec(T) *] The vector.
+ * @return True if the vector stores its elements in an allocated buffer, false otherwise.
+ */
+#define p_uvec_allocated(v) (!p_uvec_inline(v))
+
+/*
+ * Returns the number of elements of the given type that can be stored inline.
+ *
+ * @param T [symbol] Vector type.
+ * @return Number of elements that can be stored inline.
+ */
+#define p_uvec_inline_size(T) ((ulib_uint)(sizeof(void *) / sizeof(T)))
+
+/*
+ * Returns the inline storage of the specified vector.
+ *
+ * @param T [symbol] Vector type.
+ * @param [UVec(T) *] The vector.
+ * @return [T *] Inline storage.
+ */
+#define p_uvec_inline_data(T, v) ((T *)&(v)->_data)
+
+/*
  * Defines a new vector struct.
  *
  * @param T [symbol] Vector type.
@@ -122,11 +155,11 @@ typedef enum uvec_ret {
     }                                                                                              \
                                                                                                    \
     SCOPE static inline T *uvec_data_##T(UVec_##T const *vec) {                                    \
-        return vec->_size ? vec->_data : (T *)&(vec)->_data;                                       \
+        return p_uvec_inline(vec) ? p_uvec_inline_data(T, vec) : vec->_data;                       \
     }                                                                                              \
                                                                                                    \
     SCOPE static inline ulib_uint uvec_size_##T(UVec_##T const *vec) {                             \
-        return vec->_size ? vec->_size : (ulib_uint)(sizeof(void *) / sizeof(*vec->_data));        \
+        return p_uvec_inline(vec) ? p_uvec_inline_size(T) : vec->_size;                            \
     }                                                                                              \
                                                                                                    \
     SCOPE static inline T uvec_last_##T(UVec_##T const *vec) {                                     \
@@ -144,7 +177,7 @@ typedef enum uvec_ret {
     }                                                                                              \
                                                                                                    \
     SCOPE static inline void uvec_deinit_##T(UVec_##T *vec) {                                      \
-        if (vec->_size) {                                                                          \
+        if (p_uvec_allocated(vec)) {                                                               \
             ulib_free(vec->_data);                                                                 \
             vec->_data = NULL;                                                                     \
         }                                                                                          \
@@ -244,14 +277,14 @@ typedef enum uvec_ret {
     static inline uvec_ret uvec_resize_##T(UVec_##T *vec, ulib_uint size) {                        \
         T *data;                                                                                   \
                                                                                                    \
-        if (vec->_size) {                                                                          \
+        if (p_uvec_allocated(vec)) {                                                               \
             data = (T *)ulib_realloc(vec->_data, size * sizeof(T));                                \
         } else {                                                                                   \
             data = (T *)ulib_malloc(size * sizeof(T));                                             \
         }                                                                                          \
                                                                                                    \
         if (!data) return UVEC_ERR;                                                                \
-        if (!vec->_size) memcpy(data, &vec->_data, vec->_count * sizeof(T));                       \
+        if (p_uvec_inline(vec)) memcpy(data, &vec->_data, vec->_count * sizeof(T));                \
                                                                                                    \
         vec->_size = size;                                                                         \
         vec->_data = data;                                                                         \
@@ -319,7 +352,7 @@ typedef enum uvec_ret {
         }                                                                                          \
                                                                                                    \
         if (vec->_count * sizeof(T) <= sizeof(T *)) {                                              \
-            if (!vec->_size) return UVEC_OK;                                                       \
+            if (p_uvec_inline(vec)) return UVEC_OK;                                                \
             T *old_data = vec->_data;                                                              \
             memcpy((T *)(&vec->_data), old_data, vec->_count * sizeof(T));                         \
             ulib_free(old_data);                                                                   \
