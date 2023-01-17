@@ -31,17 +31,16 @@ uvec_ret ustrbuf_append_format_list(UStrBuf *buf, char const *format, va_list ar
     return ret;
 }
 
-UString ustrbuf_to_ustring(UStrBuf *buf) {
-    ulib_uint length = ustrbuf_length(buf);
+static inline UString ustrbuf_to_ustring_copy(UStrBuf *buf, ulib_uint length) {
+    UString ret;
+    char *nbuf = ustring(&ret, length);
+    if (nbuf) memcpy(nbuf, ustrbuf_data(buf), length);
+    // No need to write NULL terminator as it is already added by ustring().
+    ustrbuf_deinit(buf);
+    return ret;
+}
 
-    if (length < P_USTRING_SMALL_SIZE) {
-        UString ret;
-        char *nbuf = ustring(&ret, length);
-        memcpy(nbuf, ustrbuf_data(buf), length);
-        ustrbuf_deinit(buf);
-        return ret;
-    }
-
+static inline UString ustrbuf_to_ustring_reuse(UStrBuf *buf, ulib_uint length) {
     char *nbuf = ulib_realloc(buf->_data, length + 1);
 
     if (!nbuf) {
@@ -51,4 +50,14 @@ UString ustrbuf_to_ustring(UStrBuf *buf) {
 
     nbuf[length] = '\0';
     return ustring_wrap(nbuf, length);
+}
+
+UString ustrbuf_to_ustring(UStrBuf *buf) {
+    ulib_uint length = ustrbuf_length(buf);
+
+    if (p_ustring_length_is_small(length) || p_uvec_inline(buf)) {
+        return ustrbuf_to_ustring_copy(buf, length);
+    }
+
+    return ustrbuf_to_ustring_reuse(buf, length);
 }
