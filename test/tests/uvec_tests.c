@@ -96,7 +96,9 @@ bool uvec_test_capacity(void) {
     utest_assert_uint(uvec_size(VTYPE, &v), >=, capacity);
 
     ret = uvec_push(VTYPE, &v, 1);
+    utest_assert(ret == UVEC_OK);
     ret = uvec_push(VTYPE, &v, 2);
+    utest_assert(ret == UVEC_OK);
     ret = uvec_push(VTYPE, &v, 3);
     utest_assert(ret == UVEC_OK);
     utest_assert_uint(uvec_size(VTYPE, &v), >=, uvec_count(VTYPE, &v));
@@ -127,6 +129,7 @@ bool uvec_test_equality(void) {
 
     UVec(VTYPE) v2 = uvec(VTYPE);
     uvec_ret ret = uvec_copy(VTYPE, &v1, &v2);
+    utest_assert(ret == UVEC_OK);
     utest_assert(uvec_equals(VTYPE, &v1, &v2));
 
     VTYPE *arr = (VTYPE *)ulib_malloc(uvec_count(VTYPE, &v1) * sizeof(*arr));

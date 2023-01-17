@@ -33,6 +33,7 @@ ulib_int urand(void) {
 }
 
 ulib_int urand_range(ulib_int start, ulib_uint len) {
+    if (!len) return start;
     return start + (ulib_int)(urand() % len);
 }
 

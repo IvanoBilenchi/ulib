@@ -171,6 +171,7 @@ ustream_multi_writef(void *ctx, size_t *written, char const *format, va_list arg
         va_list cargs;
         va_copy(cargs, args);
         ustream_ret lret = uostream_writef_list(*stream.item, &lwritten, format, cargs);
+        va_end(cargs);
         if (*written < lwritten) *written = lwritten;
         if (!ret) ret = lret;
     }
@@ -213,12 +214,14 @@ ustream_ret uistream_reset(UIStream *stream) {
 }
 
 ustream_ret uistream_read(UIStream *stream, void *buf, size_t count, size_t *read) {
+    size_t read_bytes = 0;
+
     if (!stream->state) {
-        size_t read_bytes;
         stream->state = stream->read(stream->ctx, buf, count, &read_bytes);
         stream->read_bytes += read_bytes;
-        if (read) *read = read_bytes;
     }
+
+    if (read) *read = read_bytes;
     return stream->state;
 }
 
@@ -283,12 +286,14 @@ ustream_ret uostream_flush(UOStream *stream) {
 }
 
 ustream_ret uostream_write(UOStream *stream, void const *buf, size_t count, size_t *written) {
+    size_t written_bytes = 0;
+
     if (!stream->state) {
-        size_t written_bytes;
         stream->state = stream->write(stream->ctx, buf, count, &written_bytes);
         stream->written_bytes += written_bytes;
-        if (written) *written = written_bytes;
     }
+
+    if (written) *written = written_bytes;
     return stream->state;
 }
 
@@ -320,16 +325,18 @@ uostream_writef_list_fallback(UOStream *stream, size_t *written, char const *for
 
 ustream_ret
 uostream_writef_list(UOStream *stream, size_t *written, char const *format, va_list args) {
+    size_t written_bytes = 0;
+
     if (!stream->state) {
-        size_t written_bytes;
         if (stream->writef) {
             stream->state = stream->writef(stream->ctx, &written_bytes, format, args);
         } else {
             stream->state = uostream_writef_list_fallback(stream, &written_bytes, format, args);
         }
         stream->written_bytes += written_bytes;
-        if (written) *written = written_bytes;
     }
+
+    if (written) *written = written_bytes;
     return stream->state;
 }
 

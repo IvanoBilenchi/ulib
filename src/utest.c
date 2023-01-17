@@ -95,7 +95,7 @@ p_utest_leak_realloc_impl(void *ptr, size_t size, char const *file, char const *
     void *new_ptr = realloc(ptr, size);
 
     if (new_ptr && ptr != new_ptr) {
-        alloc_table_remove(ptr);
+        alloc_table_remove(ptr); // NOLINT: suppress "use of memory after it is freed".
         alloc_table_add(new_ptr, file, fn, line);
     }
 
