@@ -5,6 +5,13 @@ All notable changes to uLib will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2] - 2023-01-17
+### Fixed
+- Invalid pointer deallocation in `ustrbuf_to_ustring`.
+- Division by zero in `urand_range`.
+- Uninitialized `read` and `written` out parameters in `ustream` API.
+- Leaked `va_list` in `ustream_multi_writef`.
+
 ## [0.2.1] - 2022-12-07
 ### Added
 - `uostream_stderr`.
@@ -135,6 +142,7 @@ uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Test utilities.
 - Miscellaneous helper macros.
 
+[0.2.2]: https://github.com/ivanobilenchi/ulib/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/ivanobilenchi/ulib/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/ivanobilenchi/ulib/compare/v0.1.4...v0.2.0
 [0.1.4]: https://github.com/ivanobilenchi/ulib/compare/v0.1.3...v0.1.4
