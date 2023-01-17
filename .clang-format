@@ -7,8 +7,8 @@ AllowShortLoopsOnASingleLine: true
 ColumnLimit: 100
 Cpp11BracedListStyle: false
 ForEachMacros:
-  - uvec_foreach
   - uhash_foreach
+  - uvec_foreach
 IndentCaseLabels: true
 IndentWidth: 4
 PenaltyBreakAssignment: 100
@@ -22,3 +22,6 @@ StatementMacros:
   - ULIB_END_DECLS
   - p_ubit_count_set_def
   - ubit_test_impl
+TypenameMacros:
+  - UHash
+  - UVec
