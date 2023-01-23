@@ -263,30 +263,3 @@ UString ustring_to_lower(UString string) {
     ulib_str_to_lower(buf, ustring_data(string), len);
     return ret;
 }
-
-char *ulib_str_dup(char const *string, size_t length) {
-    char *buf = ulib_malloc(length + 1);
-
-    if (buf) {
-        memcpy(buf, string, length);
-        buf[length] = '\0';
-    }
-
-    return buf;
-}
-
-size_t ulib_str_flength(char const *format, ...) {
-    va_list args;
-    va_start(args, format);
-    int res = vsnprintf(NULL, 0, format, args);
-    va_end(args);
-    return res > 0 ? (size_t)res : 0;
-}
-
-size_t ulib_str_flength_list(char const *format, va_list argptr) {
-    va_list args;
-    va_copy(args, argptr);
-    int res = vsnprintf(NULL, 0, format, args);
-    va_end(args);
-    return res > 0 ? (size_t)res : 0;
-}

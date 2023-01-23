@@ -12,7 +12,7 @@
 #ifndef USTRING_H
 #define USTRING_H
 
-#include "ustd.h"
+#include "ustring_raw.h"
 
 ULIB_BEGIN_DECLS
 
@@ -308,6 +308,32 @@ ULIB_PUBLIC
 UString ustring_repeating(UString string, ulib_uint times);
 
 /**
+ * Checks if the string does not contain lowercase characters.
+ *
+ * @param string String.
+ * @return True if the string does not contain lowercase characters, false otherwise.
+ *
+ * @public @memberof UString
+ */
+ULIB_INLINE
+bool ustring_is_upper(UString string) {
+    return ulib_str_is_upper(ustring_data(string), ustring_length(string));
+}
+
+/**
+ * Checks if the string does not contain uppercase characters.
+ *
+ * @param string String.
+ * @return True if the string does not contain uppercase characters, false otherwise.
+ *
+ * @public @memberof UString
+ */
+ULIB_INLINE
+bool ustring_is_lower(UString string) {
+    return ulib_str_is_lower(ustring_data(string), ustring_length(string));
+}
+
+/**
  * Converts the given string to uppercase.
  *
  * @param string String to convert.
@@ -501,102 +527,6 @@ bool ustring_is_null(UString string) {
 ULIB_INLINE
 bool ustring_is_empty(UString string) {
     return ustring_size(string) <= 1;
-}
-
-/**
- * Converts the given character to uppercase.
- *
- * @param c Character to convert.
- * @return Uppercase character.
- *
- * @public @related UString
- */
-ULIB_INLINE
-char ulib_char_to_upper(char c) {
-    return (ulib_byte)(c - 'a') < 26U ? c ^ 0x20 : c;
-}
-
-/**
- * Converts the given character to lowercase.
- *
- * @param c Character to convert.
- * @return Lowercase character.
- *
- * @public @related UString
- */
-ULIB_INLINE
-char ulib_char_to_lower(char c) {
-    return (ulib_byte)(c - 'A') < 26U ? c ^ 0x20 : c;
-}
-
-/**
- * Duplicates the specified string.
- *
- * @param string String to duplicate.
- * @param length Length of the string to duplicate.
- * @return Duplicated string.
- *
- * @note You are responsible for deallocating the returned string via `ulib_free`.
- *
- * @public @related UString
- */
-ULIB_PUBLIC
-char *ulib_str_dup(char const *string, size_t length);
-
-/**
- * Returns the length of the specified formatted string.
- *
- * @param format Format string.
- * @param ... Format arguments.
- * @return Length of the formatted string.
- *
- * @public @related UString
- */
-ULIB_PUBLIC
-size_t ulib_str_flength(char const *format, ...);
-
-/**
- * Returns the length of the specified formatted string.
- *
- * @param format Format string.
- * @param args Format arguments.
- * @return Length of the formatted string.
- *
- * @public @related UString
- */
-ULIB_PUBLIC
-size_t ulib_str_flength_list(char const *format, va_list args);
-
-/**
- * Converts the given string to uppercase.
- *
- * @param dst Destination string.
- * @param src Source string.
- * @param length Length of the source string.
- *
- * @public @related UString
- *
- * @note dst and src can be equal.
- */
-ULIB_INLINE
-void ulib_str_to_upper(char *dst, char const *src, size_t length) {
-    while (length--) dst[length] = ulib_char_to_upper(src[length]);
-}
-
-/**
- * Converts the given string to lowercase.
- *
- * @param dst Destination string.
- * @param src Source string.
- * @param length Length of the source string
- *
- * @public @related UString
- *
- * @note dst and src can be equal.
- */
-ULIB_INLINE
-void ulib_str_to_lower(char *dst, char const *src, size_t length) {
-    while (length--) dst[length] = ulib_char_to_lower(src[length]);
 }
 
 ULIB_END_DECLS

@@ -14,6 +14,8 @@
 
 #include <ctype.h>
 
+#define MAX_ASCII 127
+
 bool ustring_utils_test(void) {
     char const str[] = "12345";
     size_t const str_len = sizeof(str) - 1;
@@ -30,18 +32,26 @@ bool ustring_utils_test(void) {
     char const uppercase[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     char const lowercase[] = "abcdefghijklmnopqrstuvwxyz";
 
-    char chars_upper[128];
-    char chars_lower[128];
-    chars_upper[127] = chars_lower[127] = '\0';
+    utest_assert(ulib_str_is_upper(uppercase, sizeof(uppercase) - 1));
+    utest_assert(!ulib_str_is_lower(uppercase, sizeof(uppercase) - 1));
+    utest_assert(ulib_str_is_lower(lowercase, sizeof(lowercase) - 1));
+    utest_assert(!ulib_str_is_upper(lowercase, sizeof(lowercase) - 1));
 
-    for (ulib_uint i = 0; i < 127; ++i) {
+    char chars_upper[MAX_ASCII + 1];
+    char chars_lower[MAX_ASCII + 1];
+    chars_upper[MAX_ASCII] = chars_lower[MAX_ASCII] = '\0';
+
+    for (ulib_uint i = 0; i < MAX_ASCII; ++i) {
         chars_upper[i] = chars_lower[i] = (char)(i + 1);
     }
 
-    ulib_str_to_lower(chars_lower, chars_lower, 127);
-    ulib_str_to_upper(chars_upper, chars_upper, 127);
+    ulib_str_to_lower(chars_lower, chars_lower, MAX_ASCII);
+    ulib_str_to_upper(chars_upper, chars_upper, MAX_ASCII);
 
-    for (ulib_uint i = 0; i < 127; ++i) {
+    utest_assert(ulib_str_is_upper(chars_upper, MAX_ASCII));
+    utest_assert(ulib_str_is_lower(chars_lower, MAX_ASCII));
+
+    for (ulib_uint i = 0; i < MAX_ASCII; ++i) {
         char orig = (char)(i + 1);
         char cur_lower = chars_lower[i];
         char cur_upper = chars_upper[i];

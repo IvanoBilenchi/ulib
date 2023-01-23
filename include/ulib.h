@@ -25,6 +25,7 @@
 #include "ustrbuf.h"
 #include "ustream.h"
 #include "ustring.h"
+#include "ustring_raw.h"
 #include "utest.h"
 #include "utime.h"
 #include "uvec.h"
