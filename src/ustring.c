@@ -79,7 +79,7 @@ void ustring_deinit(UString *string) {
     if (!p_ustring_is_small(*string)) ulib_free((void *)(string)->_l._data);
 }
 
-char const *ustring_deinit_return_data(UString *string) {
+char *ustring_deinit_return_data(UString *string) {
     char *ret;
 
     if (p_ustring_is_small(*string)) {

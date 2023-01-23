@@ -499,7 +499,7 @@ void ustring_deinit(UString *string);
  * @public @memberof UString
  */
 ULIB_PUBLIC
-char const *ustring_deinit_return_data(UString *string);
+char *ustring_deinit_return_data(UString *string);
 
 /**
  * Checks whether the string has a NULL buffer.
