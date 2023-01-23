@@ -12,6 +12,8 @@
 #include "ustring.h"
 #include "utest.h"
 
+#include <ctype.h>
+
 bool ustring_utils_test(void) {
     char const str[] = "12345";
     size_t const str_len = sizeof(str) - 1;
@@ -24,6 +26,37 @@ bool ustring_utils_test(void) {
 
     size_t const len = ulib_str_flength("%s", str);
     utest_assert(len == str_len);
+
+    char const uppercase[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    char const lowercase[] = "abcdefghijklmnopqrstuvwxyz";
+
+    char chars_upper[128];
+    char chars_lower[128];
+    chars_upper[127] = chars_lower[127] = '\0';
+
+    for (ulib_uint i = 0; i < 127; ++i) {
+        chars_upper[i] = chars_lower[i] = (char)(i + 1);
+    }
+
+    ulib_str_to_lower(chars_lower, chars_lower, 127);
+    ulib_str_to_upper(chars_upper, chars_upper, 127);
+
+    for (ulib_uint i = 0; i < 127; ++i) {
+        char orig = (char)(i + 1);
+        char cur_lower = chars_lower[i];
+        char cur_upper = chars_upper[i];
+
+        if (orig >= 'a' && orig <= 'z') {
+            utest_assert(cur_lower == orig);
+            utest_assert(cur_upper == uppercase[orig - 'a']);
+        } else if (orig >= 'A' && orig <= 'Z') {
+            utest_assert(cur_lower == lowercase[orig - 'A']);
+            utest_assert(cur_upper == orig);
+        } else {
+            utest_assert(cur_lower == orig);
+            utest_assert(cur_upper == orig);
+        }
+    }
 
     return true;
 }

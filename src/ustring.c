@@ -246,6 +246,24 @@ UString ustring_repeating(UString string, ulib_uint times) {
     return ret;
 }
 
+UString ustring_to_upper(UString string) {
+    UString ret;
+    ulib_uint const len = ustring_length(string);
+    char *buf = ustring(&ret, len);
+    if (!buf) return ustring_null;
+    ulib_str_to_upper(buf, ustring_data(string), len);
+    return ret;
+}
+
+UString ustring_to_lower(UString string) {
+    UString ret;
+    ulib_uint const len = ustring_length(string);
+    char *buf = ustring(&ret, len);
+    if (!buf) return ustring_null;
+    ulib_str_to_lower(buf, ustring_data(string), len);
+    return ret;
+}
+
 char *ulib_str_dup(char const *string, size_t length) {
     char *buf = ulib_malloc(length + 1);
 

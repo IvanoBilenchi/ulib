@@ -308,6 +308,28 @@ ULIB_PUBLIC
 UString ustring_repeating(UString string, ulib_uint times);
 
 /**
+ * Converts the given string to uppercase.
+ *
+ * @param string String to convert.
+ * @return Uppercase string.
+ *
+ * @public @memberof UString
+ */
+ULIB_PUBLIC
+UString ustring_to_upper(UString string);
+
+/**
+ * Converts the given string to lowercase.
+ *
+ * @param string String to convert.
+ * @return Lowercase string.
+ *
+ * @public @memberof UString
+ */
+ULIB_PUBLIC
+UString ustring_to_lower(UString string);
+
+/**
  * Returns the index of the first occurrence of the specified character.
  *
  * @param string String to search into.
@@ -482,6 +504,32 @@ bool ustring_is_empty(UString string) {
 }
 
 /**
+ * Converts the given character to uppercase.
+ *
+ * @param c Character to convert.
+ * @return Uppercase character.
+ *
+ * @public @related UString
+ */
+ULIB_INLINE
+char ulib_char_to_upper(char c) {
+    return (ulib_byte)(c - 'a') < 26U ? c ^ 0x20 : c;
+}
+
+/**
+ * Converts the given character to lowercase.
+ *
+ * @param c Character to convert.
+ * @return Lowercase character.
+ *
+ * @public @related UString
+ */
+ULIB_INLINE
+char ulib_char_to_lower(char c) {
+    return (ulib_byte)(c - 'A') < 26U ? c ^ 0x20 : c;
+}
+
+/**
  * Duplicates the specified string.
  *
  * @param string String to duplicate.
@@ -518,6 +566,38 @@ size_t ulib_str_flength(char const *format, ...);
  */
 ULIB_PUBLIC
 size_t ulib_str_flength_list(char const *format, va_list args);
+
+/**
+ * Converts the given string to uppercase.
+ *
+ * @param dst Destination string.
+ * @param src Source string.
+ * @param length Length of the source string.
+ *
+ * @public @related UString
+ *
+ * @note dst and src can be equal.
+ */
+ULIB_INLINE
+void ulib_str_to_upper(char *dst, char const *src, size_t length) {
+    while (length--) dst[length] = ulib_char_to_upper(src[length]);
+}
+
+/**
+ * Converts the given string to lowercase.
+ *
+ * @param dst Destination string.
+ * @param src Source string.
+ * @param length Length of the source string
+ *
+ * @public @related UString
+ *
+ * @note dst and src can be equal.
+ */
+ULIB_INLINE
+void ulib_str_to_lower(char *dst, char const *src, size_t length) {
+    while (length--) dst[length] = ulib_char_to_lower(src[length]);
+}
 
 ULIB_END_DECLS
 
