@@ -233,7 +233,8 @@ utime_unit utime_interval_unit_auto(utime_ns t) {
 }
 
 double utime_interval_convert(utime_ns t, utime_unit unit) {
-    return (double)(t) / (double)unit_ns[ulib_clamp(unit, UTIME_NANOSECONDS, UTIME_DAYS)];
+    // Note: using >= or ulib_clamp causes a warning on platforms with unsigned enum types.
+    return (unit > UTIME_NANOSECONDS && unit <= UTIME_DAYS) ? (double)t / unit_ns[unit] : (double)t;
 }
 
 UString utime_interval_to_string(utime_ns t, utime_unit unit) {
