@@ -1,5 +1,5 @@
 ================================
-Welcome to ULib's documentation!
+Welcome to uLib's documentation!
 ================================
 
 *uLib* is a modern library for C applications.
