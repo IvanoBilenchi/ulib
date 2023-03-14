@@ -172,6 +172,80 @@ void ulib_str_to_lower(char *dst, char const *src, size_t length) {
     while (length--) dst[length] = ulib_char_to_lower(src[length]);
 }
 
+/**
+ * Converts the given string into an integer.
+ *
+ * @param src Source string.
+ * @param[out] end End pointer.
+ * @param base Numeric base.
+ * @return Integer.
+ *
+ * @note Size-appropriate wrapper for strtol/strtoll.
+ *       Refer to their documentation for extended information (e.g. error handling).
+ *
+ * @public @related UString
+ */
+ULIB_INLINE
+ulib_int ulib_str_to_int(char const *src, char **end, unsigned base) {
+    char *endptr;
+#if defined ULIB_HUGE
+    long long ret = strtoll(src, &endptr, (int)base);
+#else
+    long ret = strtol(src, &endptr, (int)base);
+#endif
+    if (end) *end = endptr;
+    return ret;
+}
+
+/**
+ * Converts the given string into an unsigned integer.
+ *
+ * @param src Source string.
+ * @param[out] end End pointer.
+ * @param base Numeric base.
+ * @return Unsigned integer.
+ *
+ * @note Size-appropriate wrapper for strtoul/strtoull.
+ *       Refer to their documentation for extended information (e.g. error handling).
+ *
+ * @public @related UString
+ */
+ULIB_INLINE
+ulib_uint ulib_str_to_uint(char const *src, char **end, unsigned base) {
+    char *endptr;
+#if defined ULIB_HUGE
+    unsigned long long ret = strtoull(src, &endptr, (int)base);
+#else
+    unsigned long ret = strtoul(src, &endptr, (int)base);
+#endif
+    if (end) *end = endptr;
+    return ret;
+}
+
+/**
+ * Converts the given string into a float.
+ *
+ * @param src Source string.
+ * @param[out] end End pointer.
+ * @return Float.
+ *
+ * @note Size-appropriate wrapper for strtof/strtod.
+ *       Refer to their documentation for extended information (e.g. error handling).
+ *
+ * @public @related UString
+ */
+ULIB_INLINE
+ulib_float ulib_str_to_float(char const *src, char **end) {
+    char *endptr;
+#if defined ULIB_TINY
+    float ret = strtof(src, &endptr);
+#else
+    double ret = strtod(src, &endptr);
+#endif
+    if (end) *end = endptr;
+    return ret;
+}
+
 ULIB_END_DECLS
 
 #endif // USTRING_RAW_H
