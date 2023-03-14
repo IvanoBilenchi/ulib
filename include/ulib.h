@@ -18,6 +18,7 @@
 #include "ucompat.h"
 #include "uhash.h"
 #include "uhash_builtin.h"
+#include "ulib_ret.h"
 #include "umacros.h"
 #include "umeta.h"
 #include "urand.h"

@@ -38,3 +38,8 @@ Strings
 
 .. doxygenstruct:: UString
 .. doxygenstruct:: UStrBuf
+
+Return values
+=============
+
+.. doxygenenum:: ulib_ret
