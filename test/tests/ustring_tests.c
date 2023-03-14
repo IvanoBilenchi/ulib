@@ -116,7 +116,7 @@ bool ustrbuf_test(void) {
     return true;
 }
 
-bool ustring_test(void) {
+bool ustring_test_base(void) {
     utest_assert_uint(sizeof(UString), ==, 2 * sizeof(char *));
     utest_assert_uint(offsetof(UString, _s._data), ==, sizeof(ulib_uint));
     utest_assert(ustring_is_empty(ustring_empty));
@@ -177,6 +177,50 @@ bool ustring_test(void) {
 
     ustring_deinit(&a);
     ustring_deinit(&b);
+
+    return true;
+}
+
+bool ustring_test_convert(void) {
+    ulib_int int_out;
+    ulib_uint uint_out;
+    ulib_float float_out;
+    UString a = ustring_literal("123");
+
+    ulib_ret ret = ustring_to_int(a, &int_out, 10);
+    utest_assert(ret == ULIB_OK);
+    utest_assert_int(int_out, ==, 123);
+
+    ret = ustring_to_uint(a, &uint_out, 10);
+    utest_assert(ret == ULIB_OK);
+    utest_assert_uint(uint_out, ==, 123);
+
+    ret = ustring_to_float(a, &float_out);
+    utest_assert(ret == ULIB_OK);
+    utest_assert_float(float_out, ==, 123.0);
+
+    a = ustring_literal("123.0");
+
+    ret = ustring_to_int(a, &int_out, 10);
+    utest_assert(ret == ULIB_ERR);
+
+    ret = ustring_to_uint(a, &uint_out, 10);
+    utest_assert(ret == ULIB_ERR);
+
+    ret = ustring_to_float(a, &float_out);
+    utest_assert(ret == ULIB_OK);
+    utest_assert_float(float_out, ==, 123.0);
+
+    a = ustring_literal("123a");
+
+    ret = ustring_to_int(a, &int_out, 10);
+    utest_assert(ret == ULIB_ERR);
+
+    ret = ustring_to_uint(a, &uint_out, 10);
+    utest_assert(ret == ULIB_ERR);
+
+    ret = ustring_to_float(a, &float_out);
+    utest_assert(ret == ULIB_ERR);
 
     return true;
 }

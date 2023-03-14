@@ -188,6 +188,33 @@ ulib_uint ustring_hash(UString string) {
     return hash;
 }
 
+ulib_ret ustring_to_int(UString string, ulib_int *out, unsigned base) {
+    char *end;
+    char const *start = ustring_data(string);
+    ulib_int r = ulib_str_to_int(start, &end, base);
+    if (end < start + ustring_length(string)) return ULIB_ERR;
+    if (out) *out = r;
+    return ULIB_OK;
+}
+
+ulib_ret ustring_to_uint(UString string, ulib_uint *out, unsigned base) {
+    char *end;
+    char const *start = ustring_data(string);
+    ulib_uint r = ulib_str_to_uint(start, &end, base);
+    if (end < start + ustring_length(string)) return ULIB_ERR;
+    if (out) *out = r;
+    return ULIB_OK;
+}
+
+ulib_ret ustring_to_float(UString string, ulib_float *out) {
+    char *end;
+    char const *start = ustring_data(string);
+    ulib_float r = ulib_str_to_float(start, &end);
+    if (end < start + ustring_length(string)) return ULIB_ERR;
+    if (out) *out = r;
+    return ULIB_OK;
+}
+
 UString ustring_with_format(char const *format, ...) {
     va_list args;
     va_start(args, format);

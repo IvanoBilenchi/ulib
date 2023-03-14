@@ -12,6 +12,7 @@
 #ifndef USTRING_H
 #define USTRING_H
 
+#include "ulib_ret.h"
 #include "ustring_raw.h"
 
 ULIB_BEGIN_DECLS
@@ -477,6 +478,44 @@ int ustring_compare(UString lhs, UString rhs);
  */
 ULIB_PUBLIC
 ulib_uint ustring_hash(UString string);
+
+/**
+ * Converts the string into an integer.
+ *
+ * @param string String.
+ * @param[out] out Converted value.
+ * @param base Numeric base.
+ * @return Return code.
+ *
+ * @public @memberof UString
+ */
+ULIB_PUBLIC
+ulib_ret ustring_to_int(UString string, ulib_int *out, unsigned base);
+
+/**
+ * Converts the string into an unsigned integer.
+ *
+ * @param string String.
+ * @param[out] out Converted value.
+ * @param base Numeric base.
+ * @return Return code.
+ *
+ * @public @memberof UString
+ */
+ULIB_PUBLIC
+ulib_ret ustring_to_uint(UString string, ulib_uint *out, unsigned base);
+
+/**
+ * Converts the string into a float.
+ *
+ * @param string String.
+ * @param[out] out Converted value.
+ * @return Return code.
+ *
+ * @public @memberof UString
+ */
+ULIB_PUBLIC
+ulib_ret ustring_to_float(UString string, ulib_float *out);
 
 /**
  * Deinitializes the specified string.
