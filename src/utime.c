@@ -120,10 +120,11 @@ void utime_add(UTime *time, long long quantity, utime_unit unit) {
         case UTIME_DAYS: quantity *= SECONDS_PER_DAY; break;
         case UTIME_HOURS: quantity *= SECONDS_PER_HOUR; break;
         case UTIME_MINUTES: quantity *= SECONDS_PER_MINUTE; break;
+        case UTIME_SECONDS:
+        default: break;
         case UTIME_MILLISECONDS: quantity /= MILLIS_PER_SECOND; break;
         case UTIME_MICROSECONDS: quantity /= MICROS_PER_SECOND; break;
         case UTIME_NANOSECONDS: quantity /= NANOS_PER_SECOND; break;
-        default: break;
     }
 
     *time = utime_from_timestamp(utime_to_timestamp(time) + quantity);
