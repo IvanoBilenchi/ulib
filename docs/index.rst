@@ -5,7 +5,7 @@ Welcome to uLib's documentation!
 *uLib* is a modern library for C applications.
 
 .. toctree::
-   :caption: Howto
+   :caption: Getting started
 
    howto
 

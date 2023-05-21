@@ -14,7 +14,10 @@ default_role = 'any'
 extensions = ['breathe']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 rst_prolog = f':github_url: {git_url}'
-rst_epilog = f'.. _git_url: {git_url}'
+rst_epilog = (
+    f'.. _git_url: {git_url}\n'
+    f'.. |git_url| replace:: {git_url}.git\n'
+)
 
 # HTML
 
