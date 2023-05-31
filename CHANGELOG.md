@@ -5,6 +5,21 @@ All notable changes to uLib will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.3] - 2023-05-31
+### Added
+- `ulib_ret`.
+- `ustring_is_upper`, `ustring_is_lower`, `ustring_to_upper`, `ustring_to_lower`.
+- `ulib_str_is_upper`, `ulib_str_is_lower`, `ulib_str_to_upper`, `ulib_str_to_lower`.
+- `ulib_char_is_upper`, `ulib_char_is_lower`, `ulib_char_to_upper`, `ulib_char_to_lower`.
+- `ustring_to_int`, `ustring_to_uint`, `ustring_to_float`.
+- `ulib_str_to_int`, `ulib_str_to_uint`, `ulib_str_to_float`.
+
+### Changed
+- Return type of `ustring_deinit_return_data`.
+
+### Fixed
+- Warnings on platforms with unsigned enum types.
+
 ## [0.2.2] - 2023-01-17
 ### Fixed
 - Invalid pointer deallocation in `ustrbuf_to_ustring`.
@@ -142,6 +157,7 @@ uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Test utilities.
 - Miscellaneous helper macros.
 
+[0.2.3]: https://github.com/ivanobilenchi/ulib/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/ivanobilenchi/ulib/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/ivanobilenchi/ulib/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/ivanobilenchi/ulib/compare/v0.1.4...v0.2.0
