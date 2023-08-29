@@ -12,17 +12,25 @@
 #include "ustrbuf.h"
 #include <stdarg.h>
 
-UString const ustring_null = { ._s = { ._size = 0 } };
-UString const ustring_empty = { ._s = { ._size = 1 } };
+UString const ustring_null = p_ustring_init_small(0);
+UString const ustring_empty = p_ustring_init_small(1);
 
 static inline UString ustring_small(char const *buf, size_t length) {
-    UString ret = { ._s = { ._size = (ulib_uint)length + 1 } };
-    memcpy(ret._s._data, buf, length);
+    UString ret = p_ustring_init_small((ulib_uint)length + 1);
+    memcpy(ret._s, buf, length);
     return ret;
 }
 
 static inline UString ustring_large(char const *buf, size_t length) {
-    return (UString){ ._l = { ._size = (ulib_uint)length + 1, ._data = buf } };
+    ulib_uint size = ((ulib_uint)length + 1) | ~((ulib_uint)-1 >> 1U);
+    UString ret = { ._l = { ._data = buf, ._flags = { 0 } } };
+    unsigned const offset = P_USTRING_FLAGS_SIZE - sizeof(ulib_uint);
+
+    for (unsigned i = 0; i < sizeof(size); ++i) {
+        ret._l._flags[offset + i] = size >> (i * CHAR_BIT);
+    }
+
+    return ret;
 }
 
 UString ustring_assign(char const *buf, size_t length) {
@@ -60,12 +68,12 @@ char *ustring(UString *string, size_t length) {
     char *buf;
 
     if (p_ustring_length_is_small(length)) {
-        *string = (UString){ ._s = { ._size = (ulib_uint)length + 1 } };
-        buf = string->_s._data;
+        *string = (UString)p_ustring_init_small((ulib_uint)length + 1);
+        buf = string->_s;
     } else {
         buf = ulib_malloc(length + 1);
         if (buf) {
-            *string = (UString){ ._l = { ._size = (ulib_uint)length + 1, ._data = buf } };
+            *string = ustring_large(buf, length);
         } else {
             *string = ustring_null;
         }
@@ -76,18 +84,20 @@ char *ustring(UString *string, size_t length) {
 }
 
 void ustring_deinit(UString *string) {
-    if (!p_ustring_is_small(*string)) ulib_free((void *)(string)->_l._data);
+    if (p_ustring_is_large(*string)) ulib_free((void *)(string)->_l._data);
 }
 
 char *ustring_deinit_return_data(UString *string) {
     char *ret;
+    ulib_byte byte = p_ustring_last_byte(*string);
 
-    if (p_ustring_is_small(*string)) {
-        ret = ulib_malloc(string->_size);
-        if (ret) memcpy(ret, string->_s._data, string->_size);
-    } else {
+    if (p_ustring_last_byte_is_large(byte)) {
         ret = (char *)string->_l._data;
         string->_l._data = NULL;
+    } else {
+        ulib_uint size = p_ustring_last_byte_size(byte);
+        ret = ulib_malloc(size);
+        if (ret) memcpy(ret, string->_s, size);
     }
 
     return ret;
@@ -147,8 +157,16 @@ bool ustring_ends_with(UString string, UString suffix) {
 }
 
 bool ustring_equals(UString lhs, UString rhs) {
-    ulib_uint len = ustring_length(lhs);
-    return len == ustring_length(rhs) && memcmp(ustring_data(lhs), ustring_data(rhs), len) == 0;
+    ulib_byte lb = p_ustring_last_byte(lhs), rb = p_ustring_last_byte(rhs);
+    if (lb != rb) return false;
+
+    if (p_ustring_last_byte_is_small(lb)) {
+        ulib_uint size = p_ustring_last_byte_size(lb);
+        return size ? memcmp(lhs._s, rhs._s, size - 1) == 0 : true;
+    }
+
+    ulib_uint lsize = p_ustring_large_size(lhs._l), rsize = p_ustring_large_size(rhs._l);
+    return lsize == rsize && memcmp(lhs._l._data, rhs._l._data, lsize - 1) == 0;
 }
 
 bool ustring_precedes(UString lhs, UString rhs) {

@@ -117,8 +117,6 @@ bool ustrbuf_test(void) {
 }
 
 bool ustring_test_base(void) {
-    utest_assert_uint(sizeof(UString), ==, 2 * sizeof(char *));
-    utest_assert_uint(offsetof(UString, _s._data), ==, sizeof(ulib_uint));
     utest_assert(ustring_is_empty(ustring_empty));
     utest_assert(ustring_data(ustring_empty)[0] == '\0');
     utest_assert(ustring_is_null(ustring_null));
@@ -221,6 +219,23 @@ bool ustring_test_convert(void) {
 
     ret = ustring_to_float(a, &float_out);
     utest_assert(ret == ULIB_ERR);
+
+    return true;
+}
+
+bool ustring_test_sso(void) {
+    utest_assert_uint(sizeof(UString), ==, 2 * sizeof(char *));
+
+    // Upper limit for SSO.
+    UString a = ustring_repeating(ustring_literal("a"), P_USTRING_SIZE - 1);
+    utest_assert(p_ustring_last_byte(a) == 0);
+    utest_assert_uint(ustring_size(a), ==, P_USTRING_SIZE);
+
+    // Ensure size is encoded correctly for large strings.
+    ulib_uint n = ulib_min(1690932, ULIB_UINT_MAX / 20);
+    a = ustring_repeating(ustring_literal("1234567890"), n);
+    utest_assert_uint(ustring_length(a), ==, n * 10);
+    ustring_deinit(&a);
 
     return true;
 }

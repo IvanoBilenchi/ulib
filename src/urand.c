@@ -18,7 +18,8 @@
 #endif
 
 char const default_charset_buf[] = "0123456789abcdefghijklmnopqrstuvwxyz";
-UString const default_charset = { ._l = { sizeof(default_charset_buf), default_charset_buf } };
+UString const default_charset = p_ustring_init_large(default_charset_buf,
+                                                     sizeof(default_charset_buf));
 
 UString const *urand_default_charset(void) {
     return &default_charset;

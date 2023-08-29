@@ -1,5 +1,5 @@
 /**
- * A counted string.
+ * The string type.
  *
  * @author Ivano Bilenchi
  *
@@ -14,37 +14,65 @@
 
 #include "ulib_ret.h"
 #include "ustring_raw.h"
+#include <limits.h>
 
 ULIB_BEGIN_DECLS
 
 /// @cond
 struct p_ustring_sizing {
-    ulib_uint s;
-    char const *d;
+    char const *_d;
+    ulib_uint _s;
 };
-#define P_USTRING_SMALL_SIZE (sizeof(struct p_ustring_sizing) - sizeof(ulib_uint))
-#define p_ustring_size_is_small(s) ((s) <= P_USTRING_SMALL_SIZE)
-#define p_ustring_length_is_small(l) ((l) < P_USTRING_SMALL_SIZE)
-#define p_ustring_is_small(string) p_ustring_size_is_small((string)._size)
+
+#define P_USTRING_FLAGS_SIZE (sizeof(struct p_ustring_sizing) - sizeof(char const *))
+
+struct p_ustring_large {
+    char const *_data;
+    ulib_byte _flags[P_USTRING_FLAGS_SIZE];
+};
+
+#define P_USTRING_SIZE sizeof(struct p_ustring_large)
+
+ULIB_INLINE
+ulib_uint p_ustring_large_size(struct p_ustring_large string) {
+    ulib_uint size = 0;
+    unsigned const offset = P_USTRING_FLAGS_SIZE - sizeof(size);
+
+    for (unsigned i = 0; i < sizeof(size); ++i) {
+        size |= (ulib_uint)string._flags[offset + i] << (i * CHAR_BIT);
+    }
+
+    return size & ((ulib_uint)-1 >> 1U);
+}
+
+#define p_ustring_last_byte(str) (ulib_byte)((str)._s[P_USTRING_SIZE - 1])
+#define p_ustring_last_byte_is_large(byte) ((byte) & (0x80))
+#define p_ustring_last_byte_is_small(byte) (!p_ustring_last_byte_is_large(byte))
+#define p_ustring_last_byte_size(byte) (ulib_uint)(P_USTRING_SIZE - (byte))
+#define p_ustring_last_byte_length(byte) (p_ustring_last_byte_size(byte) - 1)
+
+#define p_ustring_is_large(str) p_ustring_last_byte_is_large(p_ustring_last_byte(str))
+#define p_ustring_length_is_small(l) ((l) < P_USTRING_SIZE)
+#define p_ustring_init_small(size)                                                                 \
+    { ._s = { [P_USTRING_SIZE - 1] = (char)((P_USTRING_SIZE - (size))) }, }
+#define p_ustring_init_large(buf, size)                                                            \
+    {                                                                                              \
+        ._l = { ._data = (buf),                                                                    \
+                ._flags = { [P_USTRING_FLAGS_SIZE - sizeof(ulib_uint)] = (size),                   \
+                            [P_USTRING_FLAGS_SIZE - 1] = 0x80 } },                                 \
+    }
 /// @endcond
 
 /**
- * A counted string.
+ * The string type.
  *
  * @struct UString
  */
 typedef struct UString {
     /// @cond
     union {
-        ulib_uint _size;
-        struct {
-            ulib_uint _size;
-            char _data[P_USTRING_SMALL_SIZE];
-        } _s;
-        struct {
-            ulib_uint _size;
-            char const *_data;
-        } _l;
+        struct p_ustring_large _l;
+        char _s[P_USTRING_SIZE];
     };
     /// @endcond
 } UString;
@@ -75,7 +103,9 @@ extern UString const ustring_empty;
  */
 ULIB_INLINE
 ulib_uint ustring_size(UString string) {
-    return string._size;
+    ulib_byte flags = p_ustring_last_byte(string);
+    if (p_ustring_last_byte_is_small(flags)) return p_ustring_last_byte_size(flags);
+    return p_ustring_large_size(string._l);
 }
 
 /**
@@ -88,7 +118,8 @@ ulib_uint ustring_size(UString string) {
  */
 ULIB_INLINE
 ulib_uint ustring_length(UString string) {
-    return string._size ? (string)._size - 1 : 0;
+    ulib_uint size = ustring_size(string);
+    return size ? size - 1 : 0;
 }
 
 /**
@@ -100,7 +131,7 @@ ulib_uint ustring_length(UString string) {
  * @public @related UString
  */
 #define ustring_data(string)                                                                       \
-    ((char const *)(p_ustring_is_small(string) ? (string)._s._data : (string)._l._data))
+    ((char const *)(p_ustring_is_large(string) ? (string)._l._data : (string)._s))
 
 /**
  * Initializes a new string by taking ownership of the specified buffer,
