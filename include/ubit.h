@@ -187,7 +187,7 @@
 #define ubit_count_unset(N, mask) ((N)-ubit_count_set(N, mask))
 
 // Bit count implementations
-#if !defined(UBITS_NO_BUILTINS) && defined(__GNUC__)
+#if !defined(ULIB_NO_BUILTINS) && defined(__GNUC__)
 
 #define p_ubit_count_set_8(mask) __builtin_popcount(mask)
 #define p_ubit_count_set_16(mask) __builtin_popcount(mask)

@@ -9,7 +9,11 @@ Integers
 .. doxygendefine:: ULIB_UINT_MIN
 .. doxygendefine:: ULIB_UINT_MAX
 .. doxygendefine:: ULIB_UINT_FMT
-.. doxygendefine:: ulib_uint_next_power_2
+.. doxygenfunction:: ulib_uint_floor2
+.. doxygenfunction:: ulib_uint_ceil2
+.. doxygenfunction:: ulib_uint_log2
+.. doxygenfunction:: ulib_uint_pow2
+.. doxygenfunction:: ulib_uint_is_pow2
 
 .. doxygentypedef:: ulib_int
 .. doxygendefine:: ULIB_INT_MIN

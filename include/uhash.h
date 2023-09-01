@@ -445,8 +445,7 @@ static inline ulib_uint p_uhash_int64_hash(uint64_t key) {
     /* NOLINTBEGIN(clang-analyzer-core.uninitialized.Assign) */                                    \
     SCOPE uhash_ret uhash_resize_##T(UHash_##T *h, ulib_uint new_size) {                           \
         /* Uses (0.25*size) bytes instead of [sizeof(uh_key+uh_val)+.25]*size. */                  \
-        ulib_uint_next_power_2(new_size);                                                          \
-        if (new_size < 4) new_size = 4;                                                            \
+        new_size = new_size > 4 ? ulib_uint_ceil2(new_size) : 4;                                   \
                                                                                                    \
         if (h->_count >= p_uhash_upper_bound(new_size)) {                                          \
             /* Requested size is too small. */                                                     \
