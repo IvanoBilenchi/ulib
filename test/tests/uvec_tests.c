@@ -79,10 +79,6 @@ bool uvec_test_base(void) {
     uvec_remove_all(VTYPE, &v);
     utest_assert_uint(uvec_count(VTYPE, &v), ==, 0);
 
-    UVec(VTYPE) ov = v, nv = uvec_move(VTYPE, &ov);
-    utest_assert(v._size_exp == nv._size_exp && v._count == nv._count && v._data == nv._data);
-    utest_assert(!ov._size_exp && !ov._count && !ov._data);
-
     uvec_deinit(VTYPE, &v);
     return true;
 }
@@ -115,7 +111,7 @@ bool uvec_test_capacity(void) {
 
     ret = uvec_shrink(VTYPE, &v);
     utest_assert(ret == UVEC_OK);
-    utest_assert_uint(uvec_size(VTYPE, &v), ==, sizeof(void *) / sizeof(VTYPE));
+    utest_assert_uint(uvec_size(VTYPE, &v), ==, (sizeof(UVec(VTYPE)) - 1) / sizeof(VTYPE));
 
     uvec_deinit(VTYPE, &v);
     return true;

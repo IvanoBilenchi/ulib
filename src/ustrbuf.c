@@ -24,8 +24,9 @@ uvec_ret ustrbuf_append_format_list(UStrBuf *buf, char const *format, va_list ar
     uvec_ret ret = uvec_expand(char, buf, (ulib_uint)size);
 
     if (ret == UVEC_OK) {
-        vsnprintf(ustrbuf_data(buf) + buf->_count, size, format, args);
-        buf->_count += (ulib_uint)length;
+        ulib_uint old_length = ustrbuf_length(buf);
+        vsnprintf(ustrbuf_data(buf) + old_length, size, format, args);
+        p_uvec_set_count_char(buf, old_length + (ulib_uint)length);
     }
 
     return ret;
@@ -41,7 +42,7 @@ static inline UString ustrbuf_to_ustring_copy(UStrBuf *buf, ulib_uint length) {
 }
 
 static inline UString ustrbuf_to_ustring_reuse(UStrBuf *buf, ulib_uint length) {
-    char *nbuf = ulib_realloc(buf->_data, length + 1);
+    char *nbuf = ulib_realloc(buf->_l._data, length + 1);
 
     if (!nbuf) {
         ustrbuf_deinit(buf);
@@ -55,7 +56,7 @@ static inline UString ustrbuf_to_ustring_reuse(UStrBuf *buf, ulib_uint length) {
 UString ustrbuf_to_ustring(UStrBuf *buf) {
     ulib_uint length = ustrbuf_length(buf);
 
-    if (p_ustring_length_is_small(length) || p_uvec_inline(buf)) {
+    if (p_ustring_length_is_small(length) || p_uvec_is_small(char, buf)) {
         return ustrbuf_to_ustring_copy(buf, length);
     }
 
