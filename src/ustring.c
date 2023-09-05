@@ -69,7 +69,7 @@ char *ustring(UString *string, size_t length) {
 
     if (p_ustring_length_is_small(length)) {
         *string = (UString)p_ustring_init_small((ulib_uint)length + 1);
-        buf = string->_s;
+        buf = (char *)string->_s;
     } else {
         buf = ulib_malloc(length + 1);
         if (buf) {

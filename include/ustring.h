@@ -45,8 +45,9 @@ ulib_uint p_ustring_large_size(struct p_ustring_large string) {
     return size & ((ulib_uint)-1 >> 1U);
 }
 
-#define p_ustring_last_byte(str) (ulib_byte)((str)._s[P_USTRING_SIZE - 1])
-#define p_ustring_last_byte_is_large(byte) ((byte) & (0x80))
+#define P_USTRING_FLAG_LARGE ((ulib_byte)0x80)
+#define p_ustring_last_byte(str) ((str)._s[P_USTRING_SIZE - 1])
+#define p_ustring_last_byte_is_large(byte) ((byte) & (P_USTRING_FLAG_LARGE))
 #define p_ustring_last_byte_is_small(byte) (!p_ustring_last_byte_is_large(byte))
 #define p_ustring_last_byte_size(byte) (ulib_uint)(P_USTRING_SIZE - (byte))
 #define p_ustring_last_byte_length(byte) (p_ustring_last_byte_size(byte) - 1)
@@ -54,12 +55,12 @@ ulib_uint p_ustring_large_size(struct p_ustring_large string) {
 #define p_ustring_is_large(str) p_ustring_last_byte_is_large(p_ustring_last_byte(str))
 #define p_ustring_length_is_small(l) ((l) < P_USTRING_SIZE)
 #define p_ustring_init_small(size)                                                                 \
-    { ._s = { [P_USTRING_SIZE - 1] = (char)((P_USTRING_SIZE - (size))) }, }
+    { ._s = { [P_USTRING_SIZE - 1] = (ulib_byte)((P_USTRING_SIZE - (size))) }, }
 #define p_ustring_init_large(buf, size)                                                            \
     {                                                                                              \
         ._l = { ._data = (buf),                                                                    \
                 ._flags = { [P_USTRING_FLAGS_SIZE - sizeof(ulib_uint)] = (size),                   \
-                            [P_USTRING_FLAGS_SIZE - 1] = 0x80 } },                                 \
+                            [P_USTRING_FLAGS_SIZE - 1] = P_USTRING_FLAG_LARGE } },                 \
     }
 /// @endcond
 
@@ -72,7 +73,7 @@ typedef struct UString {
     /// @cond
     union {
         struct p_ustring_large _l;
-        char _s[P_USTRING_SIZE];
+        ulib_byte _s[P_USTRING_SIZE];
     };
     /// @endcond
 } UString;
@@ -131,7 +132,7 @@ ulib_uint ustring_length(UString string) {
  * @public @related UString
  */
 #define ustring_data(string)                                                                       \
-    ((char const *)(p_ustring_is_large(string) ? (string)._l._data : (string)._s))
+    (p_ustring_is_large(string) ? (string)._l._data : (char const *)(string)._s)
 
 /**
  * Initializes a new string by taking ownership of the specified buffer,
