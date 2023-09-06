@@ -47,9 +47,11 @@ typedef enum uvec_ret {
 #define P_UVEC_EXP_COMPACT ((ulib_byte)0xFF)
 #define P_UVEC_FLAG_LARGE ((ulib_byte)0x80)
 
-#define p_uvec_size(T) (sizeof(struct p_uvec_large_##T))
-#define p_uvec_exp_size(T) (sizeof(struct p_uvec_sizing_##T) - sizeof(T *) - sizeof(ulib_uint))
-#define p_uvec_small_size(T) ((sizeof(struct p_uvec_large_##T) - 1) / sizeof(T))
+#define p_uvec_size(T) (sizeof(struct P_ULIB_MACRO_CONCAT(p_uvec_large_, T)))
+#define p_uvec_exp_size(T)                                                                         \
+    (sizeof(struct P_ULIB_MACRO_CONCAT(p_uvec_sizing_, T)) - sizeof(T *) - sizeof(ulib_uint))
+#define p_uvec_small_size(T)                                                                       \
+    ((sizeof(struct P_ULIB_MACRO_CONCAT(p_uvec_large_, T)) - 1) / sizeof(T))
 #define p_uvec_exp(T, v) ((v)->_s[p_uvec_size(T) - 1])
 #define p_uvec_exp_is_large(e) ((e) & (P_UVEC_FLAG_LARGE))
 #define p_uvec_exp_is_small(e) (!p_uvec_exp_is_large(e))
@@ -59,22 +61,7 @@ typedef enum uvec_ret {
 #define p_uvec_is_small(T, v) p_uvec_exp_is_small(p_uvec_exp(T, v))
 #define p_uvec_is_compact(T, v) p_uvec_exp_is_compact(p_uvec_exp(T, v))
 
-/*
- * Identity macro.
- *
- * @param a LHS of the identity.
- * @param b RHS of the identity.
- * @return a == b
- */
 #define p_uvec_identical(a, b) ((a) == (b))
-
-/*
- * "Less than" comparison macro.
- *
- * @param a LHS of the comparison.
- * @param b RHS of the comparison.
- * @return a < b
- */
 #define p_uvec_less_than(a, b) ((a) < (b))
 
 /*

@@ -228,8 +228,14 @@ bool ustring_test_sso(void) {
 
     // Upper limit for SSO.
     UString a = ustring_repeating(ustring_literal("a"), P_USTRING_SIZE - 1);
-    utest_assert(p_ustring_last_byte(a) == 0);
+    utest_assert_false(p_ustring_is_large(a));
     utest_assert_uint(ustring_size(a), ==, P_USTRING_SIZE);
+    ustring_deinit(&a);
+
+    a = ustring_repeating(ustring_literal("a"), P_USTRING_SIZE);
+    utest_assert(p_ustring_is_large(a));
+    utest_assert_uint(ustring_size(a), ==, P_USTRING_SIZE + 1);
+    ustring_deinit(&a);
 
     // Ensure size is encoded correctly for large strings.
     ulib_uint n = ulib_min(1690932, ULIB_UINT_MAX / 20);

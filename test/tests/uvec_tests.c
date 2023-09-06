@@ -85,9 +85,24 @@ bool uvec_test_base(void) {
 
 bool uvec_test_capacity(void) {
     UVec(VTYPE) v = uvec(VTYPE);
-    ulib_uint const capacity = 10;
+    uvec_ret ret;
 
-    uvec_ret ret = uvec_reserve(VTYPE, &v, capacity);
+    for (unsigned i = 0; i < p_uvec_small_size(VTYPE); ++i) {
+        ret = uvec_push(VTYPE, &v, 42);
+        utest_assert(ret == UVEC_OK);
+    }
+
+    utest_assert(p_uvec_is_small(VTYPE, &v));
+    utest_assert_false(p_uvec_is_large(VTYPE, &v));
+
+    ret = uvec_push(VTYPE, &v, 42);
+    utest_assert(ret == UVEC_OK);
+    utest_assert(p_uvec_is_large(VTYPE, &v));
+    utest_assert_false(p_uvec_is_small(VTYPE, &v));
+    uvec_remove_all(VTYPE, &v);
+
+    ulib_uint const capacity = 10;
+    ret = uvec_reserve(VTYPE, &v, capacity);
     utest_assert(ret == UVEC_OK);
     utest_assert_uint(uvec_size(VTYPE, &v), >=, capacity);
 
@@ -104,6 +119,7 @@ bool uvec_test_capacity(void) {
 
     ret = uvec_shrink(VTYPE, &v);
     utest_assert(ret == UVEC_OK);
+    utest_assert(p_uvec_is_compact(VTYPE, &v));
     utest_assert_uint(uvec_size(VTYPE, &v), ==, uvec_count(VTYPE, &v));
 
     uvec_remove_all(VTYPE, &v);
@@ -111,7 +127,7 @@ bool uvec_test_capacity(void) {
 
     ret = uvec_shrink(VTYPE, &v);
     utest_assert(ret == UVEC_OK);
-    utest_assert_uint(uvec_size(VTYPE, &v), ==, (sizeof(UVec(VTYPE)) - 1) / sizeof(VTYPE));
+    utest_assert(p_uvec_is_small(VTYPE, &v));
 
     uvec_deinit(VTYPE, &v);
     return true;
