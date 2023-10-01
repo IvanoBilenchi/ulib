@@ -137,6 +137,8 @@ if(ULIB_LTO_ENABLED)
     set_property(TARGET ulib PROPERTY INTERPROCEDURAL_OPTIMIZATION ON)
 endif()
 
+install(TARGETS ulib)
+
 # Subprojects
 
 add_subdirectory("${ULIB_TEST_DIR}")
