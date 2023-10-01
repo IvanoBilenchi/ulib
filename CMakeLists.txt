@@ -128,6 +128,7 @@ target_include_directories(ulib
                            PRIVATE "${ULIB_PRIVATE_HEADERS_DIR}")
 target_precompile_headers(ulib PUBLIC ${ULIB_USER_HEADERS})
 add_dependencies(ulib ulib-headers)
+install(TARGETS ulib)
 
 if(ULIB_LIBRARY_TYPE STREQUAL "SHARED")
     target_compile_definitions(ulib PUBLIC ULIB_SHARED)
