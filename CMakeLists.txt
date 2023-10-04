@@ -102,16 +102,6 @@ list(APPEND ULIB_SOURCES ${ULIB_USER_SOURCES})
 # Targets #
 ###########
 
-# Copy headers
-
-add_custom_target(ulib-headers
-                  COMMAND "${CMAKE_COMMAND}" -E remove_directory "${ULIB_HEADERS_OUT_DIR}"
-                  COMMAND "${CMAKE_COMMAND}" -E make_directory "${ULIB_HEADERS_OUT_DIR}"
-                  COMMAND ${CMAKE_COMMAND} -E copy ${ULIB_PUBLIC_HEADERS} "${ULIB_HEADERS_OUT_DIR}"
-                  COMMENT "Copy headers to the build directory.")
-
-# Library
-
 add_library(ulib ${ULIB_LIBRARY_TYPE} ${ULIB_SOURCES})
 set_target_properties(ulib PROPERTIES
                       PREFIX ""
@@ -127,7 +117,6 @@ target_include_directories(ulib
                            PUBLIC "${ULIB_PUBLIC_HEADERS_DIR}"
                            PRIVATE "${ULIB_PRIVATE_HEADERS_DIR}")
 target_precompile_headers(ulib PUBLIC ${ULIB_USER_HEADERS})
-add_dependencies(ulib ulib-headers)
 
 if(ULIB_LIBRARY_TYPE STREQUAL "SHARED")
     target_compile_definitions(ulib PUBLIC ULIB_SHARED)
