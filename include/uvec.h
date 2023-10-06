@@ -13,6 +13,7 @@
 #define UVEC_H
 
 #include "ustd.h"
+#include "ustring_raw.h"
 
 ULIB_BEGIN_DECLS
 
@@ -43,6 +44,7 @@ typedef enum uvec_ret {
 #define UVEC_CACHE_LINE_SIZE 64
 #endif
 
+#define P_UVEC_LARGE_OPTIMIZATIONS_THRESH 128
 #define P_UVEC_SORT_STACK_SIZE 64
 #define P_UVEC_EXP_COMPACT ((ulib_byte)0xFF)
 #define P_UVEC_FLAG_LARGE ((ulib_byte)0x80)
@@ -449,6 +451,10 @@ typedef enum uvec_ret {
     SCOPE ulib_uint uvec_index_of_##T(UVec(T) const *vec, T item) {                                \
         T *data = uvec_data(T, vec);                                                               \
         ulib_uint count = uvec_count(T, vec);                                                      \
+        if (equal_func_is_identity && count > P_UVEC_LARGE_OPTIMIZATIONS_THRESH) {                 \
+            T *p = ulib_mem_mem(data, count * sizeof(T), &item, sizeof(item));                     \
+            return p ? (ulib_uint)(p - data) : count;                                              \
+        }                                                                                          \
         for (ulib_uint i = 0; i < count; ++i) {                                                    \
             if (equal_func(data[i], item)) return i;                                               \
         }                                                                                          \

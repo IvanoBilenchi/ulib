@@ -163,7 +163,11 @@ bool uvec_test_contains(void) {
     UVec(VTYPE) v1 = uvec(VTYPE);
     uvec_append_items(VTYPE, &v1, 3, 2, 5, 4, 5, 1);
 
+    utest_assert_uint(uvec_index_of(VTYPE, &v1, 3), ==, 0);
+    utest_assert_uint(uvec_index_of(VTYPE, &v1, 1), ==, 5);
     utest_assert_uint(uvec_index_of(VTYPE, &v1, 5), ==, 2);
+    utest_assert_uint(uvec_index_of_reverse(VTYPE, &v1, 3), ==, 0);
+    utest_assert_uint(uvec_index_of_reverse(VTYPE, &v1, 1), ==, 5);
     utest_assert_uint(uvec_index_of_reverse(VTYPE, &v1, 5), ==, 4);
     utest_assert_false(uvec_index_is_valid(VTYPE, &v1, uvec_index_of(VTYPE, &v1, 6)));
 
