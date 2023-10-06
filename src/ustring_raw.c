@@ -35,3 +35,42 @@ size_t ulib_str_flength_list(char const *format, va_list argptr) {
     va_end(args);
     return res > 0 ? (size_t)res : 0;
 }
+
+void *ulib_mem_chr_last(void const *haystack, int c, size_t h_len) {
+    if (h_len == 0) return NULL;
+    for (char const *h = (char const *)haystack + h_len; h-- != haystack;) {
+        if (*h == c) return (void *)h;
+    }
+    return NULL;
+}
+
+void *ulib_mem_mem(void const *haystack, size_t h_len, void const *needle, size_t n_len) {
+    if (n_len == 0 || h_len < n_len) return NULL;
+    if (n_len == 1) return memchr(haystack, ((char *)needle)[0], h_len);
+
+    char n_first = ((char *)needle)[0];
+    needle = (char const *)needle + 1;
+    n_len--;
+    char const *last_h = (char const *)haystack + h_len - n_len;
+
+    for (char const *h = haystack; (h = memchr(h, n_first, last_h - h)); ++h) {
+        if (memcmp(h + 1, needle, n_len) == 0) return (void *)h;
+    }
+
+    return NULL;
+}
+
+void *ulib_mem_mem_last(void const *haystack, size_t h_len, void const *needle, size_t n_len) {
+    if (n_len == 0 || h_len < n_len) return NULL;
+    if (n_len == 1) return ulib_mem_chr_last(haystack, ((char *)needle)[0], h_len);
+
+    char n_first = ((char *)needle)[0];
+    needle = (char const *)needle + 1;
+    n_len--;
+
+    for (char const *h = (char const *)haystack + h_len - n_len; h-- != haystack;) {
+        if (*h == n_first && memcmp(h + 1, needle, n_len) == 0) return (void *)h;
+    }
+
+    return NULL;
+}

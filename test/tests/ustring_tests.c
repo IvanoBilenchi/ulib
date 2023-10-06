@@ -68,6 +68,24 @@ bool ustring_utils_test(void) {
         }
     }
 
+    char const h[] = "123ab456ab789";
+    size_t const h_len = sizeof(h) - 1;
+
+    utest_assert(ulib_mem_chr_last(h, '1', h_len) == h);
+    utest_assert(ulib_mem_chr_last(h, 'b', h_len) == h + 9);
+    utest_assert(ulib_mem_chr_last(h, '9', h_len) == h + 12);
+    utest_assert(ulib_mem_chr_last(h, 'c', h_len) == NULL);
+    utest_assert(ulib_mem_mem(h, h_len, "12", sizeof("12") - 1) == h);
+    utest_assert(ulib_mem_mem(h, h_len, "123ab456ab789", sizeof("123ab456ab789") - 1) == h);
+    utest_assert(ulib_mem_mem(h, h_len, "ab", sizeof("ab") - 1) == h + 3);
+    utest_assert(ulib_mem_mem(h, h_len, "89", sizeof("89") - 1) == h + 11);
+    utest_assert(ulib_mem_mem(h, h_len, "cd", sizeof("cd") - 1) == NULL);
+    utest_assert(ulib_mem_mem_last(h, h_len, "12", sizeof("12") - 1) == h);
+    utest_assert(ulib_mem_mem_last(h, h_len, "123ab456ab789", sizeof("123ab456ab789") - 1) == h);
+    utest_assert(ulib_mem_mem_last(h, h_len, "ab", sizeof("ab") - 1) == h + 8);
+    utest_assert(ulib_mem_mem_last(h, h_len, "89", sizeof("89") - 1) == h + 11);
+    utest_assert(ulib_mem_mem_last(h, h_len, "cd", sizeof("cd") - 1) == NULL);
+
     return true;
 }
 
@@ -130,13 +148,23 @@ bool ustring_test_base(void) {
     utest_assert_false(ustring_is_null(a));
     utest_assert_uint(ustring_length(a), ==, str_len);
     utest_assert_string(ustring_data(a), ==, str);
+    utest_assert_uint(ustring_index_of(a, '1'), ==, 0);
     utest_assert_uint(ustring_index_of(a, 'b'), ==, 4);
+    utest_assert_uint(ustring_index_of(a, '9'), ==, 12);
     utest_assert_uint(ustring_index_of(a, 'c'), >=, ustring_length(a));
+    utest_assert_uint(ustring_index_of_last(a, '1'), ==, 0);
     utest_assert_uint(ustring_index_of_last(a, 'b'), ==, 9);
+    utest_assert_uint(ustring_index_of_last(a, '9'), ==, 12);
     utest_assert_uint(ustring_index_of_last(a, 'c'), >=, ustring_length(a));
+    utest_assert_uint(ustring_find(a, ustring_literal("12")), ==, 0);
+    utest_assert_uint(ustring_find(a, ustring_literal("123ab456ab789")), ==, 0);
     utest_assert_uint(ustring_find(a, ustring_literal("ab")), ==, 3);
+    utest_assert_uint(ustring_find(a, ustring_literal("89")), ==, 11);
     utest_assert_uint(ustring_find(a, ustring_literal("cd")), >=, ustring_length(a));
+    utest_assert_uint(ustring_find_last(a, ustring_literal("12")), ==, 0);
+    utest_assert_uint(ustring_find_last(a, ustring_literal("123ab456ab789")), ==, 0);
     utest_assert_uint(ustring_find_last(a, ustring_literal("ab")), ==, 8);
+    utest_assert_uint(ustring_find_last(a, ustring_literal("89")), ==, 11);
     utest_assert_uint(ustring_find_last(a, ustring_literal("cd")), >=, ustring_length(a));
     utest_assert(ustring_starts_with(a, ustring_literal("12")));
     utest_assert_false(ustring_starts_with(a, ustring_literal("23")));

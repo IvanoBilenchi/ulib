@@ -246,6 +246,47 @@ ulib_float ulib_str_to_float(char const *src, char **end) {
     return ret;
 }
 
+/**
+ * Finds the last occurrence of a character.
+ *
+ * @param haystack Memory area.
+ * @param c Character to find.
+ * @param h_len Length of the memory area.
+ * @return Pointer to the first occurrence of the character, or NULL.
+ *
+ * @public @related UString
+ */
+ULIB_PUBLIC
+void *ulib_mem_chr_last(void const *haystack, int c, size_t h_len);
+
+/**
+ * Finds the first occurrence of the specified substring.
+ *
+ * @param haystack Memory area.
+ * @param h_len Length of the memory area.
+ * @param needle Substring.
+ * @param n_len Length of the substring.
+ * @return Pointer to the first occurrence of the substring, or NULL.
+ *
+ * @public @related UString
+ */
+ULIB_PUBLIC
+void *ulib_mem_mem(void const *haystack, size_t h_len, void const *needle, size_t n_len);
+
+/**
+ * Finds the last occurrence of the specified substring.
+ *
+ * @param haystack Memory area.
+ * @param h_len Length of the memory area.
+ * @param needle Substring.
+ * @param n_len Length of the substring.
+ * @return Pointer to the last occurrence of the substring, or NULL.
+ *
+ * @public @related UString
+ */
+ULIB_PUBLIC
+void *ulib_mem_mem_last(void const *haystack, size_t h_len, void const *needle, size_t n_len);
+
 ULIB_END_DECLS
 
 #endif // USTRING_RAW_H

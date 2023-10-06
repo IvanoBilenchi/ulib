@@ -10,7 +10,6 @@
 #include "ustring.h"
 #include "umacros.h"
 #include "ustrbuf.h"
-#include <stdarg.h>
 
 UString const ustring_null = p_ustring_init_small(0);
 UString const ustring_empty = p_ustring_init_small(1);
@@ -110,38 +109,29 @@ UString ustring_dup(UString string) {
 ulib_uint ustring_index_of(UString string, char needle) {
     char const *data = ustring_data(string);
     ulib_uint len = ustring_length(string);
-    char const *chr = memchr(data, needle, len);
-    return chr ? (ulib_uint)(chr - data) : len;
+    char const *p = memchr(data, needle, len);
+    return p ? (ulib_uint)(p - data) : len;
 }
 
 ulib_uint ustring_index_of_last(UString string, char needle) {
     char const *data = ustring_data(string);
     ulib_uint len = ustring_length(string);
-
-    for (ulib_uint i = len; i-- != 0;) {
-        if (data[i] == needle) return i;
-    }
-
-    return len;
+    char const *p = ulib_mem_chr_last(data, needle, len);
+    return p ? (ulib_uint)(p - data) : len;
 }
 
 ulib_uint ustring_find(UString string, UString needle) {
-    char const *const str_data = ustring_data(string), *const n_data = ustring_data(needle);
-    ulib_uint const str_len = ustring_length(string), n_len = ustring_length(needle);
-    ulib_uint const max_i = n_len < str_len ? str_len - n_len : 0;
-    for (ulib_uint i = 0; i < max_i; ++i) {
-        if (memcmp(str_data + i, n_data, n_len) == 0) return i;
-    }
-    return str_len;
+    char const *const data = ustring_data(string);
+    ulib_uint const len = ustring_length(string);
+    char const *p = ulib_mem_mem(data, len, ustring_data(needle), ustring_length(needle));
+    return p ? (ulib_uint)(p - data) : len;
 }
 
 ulib_uint ustring_find_last(UString string, UString needle) {
-    char const *const str_data = ustring_data(string), *const n_data = ustring_data(needle);
-    ulib_uint const str_len = ustring_length(string), n_len = ustring_length(needle);
-    for (ulib_uint i = n_len < str_len ? str_len - n_len : 0; i-- != 0;) {
-        if (memcmp(str_data + i, n_data, n_len) == 0) return i;
-    }
-    return str_len;
+    char const *const data = ustring_data(string);
+    ulib_uint const len = ustring_length(string);
+    char const *p = ulib_mem_mem_last(data, len, ustring_data(needle), ustring_length(needle));
+    return p ? (ulib_uint)(p - data) : len;
 }
 
 bool ustring_starts_with(UString string, UString prefix) {
