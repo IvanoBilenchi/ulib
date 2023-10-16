@@ -49,8 +49,11 @@ The following commands allow you to build uLib:
    # [Optional] Edit build settings (library type, optimization options, etc.)
    ccmake cmake-build
 
-   # Build the library and copy public headers into the output dir
+   # Build the library
    cmake --build cmake-build --config Release
+
+   # [Optional] Install the library and its headers in <install path>
+   cmake --install cmake-build --prefix <install path>
 
    # [Optional] Build the documentation
    cmake --build cmake-build --target ulib-docs
