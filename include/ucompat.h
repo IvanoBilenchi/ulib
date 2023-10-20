@@ -42,7 +42,7 @@
  * @def ULIB_PRIVATE
  */
 
-#if defined _WIN32 || defined __CYGWIN__
+#if defined(_WIN32) || defined(__CYGWIN__)
     #ifdef ULIB_SHARED
         #ifdef ULIB_BUILDING
             #define ULIB_DLL_SPEC dllexport
@@ -50,7 +50,7 @@
             #define ULIB_DLL_SPEC dllimport
         #endif
         #ifdef __GNUC__
-            #define ULIB_PUBLIC __attribute__ ((ULIB_DLL_SPEC))
+            #define ULIB_PUBLIC __attribute__((ULIB_DLL_SPEC))
         #else
             #define ULIB_PUBLIC __declspec(ULIB_DLL_SPEC)
         #endif
@@ -60,8 +60,8 @@
     #define ULIB_PRIVATE
 #else
     #if __GNUC__ >= 4
-        #define ULIB_PUBLIC __attribute__ ((visibility ("default")))
-        #define ULIB_PRIVATE  __attribute__ ((visibility ("hidden")))
+        #define ULIB_PUBLIC __attribute__((visibility("default")))
+        #define ULIB_PRIVATE  __attribute__((visibility("hidden")))
     #else
         #define ULIB_PUBLIC
         #define ULIB_PRIVATE
@@ -72,16 +72,16 @@
 #define ULIB_INLINE static inline
 
 /// Suppresses unused variable warnings.
-#ifndef ulib_unused
-    #if (defined __clang__ && __clang_major__ >= 3) || (defined __GNUC__ && __GNUC__ >= 3)
-        #define ulib_unused __attribute__((__unused__))
-    #else
-        #define ulib_unused
-    #endif
+#if defined(__GNUC__) || defined(__clang__)
+    #define ulib_unused __attribute__((__unused__))
+#elif defined(_MSC_VER)
+    #define ulib_unused __pragma(warning(suppress : 4100))
+#else
+    #define ulib_unused
 #endif
 
 // Give hints to the static analyzer.
-#if (__clang_analyzer__)
+#if __clang_analyzer__
     #define p_ulib_analyzer_assert(exp) do { if (!(exp)) exit(1); } while(0)
 #else
     #define p_ulib_analyzer_assert(exp)
