@@ -2,7 +2,7 @@
  * @author Ivano Bilenchi
  *
  * @copyright Copyright (c) 2021 Ivano Bilenchi <https://ivanobilenchi.com>
- * @copyright SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: ISC
  *
  * @note Parts of the algorithms are from: http://howardhinnant.github.io/date_algorithms.html
  *

@@ -6,7 +6,7 @@
  *
  * @copyright Copyright (c) 2008, 2009, 2011 Attractive Chaos <attractor@live.co.uk>
  * @copyright Copyright (c) 2019 Ivano Bilenchi <https://ivanobilenchi.com>
- * @copyright SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: ISC
  *
  * @file
  */

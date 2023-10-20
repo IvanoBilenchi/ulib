@@ -12,9 +12,9 @@ See [CHANGELOG.md](CHANGELOG.md).
 
 ### Copyright and License
 
-Copyright (c) 2018-2023 [Ivano Bilenchi][home]
+Copyright © 2018-2023 [Ivano Bilenchi][home]
 
-uLib is distributed under the [MIT License](LICENSE).
+uLib is distributed under the [ISC License](LICENSE).
 
 [docs]: https://ivanobilenchi.com/docs/ulib
 [home]: https://ivanobilenchi.com

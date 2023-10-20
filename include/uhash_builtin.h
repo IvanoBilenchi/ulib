@@ -4,7 +4,7 @@
  * @author Ivano Bilenchi
  *
  * @copyright Copyright (c) 2022 Ivano Bilenchi <https://ivanobilenchi.com>
- * @copyright SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: ISC
  *
  * @file
  */

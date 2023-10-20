@@ -6,7 +6,7 @@
  * @note Some of these are from: https://github.com/GNOME/glib/blob/master/glib/gmacros.h
  *
  * @copyright Copyright (c) 2021 Ivano Bilenchi <https://ivanobilenchi.com>
- * @copyright SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: ISC
  *
  * @file
  */
