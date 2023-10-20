@@ -266,7 +266,7 @@ utime_stamp utime_get_timestamp(void) {
 
         if (!clocks_per_sec &&
             QueryPerformanceFrequency(&temp) &&
-            !(clocks_per_sec = (utime_ns)temp.QuadPart)) {
+            (clocks_per_sec = (utime_ns)temp.QuadPart) == 0) {
             return 0;
         }
 

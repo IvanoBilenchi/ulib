@@ -421,7 +421,7 @@ ustream_ret uostream_to_strbuf(UOStream *stream, UStrBuf *buf) {
     *stream = (UOStream){ .state = USTREAM_OK };
 
     if (!buf) {
-        if ((buf = ulib_alloc(buf))) {
+        if ((buf = ulib_alloc(buf)) != NULL) {
             *buf = ustrbuf();
             stream->free = ustream_strbuf_free;
         } else {

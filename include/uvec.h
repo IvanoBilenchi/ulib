@@ -55,6 +55,7 @@ typedef enum uvec_ret {
 #define p_uvec_small_size(T)                                                                       \
     ((sizeof(struct P_ULIB_MACRO_CONCAT(p_uvec_large_, T)) - 1) / sizeof(T))
 #define p_uvec_exp(T, v) ((v)->_s[p_uvec_size(T) - 1])
+#define p_uvec_exp_set(T, v, e) (p_uvec_exp(T, v) = (ulib_byte)(e))
 #define p_uvec_exp_is_large(e) ((e) & (P_UVEC_FLAG_LARGE))
 #define p_uvec_exp_is_small(e) (!p_uvec_exp_is_large(e))
 #define p_uvec_exp_is_compact(e) ((e) == P_UVEC_EXP_COMPACT)
@@ -162,7 +163,7 @@ typedef enum uvec_ret {
         UVec(T) ret = { 0 };                                                                       \
         ret._l._data = uvec_data(T, vec) + start;                                                  \
         ret._l._count = len;                                                                       \
-        p_uvec_exp(T, &ret) = P_UVEC_EXP_COMPACT;                                                  \
+        p_uvec_exp_set(T, &ret, P_UVEC_EXP_COMPACT);                                               \
         return ret;                                                                                \
     }                                                                                              \
                                                                                                    \
@@ -175,7 +176,7 @@ typedef enum uvec_ret {
             ulib_free(vec->_l._data);                                                              \
             vec->_l._data = NULL;                                                                  \
         }                                                                                          \
-        p_uvec_exp(T, vec) = 0;                                                                    \
+        p_uvec_exp_set(T, vec, 0);                                                                 \
     }                                                                                              \
                                                                                                    \
     SCOPE static inline UVec(T) uvec_move_##T(UVec(T) *vec) {                                      \
@@ -200,7 +201,7 @@ typedef enum uvec_ret {
         if (p_uvec_is_large(T, vec)) {                                                             \
             vec->_l._count = count;                                                                \
         } else {                                                                                   \
-            p_uvec_exp(T, vec) = count;                                                            \
+            p_uvec_exp_set(T, vec, count);                                                         \
         }                                                                                          \
     }                                                                                              \
                                                                                                    \
@@ -303,7 +304,7 @@ typedef enum uvec_ret {
         }                                                                                          \
                                                                                                    \
         vec->_l._data = data;                                                                      \
-        p_uvec_exp(T, vec) = ulib_uint_log2(size) | P_UVEC_FLAG_LARGE;                             \
+        p_uvec_exp_set(T, vec, ulib_uint_log2(size) | P_UVEC_FLAG_LARGE);                          \
                                                                                                    \
         return UVEC_OK;                                                                            \
     }                                                                                              \
@@ -365,13 +366,13 @@ typedef enum uvec_ret {
             T *old_data = vec->_l._data;                                                           \
             memcpy(vec->_s, old_data, count * sizeof(T));                                          \
             ulib_free(old_data);                                                                   \
-            p_uvec_exp(T, vec) = count;                                                            \
+            p_uvec_exp_set(T, vec, count);                                                         \
         } else if (!p_uvec_is_compact(T, vec)) {                                                   \
             /* Elements are not stored inline and vector is not compact, shrink */                 \
             T *data = (T *)ulib_realloc(vec->_l._data, count * sizeof(T));                         \
             if (!data) return UVEC_ERR;                                                            \
             vec->_l._data = data;                                                                  \
-            p_uvec_exp(T, vec) = P_UVEC_EXP_COMPACT;                                               \
+            p_uvec_exp_set(T, vec, P_UVEC_EXP_COMPACT);                                            \
         }                                                                                          \
                                                                                                    \
         return UVEC_OK;                                                                            \
@@ -451,9 +452,11 @@ typedef enum uvec_ret {
     SCOPE ulib_uint uvec_index_of_##T(UVec(T) const *vec, T item) {                                \
         T *data = uvec_data(T, vec);                                                               \
         ulib_uint count = uvec_count(T, vec);                                                      \
-        if (equal_func_is_identity && count > P_UVEC_LARGE_OPTIMIZATIONS_THRESH) {                 \
-            T *p = ulib_mem_mem(data, count * sizeof(T), &item, sizeof(item));                     \
-            return p ? (ulib_uint)(p - data) : count;                                              \
+        if (equal_func_is_identity) {                                                              \
+            if (count > P_UVEC_LARGE_OPTIMIZATIONS_THRESH) {                                       \
+                T *p = ulib_mem_mem(data, count * sizeof(T), &item, sizeof(item));                 \
+                return p ? (ulib_uint)(p - data) : count;                                          \
+            }                                                                                      \
         }                                                                                          \
         for (ulib_uint i = 0; i < count; ++i) {                                                    \
             if (equal_func(data[i], item)) return i;                                               \

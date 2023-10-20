@@ -26,7 +26,7 @@ static inline UString ustring_large(char const *buf, size_t length) {
     unsigned const offset = P_USTRING_FLAGS_SIZE - sizeof(ulib_uint);
 
     for (unsigned i = 0; i < sizeof(size); ++i) {
-        ret._l._flags[offset + i] = size >> (i * CHAR_BIT);
+        ret._l._flags[offset + i] = (ulib_byte)(size >> (i * CHAR_BIT));
     }
 
     return ret;

@@ -1485,8 +1485,9 @@ static inline ulib_uint p_uhash_int64_hash(uint64_t key) {
     for (UHash_Loop_##T p_h_##enum_name = { (ht), NULL, NULL, 0 },                                 \
          enum_name = { p_h_##enum_name.h, NULL, NULL, uhash_next(T, p_h_##enum_name.h, 0) };       \
          enum_name.i != enum_name.h->_size &&                                                      \
-         (enum_name.key = enum_name.h->_keys + enum_name.i) &&                                     \
-         (!uhash_is_map(T, enum_name.h) || (enum_name.val = enum_name.h->_vals + enum_name.i));    \
+         (enum_name.key = enum_name.h->_keys + enum_name.i) != NULL &&                             \
+         (!uhash_is_map(T, enum_name.h) ||                                                         \
+          (enum_name.val = enum_name.h->_vals + enum_name.i) != NULL);                             \
          enum_name.i = uhash_next(T, enum_name.h, enum_name.i + 1))
 
 #endif // UHASH_H

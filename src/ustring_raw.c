@@ -53,7 +53,7 @@ void *ulib_mem_mem(void const *haystack, size_t h_len, void const *needle, size_
     n_len--;
     char const *last_h = (char const *)haystack + h_len - n_len;
 
-    for (char const *h = haystack; (h = memchr(h, n_first, last_h - h)); ++h) {
+    for (char const *h = haystack; (h = memchr(h, n_first, last_h - h)) != NULL; ++h) {
         if (memcmp(h + 1, needle, n_len) == 0) return (void *)h;
     }
 
