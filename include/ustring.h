@@ -84,7 +84,7 @@ typedef struct UString {
  *
  * @public @related UString
  */
-ULIB_PUBLIC
+ULIB_API
 extern UString const ustring_null;
 
 /**
@@ -92,7 +92,7 @@ extern UString const ustring_null;
  *
  * @public @related UString
  */
-ULIB_PUBLIC
+ULIB_API
 extern UString const ustring_empty;
 
 /**
@@ -151,7 +151,7 @@ ulib_uint ustring_length(UString string) {
  *
  * @public @memberof UString
  */
-ULIB_PUBLIC
+ULIB_API
 UString ustring_assign(char const *buf, size_t length);
 
 /**
@@ -165,7 +165,7 @@ UString ustring_assign(char const *buf, size_t length);
  *
  * @public @memberof UString
  */
-ULIB_PUBLIC
+ULIB_API
 UString ustring_copy(char const *buf, size_t length);
 
 /**
@@ -181,7 +181,7 @@ UString ustring_copy(char const *buf, size_t length);
  *
  * @public @memberof UString
  */
-ULIB_PUBLIC
+ULIB_API
 UString ustring_wrap(char const *buf, size_t length);
 
 /**
@@ -196,7 +196,7 @@ UString ustring_wrap(char const *buf, size_t length);
  *
  * @public @memberof UString
  */
-ULIB_PUBLIC
+ULIB_API
 char *ustring(UString *string, size_t length);
 
 /**
@@ -279,7 +279,7 @@ UString ustring_wrap_buf(char const *buf) {
  *
  * @public @memberof UString
  */
-ULIB_PUBLIC
+ULIB_API
 UString ustring_dup(UString string);
 
 /**
@@ -291,7 +291,7 @@ UString ustring_dup(UString string);
  *
  * @public @memberof UString
  */
-ULIB_PUBLIC
+ULIB_API
 UString ustring_with_format(char const *format, ...);
 
 /**
@@ -303,7 +303,7 @@ UString ustring_with_format(char const *format, ...);
  *
  * @public @memberof UString
  */
-ULIB_PUBLIC
+ULIB_API
 UString ustring_with_format_list(char const *format, va_list args);
 
 /**
@@ -315,7 +315,7 @@ UString ustring_with_format_list(char const *format, va_list args);
  *
  * @public @memberof UString
  */
-ULIB_PUBLIC
+ULIB_API
 UString ustring_concat(UString const *strings, ulib_uint count);
 
 /**
@@ -328,7 +328,7 @@ UString ustring_concat(UString const *strings, ulib_uint count);
  *
  * @public @memberof UString
  */
-ULIB_PUBLIC
+ULIB_API
 UString ustring_join(UString const *strings, ulib_uint count, UString sep);
 
 /**
@@ -340,7 +340,7 @@ UString ustring_join(UString const *strings, ulib_uint count, UString sep);
  *
  * @public @memberof UString
  */
-ULIB_PUBLIC
+ULIB_API
 UString ustring_repeating(UString string, ulib_uint times);
 
 /**
@@ -379,7 +379,7 @@ bool ustring_is_lower(UString string) {
  *
  * @public @memberof UString
  */
-ULIB_PUBLIC
+ULIB_API
 UString ustring_to_upper(UString string);
 
 /**
@@ -390,7 +390,7 @@ UString ustring_to_upper(UString string);
  *
  * @public @memberof UString
  */
-ULIB_PUBLIC
+ULIB_API
 UString ustring_to_lower(UString string);
 
 /**
@@ -403,8 +403,8 @@ UString ustring_to_lower(UString string);
  *
  * @public @memberof UString
  */
+ULIB_API
 ULIB_PURE
-ULIB_PUBLIC
 ulib_uint ustring_index_of(UString string, char needle);
 
 /**
@@ -417,8 +417,8 @@ ulib_uint ustring_index_of(UString string, char needle);
  *
  * @public @memberof UString
  */
+ULIB_API
 ULIB_PURE
-ULIB_PUBLIC
 ulib_uint ustring_index_of_last(UString string, char needle);
 
 /**
@@ -431,8 +431,8 @@ ulib_uint ustring_index_of_last(UString string, char needle);
  *
  * @public @memberof UString
  */
+ULIB_API
 ULIB_PURE
-ULIB_PUBLIC
 ulib_uint ustring_find(UString string, UString needle);
 
 /**
@@ -445,8 +445,8 @@ ulib_uint ustring_find(UString string, UString needle);
  *
  * @public @memberof UString
  */
+ULIB_API
 ULIB_PURE
-ULIB_PUBLIC
 ulib_uint ustring_find_last(UString string, UString needle);
 
 /**
@@ -458,8 +458,8 @@ ulib_uint ustring_find_last(UString string, UString needle);
  *
  * @public @memberof UString
  */
+ULIB_API
 ULIB_PURE
-ULIB_PUBLIC
 bool ustring_starts_with(UString string, UString prefix);
 
 /**
@@ -471,8 +471,8 @@ bool ustring_starts_with(UString string, UString prefix);
  *
  * @public @memberof UString
  */
+ULIB_API
 ULIB_PURE
-ULIB_PUBLIC
 bool ustring_ends_with(UString string, UString suffix);
 
 /**
@@ -484,8 +484,8 @@ bool ustring_ends_with(UString string, UString suffix);
  *
  * @public @memberof UString
  */
+ULIB_API
 ULIB_PURE
-ULIB_PUBLIC
 bool ustring_equals(UString lhs, UString rhs);
 
 /**
@@ -497,8 +497,8 @@ bool ustring_equals(UString lhs, UString rhs);
  *
  * @public @memberof UString
  */
+ULIB_API
 ULIB_PURE
-ULIB_PUBLIC
 bool ustring_precedes(UString lhs, UString rhs);
 
 /**
@@ -510,8 +510,8 @@ bool ustring_precedes(UString lhs, UString rhs);
  *
  * @public @memberof UString
  */
+ULIB_API
 ULIB_PURE
-ULIB_PUBLIC
 int ustring_compare(UString lhs, UString rhs);
 
 /**
@@ -522,8 +522,8 @@ int ustring_compare(UString lhs, UString rhs);
  *
  * @public @memberof UString
  */
+ULIB_API
 ULIB_PURE
-ULIB_PUBLIC
 ulib_uint ustring_hash(UString string);
 
 /**
@@ -536,7 +536,7 @@ ulib_uint ustring_hash(UString string);
  *
  * @public @memberof UString
  */
-ULIB_PUBLIC
+ULIB_API
 ulib_ret ustring_to_int(UString string, ulib_int *out, unsigned base);
 
 /**
@@ -549,7 +549,7 @@ ulib_ret ustring_to_int(UString string, ulib_int *out, unsigned base);
  *
  * @public @memberof UString
  */
-ULIB_PUBLIC
+ULIB_API
 ulib_ret ustring_to_uint(UString string, ulib_uint *out, unsigned base);
 
 /**
@@ -561,7 +561,7 @@ ulib_ret ustring_to_uint(UString string, ulib_uint *out, unsigned base);
  *
  * @public @memberof UString
  */
-ULIB_PUBLIC
+ULIB_API
 ulib_ret ustring_to_float(UString string, ulib_float *out);
 
 /**
@@ -571,7 +571,7 @@ ulib_ret ustring_to_float(UString string, ulib_float *out);
  *
  * @public @memberof UString
  */
-ULIB_PUBLIC
+ULIB_API
 void ustring_deinit(UString *string);
 
 /**
@@ -584,7 +584,7 @@ void ustring_deinit(UString *string);
  *
  * @public @memberof UString
  */
-ULIB_PUBLIC
+ULIB_API
 char *ustring_deinit_return_data(UString *string);
 
 /**

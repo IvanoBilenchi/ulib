@@ -95,8 +95,8 @@ typedef struct UTime {
  *
  * @public @memberof UTime
  */
+ULIB_API
 ULIB_PURE
-ULIB_PUBLIC
 bool utime_equals(UTime const *a, UTime const *b);
 
 /**
@@ -108,7 +108,7 @@ bool utime_equals(UTime const *a, UTime const *b);
  *
  * @public @memberof UTime
  */
-ULIB_PUBLIC
+ULIB_API
 void utime_normalize_to_utc(UTime *time, int tz_hour, unsigned tz_minute);
 
 /**
@@ -119,8 +119,8 @@ void utime_normalize_to_utc(UTime *time, int tz_hour, unsigned tz_minute);
  *
  * @public @memberof UTime
  */
+ULIB_API
 ULIB_PURE
-ULIB_PUBLIC
 utime_stamp utime_to_timestamp(UTime const *time);
 
 /**
@@ -131,8 +131,8 @@ utime_stamp utime_to_timestamp(UTime const *time);
  *
  * @public @memberof UTime
  */
+ULIB_API
 ULIB_CONST
-ULIB_PUBLIC
 UTime utime_from_timestamp(utime_stamp ts);
 
 /**
@@ -144,7 +144,7 @@ UTime utime_from_timestamp(utime_stamp ts);
  *
  * @public @memberof UTime
  */
-ULIB_PUBLIC
+ULIB_API
 void utime_add(UTime *time, long long quantity, utime_unit unit);
 
 /**
@@ -157,8 +157,8 @@ void utime_add(UTime *time, long long quantity, utime_unit unit);
  *
  * @public @memberof UTime
  */
+ULIB_API
 ULIB_PURE
-ULIB_PUBLIC
 long long utime_diff(UTime const *a, UTime const *b, utime_unit unit);
 
 /**
@@ -171,7 +171,7 @@ long long utime_diff(UTime const *a, UTime const *b, utime_unit unit);
  *
  * @note You are responsible for deinitializing the returned string.
  */
-ULIB_PUBLIC
+ULIB_API
 UString utime_to_string(UTime const *time);
 
 /**
@@ -190,7 +190,7 @@ UString utime_to_string(UTime const *time);
  *
  * @public @memberof UTime
  */
-ULIB_PUBLIC
+ULIB_API
 bool utime_from_string(UTime *time, UString const *string);
 
 /**
@@ -229,7 +229,7 @@ unsigned utime_days_in_month(long long year, unsigned month) {
  *
  * @return Timestamp in days since January 1 1970, 00:00:00.
  */
-ULIB_PUBLIC
+ULIB_API
 utime_stamp utime_get_timestamp(void);
 
 /**
@@ -239,7 +239,7 @@ utime_stamp utime_get_timestamp(void);
  *
  * @note The timestamp is suitable for benchmarking purposes.
  */
-ULIB_PUBLIC
+ULIB_API
 utime_ns utime_get_ns(void);
 
 /**
@@ -248,8 +248,8 @@ utime_ns utime_get_ns(void);
  * @param t Time interval in nanoseconds.
  * @return Appropriate time unit.
  */
+ULIB_API
 ULIB_CONST
-ULIB_PUBLIC
 utime_unit utime_interval_unit_auto(utime_ns t);
 
 /**
@@ -259,8 +259,8 @@ utime_unit utime_interval_unit_auto(utime_ns t);
  * @param unit Time unit.
  * @return Converted time interval.
  */
+ULIB_API
 ULIB_CONST
-ULIB_PUBLIC
 double utime_interval_convert(utime_ns t, utime_unit unit);
 
 /**
@@ -272,7 +272,7 @@ double utime_interval_convert(utime_ns t, utime_unit unit);
  *
  * @note You are responsible for deinitializing the returned string.
  */
-ULIB_PUBLIC
+ULIB_API
 UString utime_interval_to_string(utime_ns t, utime_unit unit);
 
 /// @}

@@ -28,7 +28,7 @@ ULIB_BEGIN_DECLS
  *
  * @param seed Seed.
  */
-ULIB_PUBLIC
+ULIB_API
 void urand_set_seed(ulib_uint seed);
 
 /**
@@ -36,7 +36,7 @@ void urand_set_seed(ulib_uint seed);
  *
  * @return Default character set.
  */
-ULIB_PUBLIC
+ULIB_API
 ULIB_PURE
 UString const *urand_default_charset(void);
 
@@ -45,7 +45,7 @@ UString const *urand_default_charset(void);
  *
  * @return Random integer.
  */
-ULIB_PUBLIC
+ULIB_API
 ulib_int urand(void);
 
 /**
@@ -55,7 +55,7 @@ ulib_int urand(void);
  * @param len Length of the range.
  * @return Random integer.
  */
-ULIB_PUBLIC
+ULIB_API
 ulib_int urand_range(ulib_int start, ulib_uint len);
 
 /**
@@ -65,7 +65,7 @@ ulib_int urand_range(ulib_int start, ulib_uint len);
  * @param charset Character set, or NULL for the default alphanumeric character set.
  * @return Random string.
  */
-ULIB_PUBLIC
+ULIB_API
 UString urand_string(ulib_uint len, UString const *charset);
 
 /**
@@ -75,7 +75,7 @@ UString urand_string(ulib_uint len, UString const *charset);
  * @param buf Buffer to populate.
  * @param charset Character set, or NULL for the default alphanumeric character set.
  */
-ULIB_PUBLIC
+ULIB_API
 void urand_str(ulib_uint len, char *buf, UString const *charset);
 
 /// @}

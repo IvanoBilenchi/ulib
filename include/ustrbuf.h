@@ -83,7 +83,7 @@ typedef struct UVec(char) UStrBuf;
  *
  * @public @memberof UStrBuf
  */
-ULIB_PUBLIC
+ULIB_API
 uvec_ret ustrbuf_append_format(UStrBuf *buf, char const *format, ...);
 
 /**
@@ -96,7 +96,7 @@ uvec_ret ustrbuf_append_format(UStrBuf *buf, char const *format, ...);
  *
  * @public @memberof UStrBuf
  */
-ULIB_PUBLIC
+ULIB_API
 uvec_ret ustrbuf_append_format_list(UStrBuf *buf, char const *format, va_list args);
 
 /**
@@ -109,7 +109,7 @@ uvec_ret ustrbuf_append_format_list(UStrBuf *buf, char const *format, va_list ar
  *
  * @public @memberof UStrBuf
  */
-ULIB_PUBLIC
+ULIB_API
 UString ustrbuf_to_ustring(UStrBuf *buf);
 
 /**

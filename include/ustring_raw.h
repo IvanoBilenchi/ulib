@@ -83,7 +83,7 @@ char ulib_char_to_lower(char c) {
  *
  * @public @related UString
  */
-ULIB_PUBLIC
+ULIB_API
 char *ulib_str_dup(char const *string, size_t length);
 
 /**
@@ -95,8 +95,8 @@ char *ulib_str_dup(char const *string, size_t length);
  *
  * @public @related UString
  */
+ULIB_API
 ULIB_PURE
-ULIB_PUBLIC
 size_t ulib_str_flength(char const *format, ...);
 
 /**
@@ -108,8 +108,8 @@ size_t ulib_str_flength(char const *format, ...);
  *
  * @public @related UString
  */
+ULIB_API
 ULIB_PURE
-ULIB_PUBLIC
 size_t ulib_str_flength_list(char const *format, va_list args);
 
 /**
@@ -264,8 +264,8 @@ ulib_float ulib_str_to_float(char const *src, char **end) {
  *
  * @public @related UString
  */
+ULIB_API
 ULIB_PURE
-ULIB_PUBLIC
 void *ulib_mem_chr_last(void const *haystack, int c, size_t h_len);
 
 /**
@@ -279,8 +279,8 @@ void *ulib_mem_chr_last(void const *haystack, int c, size_t h_len);
  *
  * @public @related UString
  */
+ULIB_API
 ULIB_PURE
-ULIB_PUBLIC
 void *ulib_mem_mem(void const *haystack, size_t h_len, void const *needle, size_t n_len);
 
 /**
@@ -294,8 +294,8 @@ void *ulib_mem_mem(void const *haystack, size_t h_len, void const *needle, size_
  *
  * @public @related UString
  */
+ULIB_API
 ULIB_PURE
-ULIB_PUBLIC
 void *ulib_mem_mem_last(void const *haystack, size_t h_len, void const *needle, size_t n_len);
 
 ULIB_END_DECLS

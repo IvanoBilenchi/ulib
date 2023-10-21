@@ -119,7 +119,7 @@ UIStream uistream(void *ctx, ustream_ret (*read_func)(void *, void *, size_t, si
  *
  * @public @memberof UIStream
  */
-ULIB_PUBLIC
+ULIB_API
 ustream_ret uistream_deinit(UIStream *stream);
 
 /**
@@ -130,7 +130,7 @@ ustream_ret uistream_deinit(UIStream *stream);
  *
  * @public @memberof UIStream
  */
-ULIB_PUBLIC
+ULIB_API
 ustream_ret uistream_reset(UIStream *stream);
 
 /**
@@ -144,7 +144,7 @@ ustream_ret uistream_reset(UIStream *stream);
  *
  * @public @memberof UIStream
  */
-ULIB_PUBLIC
+ULIB_API
 ustream_ret uistream_read(UIStream *stream, void *buf, size_t count, size_t *read);
 
 /**
@@ -154,7 +154,7 @@ ustream_ret uistream_read(UIStream *stream, void *buf, size_t count, size_t *rea
  *
  * @public @memberof UIStream
  */
-ULIB_PUBLIC
+ULIB_API
 UIStream *uistream_std(void);
 
 /**
@@ -166,7 +166,7 @@ UIStream *uistream_std(void);
  *
  * @public @memberof UIStream
  */
-ULIB_PUBLIC
+ULIB_API
 ustream_ret uistream_from_path(UIStream *stream, char const *path);
 
 /**
@@ -178,7 +178,7 @@ ustream_ret uistream_from_path(UIStream *stream, char const *path);
  *
  * @public @memberof UIStream
  */
-ULIB_PUBLIC
+ULIB_API
 ustream_ret uistream_from_file(UIStream *stream, FILE *file);
 
 /**
@@ -191,7 +191,7 @@ ustream_ret uistream_from_file(UIStream *stream, FILE *file);
  *
  * @public @memberof UIStream
  */
-ULIB_PUBLIC
+ULIB_API
 ustream_ret uistream_from_buf(UIStream *stream, void const *buf, size_t size);
 
 /**
@@ -203,7 +203,7 @@ ustream_ret uistream_from_buf(UIStream *stream, void const *buf, size_t size);
  *
  * @public @memberof UIStream
  */
-ULIB_PUBLIC
+ULIB_API
 ustream_ret uistream_from_strbuf(UIStream *stream, UStrBuf const *buf);
 
 /**
@@ -215,7 +215,7 @@ ustream_ret uistream_from_strbuf(UIStream *stream, UStrBuf const *buf);
  *
  * @public @memberof UIStream
  */
-ULIB_PUBLIC
+ULIB_API
 ustream_ret uistream_from_string(UIStream *stream, char const *string);
 
 /**
@@ -227,7 +227,7 @@ ustream_ret uistream_from_string(UIStream *stream, char const *string);
  *
  * @public @memberof UIStream
  */
-ULIB_PUBLIC
+ULIB_API
 ustream_ret uistream_from_ustring(UIStream *stream, UString const *string);
 
 /// Models an output stream.
@@ -330,7 +330,7 @@ UOStream uostream(void *ctx, ustream_ret (*write_func)(void *, void const *, siz
  *
  * @public @memberof UOStream
  */
-ULIB_PUBLIC
+ULIB_API
 ustream_ret uostream_deinit(UOStream *stream);
 
 /**
@@ -341,7 +341,7 @@ ustream_ret uostream_deinit(UOStream *stream);
  *
  * @public @memberof UOStream
  */
-ULIB_PUBLIC
+ULIB_API
 ustream_ret uostream_flush(UOStream *stream);
 
 /**
@@ -355,7 +355,7 @@ ustream_ret uostream_flush(UOStream *stream);
  *
  * @public @memberof UOStream
  */
-ULIB_PUBLIC
+ULIB_API
 ustream_ret uostream_write(UOStream *stream, void const *buf, size_t count, size_t *written);
 
 /**
@@ -369,7 +369,7 @@ ustream_ret uostream_write(UOStream *stream, void const *buf, size_t count, size
  *
  * @public @memberof UOStream
  */
-ULIB_PUBLIC
+ULIB_API
 ustream_ret uostream_writef(UOStream *stream, size_t *written, char const *format, ...);
 
 /**
@@ -383,7 +383,7 @@ ustream_ret uostream_writef(UOStream *stream, size_t *written, char const *forma
  *
  * @public @memberof UOStream
  */
-ULIB_PUBLIC
+ULIB_API
 ustream_ret
 uostream_writef_list(UOStream *stream, size_t *written, char const *format, va_list args);
 
@@ -397,7 +397,7 @@ uostream_writef_list(UOStream *stream, size_t *written, char const *format, va_l
  *
  * @public @memberof UOStream
  */
-ULIB_PUBLIC
+ULIB_API
 ustream_ret uostream_write_string(UOStream *stream, UString const *string, size_t *written);
 
 /**
@@ -410,7 +410,7 @@ ustream_ret uostream_write_string(UOStream *stream, UString const *string, size_
  *
  * @public @memberof UOStream
  */
-ULIB_PUBLIC
+ULIB_API
 ustream_ret uostream_write_time(UOStream *stream, UTime const *time, size_t *written);
 
 /**
@@ -425,7 +425,7 @@ ustream_ret uostream_write_time(UOStream *stream, UTime const *time, size_t *wri
  *
  * @public @memberof UOStream
  */
-ULIB_PUBLIC
+ULIB_API
 ustream_ret uostream_write_time_interval(UOStream *stream, utime_ns interval, utime_unit unit,
                                          unsigned decimal_digits, size_t *written);
 
@@ -439,7 +439,7 @@ ustream_ret uostream_write_time_interval(UOStream *stream, utime_ns interval, ut
  *
  * @public @memberof UOStream
  */
-ULIB_PUBLIC
+ULIB_API
 ustream_ret uostream_write_version(UOStream *stream, UVersion const *version, size_t *written);
 
 /**
@@ -449,7 +449,7 @@ ustream_ret uostream_write_version(UOStream *stream, UVersion const *version, si
  *
  * @public @memberof UOStream
  */
-ULIB_PUBLIC
+ULIB_API
 UOStream *uostream_std(void);
 
 /**
@@ -459,7 +459,7 @@ UOStream *uostream_std(void);
  *
  * @public @memberof UOStream
  */
-ULIB_PUBLIC
+ULIB_API
 UOStream *uostream_stderr(void);
 
 /**
@@ -469,7 +469,7 @@ UOStream *uostream_stderr(void);
  *
  * @public @memberof UOStream
  */
-ULIB_PUBLIC
+ULIB_API
 UOStream *uostream_null(void);
 
 /**
@@ -481,7 +481,7 @@ UOStream *uostream_null(void);
  *
  * @public @memberof UOStream
  */
-ULIB_PUBLIC
+ULIB_API
 ustream_ret uostream_to_path(UOStream *stream, char const *path);
 
 /**
@@ -495,7 +495,7 @@ ustream_ret uostream_to_path(UOStream *stream, char const *path);
  *
  * @public @memberof UOStream
  */
-ULIB_PUBLIC
+ULIB_API
 ustream_ret uostream_to_file(UOStream *stream, FILE *file);
 
 /**
@@ -508,7 +508,7 @@ ustream_ret uostream_to_file(UOStream *stream, FILE *file);
  *
  * @public @memberof UOStream
  */
-ULIB_PUBLIC
+ULIB_API
 ustream_ret uostream_to_buf(UOStream *stream, void *buf, size_t size);
 
 /**
@@ -523,7 +523,7 @@ ustream_ret uostream_to_buf(UOStream *stream, void *buf, size_t size);
  *
  * @public @memberof UOStream
  */
-ULIB_PUBLIC
+ULIB_API
 ustream_ret uostream_to_strbuf(UOStream *stream, UStrBuf *buf);
 
 /**
@@ -542,7 +542,7 @@ ustream_ret uostream_to_strbuf(UOStream *stream, UStrBuf *buf);
  *
  * @public @memberof UOStream
  */
-ULIB_PUBLIC
+ULIB_API
 ustream_ret uostream_to_multi(UOStream *stream);
 
 /**
@@ -557,7 +557,7 @@ ustream_ret uostream_to_multi(UOStream *stream);
  *
  * @public @memberof UOStream
  */
-ULIB_PUBLIC
+ULIB_API
 ustream_ret uostream_add_substream(UOStream *stream, UOStream const *other);
 
 ULIB_END_DECLS

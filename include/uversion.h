@@ -57,8 +57,8 @@ UVersion uversion(unsigned major, unsigned minor, unsigned patch) {
  *
  * @public @memberof UVersion
  */
+ULIB_API
 ULIB_CONST
-ULIB_PUBLIC
 int uversion_compare(UVersion lhs, UVersion rhs);
 
 /**
@@ -69,7 +69,7 @@ int uversion_compare(UVersion lhs, UVersion rhs);
  *
  * @public @memberof UVersion
  */
-ULIB_PUBLIC
+ULIB_API
 UString uversion_to_string(UVersion const *version);
 
 ULIB_END_DECLS

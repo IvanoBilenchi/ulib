@@ -34,12 +34,7 @@
 
 /**
  * Marks public API, whose symbols should be exported.
- * @def ULIB_PUBLIC
- */
-
-/**
- * Marks private API, whose symbols should not be exported.
- * @def ULIB_PRIVATE
+ * @def ULIB_API
  */
 
 #if defined(_WIN32) || defined(__CYGWIN__)
@@ -50,21 +45,18 @@
             #define ULIB_DLL_SPEC dllimport
         #endif
         #ifdef __GNUC__
-            #define ULIB_PUBLIC __attribute__((ULIB_DLL_SPEC))
+            #define ULIB_API __attribute__((ULIB_DLL_SPEC))
         #else
-            #define ULIB_PUBLIC __declspec(ULIB_DLL_SPEC)
+            #define ULIB_API __declspec(ULIB_DLL_SPEC)
         #endif
     #else
-        #define ULIB_PUBLIC
+        #define ULIB_API
     #endif
-    #define ULIB_PRIVATE
 #else
     #if __GNUC__ >= 4
-        #define ULIB_PUBLIC __attribute__((__visibility__("default")))
-        #define ULIB_PRIVATE  __attribute__((__visibility__("hidden")))
+        #define ULIB_API __attribute__((__visibility__("default")))
     #else
-        #define ULIB_PUBLIC
-        #define ULIB_PRIVATE
+        #define ULIB_API
     #endif
 #endif
 

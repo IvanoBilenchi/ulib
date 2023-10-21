@@ -216,7 +216,7 @@ ULIB_BEGIN_DECLS
  *
  * @return True if detection started successfully, false otherwise.
  */
-ULIB_PUBLIC
+ULIB_API
 bool utest_leak_start(void);
 
 /**
@@ -224,23 +224,23 @@ bool utest_leak_start(void);
  *
  * @return True if no leaks were detected, false otherwise.
  */
-ULIB_PUBLIC
+ULIB_API
 bool utest_leak_end(void);
 
 /// @}
 
 // Private API
 
-ULIB_PUBLIC
+ULIB_API
 void *p_utest_leak_malloc_impl(size_t size, char const *file, char const *fn, int line);
 
-ULIB_PUBLIC
+ULIB_API
 void *p_utest_leak_calloc_impl(size_t num, size_t size, char const *file, char const *fn, int line);
 
-ULIB_PUBLIC
+ULIB_API
 void *p_utest_leak_realloc_impl(void *ptr, size_t size, char const *file, char const *fn, int line);
 
-ULIB_PUBLIC
+ULIB_API
 void p_utest_leak_free_impl(void *ptr);
 
 #define p_utest_leak_malloc(size) p_utest_leak_malloc_impl(size, __FILE__, __func__, __LINE__)
