@@ -37,6 +37,7 @@ void urand_set_seed(ulib_uint seed);
  * @return Default character set.
  */
 ULIB_PUBLIC
+ULIB_PURE
 UString const *urand_default_charset(void);
 
 /**

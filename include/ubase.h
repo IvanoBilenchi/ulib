@@ -179,16 +179,19 @@ typedef uint16_t ulib_uint;
 
 #if !defined(ULIB_NO_BUILTINS) && defined(__GNUC__)
 
+ULIB_CONST
 ULIB_INLINE
 ulib_uint ulib_uint_floor2(ulib_uint x) {
     return (ulib_uint)1 << (sizeof(unsigned) * CHAR_BIT - __builtin_clz(x) - 1);
 }
 
+ULIB_CONST
 ULIB_INLINE
 ulib_uint ulib_uint_ceil2(ulib_uint x) {
     return (ulib_uint)1 << (sizeof(unsigned) * CHAR_BIT - __builtin_clz(x) - 1 * !(x & (x - 1)));
 }
 
+ULIB_CONST
 ULIB_INLINE
 ulib_uint ulib_uint_log2(ulib_uint x) {
     return sizeof(unsigned) * CHAR_BIT - __builtin_clz(x) - 1;
@@ -196,6 +199,7 @@ ulib_uint ulib_uint_log2(ulib_uint x) {
 
 #else
 
+ULIB_CONST
 ULIB_INLINE
 ulib_uint ulib_uint_floor2(ulib_uint x) {
     x |= x >> 1;
@@ -205,6 +209,7 @@ ulib_uint ulib_uint_floor2(ulib_uint x) {
     return x - (x >> 1);
 }
 
+ULIB_CONST
 ULIB_INLINE
 ulib_uint ulib_uint_ceil2(ulib_uint x) {
     x--;
@@ -215,6 +220,7 @@ ulib_uint ulib_uint_ceil2(ulib_uint x) {
     return x + 1;
 }
 
+ULIB_CONST
 ULIB_INLINE
 ulib_uint ulib_uint_log2(ulib_uint x) {
     static ulib_byte const tab[] = {
@@ -245,17 +251,20 @@ typedef uint64_t ulib_uint;
 
 #if !defined(ULIB_NO_BUILTINS) && defined(__GNUC__)
 
+ULIB_CONST
 ULIB_INLINE
 ulib_uint ulib_uint_floor2(ulib_uint x) {
     return (ulib_uint)1 << (sizeof(unsigned long long) * CHAR_BIT - __builtin_clzll(x) - 1);
 }
 
+ULIB_CONST
 ULIB_INLINE
 ulib_uint ulib_uint_ceil2(ulib_uint x) {
     return (ulib_uint)1 << (sizeof(unsigned long long) * CHAR_BIT - __builtin_clzll(x) -
                             1 * !(x & (x - 1)));
 }
 
+ULIB_CONST
 ULIB_INLINE
 ulib_uint ulib_uint_log2(ulib_uint x) {
     return sizeof(unsigned long long) * CHAR_BIT - __builtin_clzll(x) - 1;
@@ -263,6 +272,7 @@ ulib_uint ulib_uint_log2(ulib_uint x) {
 
 #else
 
+ULIB_CONST
 ULIB_INLINE
 ulib_uint ulib_uint_floor2(ulib_uint x) {
     x |= x >> 1;
@@ -274,6 +284,7 @@ ulib_uint ulib_uint_floor2(ulib_uint x) {
     return x - (x >> 1);
 }
 
+ULIB_CONST
 ULIB_INLINE
 ulib_uint ulib_uint_ceil2(ulib_uint x) {
     x--;
@@ -286,6 +297,7 @@ ulib_uint ulib_uint_ceil2(ulib_uint x) {
     return x + 1;
 }
 
+ULIB_CONST
 ULIB_INLINE
 ulib_uint ulib_uint_log2(ulib_uint x) {
     static ulib_byte const tab[] = {
@@ -318,17 +330,20 @@ typedef uint32_t ulib_uint;
 
 #if !defined(ULIB_NO_BUILTINS) && defined(__GNUC__)
 
+ULIB_CONST
 ULIB_INLINE
 ulib_uint ulib_uint_floor2(ulib_uint x) {
     return (ulib_uint)1 << (sizeof(unsigned long) * CHAR_BIT - __builtin_clzl(x) - 1);
 }
 
+ULIB_CONST
 ULIB_INLINE
 ulib_uint ulib_uint_ceil2(ulib_uint x) {
     return (ulib_uint)1 << (sizeof(unsigned long) * CHAR_BIT - __builtin_clzl(x) -
                             1 * !(x & (x - 1)));
 }
 
+ULIB_CONST
 ULIB_INLINE
 ulib_uint ulib_uint_log2(ulib_uint x) {
     return sizeof(unsigned long) * CHAR_BIT - __builtin_clzl(x) - 1;
@@ -336,6 +351,7 @@ ulib_uint ulib_uint_log2(ulib_uint x) {
 
 #else
 
+ULIB_CONST
 ULIB_INLINE
 ulib_uint ulib_uint_floor2(ulib_uint x) {
     x |= x >> 1;
@@ -346,6 +362,7 @@ ulib_uint ulib_uint_floor2(ulib_uint x) {
     return x - (x >> 1);
 }
 
+ULIB_CONST
 ULIB_INLINE
 ulib_uint ulib_uint_ceil2(ulib_uint x) {
     x--;
@@ -357,6 +374,7 @@ ulib_uint ulib_uint_ceil2(ulib_uint x) {
     return x + 1;
 }
 
+ULIB_CONST
 ULIB_INLINE
 ulib_uint ulib_uint_log2(ulib_uint x) {
     static ulib_byte const tab[] = {
@@ -391,6 +409,7 @@ typedef double ulib_float;
  * @param x Exponent.
  * @return Two to the power of x.
  */
+ULIB_CONST
 ULIB_INLINE
 ulib_uint ulib_uint_pow2(ulib_byte x) {
     return ((ulib_uint)1) << x;
@@ -402,6 +421,7 @@ ulib_uint ulib_uint_pow2(ulib_byte x) {
  * @param x Unsigned integer.
  * @return True if x is a power of two, false otherwise.
  */
+ULIB_CONST
 ULIB_INLINE
 bool ulib_uint_is_pow2(ulib_uint x) {
     return !(x & (x - 1));

@@ -102,7 +102,9 @@ typedef enum uhash_ret {
  * @param h2 Second hash.
  * @return Combined hash.
  */
-static inline ulib_uint p_uhash_combine(ulib_uint h1, ulib_uint h2) {
+ULIB_CONST
+ULIB_INLINE
+ulib_uint p_uhash_combine(ulib_uint h1, ulib_uint h2) {
     return (h1 ^ h2) + P_UHASH_COMBINE_MAGIC + (h1 << P_UHASH_COMBINE_LS) +
            (h2 >> P_UHASH_COMBINE_RS);
 }
@@ -113,7 +115,9 @@ static inline ulib_uint p_uhash_combine(ulib_uint h1, ulib_uint h2) {
  * @param key [char const *] The string to hash.
  * @return [ulib_uint] The hash value.
  */
-static inline ulib_uint p_uhash_x31_str_hash(char const *key) {
+ULIB_PURE
+ULIB_INLINE
+ulib_uint p_uhash_x31_str_hash(char const *key) {
     ulib_uint h = (ulib_uint)*key;
     if (!h) return 0;
     for (++key; *key; ++key) h = (h << 5U) - h + (ulib_uint)(*key);
@@ -126,11 +130,15 @@ static inline ulib_uint p_uhash_x31_str_hash(char const *key) {
 
 #if defined ULIB_TINY
 
-static inline ulib_uint p_uhash_int32_hash(uint32_t key) {
+ULIB_CONST
+ULIB_INLINE
+ulib_uint p_uhash_int32_hash(uint32_t key) {
     return (ulib_uint)(key >> 17U ^ key ^ key << 6U);
 }
 
-static inline ulib_uint p_uhash_int64_hash(uint64_t key) {
+ULIB_CONST
+ULIB_INLINE
+ulib_uint p_uhash_int64_hash(uint64_t key) {
     return (ulib_uint)(key >> 49U ^ key >> 33U ^ key >> 17U ^ key ^ key << 6U ^ key << 23U ^
                        key << 39U);
 }
@@ -144,7 +152,9 @@ static inline ulib_uint p_uhash_int64_hash(uint64_t key) {
 
 #define p_uhash_int32_hash(key) p_uhash_cast_hash(key)
 
-static inline ulib_uint p_uhash_int64_hash(uint64_t key) {
+ULIB_CONST
+ULIB_INLINE
+ulib_uint p_uhash_int64_hash(uint64_t key) {
     return (ulib_uint)(key >> 33U ^ key ^ key << 11U);
 }
 
@@ -204,36 +214,36 @@ static inline ulib_uint p_uhash_int64_hash(uint64_t key) {
  * Generates function declarations for the specified hash table type.
  *
  * @param T [symbol] Hash table name.
- * @param SCOPE [scope] Scope of the declarations.
+ * @param ATTRS [attributes] Attributes of the declarations.
  * @param uh_key [type] Hash table key type.
  * @param uh_val [type] Hash table value type.
  */
-#define P_UHASH_DECL(T, SCOPE, uh_key, uh_val)                                                     \
+#define P_UHASH_DECL(T, ATTRS, uh_key, uh_val)                                                     \
     /** @cond */                                                                                   \
-    SCOPE void uhash_deinit_##T(UHash_##T *h);                                                     \
-    SCOPE uhash_ret uhash_copy_##T(UHash_##T const *src, UHash_##T *dest);                         \
-    SCOPE uhash_ret uhash_copy_as_set_##T(UHash_##T const *src, UHash_##T *dest);                  \
-    SCOPE void uhash_clear_##T(UHash_##T *h);                                                      \
-    SCOPE ulib_uint uhash_get_##T(UHash_##T const *h, uh_key key);                                 \
-    SCOPE uhash_ret uhash_resize_##T(UHash_##T *h, ulib_uint new_size);                            \
-    SCOPE uhash_ret uhash_put_##T(UHash_##T *h, uh_key key, ulib_uint *idx);                       \
-    SCOPE void uhash_delete_##T(UHash_##T *h, ulib_uint x);                                        \
-    SCOPE UHash_##T uhmap_##T(void);                                                               \
-    SCOPE uh_val uhmap_get_##T(UHash_##T const *h, uh_key key, uh_val if_missing);                 \
-    SCOPE uhash_ret uhmap_set_##T(UHash_##T *h, uh_key key, uh_val value, uh_val *existing);       \
-    SCOPE uhash_ret uhmap_add_##T(UHash_##T *h, uh_key key, uh_val value, uh_val *existing);       \
-    SCOPE bool uhmap_replace_##T(UHash_##T *h, uh_key key, uh_val value, uh_val *replaced);        \
-    SCOPE bool uhmap_remove_##T(UHash_##T *h, uh_key key, uh_key *r_key, uh_val *r_val);           \
-    SCOPE UHash_##T uhset_##T(void);                                                               \
-    SCOPE uhash_ret uhset_insert_##T(UHash_##T *h, uh_key key, uh_key *existing);                  \
-    SCOPE uhash_ret uhset_insert_all_##T(UHash_##T *h, uh_key const *items, ulib_uint n);          \
-    SCOPE bool uhset_replace_##T(UHash_##T *h, uh_key key, uh_key *replaced);                      \
-    SCOPE bool uhset_remove_##T(UHash_##T *h, uh_key key, uh_key *removed);                        \
-    SCOPE bool uhset_is_superset_##T(UHash_##T const *h1, UHash_##T const *h2);                    \
-    SCOPE uhash_ret uhset_union_##T(UHash_##T *h1, UHash_##T const *h2);                           \
-    SCOPE void uhset_intersect_##T(UHash_##T *h1, UHash_##T const *h2);                            \
-    SCOPE ulib_uint uhset_hash_##T(UHash_##T const *h);                                            \
-    SCOPE uh_key uhset_get_any_##T(UHash_##T const *h, uh_key if_empty);                           \
+    ATTRS void uhash_deinit_##T(UHash_##T *h);                                                     \
+    ATTRS uhash_ret uhash_copy_##T(UHash_##T const *src, UHash_##T *dest);                         \
+    ATTRS uhash_ret uhash_copy_as_set_##T(UHash_##T const *src, UHash_##T *dest);                  \
+    ATTRS void uhash_clear_##T(UHash_##T *h);                                                      \
+    ATTRS ULIB_PURE ulib_uint uhash_get_##T(UHash_##T const *h, uh_key key);                       \
+    ATTRS uhash_ret uhash_resize_##T(UHash_##T *h, ulib_uint new_size);                            \
+    ATTRS uhash_ret uhash_put_##T(UHash_##T *h, uh_key key, ulib_uint *idx);                       \
+    ATTRS void uhash_delete_##T(UHash_##T *h, ulib_uint x);                                        \
+    ATTRS UHash_##T uhmap_##T(void);                                                               \
+    ATTRS ULIB_PURE uh_val uhmap_get_##T(UHash_##T const *h, uh_key key, uh_val if_missing);       \
+    ATTRS uhash_ret uhmap_set_##T(UHash_##T *h, uh_key key, uh_val value, uh_val *existing);       \
+    ATTRS uhash_ret uhmap_add_##T(UHash_##T *h, uh_key key, uh_val value, uh_val *existing);       \
+    ATTRS bool uhmap_replace_##T(UHash_##T *h, uh_key key, uh_val value, uh_val *replaced);        \
+    ATTRS bool uhmap_remove_##T(UHash_##T *h, uh_key key, uh_key *r_key, uh_val *r_val);           \
+    ATTRS UHash_##T uhset_##T(void);                                                               \
+    ATTRS uhash_ret uhset_insert_##T(UHash_##T *h, uh_key key, uh_key *existing);                  \
+    ATTRS uhash_ret uhset_insert_all_##T(UHash_##T *h, uh_key const *items, ulib_uint n);          \
+    ATTRS bool uhset_replace_##T(UHash_##T *h, uh_key key, uh_key *replaced);                      \
+    ATTRS bool uhset_remove_##T(UHash_##T *h, uh_key key, uh_key *removed);                        \
+    ATTRS ULIB_PURE bool uhset_is_superset_##T(UHash_##T const *h1, UHash_##T const *h2);          \
+    ATTRS uhash_ret uhset_union_##T(UHash_##T *h1, UHash_##T const *h2);                           \
+    ATTRS void uhset_intersect_##T(UHash_##T *h1, UHash_##T const *h2);                            \
+    ATTRS ULIB_PURE ulib_uint uhset_hash_##T(UHash_##T const *h);                                  \
+    ATTRS ULIB_PURE uh_key uhset_get_any_##T(UHash_##T const *h, uh_key if_empty);                 \
     /** @endcond */
 
 /*
@@ -241,16 +251,16 @@ static inline ulib_uint p_uhash_int64_hash(uint64_t key) {
  * with per-instance hash and equality functions.
  *
  * @param T [symbol] Hash table name.
- * @param SCOPE [scope] Scope of the declarations.
+ * @param ATTRS [scope] Scope of the declarations.
  * @param uh_key [type] Hash table key type.
  * @param uh_val [type] Hash table value type.
  */
-#define P_UHASH_DECL_PI(T, SCOPE, uh_key, uh_val)                                                  \
-    P_UHASH_DECL(T, SCOPE, uh_key, uh_val)                                                         \
+#define P_UHASH_DECL_PI(T, ATTRS, uh_key, uh_val)                                                  \
+    P_UHASH_DECL(T, ATTRS, uh_key, uh_val)                                                         \
     /** @cond */                                                                                   \
-    SCOPE UHash_##T uhmap_pi_##T(ulib_uint (*hash_func)(uh_key key),                               \
+    ATTRS UHash_##T uhmap_pi_##T(ulib_uint (*hash_func)(uh_key key),                               \
                                  bool (*equal_func)(uh_key lhs, uh_key rhs));                      \
-    SCOPE UHash_##T uhset_pi_##T(ulib_uint (*hash_func)(uh_key key),                               \
+    ATTRS UHash_##T uhset_pi_##T(ulib_uint (*hash_func)(uh_key key),                               \
                                  bool (*equal_func)(uh_key lhs, uh_key rhs));                      \
     /** @endcond */
 
@@ -258,31 +268,31 @@ static inline ulib_uint p_uhash_int64_hash(uint64_t key) {
  * Generates inline function definitions for the specified hash table type.
  *
  * @param T [symbol] Hash table name.
- * @param SCOPE [scope] Scope of the definitions.
+ * @param ATTRS [scope] Scope of the definitions.
  */
-#define P_UHASH_DEF_INLINE(T, SCOPE)                                                               \
+#define P_UHASH_DEF_INLINE(T, ATTRS)                                                               \
     /** @cond */                                                                                   \
-    SCOPE static inline bool uhash_is_map_##T(UHash_##T const *h) {                                \
+    ATTRS ULIB_PURE ULIB_INLINE bool uhash_is_map_##T(UHash_##T const *h) {                        \
         /* _occupied = 1 and _size = 0 is a marker for empty tables that are maps. */              \
         return h->_vals || h->_occupied > h->_size;                                                \
     }                                                                                              \
                                                                                                    \
-    SCOPE static inline UHash_##T uhash_move_##T(UHash_##T *h) {                                   \
+    ATTRS ULIB_INLINE UHash_##T uhash_move_##T(UHash_##T *h) {                                     \
         UHash_##T temp = *h, zero = { 0 };                                                         \
         *h = zero;                                                                                 \
         return temp;                                                                               \
     }                                                                                              \
                                                                                                    \
-    SCOPE static inline ulib_uint uhash_next_##T(UHash_##T const *h, ulib_uint i) {                \
+    ATTRS ULIB_PURE ULIB_INLINE ulib_uint uhash_next_##T(UHash_##T const *h, ulib_uint i) {        \
         for (; i < h->_size && !uhash_exists(T, h, i); ++i) {}                                     \
         return i;                                                                                  \
     }                                                                                              \
                                                                                                    \
-    SCOPE static inline bool uhset_equals_##T(UHash_##T const *h1, UHash_##T const *h2) {          \
+    ATTRS ULIB_PURE ULIB_INLINE bool uhset_equals_##T(UHash_##T const *h1, UHash_##T const *h2) {  \
         return h1->_count == h2->_count && uhset_is_superset_##T(h1, h2);                          \
     }                                                                                              \
                                                                                                    \
-    SCOPE static inline ulib_uint p_uhash_occupied_##T(UHash_##T const *h) {                       \
+    ATTRS ULIB_PURE ULIB_INLINE ulib_uint p_uhash_occupied_##T(UHash_##T const *h) {               \
         return h->_occupied > h->_size ? 0 : h->_occupied;                                         \
     }                                                                                              \
     /** @endcond */
@@ -291,17 +301,17 @@ static inline ulib_uint p_uhash_int64_hash(uint64_t key) {
  * Generates init function definitions for the specified hash table type.
  *
  * @param T [symbol] Hash table name.
- * @param SCOPE [scope] Scope of the definitions.
+ * @param ATTRS [scope] Scope of the definitions.
  */
-#define P_UHASH_IMPL_INIT(T, SCOPE)                                                                \
+#define P_UHASH_IMPL_INIT(T, ATTRS)                                                                \
                                                                                                    \
-    SCOPE UHash_##T uhmap_##T(void) {                                                              \
+    ATTRS UHash_##T uhmap_##T(void) {                                                              \
         UHash_##T h = uhset_##T();                                                                 \
         h._occupied = 1;                                                                           \
         return h;                                                                                  \
     }                                                                                              \
                                                                                                    \
-    SCOPE UHash_##T uhset_##T(void) {                                                              \
+    ATTRS UHash_##T uhset_##T(void) {                                                              \
         UHash_##T h = { 0 };                                                                       \
         return h;                                                                                  \
     }
@@ -311,20 +321,20 @@ static inline ulib_uint p_uhash_int64_hash(uint64_t key) {
  * with per-instance hash and equality functions.
  *
  * @param T [symbol] Hash table name.
- * @param SCOPE [scope] Scope of the definitions.
+ * @param ATTRS [scope] Scope of the definitions.
  * @param uh_key [type] Hash table key type.
  * @param default_hfunc [(uh_key) -> ulib_uint] Default hash function (can be NULL).
  * @param default_efunc [(uh_key, uh_key) -> bool] Default equality function (can be NULL).
  */
-#define P_UHASH_IMPL_INIT_PI(T, SCOPE, uh_key, default_hfunc, default_efunc)                       \
+#define P_UHASH_IMPL_INIT_PI(T, ATTRS, uh_key, default_hfunc, default_efunc)                       \
                                                                                                    \
-    SCOPE UHash_##T uhmap_##T(void) {                                                              \
+    ATTRS UHash_##T uhmap_##T(void) {                                                              \
         UHash_##T h = uhset_##T();                                                                 \
         h._occupied = 1;                                                                           \
         return h;                                                                                  \
     }                                                                                              \
                                                                                                    \
-    SCOPE UHash_##T uhmap_pi_##T(ulib_uint (*hash_func)(uh_key key),                               \
+    ATTRS UHash_##T uhmap_pi_##T(ulib_uint (*hash_func)(uh_key key),                               \
                                  bool (*equal_func)(uh_key lhs, uh_key rhs)) {                     \
         UHash_##T h = uhmap_##T();                                                                 \
         h._hfunc = hash_func;                                                                      \
@@ -332,14 +342,14 @@ static inline ulib_uint p_uhash_int64_hash(uint64_t key) {
         return h;                                                                                  \
     }                                                                                              \
                                                                                                    \
-    SCOPE UHash_##T uhset_##T(void) {                                                              \
+    ATTRS UHash_##T uhset_##T(void) {                                                              \
         UHash_##T h = { 0 };                                                                       \
         h._hfunc = default_hfunc;                                                                  \
         h._efunc = default_efunc;                                                                  \
         return h;                                                                                  \
     }                                                                                              \
                                                                                                    \
-    SCOPE UHash_##T uhset_pi_##T(ulib_uint (*hash_func)(uh_key key),                               \
+    ATTRS UHash_##T uhset_pi_##T(ulib_uint (*hash_func)(uh_key key),                               \
                                  bool (*equal_func)(uh_key lhs, uh_key rhs)) {                     \
         UHash_##T h = uhset_##T();                                                                 \
         h._hfunc = hash_func;                                                                      \
@@ -351,15 +361,15 @@ static inline ulib_uint p_uhash_int64_hash(uint64_t key) {
  * Generates common function definitions for the specified hash table type.
  *
  * @param T [symbol] Hash table name.
- * @param SCOPE [scope] Scope of the definitions.
+ * @param ATTRS [scope] Scope of the definitions.
  * @param uh_key [type] Hash table key type.
  * @param uh_val [type] Hash table value type.
  * @param hash_func [(uh_key) -> ulib_uint] Hash function or expression.
  * @param equal_func [(uh_key, uh_key) -> bool] Equality function or expression.
  */
-#define P_UHASH_IMPL_COMMON(T, SCOPE, uh_key, uh_val, hash_func, equal_func)                       \
+#define P_UHASH_IMPL_COMMON(T, ATTRS, uh_key, uh_val, hash_func, equal_func)                       \
                                                                                                    \
-    SCOPE void uhash_deinit_##T(UHash_##T *h) {                                                    \
+    ATTRS void uhash_deinit_##T(UHash_##T *h) {                                                    \
         ulib_free((void *)h->_keys);                                                               \
         ulib_free((void *)h->_vals);                                                               \
         ulib_free(h->_flags);                                                                      \
@@ -369,7 +379,7 @@ static inline ulib_uint p_uhash_int64_hash(uint64_t key) {
         h->_size = h->_occupied = h->_count = 0;                                                   \
     }                                                                                              \
                                                                                                    \
-    SCOPE uhash_ret uhash_copy_##T(UHash_##T const *src, UHash_##T *dest) {                        \
+    ATTRS uhash_ret uhash_copy_##T(UHash_##T const *src, UHash_##T *dest) {                        \
         uhash_ret ret = uhash_copy_as_set_##T(src, dest);                                          \
                                                                                                    \
         if (ret == UHASH_OK && uhash_is_map_##T(src)) {                                            \
@@ -390,7 +400,7 @@ static inline ulib_uint p_uhash_int64_hash(uint64_t key) {
         return ret;                                                                                \
     }                                                                                              \
                                                                                                    \
-    SCOPE uhash_ret uhash_copy_as_set_##T(UHash_##T const *src, UHash_##T *dest) {                 \
+    ATTRS uhash_ret uhash_copy_as_set_##T(UHash_##T const *src, UHash_##T *dest) {                 \
         if (!src->_size) {                                                                         \
             uhash_deinit(T, dest);                                                                 \
             *dest = uhset(T);                                                                      \
@@ -418,13 +428,13 @@ static inline ulib_uint p_uhash_int64_hash(uint64_t key) {
         return UHASH_OK;                                                                           \
     }                                                                                              \
                                                                                                    \
-    SCOPE void uhash_clear_##T(UHash_##T *h) {                                                     \
+    ATTRS void uhash_clear_##T(UHash_##T *h) {                                                     \
         if (!p_uhash_occupied_##T(h)) return;                                                      \
         memset(h->_flags, 0xaa, p_uhf_size(h->_size) * sizeof(uint32_t));                          \
         h->_count = h->_occupied = 0;                                                              \
     }                                                                                              \
                                                                                                    \
-    SCOPE ulib_uint uhash_get_##T(UHash_##T const *h, uh_key key) {                                \
+    ATTRS ulib_uint uhash_get_##T(UHash_##T const *h, uh_key key) {                                \
         if (!h->_size) return UHASH_INDEX_MISSING;                                                 \
                                                                                                    \
         ulib_uint mask = h->_size - 1;                                                             \
@@ -443,7 +453,7 @@ static inline ulib_uint p_uhash_int64_hash(uint64_t key) {
                                                                                                    \
     /* The kick-out process is bound to access uninitialized data. */                              \
     /* NOLINTBEGIN(clang-analyzer-core.uninitialized.Assign) */                                    \
-    SCOPE uhash_ret uhash_resize_##T(UHash_##T *h, ulib_uint new_size) {                           \
+    ATTRS uhash_ret uhash_resize_##T(UHash_##T *h, ulib_uint new_size) {                           \
         /* Uses (0.25*size) bytes instead of [sizeof(uh_key+uh_val)+.25]*size. */                  \
         new_size = new_size > 4 ? ulib_uint_ceil2(new_size) : 4;                                   \
                                                                                                    \
@@ -538,7 +548,7 @@ static inline ulib_uint p_uhash_int64_hash(uint64_t key) {
     }                                                                                              \
     /* NOLINTEND(clang-analyzer-core.uninitialized.Assign) */                                      \
                                                                                                    \
-    SCOPE uhash_ret uhash_put_##T(UHash_##T *h, uh_key key, ulib_uint *idx) {                      \
+    ATTRS uhash_ret uhash_put_##T(UHash_##T *h, uh_key key, ulib_uint *idx) {                      \
         p_ulib_analyzer_assert(h->_flags);                                                         \
         ulib_uint x;                                                                               \
         if (p_uhash_occupied_##T(h) >= p_uhash_upper_bound(h->_size)) {                            \
@@ -609,20 +619,20 @@ static inline ulib_uint p_uhash_int64_hash(uint64_t key) {
         return ret;                                                                                \
     }                                                                                              \
                                                                                                    \
-    SCOPE void uhash_delete_##T(UHash_##T *h, ulib_uint x) {                                       \
+    ATTRS void uhash_delete_##T(UHash_##T *h, ulib_uint x) {                                       \
         if (!p_uhf_iseither(h->_flags, x)) {                                                       \
             p_uhf_set_isdel_true(h->_flags, x);                                                    \
             h->_count--;                                                                           \
         }                                                                                          \
     }                                                                                              \
                                                                                                    \
-    SCOPE uh_val uhmap_get_##T(UHash_##T const *h, uh_key key, uh_val if_missing) {                \
+    ATTRS uh_val uhmap_get_##T(UHash_##T const *h, uh_key key, uh_val if_missing) {                \
         p_ulib_analyzer_assert(h->_vals);                                                          \
         ulib_uint k = uhash_get_##T(h, key);                                                       \
         return k == UHASH_INDEX_MISSING ? if_missing : h->_vals[k];                                \
     }                                                                                              \
                                                                                                    \
-    SCOPE uhash_ret uhmap_set_##T(UHash_##T *h, uh_key key, uh_val value, uh_val *existing) {      \
+    ATTRS uhash_ret uhmap_set_##T(UHash_##T *h, uh_key key, uh_val value, uh_val *existing) {      \
         p_ulib_analyzer_assert(h->_vals);                                                          \
                                                                                                    \
         ulib_uint k;                                                                               \
@@ -636,7 +646,7 @@ static inline ulib_uint p_uhash_int64_hash(uint64_t key) {
         return ret;                                                                                \
     }                                                                                              \
                                                                                                    \
-    SCOPE uhash_ret uhmap_add_##T(UHash_##T *h, uh_key key, uh_val value, uh_val *existing) {      \
+    ATTRS uhash_ret uhmap_add_##T(UHash_##T *h, uh_key key, uh_val value, uh_val *existing) {      \
         p_ulib_analyzer_assert(h->_vals);                                                          \
                                                                                                    \
         ulib_uint k;                                                                               \
@@ -651,7 +661,7 @@ static inline ulib_uint p_uhash_int64_hash(uint64_t key) {
         return ret;                                                                                \
     }                                                                                              \
                                                                                                    \
-    SCOPE bool uhmap_replace_##T(UHash_##T *h, uh_key key, uh_val value, uh_val *replaced) {       \
+    ATTRS bool uhmap_replace_##T(UHash_##T *h, uh_key key, uh_val value, uh_val *replaced) {       \
         p_ulib_analyzer_assert(h->_vals);                                                          \
         ulib_uint k = uhash_get_##T(h, key);                                                       \
         if (k == UHASH_INDEX_MISSING) return false;                                                \
@@ -660,7 +670,7 @@ static inline ulib_uint p_uhash_int64_hash(uint64_t key) {
         return true;                                                                               \
     }                                                                                              \
                                                                                                    \
-    SCOPE bool uhmap_remove_##T(UHash_##T *h, uh_key key, uh_key *r_key, uh_val *r_val) {          \
+    ATTRS bool uhmap_remove_##T(UHash_##T *h, uh_key key, uh_key *r_key, uh_val *r_val) {          \
         ulib_uint k = uhash_get_##T(h, key);                                                       \
         if (k == UHASH_INDEX_MISSING) return false;                                                \
         if (r_key) *r_key = h->_keys[k];                                                           \
@@ -669,14 +679,14 @@ static inline ulib_uint p_uhash_int64_hash(uint64_t key) {
         return true;                                                                               \
     }                                                                                              \
                                                                                                    \
-    SCOPE uhash_ret uhset_insert_##T(UHash_##T *h, uh_key key, uh_key *existing) {                 \
+    ATTRS uhash_ret uhset_insert_##T(UHash_##T *h, uh_key key, uh_key *existing) {                 \
         ulib_uint k;                                                                               \
         uhash_ret ret = uhash_put_##T(h, key, &k);                                                 \
         if (ret == UHASH_PRESENT && existing) *existing = h->_keys[k];                             \
         return ret;                                                                                \
     }                                                                                              \
                                                                                                    \
-    SCOPE uhash_ret uhset_insert_all_##T(UHash_##T *h, uh_key const *items, ulib_uint n) {         \
+    ATTRS uhash_ret uhset_insert_all_##T(UHash_##T *h, uh_key const *items, ulib_uint n) {         \
         if (uhash_resize_##T(h, n)) return UHASH_ERR;                                              \
         uhash_ret ret = UHASH_PRESENT;                                                             \
                                                                                                    \
@@ -689,7 +699,7 @@ static inline ulib_uint p_uhash_int64_hash(uint64_t key) {
         return ret;                                                                                \
     }                                                                                              \
                                                                                                    \
-    SCOPE bool uhset_replace_##T(UHash_##T *h, uh_key key, uh_key *replaced) {                     \
+    ATTRS bool uhset_replace_##T(UHash_##T *h, uh_key key, uh_key *replaced) {                     \
         ulib_uint k = uhash_get_##T(h, key);                                                       \
         if (k == UHASH_INDEX_MISSING) return false;                                                \
         if (replaced) *replaced = h->_keys[k];                                                     \
@@ -697,7 +707,7 @@ static inline ulib_uint p_uhash_int64_hash(uint64_t key) {
         return true;                                                                               \
     }                                                                                              \
                                                                                                    \
-    SCOPE bool uhset_remove_##T(UHash_##T *h, uh_key key, uh_key *removed) {                       \
+    ATTRS bool uhset_remove_##T(UHash_##T *h, uh_key key, uh_key *removed) {                       \
         ulib_uint k = uhash_get_##T(h, key);                                                       \
         if (k == UHASH_INDEX_MISSING) return false;                                                \
         if (removed) *removed = h->_keys[k];                                                       \
@@ -705,7 +715,7 @@ static inline ulib_uint p_uhash_int64_hash(uint64_t key) {
         return true;                                                                               \
     }                                                                                              \
                                                                                                    \
-    SCOPE bool uhset_is_superset_##T(UHash_##T const *h1, UHash_##T const *h2) {                   \
+    ATTRS bool uhset_is_superset_##T(UHash_##T const *h1, UHash_##T const *h2) {                   \
         for (ulib_uint i = 0; i != h2->_size; ++i) {                                               \
             if (uhash_exists(T, h2, i) &&                                                          \
                 uhash_get_##T(h1, h2->_keys[i]) == UHASH_INDEX_MISSING) {                          \
@@ -715,7 +725,7 @@ static inline ulib_uint p_uhash_int64_hash(uint64_t key) {
         return true;                                                                               \
     }                                                                                              \
                                                                                                    \
-    SCOPE uhash_ret uhset_union_##T(UHash_##T *h1, UHash_##T const *h2) {                          \
+    ATTRS uhash_ret uhset_union_##T(UHash_##T *h1, UHash_##T const *h2) {                          \
         for (ulib_uint i = 0; i != h2->_size; ++i) {                                               \
             if (uhash_exists(T, h2, i) && uhset_insert_##T(h1, h2->_keys[i], NULL) == UHASH_ERR) { \
                 return UHASH_ERR;                                                                  \
@@ -724,7 +734,7 @@ static inline ulib_uint p_uhash_int64_hash(uint64_t key) {
         return UHASH_OK;                                                                           \
     }                                                                                              \
                                                                                                    \
-    SCOPE void uhset_intersect_##T(UHash_##T *h1, UHash_##T const *h2) {                           \
+    ATTRS void uhset_intersect_##T(UHash_##T *h1, UHash_##T const *h2) {                           \
         for (ulib_uint i = 0; i != h1->_size; ++i) {                                               \
             if (uhash_exists(T, h1, i) &&                                                          \
                 uhash_get_##T(h2, h1->_keys[i]) == UHASH_INDEX_MISSING) {                          \
@@ -733,7 +743,7 @@ static inline ulib_uint p_uhash_int64_hash(uint64_t key) {
         }                                                                                          \
     }                                                                                              \
                                                                                                    \
-    SCOPE ulib_uint uhset_hash_##T(UHash_##T const *h) {                                           \
+    ATTRS ulib_uint uhset_hash_##T(UHash_##T const *h) {                                           \
         ulib_uint hash = 0;                                                                        \
         for (ulib_uint i = 0; i != h->_size; ++i) {                                                \
             if (uhash_exists(T, h, i)) hash ^= hash_func(h->_keys[i]);                             \
@@ -741,7 +751,7 @@ static inline ulib_uint p_uhash_int64_hash(uint64_t key) {
         return hash;                                                                               \
     }                                                                                              \
                                                                                                    \
-    SCOPE uh_key uhset_get_any_##T(UHash_##T const *h, uh_key if_empty) {                          \
+    ATTRS uh_key uhset_get_any_##T(UHash_##T const *h, uh_key if_empty) {                          \
         ulib_uint i = uhash_next_##T(h, 0);                                                        \
         return i == h->_size ? if_empty : h->_keys[i];                                             \
     }
@@ -846,10 +856,10 @@ static inline ulib_uint p_uhash_int64_hash(uint64_t key) {
  */
 #define UHASH_INIT(T, uh_key, uh_val, hash_func, equal_func)                                       \
     P_UHASH_DEF_TYPE(T, uh_key, uh_val)                                                            \
-    P_UHASH_DECL(T, static inline ulib_unused, uh_key, uh_val)                                     \
+    P_UHASH_DECL(T, ULIB_INLINE ulib_unused, uh_key, uh_val)                                       \
     P_UHASH_DEF_INLINE(T, ulib_unused)                                                             \
-    P_UHASH_IMPL_INIT(T, static inline ulib_unused)                                                \
-    P_UHASH_IMPL_COMMON(T, static inline ulib_unused, uh_key, uh_val, hash_func, equal_func)
+    P_UHASH_IMPL_INIT(T, ULIB_INLINE ulib_unused)                                                  \
+    P_UHASH_IMPL_COMMON(T, ULIB_INLINE ulib_unused, uh_key, uh_val, hash_func, equal_func)
 
 /**
  * Defines a new static hash table type with per-instance hash and equality functions.
@@ -864,10 +874,10 @@ static inline ulib_uint p_uhash_int64_hash(uint64_t key) {
  */
 #define UHASH_INIT_PI(T, uh_key, uh_val, default_hfunc, default_efunc)                             \
     P_UHASH_DEF_TYPE_PI(T, uh_key, uh_val)                                                         \
-    P_UHASH_DECL_PI(T, static inline ulib_unused, uh_key, uh_val)                                  \
+    P_UHASH_DECL_PI(T, ULIB_INLINE ulib_unused, uh_key, uh_val)                                    \
     P_UHASH_DEF_INLINE(T, ulib_unused)                                                             \
-    P_UHASH_IMPL_INIT_PI(T, static inline ulib_unused, uh_key, default_hfunc, default_efunc)       \
-    P_UHASH_IMPL_COMMON(T, static inline ulib_unused, uh_key, uh_val, h->_hfunc, h->_efunc)
+    P_UHASH_IMPL_INIT_PI(T, ULIB_INLINE ulib_unused, uh_key, default_hfunc, default_efunc)         \
+    P_UHASH_IMPL_COMMON(T, ULIB_INLINE ulib_unused, uh_key, uh_val, h->_hfunc, h->_efunc)
 
 /// @name Hash and equality functions
 

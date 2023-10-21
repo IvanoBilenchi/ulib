@@ -24,6 +24,7 @@ ULIB_BEGIN_DECLS
  *
  * @public @related UString
  */
+ULIB_CONST
 ULIB_INLINE
 bool ulib_char_is_upper(char c) {
     return (ulib_byte)(c - 'A') < 26U;
@@ -37,6 +38,7 @@ bool ulib_char_is_upper(char c) {
  *
  * @public @related UString
  */
+ULIB_CONST
 ULIB_INLINE
 bool ulib_char_is_lower(char c) {
     return (ulib_byte)(c - 'a') < 26U;
@@ -50,6 +52,7 @@ bool ulib_char_is_lower(char c) {
  *
  * @public @related UString
  */
+ULIB_CONST
 ULIB_INLINE
 char ulib_char_to_upper(char c) {
     return ulib_char_is_lower(c) ? c ^ 0x20 : c;
@@ -63,6 +66,7 @@ char ulib_char_to_upper(char c) {
  *
  * @public @related UString
  */
+ULIB_CONST
 ULIB_INLINE
 char ulib_char_to_lower(char c) {
     return ulib_char_is_upper(c) ? c ^ 0x20 : c;
@@ -91,6 +95,7 @@ char *ulib_str_dup(char const *string, size_t length);
  *
  * @public @related UString
  */
+ULIB_PURE
 ULIB_PUBLIC
 size_t ulib_str_flength(char const *format, ...);
 
@@ -103,6 +108,7 @@ size_t ulib_str_flength(char const *format, ...);
  *
  * @public @related UString
  */
+ULIB_PURE
 ULIB_PUBLIC
 size_t ulib_str_flength_list(char const *format, va_list args);
 
@@ -115,6 +121,7 @@ size_t ulib_str_flength_list(char const *format, va_list args);
  *
  * @public @related UString
  */
+ULIB_PURE
 ULIB_INLINE
 bool ulib_str_is_upper(char const *string, size_t length) {
     while (length--) {
@@ -132,6 +139,7 @@ bool ulib_str_is_upper(char const *string, size_t length) {
  *
  * @public @related UString
  */
+ULIB_PURE
 ULIB_INLINE
 bool ulib_str_is_lower(char const *string, size_t length) {
     while (length--) {
@@ -256,6 +264,7 @@ ulib_float ulib_str_to_float(char const *src, char **end) {
  *
  * @public @related UString
  */
+ULIB_PURE
 ULIB_PUBLIC
 void *ulib_mem_chr_last(void const *haystack, int c, size_t h_len);
 
@@ -270,6 +279,7 @@ void *ulib_mem_chr_last(void const *haystack, int c, size_t h_len);
  *
  * @public @related UString
  */
+ULIB_PURE
 ULIB_PUBLIC
 void *ulib_mem_mem(void const *haystack, size_t h_len, void const *needle, size_t n_len);
 
@@ -284,6 +294,7 @@ void *ulib_mem_mem(void const *haystack, size_t h_len, void const *needle, size_
  *
  * @public @related UString
  */
+ULIB_PURE
 ULIB_PUBLIC
 void *ulib_mem_mem_last(void const *haystack, size_t h_len, void const *needle, size_t n_len);
 

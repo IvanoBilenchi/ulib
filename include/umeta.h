@@ -22,6 +22,7 @@ ULIB_BEGIN_DECLS
  * @return Library version.
  */
 ULIB_PUBLIC
+ULIB_CONST
 UVersion ulib_get_version(void);
 
 ULIB_END_DECLS

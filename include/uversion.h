@@ -41,6 +41,7 @@ typedef struct UVersion {
  *
  * @public @memberof UVersion
  */
+ULIB_CONST
 ULIB_INLINE
 UVersion uversion(unsigned major, unsigned minor, unsigned patch) {
     UVersion v = { major, minor, patch };
@@ -56,6 +57,7 @@ UVersion uversion(unsigned major, unsigned minor, unsigned patch) {
  *
  * @public @memberof UVersion
  */
+ULIB_CONST
 ULIB_PUBLIC
 int uversion_compare(UVersion lhs, UVersion rhs);
 

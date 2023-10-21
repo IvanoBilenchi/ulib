@@ -32,7 +32,8 @@ uvec_ret ustrbuf_append_format_list(UStrBuf *buf, char const *format, va_list ar
     return ret;
 }
 
-static inline UString ustrbuf_to_ustring_copy(UStrBuf *buf, ulib_uint length) {
+ULIB_INLINE
+UString ustrbuf_to_ustring_copy(UStrBuf *buf, ulib_uint length) {
     UString ret;
     char *nbuf = ustring(&ret, length);
     if (nbuf) memcpy(nbuf, ustrbuf_data(buf), length);
@@ -41,7 +42,8 @@ static inline UString ustrbuf_to_ustring_copy(UStrBuf *buf, ulib_uint length) {
     return ret;
 }
 
-static inline UString ustrbuf_to_ustring_reuse(UStrBuf *buf, ulib_uint length) {
+ULIB_INLINE
+UString ustrbuf_to_ustring_reuse(UStrBuf *buf, ulib_uint length) {
     char *nbuf = ulib_realloc(buf->_l._data, length + 1);
 
     if (!nbuf) {
@@ -49,7 +51,6 @@ static inline UString ustrbuf_to_ustring_reuse(UStrBuf *buf, ulib_uint length) {
         return ustring_null;
     }
 
-    nbuf[length] = '\0';
     return ustring_wrap(nbuf, length);
 }
 

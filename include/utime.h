@@ -95,6 +95,7 @@ typedef struct UTime {
  *
  * @public @memberof UTime
  */
+ULIB_PURE
 ULIB_PUBLIC
 bool utime_equals(UTime const *a, UTime const *b);
 
@@ -118,6 +119,7 @@ void utime_normalize_to_utc(UTime *time, int tz_hour, unsigned tz_minute);
  *
  * @public @memberof UTime
  */
+ULIB_PURE
 ULIB_PUBLIC
 utime_stamp utime_to_timestamp(UTime const *time);
 
@@ -129,6 +131,7 @@ utime_stamp utime_to_timestamp(UTime const *time);
  *
  * @public @memberof UTime
  */
+ULIB_CONST
 ULIB_PUBLIC
 UTime utime_from_timestamp(utime_stamp ts);
 
@@ -154,6 +157,7 @@ void utime_add(UTime *time, long long quantity, utime_unit unit);
  *
  * @public @memberof UTime
  */
+ULIB_PURE
 ULIB_PUBLIC
 long long utime_diff(UTime const *a, UTime const *b, utime_unit unit);
 
@@ -200,6 +204,7 @@ bool utime_from_string(UTime *time, UString const *string);
  * @param year Year.
  * @return True if the specified year is a leap year, false otherwise.
  */
+ULIB_CONST
 ULIB_INLINE
 bool utime_is_leap_year(long long year) {
     return year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
@@ -212,6 +217,7 @@ bool utime_is_leap_year(long long year) {
  * @param month Month.
  * @return Number of days in the specified month.
  */
+ULIB_CONST
 ULIB_INLINE
 unsigned utime_days_in_month(long long year, unsigned month) {
     if (month == 2) return utime_is_leap_year(year) ? 29 : 28;
@@ -242,6 +248,7 @@ utime_ns utime_get_ns(void);
  * @param t Time interval in nanoseconds.
  * @return Appropriate time unit.
  */
+ULIB_CONST
 ULIB_PUBLIC
 utime_unit utime_interval_unit_auto(utime_ns t);
 
@@ -252,6 +259,7 @@ utime_unit utime_interval_unit_auto(utime_ns t);
  * @param unit Time unit.
  * @return Converted time interval.
  */
+ULIB_CONST
 ULIB_PUBLIC
 double utime_interval_convert(utime_ns t, utime_unit unit);
 

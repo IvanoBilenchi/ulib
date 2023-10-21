@@ -44,7 +44,9 @@ void utime_normalize_to_utc(UTime *time, int tz_hour, unsigned tz_minute) {
     utime_add(time, -m, UTIME_MINUTES);
 }
 
-static inline long long utime_ymd_to_days(long long y, unsigned m, unsigned d) {
+ULIB_CONST
+ULIB_INLINE
+long long utime_ymd_to_days(long long y, unsigned m, unsigned d) {
     y -= m <= 2;
     long long const era = (y >= 0 ? y : y - 399) / 400;
     unsigned const yoe = (unsigned)(y - era * 400);
@@ -61,7 +63,8 @@ utime_stamp utime_to_timestamp(UTime const *time) {
     return ts;
 }
 
-static inline void utime_days_to_ymd(long long days, long long *oy, unsigned *om, unsigned *od) {
+ULIB_INLINE
+void utime_days_to_ymd(long long days, long long *oy, unsigned *om, unsigned *od) {
     days += 719468;
     long long const era = (long long)((days >= 0 ? days : days - 146096) / 146097);
     unsigned const doe = (unsigned)(days - era * 146097);

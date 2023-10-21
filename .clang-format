@@ -14,7 +14,7 @@ IndentWidth: 4
 PenaltyBreakAssignment: 100
 PenaltyBreakBeforeFirstCallParameter: 100
 PenaltyBreakOpenParenthesis: 100
-PenaltyExcessCharacter: 100
+PenaltyExcessCharacter: 1000
 PenaltyIndentedWhitespace: 1
 PenaltyReturnTypeOnItsOwnLine: 0
 StatementMacros:

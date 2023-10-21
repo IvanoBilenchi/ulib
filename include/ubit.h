@@ -199,7 +199,9 @@
 #include <limits.h>
 
 #define p_ubit_count_set_def(N)                                                                    \
-    static inline unsigned p_ubit_count_set_##N(UBit(N) mask) {                                    \
+    ULIB_CONST                                                                                     \
+    ULIB_INLINE                                                                                    \
+    unsigned p_ubit_count_set_##N(UBit(N) mask) {                                                  \
         mask = mask - (ubit(N, mask >> 1U) & ubit(N, ubit_all(N) / 3));                            \
         mask = (mask & ubit(N, ubit_all(N) / 15 * 3)) +                                            \
                (ubit(N, mask >> 2U) & ubit(N, ubit_all(N) / 15 * 3));                              \

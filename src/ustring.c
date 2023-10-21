@@ -14,13 +14,15 @@
 UString const ustring_null = p_ustring_init_small(0);
 UString const ustring_empty = p_ustring_init_small(1);
 
-static inline UString ustring_small(char const *buf, size_t length) {
+ULIB_INLINE
+UString ustring_small(char const *buf, size_t length) {
     UString ret = p_ustring_init_small((ulib_uint)length + 1);
     memcpy(ret._s, buf, length);
     return ret;
 }
 
-static inline UString ustring_large(char const *buf, size_t length) {
+ULIB_INLINE
+UString ustring_large(char const *buf, size_t length) {
     ulib_uint size = ((ulib_uint)length + 1) | ~((ulib_uint)-1 >> 1U);
     UString ret = { ._l = { ._data = buf, ._flags = { 0 } } };
     unsigned const offset = P_USTRING_FLAGS_SIZE - sizeof(ulib_uint);

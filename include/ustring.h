@@ -33,6 +33,7 @@ struct p_ustring_large {
 
 #define P_USTRING_SIZE sizeof(struct p_ustring_large)
 
+ULIB_CONST
 ULIB_INLINE
 ulib_uint p_ustring_large_size(struct p_ustring_large string) {
     ulib_uint size = 0;
@@ -102,6 +103,7 @@ extern UString const ustring_empty;
  *
  * @public @memberof UString
  */
+ULIB_CONST
 ULIB_INLINE
 ulib_uint ustring_size(UString string) {
     ulib_byte flags = p_ustring_last_byte(string);
@@ -117,6 +119,7 @@ ulib_uint ustring_size(UString string) {
  *
  * @public @memberof UString
  */
+ULIB_CONST
 ULIB_INLINE
 ulib_uint ustring_length(UString string) {
     ulib_uint size = ustring_size(string);
@@ -348,6 +351,7 @@ UString ustring_repeating(UString string, ulib_uint times);
  *
  * @public @memberof UString
  */
+ULIB_PURE
 ULIB_INLINE
 bool ustring_is_upper(UString string) {
     return ulib_str_is_upper(ustring_data(string), ustring_length(string));
@@ -361,6 +365,7 @@ bool ustring_is_upper(UString string) {
  *
  * @public @memberof UString
  */
+ULIB_PURE
 ULIB_INLINE
 bool ustring_is_lower(UString string) {
     return ulib_str_is_lower(ustring_data(string), ustring_length(string));
@@ -398,6 +403,7 @@ UString ustring_to_lower(UString string);
  *
  * @public @memberof UString
  */
+ULIB_PURE
 ULIB_PUBLIC
 ulib_uint ustring_index_of(UString string, char needle);
 
@@ -411,6 +417,7 @@ ulib_uint ustring_index_of(UString string, char needle);
  *
  * @public @memberof UString
  */
+ULIB_PURE
 ULIB_PUBLIC
 ulib_uint ustring_index_of_last(UString string, char needle);
 
@@ -424,6 +431,7 @@ ulib_uint ustring_index_of_last(UString string, char needle);
  *
  * @public @memberof UString
  */
+ULIB_PURE
 ULIB_PUBLIC
 ulib_uint ustring_find(UString string, UString needle);
 
@@ -437,6 +445,7 @@ ulib_uint ustring_find(UString string, UString needle);
  *
  * @public @memberof UString
  */
+ULIB_PURE
 ULIB_PUBLIC
 ulib_uint ustring_find_last(UString string, UString needle);
 
@@ -449,6 +458,7 @@ ulib_uint ustring_find_last(UString string, UString needle);
  *
  * @public @memberof UString
  */
+ULIB_PURE
 ULIB_PUBLIC
 bool ustring_starts_with(UString string, UString prefix);
 
@@ -461,6 +471,7 @@ bool ustring_starts_with(UString string, UString prefix);
  *
  * @public @memberof UString
  */
+ULIB_PURE
 ULIB_PUBLIC
 bool ustring_ends_with(UString string, UString suffix);
 
@@ -473,6 +484,7 @@ bool ustring_ends_with(UString string, UString suffix);
  *
  * @public @memberof UString
  */
+ULIB_PURE
 ULIB_PUBLIC
 bool ustring_equals(UString lhs, UString rhs);
 
@@ -485,6 +497,7 @@ bool ustring_equals(UString lhs, UString rhs);
  *
  * @public @memberof UString
  */
+ULIB_PURE
 ULIB_PUBLIC
 bool ustring_precedes(UString lhs, UString rhs);
 
@@ -497,6 +510,7 @@ bool ustring_precedes(UString lhs, UString rhs);
  *
  * @public @memberof UString
  */
+ULIB_PURE
 ULIB_PUBLIC
 int ustring_compare(UString lhs, UString rhs);
 
@@ -508,6 +522,7 @@ int ustring_compare(UString lhs, UString rhs);
  *
  * @public @memberof UString
  */
+ULIB_PURE
 ULIB_PUBLIC
 ulib_uint ustring_hash(UString string);
 
@@ -580,6 +595,7 @@ char *ustring_deinit_return_data(UString *string);
  *
  * @public @memberof UString
  */
+ULIB_CONST
 ULIB_INLINE
 bool ustring_is_null(UString string) {
     return ustring_size(string) == 0;
@@ -595,6 +611,7 @@ bool ustring_is_null(UString string) {
  *
  * @public @memberof UString
  */
+ULIB_CONST
 ULIB_INLINE
 bool ustring_is_empty(UString string) {
     return ustring_size(string) <= 1;
