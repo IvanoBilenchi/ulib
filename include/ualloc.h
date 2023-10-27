@@ -24,6 +24,8 @@
  *
  * @param size [size_t] Number of bytes to allocate.
  * @return Pointer to the beginning of the allocated memory, or NULL on failure.
+ *
+ * @destructor{ulib_free}
  */
 #ifndef ulib_malloc
 #define ulib_malloc(size) malloc(size)
@@ -36,6 +38,8 @@
  * @param num [size_t] Number of objects.
  * @param size [size_t] Size of each object.
  * @return Pointer to the beginning of the allocated memory, or NULL on failure.
+ *
+ * @destructor{ulib_free}
  */
 #ifndef ulib_calloc
 #define ulib_calloc(num, size) calloc(num, size)
@@ -47,6 +51,8 @@
  * @param ptr [void *] Pointer to the memory area to reallocate.
  * @param size [size_t] New size of the memory area in bytes.
  * @return Pointer to the beginning of the allocated memory, or NULL on failure.
+ *
+ * @destructor{ulib_free}
  */
 #ifndef ulib_realloc
 #define ulib_realloc(ptr, size) realloc(ptr, size)
@@ -66,6 +72,8 @@
  *
  * @param ptr [T*] Typed pointer to the variable.
  * @return [void *] Pointer to the allocated memory area.
+ *
+ * @destructor{ulib_free}
  */
 #define ulib_alloc(ptr) ulib_malloc(sizeof(*(ptr)))
 

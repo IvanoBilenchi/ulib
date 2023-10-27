@@ -82,7 +82,7 @@ typedef struct UIStream {
 
     /**
      * Pointer to a function that releases any resource reserved by the stream.
-     * The provided function is invoked when `uistream_deinit` is called.
+     * The provided function is invoked when uistream_deinit() is called.
      *
      * @param ctx Stream context.
      * @return Return code.
@@ -101,6 +101,8 @@ typedef struct UIStream {
  * @param reset_func `reset` function pointer.
  * @param free_func `free` function pointer.
  * @return Stream instance.
+ *
+ * @destructor{uistream_deinit}
  *
  * @public @memberof UIStream
  */
@@ -164,6 +166,8 @@ UIStream *uistream_std(void);
  * @param path Path to the file to read from.
  * @return Return code.
  *
+ * @destructor{uistream_deinit}
+ *
  * @public @memberof UIStream
  */
 ULIB_API
@@ -175,6 +179,8 @@ ustream_ret uistream_from_path(UIStream *stream, char const *path);
  * @param stream Input stream.
  * @param file The input file.
  * @return Return code.
+ *
+ * @destructor{uistream_deinit}
  *
  * @public @memberof UIStream
  */
@@ -189,6 +195,8 @@ ustream_ret uistream_from_file(UIStream *stream, FILE *file);
  * @param size Size of the input buffer.
  * @return Return code.
  *
+ * @destructor{uistream_deinit}
+ *
  * @public @memberof UIStream
  */
 ULIB_API
@@ -200,6 +208,8 @@ ustream_ret uistream_from_buf(UIStream *stream, void const *buf, size_t size);
  * @param stream Input stream.
  * @param buf String buffer.
  * @return Return code.
+ *
+ * @destructor{uistream_deinit}
  *
  * @public @memberof UIStream
  */
@@ -213,6 +223,8 @@ ustream_ret uistream_from_strbuf(UIStream *stream, UStrBuf const *buf);
  * @param string String.
  * @return Return code.
  *
+ * @destructor{uistream_deinit}
+ *
  * @public @memberof UIStream
  */
 ULIB_API
@@ -224,6 +236,8 @@ ustream_ret uistream_from_string(UIStream *stream, char const *string);
  * @param stream Input stream.
  * @param string String.
  * @return Return code.
+ *
+ * @destructor{uistream_deinit}
  *
  * @public @memberof UIStream
  */
@@ -278,7 +292,7 @@ typedef struct UOStream {
 
     /**
      * Pointer to a function that releases any resource reserved by the stream.
-     * The provided function is invoked when `uostream_deinit` is called.
+     * The provided function is invoked when uostream_deinit() is called.
      *
      * @param ctx Stream context.
      * @return Return code.
@@ -298,6 +312,8 @@ typedef struct UOStream {
  * @param flush_func `flush` function pointer.
  * @param free_func `free` function pointer.
  * @return Stream instance.
+ *
+ * @destructor{uostream_deinit}
  *
  * @public @memberof UOStream
  */
@@ -479,6 +495,8 @@ UOStream *uostream_null(void);
  * @param path Path to the file to write to.
  * @return Return code.
  *
+ * @destructor{uostream_deinit}
+ *
  * @public @memberof UOStream
  */
 ULIB_API
@@ -491,6 +509,7 @@ ustream_ret uostream_to_path(UOStream *stream, char const *path);
  * @param file The output file.
  * @return Return code.
  *
+ * @destructor{uostream_deinit}
  * @note You are responsible for closing the file.
  *
  * @public @memberof UOStream
@@ -506,6 +525,8 @@ ustream_ret uostream_to_file(UOStream *stream, FILE *file);
  * @param size Size of the output buffer.
  * @return Return code.
  *
+ * @destructor{uostream_deinit}
+ *
  * @public @memberof UOStream
  */
 ULIB_API
@@ -518,8 +539,9 @@ ustream_ret uostream_to_buf(UOStream *stream, void *buf, size_t size);
  * @param buf The output buffer.
  * @return Return code.
  *
+ * @destructor{uostream_deinit}
  * @note If `buf` is NULL, the stream will allocate a new string buffer and set it as its context.
- *       In this case, the string buffer will be deinitialized when calling `uostream_deinit`.
+ *       In this case, the string buffer will be deinitialized when calling uostream_deinit().
  *
  * @public @memberof UOStream
  */
@@ -532,13 +554,14 @@ ustream_ret uostream_to_strbuf(UOStream *stream, UStrBuf *buf);
  * @param stream Output stream.
  * @return Return code.
  *
+ * @destructor{uostream_deinit}
  * @note Multi-streams behave as follows:
  *       - In case of error of any of the substreams, only the first detected error code
  *         is returned. It is your responsibility to check the state of each individual
  *         substream if that is important for your use case.
  *       - The reported written bytes are the maximum bytes written by any of the underlying
  *         substreams.
- *       - Calling `uostream_deinit` deinitializes all substreams.
+ *       - Calling uostream_deinit() deinitializes all substreams.
  *
  * @public @memberof UOStream
  */
@@ -553,7 +576,7 @@ ustream_ret uostream_to_multi(UOStream *stream);
  * @return Return code.
  *
  * @note Both streams must have been initialized beforehand, and `stream`
- *       must have been initialized via `uostream_to_multi`.
+ *       must have been initialized via uostream_to_multi().
  *
  * @public @memberof UOStream
  */

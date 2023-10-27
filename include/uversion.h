@@ -67,6 +67,8 @@ int uversion_compare(UVersion lhs, UVersion rhs);
  * @param version Version.
  * @return String.
  *
+ * @destructor{UString::ustring_deinit}
+ *
  * @public @memberof UVersion
  */
 ULIB_API

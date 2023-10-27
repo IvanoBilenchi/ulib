@@ -30,6 +30,8 @@ typedef struct UVec(char) UStrBuf;
  *
  * @return Initialized string buffer.
  *
+ * @destructor{ustrbuf_deinit}
+ *
  * @public @related UStrBuf
  */
 #define ustrbuf() uvec(char)
@@ -105,6 +107,7 @@ uvec_ret ustrbuf_append_format_list(UStrBuf *buf, char const *format, va_list ar
  * @param buf String buffer.
  * @return String.
  *
+ * @destructor{UString::ustring_deinit}
  * @note After calling this function, the string buffer must not be used anymore.
  *
  * @public @memberof UStrBuf

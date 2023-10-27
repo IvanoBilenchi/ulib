@@ -145,6 +145,7 @@ ulib_uint ustring_length(UString string) {
  * @param length Length of the string (excluding the null terminator).
  * @return New string.
  *
+ * @destructor{ustring_deinit}
  * @note The buffer must be null-terminated.
  * @note Due to the internals of UString, you must not attempt to access the buffer
  *       after calling this function as it may have been deallocated.
@@ -161,6 +162,7 @@ UString ustring_assign(char const *buf, size_t length);
  * @param length Length of the string (excluding the null terminator).
  * @return New string.
  *
+ * @destructor{ustring_deinit}
  * @note The buffer must be null-terminated.
  *
  * @public @memberof UString
@@ -177,7 +179,7 @@ UString ustring_copy(char const *buf, size_t length);
  *
  * @note The buffer must be null-terminated.
  * @note If the buffer has been dynamically allocated, you are responsible for its deallocation.
- * @note You must not call `ustring_deinit` on a string initialized with this function.
+ * @note You must not call ustring_deinit() on a string initialized with this function.
  *
  * @public @memberof UString
  */
@@ -192,6 +194,7 @@ UString ustring_wrap(char const *buf, size_t length);
  * @param length Length of the string (excluding the null terminator).
  * @return Underlying buffer.
  *
+ * @destructor{ustring_deinit}
  * @note The returned buffer is null-terminated but otherwise uninitialized.
  *
  * @public @memberof UString
@@ -205,6 +208,8 @@ char *ustring(UString *string, size_t length);
  * @param literal [char const []] String literal.
  * @return [UString] Initialized string.
  *
+ * @destructor{ustring_deinit}
+ *
  * @public @related UString
  */
 #define ustring_copy_literal(literal) ustring_copy(literal, sizeof(literal) - 1)
@@ -215,7 +220,7 @@ char *ustring(UString *string, size_t length);
  * @param literal [char const []] String literal.
  * @return [UString] String.
  *
- * @note You must not call `ustring_deinit` on a string initialized with this function.
+ * @note You must not call ustring_deinit() on a string initialized with this function.
  *
  * @public @related UString
  */
@@ -228,6 +233,7 @@ char *ustring(UString *string, size_t length);
  * @param buf String buffer.
  * @return New string.
  *
+ * @destructor{ustring_deinit}
  * @note The buffer must be null-terminated.
  * @note Due to the internals of UString, you must not attempt to access the buffer
  *       after calling this function as it may have been deallocated.
@@ -245,6 +251,7 @@ UString ustring_assign_buf(char const *buf) {
  * @param buf String buffer.
  * @return New string.
  *
+ * @destructor{ustring_deinit}
  * @note The buffer must be null-terminated.
  *
  * @public @memberof UString
@@ -262,7 +269,7 @@ UString ustring_copy_buf(char const *buf) {
  *
  * @note The buffer must be null-terminated.
  * @note If the buffer has been dynamically allocated, you are responsible for its deallocation.
- * @note You must not call `ustring_deinit` on a string initialized with this function.
+ * @note You must not call ustring_deinit() on a string initialized with this function.
  *
  * @public @memberof UString
  */
@@ -277,6 +284,8 @@ UString ustring_wrap_buf(char const *buf) {
  * @param string String to duplicate.
  * @return Duplicated string.
  *
+ * @destructor{ustring_deinit}
+ *
  * @public @memberof UString
  */
 ULIB_API
@@ -288,6 +297,8 @@ UString ustring_dup(UString string);
  * @param format Format string.
  * @param ... Format arguments.
  * @return New string.
+ *
+ * @destructor{ustring_deinit}
  *
  * @public @memberof UString
  */
@@ -301,6 +312,8 @@ UString ustring_with_format(char const *format, ...);
  * @param args Format arguments.
  * @return New string.
  *
+ * @destructor{ustring_deinit}
+ *
  * @public @memberof UString
  */
 ULIB_API
@@ -312,6 +325,8 @@ UString ustring_with_format_list(char const *format, va_list args);
  * @param strings Strings to concatenate.
  * @param count Number of strings.
  * @return Concatenation of the specified strings.
+ *
+ * @destructor{ustring_deinit}
  *
  * @public @memberof UString
  */
@@ -326,6 +341,8 @@ UString ustring_concat(UString const *strings, ulib_uint count);
  * @param sep Separator.
  * @return Strings joined with the specified separator.
  *
+ * @destructor{ustring_deinit}
+ *
  * @public @memberof UString
  */
 ULIB_API
@@ -337,6 +354,8 @@ UString ustring_join(UString const *strings, ulib_uint count, UString sep);
  * @param string String to repeat.
  * @param times Number of repetitions.
  * @return New string.
+ *
+ * @destructor{ustring_deinit}
  *
  * @public @memberof UString
  */
@@ -377,6 +396,8 @@ bool ustring_is_lower(UString string) {
  * @param string String to convert.
  * @return Uppercase string.
  *
+ * @destructor{ustring_deinit}
+ *
  * @public @memberof UString
  */
 ULIB_API
@@ -387,6 +408,8 @@ UString ustring_to_upper(UString string);
  *
  * @param string String to convert.
  * @return Lowercase string.
+ *
+ * @destructor{ustring_deinit}
  *
  * @public @memberof UString
  */
@@ -580,7 +603,7 @@ void ustring_deinit(UString *string);
  * @param string String to deinitialize.
  * @return Buffer.
  *
- * @note You are responsible for deallocating the returned buffer.
+ * @destructor{ulib_free}
  *
  * @public @memberof UString
  */

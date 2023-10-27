@@ -22,6 +22,8 @@ set(DOXYGEN_MACRO_EXPANSION YES)
 set(DOXYGEN_INCLUDE_PATH ${ULIB_PUBLIC_HEADERS_DIR})
 set(DOXYGEN_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/doxygen")
 set(DOXYGEN_XML_OUTPUT_DIRECTORY "${DOXYGEN_OUTPUT_DIRECTORY}/xml")
+set(DOXYGEN_ALIASES [[destructor{1}="@note The returned object must be destroyed by calling \1()."]])
+set(DOXYGEN_VERBATIM_VARS DOXYGEN_ALIASES)
 
 # Documentation targets
 

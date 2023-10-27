@@ -95,6 +95,8 @@
  * @param name Name of the array variable.
  * @param count Number of elements.
  *
+ * @destructor{ulib_vla_deinit}
+ *
  * @public @def ulib_vla
  */
 

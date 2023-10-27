@@ -865,6 +865,8 @@ typedef enum uvec_ret {
  * @param T [symbol] Vector type.
  * @return [UVec(T)] Initialized vector instance.
  *
+ * @destructor{uvec_deinit}
+ *
  * @public @related UVec
  */
 #define uvec(T) P_ULIB_MACRO_CONCAT(uvec_, T)()
@@ -885,6 +887,8 @@ typedef enum uvec_ret {
  * @param T [symbol] Vector type.
  * @param vec [UVec(T)*] Vector whose storage should be returned.
  * @return [UVec(T)] Vector storage.
+ *
+ * @destructor{uvec_deinit}
  *
  * @public @related UVec
  */

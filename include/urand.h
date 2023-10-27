@@ -64,6 +64,8 @@ ulib_int urand_range(ulib_int start, ulib_uint len);
  * @param len Length of the string.
  * @param charset Character set, or NULL for the default alphanumeric character set.
  * @return Random string.
+ *
+ * @destructor{UString::ustring_deinit}
  */
 ULIB_API
 UString urand_string(ulib_uint len, UString const *charset);

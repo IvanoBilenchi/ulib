@@ -79,7 +79,7 @@ char ulib_char_to_lower(char c) {
  * @param length Length of the string to duplicate.
  * @return Duplicated string.
  *
- * @note You are responsible for deallocating the returned string via `ulib_free`.
+ * @destructor{ulib_free}
  *
  * @public @related UString
  */

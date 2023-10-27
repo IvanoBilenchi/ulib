@@ -167,9 +167,9 @@ long long utime_diff(UTime const *a, UTime const *b, utime_unit unit);
  * @param time Date.
  * @return Human readable date string.
  *
- * @public @memberof UTime
+ * @destructor{UString::ustring_deinit}
  *
- * @note You are responsible for deinitializing the returned string.
+ * @public @memberof UTime
  */
 ULIB_API
 UString utime_to_string(UTime const *time);
@@ -270,7 +270,7 @@ double utime_interval_convert(utime_ns t, utime_unit unit);
  * @param unit Time unit.
  * @return Time interval in string form.
  *
- * @note You are responsible for deinitializing the returned string.
+ * @destructor{UString::ustring_deinit}
  */
 ULIB_API
 UString utime_interval_to_string(utime_ns t, utime_unit unit);

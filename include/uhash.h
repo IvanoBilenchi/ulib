@@ -1017,6 +1017,8 @@ ulib_uint p_uhash_int64_hash(uint64_t key) {
  * @param h [UHash(T)*] Hash table whose storage should be returned.
  * @return [UHash(T)] Hash table storage.
  *
+ * @destructor{uhash_deinit}
+ *
  * @public @related UHash
  */
 #define uhash_move(T, h) uhash_move_##T(h)
@@ -1196,6 +1198,8 @@ ulib_uint p_uhash_int64_hash(uint64_t key) {
  * @param T [symbol] Hash table name.
  * @return [UHash(T)] Hash table instance.
  *
+ * @destructor{uhash_deinit}
+ *
  * @public @related UHash
  */
 #define uhmap(T) uhmap_##T()
@@ -1207,6 +1211,8 @@ ulib_uint p_uhash_int64_hash(uint64_t key) {
  * @param hash_func [(uh_key) -> ulib_uint] Hash function pointer.
  * @param equal_func [(uh_key, uh_key) -> bool] Equality function pointer.
  * @return [UHash(T)] Hash table instance.
+ *
+ * @destructor{uhash_deinit}
  *
  * @public @related UHash
  */
@@ -1301,6 +1307,8 @@ ulib_uint p_uhash_int64_hash(uint64_t key) {
  * @param T [symbol] Hash table name.
  * @return [UHash(T)] Hash table instance.
  *
+ * @destructor{uhash_deinit}
+ *
  * @public @related UHash
  */
 #define uhset(T) uhset_##T()
@@ -1312,6 +1320,8 @@ ulib_uint p_uhash_int64_hash(uint64_t key) {
  * @param hash_func [(uh_key) -> ulib_uint] Hash function pointer.
  * @param equal_func [(uh_key, uh_key) -> bool] Equality function pointer.
  * @return [UHash(T)] Hash table instance.
+ *
+ * @destructor{uhash_deinit}
  *
  * @public @related UHash
  */
