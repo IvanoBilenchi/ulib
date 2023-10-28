@@ -202,7 +202,7 @@ ulib_int ulib_str_to_int(char const *src, char **end, unsigned base) {
     long ret = strtol(src, &endptr, (int)base);
 #endif
     if (end) *end = endptr;
-    return ret;
+    return (ulib_int)ret;
 }
 
 /**
@@ -227,7 +227,7 @@ ulib_uint ulib_str_to_uint(char const *src, char **end, unsigned base) {
     unsigned long ret = strtoul(src, &endptr, (int)base);
 #endif
     if (end) *end = endptr;
-    return ret;
+    return (ulib_uint)ret;
 }
 
 /**
@@ -251,7 +251,7 @@ ulib_float ulib_str_to_float(char const *src, char **end) {
     double ret = strtod(src, &endptr);
 #endif
     if (end) *end = endptr;
-    return ret;
+    return (ulib_float)ret;
 }
 
 /**

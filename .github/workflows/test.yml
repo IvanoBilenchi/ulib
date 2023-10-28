@@ -24,6 +24,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         lib_type: [STATIC, SHARED]
+        types: [normal, tiny, huge]
 
     steps:
       - name: Checkout repository
@@ -44,6 +45,8 @@ jobs:
         run: >
           cmake -B ${{env.build_dir}}
           -DULIB_LIBRARY_TYPE=${{matrix.lib_type}}
+          -DULIB_TINY=${{matrix.types == 'tiny' && 'ON' || 'OFF'}}
+          -DULIB_HUGE=${{matrix.types == 'huge' && 'ON' || 'OFF'}}
           -DULIB_LEAKS=ON
           -DCMAKE_SYSTEM_VERSION=''
           -DCMAKE_BUILD_TYPE=${{env.build_config}}

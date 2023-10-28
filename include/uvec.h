@@ -545,7 +545,8 @@ typedef enum uvec_ret {
     ATTRS void uvec_sort_range_##T(UVec(T) *vec, ulib_uint start, ulib_uint len) {                 \
         T *array = uvec_data(T, vec) + start;                                                      \
         start = 0;                                                                                 \
-        ulib_uint pos = 0, seed = 31, stack[P_UVEC_SORT_STACK_SIZE];                               \
+        ulib_uint pos = 0, stack[P_UVEC_SORT_STACK_SIZE];                                          \
+        uint32_t seed = 31;                                                                        \
                                                                                                    \
         while (true) {                                                                             \
             for (; start + 1 < len; ++len) {                                                       \

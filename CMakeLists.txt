@@ -27,7 +27,8 @@ project(uLib
 
 # Options
 
-option(ULIB_EMBEDDED "Enable optimizations for embedded platforms" OFF)
+option(ULIB_TINY "Use small types" OFF)
+option(ULIB_HUGE "Use large types" OFF)
 option(ULIB_LTO "Enable link-time optimization, if available" ON)
 option(ULIB_LEAKS "Enable debugging of memory leaks (keep OFF in production builds)" OFF)
 set(ULIB_LIBRARY_TYPE "STATIC" CACHE STRING "Type of library to build.")
@@ -85,8 +86,10 @@ if(ULIB_LTO)
     check_ipo_supported(RESULT ULIB_LTO_ENABLED)
 endif()
 
-if(ULIB_EMBEDDED)
+if(ULIB_TINY)
     list(APPEND ULIB_PUBLIC_DEFINES ULIB_TINY)
+elseif(ULIB_HUGE)
+    list(APPEND ULIB_PUBLIC_DEFINES ULIB_HUGE)
 endif()
 
 # Header files

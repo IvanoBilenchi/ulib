@@ -106,11 +106,10 @@ bool uvec_test_capacity(void) {
     utest_assert(ret == UVEC_OK);
     utest_assert_uint(uvec_size(VTYPE, &v), >=, capacity);
 
-    uvec_push(VTYPE, &v, 1);
-    uvec_push(VTYPE, &v, 2);
-    uvec_push(VTYPE, &v, 3);
-    uvec_push(VTYPE, &v, 4);
-    uvec_push(VTYPE, &v, 5);
+    for (unsigned i = 0; i < 9; ++i) {
+        ret = uvec_push(VTYPE, &v, 42);
+        utest_assert(ret == UVEC_OK);
+    }
     utest_assert_uint(uvec_size(VTYPE, &v), >=, uvec_count(VTYPE, &v));
 
     ret = uvec_expand(VTYPE, &v, capacity);
