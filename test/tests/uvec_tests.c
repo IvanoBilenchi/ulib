@@ -8,7 +8,9 @@
  */
 
 #include "umacros.h"
+#include "urand.h"
 #include "utest.h"
+#include "utime.h"
 #include "uvec_builtin.h"
 
 /// @name Utility macros
@@ -250,5 +252,121 @@ bool uvec_test_comparable(void) {
 
     uvec_deinit(VTYPE, &v);
     uvec_deinit(VTYPE, &values);
+    return true;
+}
+
+#define SORT_SEED 31
+#define SORT_COUNT_SMALL 16
+
+#ifdef ULIB_TINY
+#define SORT_COUNT ULIB_UINT_MAX / 2
+#else
+#define SORT_COUNT 1000000
+#endif
+
+static int vtype_compare(void const *a, void const *b) {
+    return *((VTYPE *)a) - *((VTYPE *)b);
+}
+
+static void print_results(char const *title, utime_ns qsort_ns, utime_ns uvec_sort_ns) {
+    UString qsort_str = utime_interval_to_string(qsort_ns, utime_interval_unit_auto(qsort_ns));
+    UString uvec_sort_str = utime_interval_to_string(uvec_sort_ns,
+                                                     utime_interval_unit_auto(uvec_sort_ns));
+    printf("%s - qsort: %s, uvec_sort: %s\n", title, ustring_data(qsort_str),
+           ustring_data(uvec_sort_str));
+    ustring_deinit(&qsort_str);
+    ustring_deinit(&uvec_sort_str);
+}
+
+bool uvec_test_sort(void) {
+    static VTYPE array[SORT_COUNT];
+    UVec(VTYPE) v = uvec(VTYPE);
+
+    // Small arrays
+    uvec_reserve(VTYPE, &v, SORT_COUNT_SMALL);
+    urand_set_seed(SORT_SEED);
+    utime_ns qsort_ns = utime_get_ns();
+    for (ulib_uint i = 0; i < SORT_COUNT; ++i) {
+        for (ulib_uint j = 0; j < SORT_COUNT_SMALL; ++j) {
+            array[j] = urand();
+        }
+        qsort(array, SORT_COUNT_SMALL, sizeof(*array), vtype_compare);
+    }
+    qsort_ns = utime_get_ns() - qsort_ns;
+
+    urand_set_seed(SORT_SEED);
+    utime_ns uvec_sort_ns = utime_get_ns();
+    for (ulib_uint i = 0; i < SORT_COUNT; ++i) {
+        for (ulib_uint j = 0; j < SORT_COUNT_SMALL; ++j) {
+            uvec_push(VTYPE, &v, urand());
+        }
+        uvec_sort(VTYPE, &v);
+        uvec_remove_all(VTYPE, &v);
+    }
+    uvec_sort_ns = utime_get_ns() - uvec_sort_ns;
+    print_results("Small array sort", qsort_ns, uvec_sort_ns);
+
+    // Large array with mostly unique elements
+    for (ulib_uint i = 0; i < SORT_COUNT; ++i) {
+        array[i] = urand();
+    }
+
+    uvec_append_array(VTYPE, &v, array, SORT_COUNT);
+
+    qsort_ns = utime_get_ns();
+    qsort(array, SORT_COUNT, sizeof(*array), vtype_compare);
+    qsort_ns = utime_get_ns() - qsort_ns;
+
+    uvec_sort_ns = utime_get_ns();
+    uvec_sort(VTYPE, &v);
+    uvec_sort_ns = utime_get_ns() - uvec_sort_ns;
+
+    uvec_assert_elements_array(VTYPE, &v, array);
+    print_results("Large array sort (unique, unsorted)", qsort_ns, uvec_sort_ns);
+
+    // Large array with mostly unique elements, already sorted
+    qsort_ns = utime_get_ns();
+    qsort(array, SORT_COUNT, sizeof(*array), vtype_compare);
+    qsort_ns = utime_get_ns() - qsort_ns;
+
+    uvec_sort_ns = utime_get_ns();
+    uvec_sort(VTYPE, &v);
+    uvec_sort_ns = utime_get_ns() - uvec_sort_ns;
+
+    uvec_assert_elements_array(VTYPE, &v, array);
+    print_results("Large array sort (unique, sorted)", qsort_ns, uvec_sort_ns);
+
+    // Large array with repeated elements
+    for (ulib_uint i = 0; i < SORT_COUNT; ++i) {
+        array[i] = urand() % 100;
+    }
+
+    uvec_remove_all(VTYPE, &v);
+    uvec_append_array(VTYPE, &v, array, SORT_COUNT);
+
+    qsort_ns = utime_get_ns();
+    qsort(array, SORT_COUNT, sizeof(*array), vtype_compare);
+    qsort_ns = utime_get_ns() - qsort_ns;
+
+    uvec_sort_ns = utime_get_ns();
+    uvec_sort(VTYPE, &v);
+    uvec_sort_ns = utime_get_ns() - uvec_sort_ns;
+
+    uvec_assert_elements_array(VTYPE, &v, array);
+    print_results("Large array sort (repeated, unsorted)", qsort_ns, uvec_sort_ns);
+
+    // Large array with repeated elements, already sorted
+    qsort_ns = utime_get_ns();
+    qsort(array, SORT_COUNT, sizeof(*array), vtype_compare);
+    qsort_ns = utime_get_ns() - qsort_ns;
+
+    uvec_sort_ns = utime_get_ns();
+    uvec_sort(VTYPE, &v);
+    uvec_sort_ns = utime_get_ns() - uvec_sort_ns;
+
+    uvec_assert_elements_array(VTYPE, &v, array);
+    print_results("Large array sort (repeated, sorted)", qsort_ns, uvec_sort_ns);
+
+    uvec_deinit(VTYPE, &v);
     return true;
 }

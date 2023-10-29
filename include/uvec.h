@@ -44,8 +44,7 @@ typedef enum uvec_ret {
 #define UVEC_CACHE_LINE_SIZE 64
 #endif
 
-#define P_UVEC_LARGE_OPTIMIZATIONS_THRESH 128
-#define P_UVEC_SORT_STACK_SIZE 64
+#define P_UVEC_SORT_STACK_SIZE (sizeof(ulib_uint) * CHAR_BIT * 2)
 #define P_UVEC_EXP_COMPACT ((ulib_byte)0xFF)
 #define P_UVEC_FLAG_LARGE ((ulib_byte)0x80)
 
@@ -433,10 +432,8 @@ typedef enum uvec_ret {
         ulib_uint count = uvec_count(T, vec);                                                      \
                                                                                                    \
         for (ulib_uint i = 0; i < count / 2; ++i) {                                                \
-            T temp = data[i];                                                                      \
             ulib_uint swap_idx = count - i - 1;                                                    \
-            data[i] = data[swap_idx];                                                              \
-            data[swap_idx] = temp;                                                                 \
+            ulib_swap(T, data[i], data[swap_idx]);                                                 \
         }                                                                                          \
     }
 
@@ -454,7 +451,8 @@ typedef enum uvec_ret {
         T *data = uvec_data(T, vec);                                                               \
         ulib_uint count = uvec_count(T, vec);                                                      \
         if (equal_func_is_identity) {                                                              \
-            if (count > P_UVEC_LARGE_OPTIMIZATIONS_THRESH) {                                       \
+            ulib_uint const large_thresh = 2 * sizeof(ulib_ptr) * CHAR_BIT;                        \
+            if (count > large_thresh) {                                                            \
                 T *p = ulib_mem_mem(data, count * sizeof(T), &item, sizeof(item));                 \
                 return p ? (ulib_uint)(p - data) : count;                                          \
             }                                                                                      \
@@ -542,36 +540,67 @@ typedef enum uvec_ret {
         return max_idx;                                                                            \
     }                                                                                              \
                                                                                                    \
-    ATTRS void uvec_sort_range_##T(UVec(T) *vec, ulib_uint start, ulib_uint len) {                 \
-        T *array = uvec_data(T, vec) + start;                                                      \
-        start = 0;                                                                                 \
-        ulib_uint pos = 0, stack[P_UVEC_SORT_STACK_SIZE];                                          \
-        uint32_t seed = 31;                                                                        \
+    ULIB_INLINE T p_uvec_qsort_pivot_##T(T *a, ulib_uint len) {                                    \
+        ulib_uint const hi = len - 1, mid = hi / 2;                                                \
+        if (compare_func(a[mid], a[0])) {                                                          \
+            ulib_swap(T, a[mid], a[0]);                                                            \
+        }                                                                                          \
+        if (compare_func(a[hi], a[mid])) {                                                         \
+            ulib_swap(T, a[hi], a[mid]);                                                           \
+            if (compare_func(a[mid], a[0])) {                                                      \
+                ulib_swap(T, a[mid], a[0]);                                                        \
+            }                                                                                      \
+        }                                                                                          \
+        return a[mid];                                                                             \
+    }                                                                                              \
+                                                                                                   \
+    ULIB_INLINE void p_uvec_qsort_##T(T *a, ulib_uint left, ulib_uint thresh) {                    \
+        ulib_uint top = 0, start = 0, stack[P_UVEC_SORT_STACK_SIZE];                               \
                                                                                                    \
         while (true) {                                                                             \
-            for (; start + 1 < len; ++len) {                                                       \
-                if (pos == P_UVEC_SORT_STACK_SIZE) len = stack[pos = 0];                           \
-                                                                                                   \
-                T pivot = array[start + seed % (len - start)];                                     \
-                seed = seed * 69069 + 1;                                                           \
-                stack[pos++] = len;                                                                \
+            for (; left - start > thresh; ++left) {                                                \
+                if (top == P_UVEC_SORT_STACK_SIZE) left = stack[top = 0];                          \
+                T pivot = p_uvec_qsort_pivot_##T(a + start, left - start);                         \
+                stack[top++] = left;                                                               \
                                                                                                    \
                 for (ulib_uint right = start - 1;;) {                                              \
-                    p_ulib_analyzer_assert(false);                                                 \
-                    for (++right; compare_func(array[right], pivot); ++right) {}                   \
-                    for (--len; compare_func(pivot, array[len]); --len) {}                         \
-                    if (right >= len) break;                                                       \
+                    while (compare_func(a[++right], pivot)) {}                                     \
+                    while (compare_func(pivot, a[--left])) {}                                      \
+                    if (right >= left) break;                                                      \
+                    ulib_swap(T, a[right], a[left]);                                               \
+                }                                                                                  \
                                                                                                    \
-                    T temp = array[right];                                                         \
-                    array[right] = array[len];                                                     \
-                    array[len] = temp;                                                             \
+                if (stack[top - 1] - left <= thresh) {                                             \
+                    --top;                                                                         \
                 }                                                                                  \
             }                                                                                      \
                                                                                                    \
-            if (pos == 0) break;                                                                   \
-            start = len;                                                                           \
-            len = stack[--pos];                                                                    \
+            if (top == 0) break;                                                                   \
+            start = left;                                                                          \
+            left = stack[--top];                                                                   \
         }                                                                                          \
+    }                                                                                              \
+                                                                                                   \
+    ULIB_INLINE void p_uvec_isort_##T(T *a, ulib_uint len) {                                       \
+        for (ulib_uint i = 1; i < len; ++i) {                                                      \
+            T item = a[i];                                                                         \
+            ulib_int j = i - 1;                                                                    \
+            for (; j >= 0 && compare_func(item, a[j]); --j) {                                      \
+                a[j + 1] = a[j];                                                                   \
+            }                                                                                      \
+            a[j + 1] = item;                                                                       \
+        }                                                                                          \
+    }                                                                                              \
+                                                                                                   \
+    ATTRS void uvec_sort_range_##T(UVec(T) *vec, ulib_uint start, ulib_uint len) {                 \
+        T *array = uvec_data(T, vec) + start;                                                      \
+        ulib_uint const insertion_thresh = sizeof(ulib_uint) * CHAR_BIT;                           \
+                                                                                                   \
+        if (len > insertion_thresh) {                                                              \
+            p_uvec_qsort_##T(array, len, insertion_thresh);                                        \
+        }                                                                                          \
+                                                                                                   \
+        p_uvec_isort_##T(array, len);                                                              \
     }                                                                                              \
                                                                                                    \
     ATTRS ulib_uint uvec_insertion_index_sorted_##T(UVec(T) const *vec, T item) {                  \
