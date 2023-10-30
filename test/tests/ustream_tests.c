@@ -57,7 +57,7 @@ bool uistream_path_test(void) {
     utest_assert_critical(ustream_generate_data(USTREAM_INPUT_FILE));
 
     UIStream stream;
-    char *buf = (char *)ulib_calloc(test_data_size, 1);
+    char buf[test_data_size] = { 0 };
     size_t read;
 
     ustream_ret ret = uistream_from_path(&stream, USTREAM_INPUT_FILE);
@@ -76,13 +76,12 @@ bool uistream_path_test(void) {
     ret = uistream_deinit(&stream);
     utest_assert(ret == USTREAM_OK);
 
-    ulib_free(buf);
     return true;
 }
 
 bool uistream_buf_test(void) {
     UIStream stream;
-    char *buf = (char *)ulib_malloc(test_data_size);
+    char buf[test_data_size];
     size_t read;
 
     ustream_ret ret = uistream_from_buf(&stream, test_data, test_data_size);
@@ -102,7 +101,6 @@ bool uistream_buf_test(void) {
     ret = uistream_deinit(&stream);
     utest_assert(ret == USTREAM_OK);
 
-    ulib_free(buf);
     return true;
 }
 
