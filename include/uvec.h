@@ -44,7 +44,33 @@ typedef enum uvec_ret {
 #define UVEC_CACHE_LINE_SIZE 64
 #endif
 
-#define P_UVEC_SORT_STACK_SIZE (sizeof(ulib_uint) * CHAR_BIT * 2)
+/**
+ * Quicksort stack size.
+ *
+ * @note When the stack overflows, sorting falls back to insertion sort.
+ */
+#ifndef UVEC_SORT_STACK_SIZE
+#define UVEC_SORT_STACK_SIZE (sizeof(ulib_uint) * CHAR_BIT * 2)
+#endif
+
+/**
+ * Switch to insertion sort below this many elements.
+ *
+ * @note Applies to both entire vectors and quicksort partitions.
+ */
+#ifndef UVEC_SORT_INSERTION_THRESH
+#define UVEC_SORT_INSERTION_THRESH (sizeof(ulib_uint) * CHAR_BIT)
+#endif
+
+/**
+ * Use `ulib_mem_mem` in `uvec_index_of` above this many elements.
+ *
+ * @note Only affects vectors of scalar types.
+ */
+#ifndef UVEC_INDEX_OF_THRESH
+#define UVEC_INDEX_OF_THRESH (sizeof(ulib_ptr) * CHAR_BIT * 2)
+#endif
+
 #define P_UVEC_EXP_COMPACT ((ulib_byte)0xFF)
 #define P_UVEC_FLAG_LARGE ((ulib_byte)0x80)
 
@@ -451,8 +477,7 @@ typedef enum uvec_ret {
         T *data = uvec_data(T, vec);                                                               \
         ulib_uint count = uvec_count(T, vec);                                                      \
         if (equal_func_is_identity) {                                                              \
-            ulib_uint const large_thresh = 2 * sizeof(ulib_ptr) * CHAR_BIT;                        \
-            if (count > large_thresh) {                                                            \
+            if (count > UVEC_INDEX_OF_THRESH) {                                                    \
                 T *p = ulib_mem_mem(data, count * sizeof(T), &item, sizeof(item));                 \
                 return p ? (ulib_uint)(p - data) : count;                                          \
             }                                                                                      \
@@ -554,30 +579,29 @@ typedef enum uvec_ret {
         return a[mid];                                                                             \
     }                                                                                              \
                                                                                                    \
-    ULIB_INLINE void p_uvec_qsort_##T(T *a, ulib_uint left, ulib_uint thresh) {                    \
-        ulib_uint top = 0, start = 0, stack[P_UVEC_SORT_STACK_SIZE];                               \
+    ULIB_INLINE void p_uvec_qsort_##T(T *a, ulib_uint right) {                                     \
+        ulib_uint top = 0, left = 0, stack[UVEC_SORT_STACK_SIZE];                                  \
                                                                                                    \
         while (true) {                                                                             \
-            for (; left - start > thresh; ++left) {                                                \
-                if (top == P_UVEC_SORT_STACK_SIZE) left = stack[top = 0];                          \
-                T pivot = p_uvec_qsort_pivot_##T(a + start, left - start);                         \
-                stack[top++] = left;                                                               \
+            for (; right > left + UVEC_SORT_INSERTION_THRESH; ++right) {                           \
+                T pivot = p_uvec_qsort_pivot_##T(a + left, right - left);                          \
+                stack[top] = right;                                                                \
                                                                                                    \
-                for (ulib_uint right = start - 1;;) {                                              \
-                    while (compare_func(a[++right], pivot)) {}                                     \
-                    while (compare_func(pivot, a[--left])) {}                                      \
-                    if (right >= left) break;                                                      \
-                    ulib_swap(T, a[right], a[left]);                                               \
+                for (ulib_uint i = left - 1;;) {                                                   \
+                    while (compare_func(a[++i], pivot)) {}                                         \
+                    while (compare_func(pivot, a[--right])) {}                                     \
+                    if (i >= right) break;                                                         \
+                    ulib_swap(T, a[i], a[right]);                                                  \
                 }                                                                                  \
                                                                                                    \
-                if (stack[top - 1] - left <= thresh) {                                             \
-                    --top;                                                                         \
+                if (stack[top] > right + UVEC_SORT_INSERTION_THRESH) {                             \
+                    if (++top == UVEC_SORT_STACK_SIZE) return;                                     \
                 }                                                                                  \
             }                                                                                      \
                                                                                                    \
-            if (top == 0) break;                                                                   \
-            start = left;                                                                          \
-            left = stack[--top];                                                                   \
+            if (top == 0) return;                                                                  \
+            left = right;                                                                          \
+            right = stack[--top];                                                                  \
         }                                                                                          \
     }                                                                                              \
                                                                                                    \
@@ -594,10 +618,9 @@ typedef enum uvec_ret {
                                                                                                    \
     ATTRS void uvec_sort_range_##T(UVec(T) *vec, ulib_uint start, ulib_uint len) {                 \
         T *array = uvec_data(T, vec) + start;                                                      \
-        ulib_uint const insertion_thresh = sizeof(ulib_uint) * CHAR_BIT;                           \
                                                                                                    \
-        if (len > insertion_thresh) {                                                              \
-            p_uvec_qsort_##T(array, len, insertion_thresh);                                        \
+        if (len > UVEC_SORT_INSERTION_THRESH) {                                                    \
+            p_uvec_qsort_##T(array, len);                                                          \
         }                                                                                          \
                                                                                                    \
         p_uvec_isort_##T(array, len);                                                              \
