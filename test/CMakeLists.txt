@@ -29,3 +29,8 @@ enable_language(CXX)
 add_executable(ulib-cpp-test EXCLUDE_FROM_ALL ${ULIB_CPP_TEST_SOURCES})
 target_include_directories(ulib-cpp-test PRIVATE tests)
 target_link_libraries(ulib-cpp-test PRIVATE ulib)
+
+# Benchmark target
+
+add_executable(ulib-bench EXCLUDE_FROM_ALL bench.c)
+target_link_libraries(ulib-bench PRIVATE ulib)

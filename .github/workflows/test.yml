@@ -13,6 +13,7 @@ env:
   lflags_msvc:
   test_target: ulib-test
   cpp_test_target: ulib-cpp-test
+  bench_target: ulib-bench
   docs_target: ulib-docs
 
 jobs:
@@ -59,7 +60,7 @@ jobs:
         run: >
           cmake --build ${{env.build_dir}}
           --config ${{env.build_config}}
-          --target ${{env.test_target}} ${{env.cpp_test_target}}
+          --target ${{env.test_target}} ${{env.cpp_test_target}} ${{env.bench_target}}
 
       - name: Configure tests
         working-directory: ${{env.build_dir}}/test
@@ -78,6 +79,10 @@ jobs:
       - name: Test (C++)
         working-directory: ${{env.build_dir}}/test
         run: ./${{env.cpp_test_target}}
+
+      - name: Benchmark
+        working-directory: ${{env.build_dir}}/test
+        run: ./${{env.bench_target}}
 
   docs:
     name: Generate the documentation

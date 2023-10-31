@@ -1,3 +1,12 @@
+/**
+ * @author Ivano Bilenchi
+ *
+ * @copyright Copyright (c) 2023 Ivano Bilenchi <https://ivanobilenchi.com>
+ * @copyright SPDX-License-Identifier: MIT
+ *
+ * @file
+ */
+
 #include "ubit_tests.h"
 #include "uhash_tests.h"
 #include "urand_tests.h"
