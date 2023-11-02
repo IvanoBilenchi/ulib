@@ -71,6 +71,11 @@ typedef enum uvec_ret {
 #define UVEC_INDEX_OF_THRESH (sizeof(ulib_ptr) * CHAR_BIT * 2)
 #endif
 
+/// Switch from binary to linear search below this many elements.
+#ifndef UVEC_BINARY_SEARCH_THRESH
+#define UVEC_BINARY_SEARCH_THRESH (sizeof(ulib_uint) * CHAR_BIT)
+#endif
+
 #define P_UVEC_EXP_COMPACT ((ulib_byte)0xFF)
 #define P_UVEC_FLAG_LARGE ((ulib_byte)0x80)
 
@@ -627,21 +632,17 @@ typedef enum uvec_ret {
     }                                                                                              \
                                                                                                    \
     ATTRS ulib_uint uvec_insertion_index_sorted_##T(UVec(T) const *vec, T item) {                  \
-        T const *array = uvec_data(T, vec);                                                        \
-        ulib_uint const linear_search_thresh = UVEC_CACHE_LINE_SIZE / sizeof(T);                   \
-        ulib_uint r = uvec_count(T, vec), l = 0;                                                   \
+        T const *start = uvec_data(T, vec);                                                        \
+        ulib_uint len = uvec_count(T, vec);                                                        \
                                                                                                    \
-        while (r - l > linear_search_thresh) {                                                     \
-            ulib_uint m = l + (r - l) / 2;                                                         \
-            if (compare_func(array[m], item)) {                                                    \
-                l = m + 1;                                                                         \
-            } else {                                                                               \
-                r = m;                                                                             \
+        while (len > UVEC_BINARY_SEARCH_THRESH) {                                                  \
+            if (compare_func(start[(len >>= 1)], item)) {                                          \
+                start += len + 1;                                                                  \
             }                                                                                      \
         }                                                                                          \
                                                                                                    \
-        for (; l < r && compare_func(array[l], item); ++l) {}                                      \
-        return l;                                                                                  \
+        for (T const *last = start + len; start < last && compare_func(*start, item); ++start) {}  \
+        return (ulib_uint)(start - uvec_data(T, vec));                                             \
     }                                                                                              \
                                                                                                    \
     ATTRS ulib_uint uvec_index_of_sorted_##T(UVec(T) const *vec, T item) {                         \
