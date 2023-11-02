@@ -388,7 +388,7 @@ ulib_uint p_uhash_int64_hash(uint64_t key) {
                 return UHASH_OK;                                                                   \
             }                                                                                      \
                                                                                                    \
-            uh_val *new_vals = (uh_val *)ulib_realloc(dest->_vals, src->_size * sizeof(uh_val));   \
+            uh_val *new_vals = (uh_val *)ulib_realloc_array(dest->_vals, src->_size);              \
             if (new_vals) {                                                                        \
                 memcpy(new_vals, src->_vals, src->_size * sizeof(uh_val));                         \
                 dest->_vals = new_vals;                                                            \
@@ -408,10 +408,10 @@ ulib_uint p_uhash_int64_hash(uint64_t key) {
         }                                                                                          \
                                                                                                    \
         ulib_uint n_flags = p_uhf_size(src->_size);                                                \
-        uint32_t *new_flags = (uint32_t *)ulib_realloc(dest->_flags, n_flags * sizeof(uint32_t));  \
+        uint32_t *new_flags = (uint32_t *)ulib_realloc_array(dest->_flags, n_flags);               \
         if (!new_flags) return UHASH_ERR;                                                          \
                                                                                                    \
-        uh_key *new_keys = (uh_key *)ulib_realloc(dest->_keys, src->_size * sizeof(uh_key));       \
+        uh_key *new_keys = (uh_key *)ulib_realloc_array(dest->_keys, src->_size);                  \
         if (!new_keys) {                                                                           \
             ulib_free(new_flags);                                                                  \
             return UHASH_ERR;                                                                      \
@@ -463,14 +463,14 @@ ulib_uint p_uhash_int64_hash(uint64_t key) {
         }                                                                                          \
                                                                                                    \
         /* Hash table size needs to be changed (shrink or expand): rehash. */                      \
-        uint32_t *new_flags = (uint32_t *)ulib_malloc(p_uhf_size(new_size) * sizeof(uint32_t));    \
+        uint32_t *new_flags = (uint32_t *)ulib_alloc_array(new_flags, p_uhf_size(new_size));       \
         if (!new_flags) return UHASH_ERR;                                                          \
                                                                                                    \
         memset(new_flags, 0xaa, p_uhf_size(new_size) * sizeof(uint32_t));                          \
                                                                                                    \
         if (h->_size < new_size) {                                                                 \
             /* Expand. */                                                                          \
-            uh_key *new_keys = (uh_key *)ulib_realloc(h->_keys, new_size * sizeof(uh_key));        \
+            uh_key *new_keys = (uh_key *)ulib_realloc_array(h->_keys, new_size);                   \
                                                                                                    \
             if (!new_keys) {                                                                       \
                 ulib_free(new_flags);                                                              \
@@ -480,7 +480,7 @@ ulib_uint p_uhash_int64_hash(uint64_t key) {
             h->_keys = new_keys;                                                                   \
                                                                                                    \
             if (uhash_is_map_##T(h)) {                                                             \
-                uh_val *nvals = (uh_val *)ulib_realloc(h->_vals, new_size * sizeof(uh_val));       \
+                uh_val *nvals = (uh_val *)ulib_realloc_array(h->_vals, new_size);                  \
                                                                                                    \
                 if (!nvals) {                                                                      \
                     ulib_free(new_flags);                                                          \
@@ -534,8 +534,8 @@ ulib_uint p_uhash_int64_hash(uint64_t key) {
                                                                                                    \
         if (h->_size > new_size) {                                                                 \
             /* Shrink the hash table. */                                                           \
-            h->_keys = (uh_key *)ulib_realloc(h->_keys, new_size * sizeof(uh_key));                \
-            if (h->_vals) h->_vals = (uh_val *)ulib_realloc(h->_vals, new_size * sizeof(uh_val));  \
+            h->_keys = (uh_key *)ulib_realloc_array(h->_keys, new_size);                           \
+            if (h->_vals) h->_vals = (uh_val *)ulib_realloc_array(h->_vals, new_size);             \
         }                                                                                          \
                                                                                                    \
         /* Free the working space. */                                                              \

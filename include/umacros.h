@@ -109,7 +109,7 @@
  */
 #ifdef _MSC_VER
 
-#define ulib_vla(T, name, count) T *name = ulib_malloc(ulib_max(count, 1) * sizeof(*name))
+#define ulib_vla(T, name, count) T *name = ulib_alloc_array(name, ulib_max(count, 1))
 #define ulib_vla_deinit(name) ulib_free(name)
 
 #else

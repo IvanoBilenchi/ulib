@@ -142,7 +142,7 @@ bool uvec_test_equality(void) {
     utest_assert(ret == UVEC_OK);
     utest_assert(uvec_equals(VTYPE, &v1, &v2));
 
-    VTYPE *arr = (VTYPE *)ulib_malloc(uvec_count(VTYPE, &v1) * sizeof(*arr));
+    VTYPE *arr = (VTYPE *)ulib_alloc_array(arr, uvec_count(VTYPE, &v1));
     uvec_copy_to_array(VTYPE, &v1, arr);
     uvec_assert_elements_array(VTYPE, &v1, arr);
     ulib_free(arr);

@@ -325,10 +325,10 @@ typedef enum uvec_ret {
         ulib_byte exp = p_uvec_exp(T, vec);                                                        \
                                                                                                    \
         if (p_uvec_exp_is_large(exp)) {                                                            \
-            data = (T *)ulib_realloc(vec->_l._data, size * sizeof(T));                             \
+            data = (T *)ulib_realloc_array(vec->_l._data, size);                                   \
             if (!data) return UVEC_ERR;                                                            \
         } else {                                                                                   \
-            data = (T *)ulib_malloc(size * sizeof(T));                                             \
+            data = (T *)ulib_alloc_array(data, size);                                              \
             if (!data) return UVEC_ERR;                                                            \
             memcpy(data, vec->_s, exp * sizeof(T));                                                \
             vec->_l._count = exp;                                                                  \
@@ -400,7 +400,7 @@ typedef enum uvec_ret {
             p_uvec_exp_set(T, vec, count);                                                         \
         } else if (!p_uvec_is_compact(T, vec)) {                                                   \
             /* Elements are not stored inline and vector is not compact, shrink */                 \
-            T *data = (T *)ulib_realloc(vec->_l._data, count * sizeof(T));                         \
+            T *data = (T *)ulib_realloc_array(vec->_l._data, count);                               \
             if (!data) return UVEC_ERR;                                                            \
             vec->_l._data = data;                                                                  \
             p_uvec_exp_set(T, vec, P_UVEC_EXP_COMPACT);                                            \

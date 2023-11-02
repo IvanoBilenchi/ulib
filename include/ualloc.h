@@ -77,6 +77,39 @@
  */
 #define ulib_alloc(ptr) ulib_malloc(sizeof(*(ptr)))
 
+/**
+ * Allocates an array.
+ *
+ * @param ptr [T*] Typed variable that will hold the pointer to the allocated memory area.
+ * @param size [size_t] Maximum number of elements that the array can hold.
+ * @return [void *] Pointer to the allocated memory area.
+ *
+ * @destructor{ulib_free}
+ */
+#define ulib_alloc_array(ptr, size) ulib_malloc(sizeof(*(ptr)) * (size))
+
+/**
+ * Allocates an array and initializes its storage to zero.
+ *
+ * @param ptr [T*] Typed variable that will hold the pointer to the allocated memory area.
+ * @param size [size_t] Maximum number of elements that the array can hold.
+ * @return [void *] Pointer to the allocated memory area.
+ *
+ * @destructor{ulib_free}
+ */
+#define ulib_calloc_array(ptr, size) ulib_calloc(size, sizeof(*ptr))
+
+/**
+ * Reallocates a previously allocated array.
+ *
+ * @param ptr [T*] Typed variable holds the pointer to the allocated memory area.
+ * @param size [size_t] Maximum number of elements that the array can hold.
+ * @return [void *] Pointer to the allocated memory area.
+ *
+ * @destructor{ulib_free}
+ */
+#define ulib_realloc_array(ptr, size) ulib_realloc(ptr, sizeof(*(ptr)) * (size))
+
 /// @}
 
 #endif // UALLOC_H
