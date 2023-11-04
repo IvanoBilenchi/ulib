@@ -133,6 +133,34 @@ bool uvec_test_capacity(void) {
     return true;
 }
 
+bool uvec_test_storage(void) {
+    static VTYPE s_array[32] = { 1, 2, 3 };
+    UVec(VTYPE) vec = uvec_wrap(VTYPE, s_array, 3);
+    utest_assert_uint(uvec_count(VTYPE, &vec), ==, 3);
+    utest_assert_uint(uvec_size(VTYPE, &vec), ==, ULIB_UINT_MAX);
+    uvec_assert_elements(VTYPE, &vec, 1, 2, 3);
+
+    utest_assert(uvec_push(VTYPE, &vec, 4) == UVEC_OK);
+    utest_assert_uint(uvec_count(VTYPE, &vec), ==, 4);
+    uvec_assert_elements(VTYPE, &vec, 1, 2, 3, 4);
+
+    utest_assert(uvec_reserve(VTYPE, &vec, 1000) == UVEC_OK);
+    utest_assert(uvec_shrink(VTYPE, &vec) == UVEC_OK);
+
+    VTYPE *d_array = (VTYPE *)ulib_calloc_array(d_array, 4);
+    vec = uvec_assign(VTYPE, d_array, 4);
+    utest_assert_uint(uvec_count(VTYPE, &vec), ==, 4);
+    utest_assert_uint(uvec_size(VTYPE, &vec), ==, 4);
+    uvec_assert_elements(VTYPE, &vec, 0, 0, 0, 0);
+
+    uvec_push(VTYPE, &vec, 5);
+    utest_assert_uint(uvec_count(VTYPE, &vec), ==, 5);
+    utest_assert_uint(uvec_size(VTYPE, &vec), ==, 8);
+
+    uvec_deinit(VTYPE, &vec);
+    return true;
+}
+
 bool uvec_test_equality(void) {
     UVec(VTYPE) v1 = uvec(VTYPE);
     uvec_append_items(VTYPE, &v1, 3, 2, 4, 1);

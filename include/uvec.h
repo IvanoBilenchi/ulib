@@ -77,6 +77,8 @@ typedef enum uvec_ret {
 #endif
 
 #define P_UVEC_EXP_COMPACT ((ulib_byte)0xFF)
+#define P_UVEC_EXP_WRAPPED ((ulib_byte)0xFE)
+#define P_UVEC_EXP_MIN_MARKER P_UVEC_EXP_WRAPPED
 #define P_UVEC_FLAG_LARGE ((ulib_byte)0x80)
 
 #define p_uvec_size(T) (sizeof(struct P_ULIB_MACRO_CONCAT(p_uvec_large_, T)))
@@ -89,6 +91,8 @@ typedef enum uvec_ret {
 #define p_uvec_exp_is_large(e) ((e) & (P_UVEC_FLAG_LARGE))
 #define p_uvec_exp_is_small(e) (!p_uvec_exp_is_large(e))
 #define p_uvec_exp_is_compact(e) ((e) == P_UVEC_EXP_COMPACT)
+#define p_uvec_exp_is_wrapped(e) ((e) == P_UVEC_EXP_WRAPPED)
+#define p_uvec_exp_is_marker(e) ((e) >= P_UVEC_EXP_MIN_MARKER)
 #define p_uvec_exp_large_exp(e) ((e) & (~P_UVEC_FLAG_LARGE))
 #define p_uvec_is_large(T, v) p_uvec_exp_is_large(p_uvec_exp(T, v))
 #define p_uvec_is_small(T, v) p_uvec_exp_is_small(p_uvec_exp(T, v))
@@ -168,6 +172,22 @@ typedef enum uvec_ret {
         return vec;                                                                                \
     }                                                                                              \
                                                                                                    \
+    ATTRS ULIB_INLINE UVec(T) uvec_assign_##T(T *array, ulib_uint count) {                         \
+        UVec(T) vec = uvec(T);                                                                     \
+        vec._l._data = array;                                                                      \
+        vec._l._count = count;                                                                     \
+        p_uvec_exp_set(T, &vec, P_UVEC_EXP_COMPACT);                                               \
+        return vec;                                                                                \
+    }                                                                                              \
+                                                                                                   \
+    ATTRS ULIB_INLINE UVec(T) uvec_wrap_##T(T *array, ulib_uint count) {                           \
+        UVec(T) vec = uvec(T);                                                                     \
+        vec._l._data = array;                                                                      \
+        vec._l._count = count;                                                                     \
+        p_uvec_exp_set(T, &vec, P_UVEC_EXP_WRAPPED);                                               \
+        return vec;                                                                                \
+    }                                                                                              \
+                                                                                                   \
     ATTRS ULIB_PURE ULIB_INLINE T *uvec_data_##T(UVec(T) const *vec) {                             \
         return p_uvec_is_small(T, vec) ? (T *)vec->_s : (T *)vec->_l._data;                        \
     }                                                                                              \
@@ -175,8 +195,8 @@ typedef enum uvec_ret {
     ATTRS ULIB_PURE ULIB_INLINE ulib_uint uvec_size_##T(UVec(T) const *vec) {                      \
         ulib_byte exp = p_uvec_exp(T, vec);                                                        \
         if (p_uvec_exp_is_small(exp)) return p_uvec_small_size(T);                                 \
-        if (p_uvec_exp_is_compact(exp)) return vec->_l._count;                                     \
-        return ulib_uint_pow2(p_uvec_exp_large_exp(exp));                                          \
+        if (!p_uvec_exp_is_marker(exp)) return ulib_uint_pow2(p_uvec_exp_large_exp(exp));          \
+        return p_uvec_exp_is_compact(exp) ? vec->_l._count : ULIB_UINT_MAX;                        \
     }                                                                                              \
                                                                                                    \
     ATTRS ULIB_PURE ULIB_INLINE ulib_uint uvec_count_##T(UVec(T) const *vec) {                     \
@@ -325,6 +345,7 @@ typedef enum uvec_ret {
         ulib_byte exp = p_uvec_exp(T, vec);                                                        \
                                                                                                    \
         if (p_uvec_exp_is_large(exp)) {                                                            \
+            if (p_uvec_exp_is_wrapped(exp)) return UVEC_OK;                                        \
             data = (T *)ulib_realloc_array(vec->_l._data, size);                                   \
             if (!data) return UVEC_ERR;                                                            \
         } else {                                                                                   \
@@ -384,6 +405,9 @@ typedef enum uvec_ret {
     }                                                                                              \
                                                                                                    \
     ATTRS uvec_ret uvec_shrink_##T(UVec(T) *vec) {                                                 \
+        ulib_byte exp = p_uvec_exp(T, vec);                                                        \
+        if (p_uvec_exp_is_wrapped(exp)) return UVEC_OK;                                            \
+                                                                                                   \
         ulib_uint count = uvec_count(T, vec);                                                      \
                                                                                                    \
         if (!count) {                                                                              \
@@ -393,12 +417,12 @@ typedef enum uvec_ret {
                                                                                                    \
         if (count <= p_uvec_small_size(T)) {                                                       \
             /* Store elements inline */                                                            \
-            if (p_uvec_is_small(T, vec)) return UVEC_OK;                                           \
+            if (p_uvec_exp_is_small(exp)) return UVEC_OK;                                          \
             T *old_data = vec->_l._data;                                                           \
             memcpy(vec->_s, old_data, count * sizeof(T));                                          \
             ulib_free(old_data);                                                                   \
             p_uvec_exp_set(T, vec, count);                                                         \
-        } else if (!p_uvec_is_compact(T, vec)) {                                                   \
+        } else if (!p_uvec_exp_is_compact(exp)) {                                                  \
             /* Elements are not stored inline and vector is not compact, shrink */                 \
             T *data = (T *)ulib_realloc_array(vec->_l._data, count);                               \
             if (!data) return UVEC_ERR;                                                            \
@@ -924,6 +948,39 @@ typedef enum uvec_ret {
  * @public @related UVec
  */
 #define uvec(T) P_ULIB_MACRO_CONCAT(uvec_, T)()
+
+/**
+ * Initializes a new vector by taking ownership of the specified array,
+ * which must have been dynamically allocated.
+ *
+ * @param T [symbol] Vector type.
+ * @param array [T*] Array.
+ * @param count [ulib_uint] Number of elements in the array.
+ *
+ * @destructor{uvec_deinit}
+ * @note Due to the internals of UVec, you must not attempt to access the buffer
+ *       after calling this function as it may have been deallocated.
+ *
+ * @public @related UVec
+ */
+#define uvec_assign(T, array, count) P_ULIB_MACRO_CONCAT(uvec_assign_, T)(array, count)
+
+/**
+ * Initializes a new vector by wrapping the specified array.
+ *
+ * @param T [symbol] Vector type.
+ * @param array [T*] Array.
+ * @param count [ulib_uint] Number of elements in the array.
+ *
+ * @note If the array has been dynamically allocated, you are responsible for its deallocation.
+ * @note You must not call uvec_deinit() on a vector initialized with this function.
+ * @note The array will never be resized, and it is assumed it can contain any number of elements.
+ *       This is also reflected by uvec_size() returning ULIB_UINT_MAX for vectors initialized
+ *       with this function. It is up to you to avoid overflowing the underlying buffer.
+ *
+ * @public @related UVec
+ */
+#define uvec_wrap(T, array, count) P_ULIB_MACRO_CONCAT(uvec_wrap_, T)(array, count)
 
 /**
  * De-initializes a vector previously initialized via uvec(T).
