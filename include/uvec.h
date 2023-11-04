@@ -208,18 +208,8 @@ typedef enum uvec_ret {
         return uvec_data(T, vec)[uvec_count(T, vec) - 1];                                          \
     }                                                                                              \
                                                                                                    \
-    ATTRS ULIB_PURE ULIB_INLINE UVec(T) uvec_get_range_##T(UVec(T) const *vec, ulib_uint start,    \
-                                                           ulib_uint len) {                        \
-        UVec(T) ret = { 0 };                                                                       \
-        ret._l._data = uvec_data(T, vec) + start;                                                  \
-        ret._l._count = len;                                                                       \
-        p_uvec_exp_set(T, &ret, P_UVEC_EXP_COMPACT);                                               \
-        return ret;                                                                                \
-    }                                                                                              \
-                                                                                                   \
-    ATTRS ULIB_PURE ULIB_INLINE UVec(T) uvec_get_range_from_##T(UVec(T) const *vec,                \
-                                                                ulib_uint start) {                 \
-        return uvec_get_range(T, vec, start, uvec_count(T, vec) - start);                          \
+    ATTRS ULIB_PURE ULIB_INLINE UVec(T) uvec_view_from_##T(UVec(T) const *vec, ulib_uint start) {  \
+        return uvec_view(T, vec, start, uvec_count(T, vec) - start);                               \
     }                                                                                              \
                                                                                                    \
     ATTRS ULIB_INLINE void uvec_deinit_##T(UVec(T) *vec) {                                         \
@@ -1245,47 +1235,47 @@ typedef enum uvec_ret {
     P_ULIB_MACRO_CONCAT(uvec_append_array_, T)(vec, array, n)
 
 /**
- * Returns a read-only range over the specified vector.
+ * Returns a view over a section of the specified vector.
  *
  * @param T [symbol] Vector type.
  * @param vec [UVec(T)*] Vector instance.
- * @param start [ulib_uint] Start index of the range.
- * @param len [ulib_uint] Length of the range.
- * @return [UVec(T)] Range.
+ * @param start [ulib_uint] Start index of the view.
+ * @param len [ulib_uint] Length of the view.
+ * @return [UVec(T)] View.
  *
- * @warning Mutating the range object is undefined behavior.
+ * @note Views are affected by the same limitations as vectors created via uvec_wrap().
  *
  * @public @related UVec
  */
-#define uvec_get_range(T, vec, start, len) P_ULIB_MACRO_CONCAT(uvec_get_range_, T)(vec, start, len)
+#define uvec_view(T, vec, start, len) uvec_wrap(T, uvec_data(T, vec) + start, len)
 
 /**
- * Returns a read-only range over the specified vector.
+ * Returns a view over a section of the specified vector.
  *
  * @param T [symbol] Vector type.
  * @param vec [UVec(T)*] Vector instance.
- * @param start [ulib_uint] Start index of the range.
- * @return [UVec(T)] Range.
+ * @param start [ulib_uint] Start index of the view.
+ * @return [UVec(T)] View.
  *
- * @warning Mutating the range object is undefined behavior.
+ * @note Views are affected by the same limitations as vectors created via uvec_wrap().
  *
  * @public @related UVec
  */
-#define uvec_get_range_from(T, vec, start) P_ULIB_MACRO_CONCAT(uvec_get_range_from_, T)(vec, start)
+#define uvec_view_from(T, vec, start) P_ULIB_MACRO_CONCAT(uvec_view_from_, T)(vec, start)
 
 /**
- * Returns a read-only range over the specified vector.
+ * Returns a view over a section of the specified vector.
  *
  * @param T [symbol] Vector type.
  * @param vec [UVec(T)*] Vector instance.
- * @param len [ulib_uint] Length of the range.
- * @return [UVec(T)] Range.
+ * @param len [ulib_uint] Length of the view.
+ * @return [UVec(T)] View.
  *
- * @warning Mutating the range object is undefined behavior.
+ * @note Views are affected by the same limitations as vectors created via uvec_wrap().
  *
  * @public @related UVec
  */
-#define uvec_get_range_to(T, vec, len) uvec_get_range(T, vec, 0, len)
+#define uvec_view_to(T, vec, len) uvec_view(T, vec, 0, len)
 
 /**
  * Sets items in the specified range to those contained in an array.
