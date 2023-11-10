@@ -106,7 +106,7 @@
 #if __clang_analyzer__
     #define p_ulib_analyzer_assert(exp) do { if (!(exp)) exit(1); } while(0)
 #else
-    #define p_ulib_analyzer_assert(exp)
+    #define p_ulib_analyzer_assert(exp) ((void)0)
 #endif
 
 // Concatenates the 'a' and 'b' tokens, allowing 'a' and 'b' to be macro-expanded.

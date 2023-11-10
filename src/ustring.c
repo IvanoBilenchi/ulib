@@ -81,6 +81,10 @@ char *ustring(UString *string, size_t length) {
     }
 
     if (buf) buf[length] = '\0';
+
+    // Suppress false positive about potentially leaking buf.
+    p_ulib_analyzer_assert(buf == string->_s || buf == string->_l._data);
+
     return buf;
 }
 

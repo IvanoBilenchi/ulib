@@ -8,7 +8,6 @@
  */
 
 #include "ustrbuf.h"
-#include <stdarg.h>
 
 uvec_ret ustrbuf_append_format(UStrBuf *buf, char const *format, ...) {
     va_list args;
@@ -51,7 +50,10 @@ UString ustrbuf_to_ustring_reuse(UStrBuf *buf, ulib_uint length) {
         return ustring_null;
     }
 
-    return ustring_wrap(nbuf, length);
+    UString ret = ustring_wrap(nbuf, length);
+    // Suppress false positive about potentially leaking nbuf.
+    p_ulib_analyzer_assert(ret._l._data == nbuf);
+    return ret;
 }
 
 UString ustrbuf_to_ustring(UStrBuf *buf) {

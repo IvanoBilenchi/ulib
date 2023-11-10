@@ -174,22 +174,24 @@ typedef enum uvec_ret {
                                                                                                    \
     ATTRS ULIB_INLINE UVec(T) uvec_assign_##T(T *array, ulib_uint count) {                         \
         UVec(T) vec = uvec(T);                                                                     \
+        p_uvec_exp_set(T, &vec, P_UVEC_EXP_COMPACT);                                               \
         vec._l._data = array;                                                                      \
         vec._l._count = count;                                                                     \
-        p_uvec_exp_set(T, &vec, P_UVEC_EXP_COMPACT);                                               \
         return vec;                                                                                \
     }                                                                                              \
                                                                                                    \
     ATTRS ULIB_INLINE UVec(T) uvec_wrap_##T(T *array, ulib_uint count) {                           \
         UVec(T) vec = uvec(T);                                                                     \
+        p_uvec_exp_set(T, &vec, P_UVEC_EXP_WRAPPED);                                               \
         vec._l._data = array;                                                                      \
         vec._l._count = count;                                                                     \
-        p_uvec_exp_set(T, &vec, P_UVEC_EXP_WRAPPED);                                               \
         return vec;                                                                                \
     }                                                                                              \
                                                                                                    \
     ATTRS ULIB_PURE ULIB_INLINE T *uvec_data_##T(UVec(T) const *vec) {                             \
-        return p_uvec_is_small(T, vec) ? (T *)vec->_s : (T *)vec->_l._data;                        \
+        if (p_uvec_is_large(T, vec)) return (T *)vec->_l._data;                                    \
+        p_ulib_analyzer_assert(vec->_l._data == NULL);                                             \
+        return (T *)vec->_s;                                                                       \
     }                                                                                              \
                                                                                                    \
     ATTRS ULIB_PURE ULIB_INLINE ulib_uint uvec_size_##T(UVec(T) const *vec) {                      \
@@ -242,6 +244,7 @@ typedef enum uvec_ret {
         if (p_uvec_is_large(T, vec)) {                                                             \
             vec->_l._count = count;                                                                \
         } else {                                                                                   \
+            p_ulib_analyzer_assert(vec->_l._data == NULL);                                         \
             p_uvec_exp_set(T, vec, count);                                                         \
         }                                                                                          \
     }                                                                                              \
@@ -345,8 +348,8 @@ typedef enum uvec_ret {
             vec->_l._count = exp;                                                                  \
         }                                                                                          \
                                                                                                    \
-        vec->_l._data = data;                                                                      \
         p_uvec_exp_set(T, vec, ulib_uint_log2(size) | P_UVEC_FLAG_LARGE);                          \
+        vec->_l._data = data;                                                                      \
                                                                                                    \
         return UVEC_OK;                                                                            \
     }                                                                                              \
@@ -416,8 +419,8 @@ typedef enum uvec_ret {
             /* Elements are not stored inline and vector is not compact, shrink */                 \
             T *data = (T *)ulib_realloc_array(vec->_l._data, count);                               \
             if (!data) return UVEC_ERR;                                                            \
-            vec->_l._data = data;                                                                  \
             p_uvec_exp_set(T, vec, P_UVEC_EXP_COMPACT);                                            \
+            vec->_l._data = data;                                                                  \
         }                                                                                          \
                                                                                                    \
         return UVEC_OK;                                                                            \

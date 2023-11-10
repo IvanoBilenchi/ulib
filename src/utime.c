@@ -167,7 +167,7 @@ UString utime_to_string(UTime const *time) {
 
 bool utime_from_string(UTime *time, UString const *string) {
     char *ptr = (char *)ustring_data(*string), *newptr;
-    char const *endptr = ptr + ustring_length(*string);
+    char const *const endptr = ptr + ustring_length(*string);
 
     // Parse year
     long long y = strtoll(ptr, &newptr, 0);
@@ -211,6 +211,7 @@ bool utime_from_string(UTime *time, UString const *string) {
         // Parse timezone
         if (ptr == endptr - 1) return *ptr == 'Z' || *ptr == 'z';
 
+        newptr = NULL;
         long tzh = strtol(ptr, &newptr, 0);
         if (newptr == endptr || newptr == ptr || ulib_abs(tzh) > 14) return false;
 

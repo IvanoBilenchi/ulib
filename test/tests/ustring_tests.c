@@ -12,8 +12,6 @@
 #include "ustring.h"
 #include "utest.h"
 
-#include <ctype.h>
-
 #define MAX_ASCII 127
 
 bool ustring_utils_test(void) {
