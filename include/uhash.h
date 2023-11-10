@@ -78,13 +78,13 @@ typedef enum uhash_ret {
 
 // Flags manipulation macros.
 #define p_uhf_size(m) ((m) < 16 ? 1 : (m) >> 4U)
-#define p_uhf_isempty(flag, i) (((flag)[(i) >> 4U] >> (((i)&0xfU) << 1U)) & 2U)
-#define p_uhf_isdel(flag, i) (((flag)[(i) >> 4U] >> (((i)&0xfU) << 1U)) & 1U)
-#define p_uhf_iseither(flag, i) (((flag)[(i) >> 4U] >> (((i)&0xfU) << 1U)) & 3U)
-#define p_uhf_set_isdel_false(flag, i) ((flag)[(i) >> 4U] &= ~(1UL << (((i)&0xfU) << 1U)))
-#define p_uhf_set_isempty_false(flag, i) ((flag)[(i) >> 4U] &= ~(2UL << (((i)&0xfU) << 1U)))
-#define p_uhf_set_isboth_false(flag, i) ((flag)[(i) >> 4U] &= ~(3UL << (((i)&0xfU) << 1U)))
-#define p_uhf_set_isdel_true(flag, i) ((flag)[(i) >> 4U] |= 1UL << (((i)&0xfU) << 1U))
+#define p_uhf_isempty(flag, i) (((flag)[(i) >> 4U] >> (((i) & 0xfU) << 1U)) & 2U)
+#define p_uhf_isdel(flag, i) (((flag)[(i) >> 4U] >> (((i) & 0xfU) << 1U)) & 1U)
+#define p_uhf_iseither(flag, i) (((flag)[(i) >> 4U] >> (((i) & 0xfU) << 1U)) & 3U)
+#define p_uhf_set_isdel_false(flag, i) ((flag)[(i) >> 4U] &= ~(1UL << (((i) & 0xfU) << 1U)))
+#define p_uhf_set_isempty_false(flag, i) ((flag)[(i) >> 4U] &= ~(2UL << (((i) & 0xfU) << 1U)))
+#define p_uhf_set_isboth_false(flag, i) ((flag)[(i) >> 4U] &= ~(3UL << (((i) & 0xfU) << 1U)))
+#define p_uhf_set_isdel_true(flag, i) ((flag)[(i) >> 4U] |= 1UL << (((i) & 0xfU) << 1U))
 
 /*
  * Computes the maximum number of elements that the table can contain
@@ -93,7 +93,7 @@ typedef enum uhash_ret {
  * @param buckets [ulib_uint] Number of buckets.
  * @return [ulib_uint] Upper bound.
  */
-#define p_uhash_upper_bound(buckets) ((ulib_uint)((buckets)*UHASH_MAX_LOAD + 0.5))
+#define p_uhash_upper_bound(buckets) ((ulib_uint)((buckets) * UHASH_MAX_LOAD + 0.5))
 
 /*
  * Combines two hashes.
