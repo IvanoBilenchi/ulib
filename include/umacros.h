@@ -88,37 +88,6 @@
  */
 #define ulib_array_count(array) (sizeof(array) / sizeof(*(array)))
 
-/**
- * Declares and initializes a variable-length array.
- *
- * @param T Type of the elements.
- * @param name Name of the array variable.
- * @param count Number of elements.
- *
- * @destructor{ulib_vla_deinit}
- *
- * @public @def ulib_vla
- */
-
-/**
- * Deinitializes a variable-length array.
- *
- * @param name Name of the array variable.
- *
- * @public @def ulib_vla_deinit
- */
-#ifdef _MSC_VER
-
-#define ulib_vla(T, name, count) T *name = ulib_alloc_array(name, ulib_max(count, 1))
-#define ulib_vla_deinit(name) ulib_free(name)
-
-#else
-
-#define ulib_vla(T, name, count) T name[ulib_max(count, 1)]
-#define ulib_vla_deinit(name)
-
-#endif
-
 /// @}
 
 #endif // UMACROS_H

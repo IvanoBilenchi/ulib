@@ -68,6 +68,24 @@
 #endif
 
 /**
+ * Allocates size bytes of uninitialized storage on the stack.
+ *
+ * @param size [size_t] Number of bytes to allocate.
+ * @return Pointer to the beginning of the allocated memory.
+ *
+ * @note You must not free the returned pointer.
+ */
+#ifndef ulib_stackalloc
+#ifdef _MSC_VER
+#define ulib_stackalloc(size) _alloca(size)
+#include <malloc.h>
+#else
+#define ulib_stackalloc(size) alloca(size)
+#include <alloca.h>
+#endif
+#endif
+
+/**
  * Allocates memory to hold the type of the pointed variable.
  *
  * @param ptr [T*] Typed pointer to the variable.

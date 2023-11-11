@@ -34,10 +34,11 @@ option(ULIB_LEAKS "Enable debugging of memory leaks (keep OFF in production buil
 set(ULIB_LIBRARY_TYPE "STATIC" CACHE STRING "Type of library to build.")
 set(ULIB_USER_HEADERS "" CACHE STRING "User-specified header files")
 set(ULIB_USER_SOURCES "" CACHE STRING "User-specified source files")
-set(ULIB_MALLOC "malloc" CACHE STRING "malloc function override")
-set(ULIB_CALLOC "calloc" CACHE STRING "calloc function override")
-set(ULIB_REALLOC "realloc" CACHE STRING "realloc function override")
-set(ULIB_FREE "free" CACHE STRING "free function override")
+set(ULIB_MALLOC "" CACHE STRING "ulib_malloc override")
+set(ULIB_CALLOC "" CACHE STRING "ulib_calloc override")
+set(ULIB_REALLOC "" CACHE STRING "ulib_realloc override")
+set(ULIB_STACKALLOC "" CACHE STRING "ulib_stackalloc override")
+set(ULIB_FREE "" CACHE STRING "ulib_free override")
 
 # Directories
 
@@ -63,11 +64,25 @@ if(ULIB_LEAKS)
     list(APPEND ULIB_USER_HEADERS "${ULIB_PUBLIC_HEADERS_DIR}/utest.h")
 endif()
 
-list(APPEND ULIB_PUBLIC_DEFINES
-     ulib_malloc=${ULIB_MALLOC}
-     ulib_calloc=${ULIB_CALLOC}
-     ulib_realloc=${ULIB_REALLOC}
-     ulib_free=${ULIB_FREE})
+if(NOT ULIB_MALLOC STREQUAL "")
+    list(APPEND ULIB_PUBLIC_DEFINES ulib_malloc=${ULIB_MALLOC})
+endif()
+
+if(NOT ULIB_CALLOC STREQUAL "")
+    list(APPEND ULIB_PUBLIC_DEFINES ulib_calloc=${ULIB_CALLOC})
+endif()
+
+if(NOT ULIB_REALLOC STREQUAL "")
+    list(APPEND ULIB_PUBLIC_DEFINES ulib_realloc=${ULIB_REALLOC})
+endif()
+
+if(NOT ULIB_STACKALLOC STREQUAL "")
+    list(APPEND ULIB_PUBLIC_DEFINES ulib_stackalloc=${ULIB_STACKALLOC})
+endif()
+
+if(NOT ULIB_FREE STREQUAL "")
+    list(APPEND ULIB_PUBLIC_DEFINES ulib_free=${ULIB_FREE})
+endif()
 
 list(APPEND ULIB_PRIVATE_DEFINES
      ULIB_BUILDING
