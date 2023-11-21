@@ -280,6 +280,16 @@ bool uvec_test_comparable(void) {
     utest_assert(ret == UVEC_NO);
     utest_assert_uint(idx, ==, 3);
 
+    // uvec_insertion_index_sorted with binary search
+    uvec_remove_all(VTYPE, &v);
+    ulib_uint const last = UVEC_BINARY_SEARCH_THRESH * 2;
+    for (VTYPE i = 0; i < last; ++i) {
+        uvec_push(VTYPE, &v, i);
+    }
+    utest_assert_uint(uvec_insertion_index_sorted(VTYPE, &v, 0), ==, 0);
+    utest_assert_uint(uvec_insertion_index_sorted(VTYPE, &v, last / 2), ==, last / 2);
+    utest_assert_uint(uvec_insertion_index_sorted(VTYPE, &v, last + 1), ==, last);
+
     uvec_deinit(VTYPE, &v);
     uvec_deinit(VTYPE, &values);
     return true;

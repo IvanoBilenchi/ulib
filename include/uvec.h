@@ -654,7 +654,7 @@ typedef enum uvec_ret {
                                                                                                    \
         while (len > UVEC_BINARY_SEARCH_THRESH) {                                                  \
             if (compare_func(start[(len >>= 1)], item)) {                                          \
-                start += len + 1;                                                                  \
+                start += len;                                                                      \
             }                                                                                      \
         }                                                                                          \
                                                                                                    \
