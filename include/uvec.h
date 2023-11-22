@@ -676,17 +676,18 @@ typedef enum uvec_ret {
     }                                                                                              \
                                                                                                    \
     ATTRS ulib_uint uvec_insertion_index_sorted_##T(UVec(T) const *vec, T item) {                  \
-        T const *start = uvec_data(T, vec);                                                        \
+        T const *const data = uvec_data(T, vec);                                                   \
+        T const *cur = data;                                                                       \
         ulib_uint len = uvec_count(T, vec);                                                        \
                                                                                                    \
         while (len > UVEC_BINARY_SEARCH_THRESH) {                                                  \
-            if (compare_func(start[(len >>= 1)], item)) {                                          \
-                start += len;                                                                      \
+            if (compare_func(cur[(len >>= 1)], item)) {                                            \
+                cur += len;                                                                        \
             }                                                                                      \
         }                                                                                          \
                                                                                                    \
-        for (T const *last = start + len; start < last && compare_func(*start, item); ++start) {}  \
-        return (ulib_uint)(start - uvec_data(T, vec));                                             \
+        for (T const *last = cur + len; cur < last && compare_func(*cur, item); ++cur) {}          \
+        return (ulib_uint)(cur - data);                                                            \
     }                                                                                              \
                                                                                                    \
     ATTRS ulib_uint uvec_index_of_sorted_##T(UVec(T) const *vec, T item) {                         \
@@ -706,22 +707,15 @@ typedef enum uvec_ret {
         T *data = uvec_data(T, vec);                                                               \
         ulib_uint i = uvec_insertion_index_sorted_##T(vec, item);                                  \
         if (idx) *idx = i;                                                                         \
-        if (i == uvec_count(T, vec) || !equal_func(data[i], item)) {                               \
-            return uvec_insert_at_##T(vec, i, item);                                               \
-        } else {                                                                                   \
-            return UVEC_NO;                                                                        \
-        }                                                                                          \
+        if (i < uvec_count(T, vec) && equal_func(data[i], item)) return UVEC_NO;                   \
+        return uvec_insert_at_##T(vec, i, item);                                                   \
     }                                                                                              \
                                                                                                    \
     ATTRS bool uvec_remove_sorted_##T(UVec(T) *vec, T item) {                                      \
         ulib_uint i = uvec_index_of_sorted_##T(vec, item);                                         \
-                                                                                                   \
-        if (i < uvec_count(T, vec)) {                                                              \
-            uvec_remove_at_##T(vec, i);                                                            \
-            return true;                                                                           \
-        }                                                                                          \
-                                                                                                   \
-        return false;                                                                              \
+        if (!uvec_index_is_valid(T, vec, i)) return false;                                         \
+        uvec_remove_at_##T(vec, i);                                                                \
+        return true;                                                                               \
     }
 
 /// @name Type definitions
