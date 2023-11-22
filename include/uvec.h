@@ -153,9 +153,7 @@ typedef enum uvec_ret {
     ATTRS uvec_ret uvec_shrink_##T(UVec(T) *vec);                                                  \
     ATTRS uvec_ret uvec_push_##T(UVec(T) *vec, T item);                                            \
     ATTRS T uvec_pop_##T(UVec(T) *vec);                                                            \
-    ATTRS T uvec_remove_at_##T(UVec(T) *vec, ulib_uint idx);                                       \
     ATTRS void uvec_remove_range_##T(UVec(T) *vec, ulib_uint start, ulib_uint n);                  \
-    ATTRS uvec_ret uvec_insert_at_##T(UVec(T) *vec, ulib_uint idx, T item);                        \
     ATTRS uvec_ret uvec_insert_range_##T(UVec(T) *vec, T const *array, ulib_uint start,            \
                                          ulib_uint n);                                             \
     ATTRS void uvec_remove_all_##T(UVec(T) *vec);                                                  \
@@ -232,7 +230,7 @@ typedef enum uvec_ret {
     }                                                                                              \
                                                                                                    \
     ATTRS ULIB_INLINE uvec_ret uvec_expand_##T(UVec(T) *vec, ulib_uint size) {                     \
-        return uvec_reserve_##T(vec, uvec_count(T, vec) + size);                                   \
+        return uvec_reserve(T, vec, uvec_count(T, vec) + size);                                    \
     }                                                                                              \
                                                                                                    \
     ATTRS ULIB_INLINE uvec_ret uvec_append_##T(UVec(T) *vec, UVec(T) const *src) {                 \
@@ -241,6 +239,10 @@ typedef enum uvec_ret {
                                                                                                    \
     ATTRS ULIB_INLINE uvec_ret uvec_append_array_##T(UVec(T) *vec, T const *src, ulib_uint n) {    \
         return uvec_set_range(T, vec, src, uvec_count(T, vec), n);                                 \
+    }                                                                                              \
+                                                                                                   \
+    ATTRS ULIB_INLINE uvec_ret uvec_insert_at_##T(UVec(T) *vec, ulib_uint idx, T item) {           \
+        return uvec_insert_range(T, vec, &item, idx, 1);                                           \
     }                                                                                              \
                                                                                                    \
     ATTRS ULIB_INLINE void p_uvec_set_count_##T(UVec(T) *vec, ulib_uint count) {                   \
@@ -383,7 +385,7 @@ typedef enum uvec_ret {
                                                                                                    \
     ATTRS uvec_ret uvec_copy_##T(UVec(T) const *src, UVec(T) *dest) {                              \
         ulib_uint count = uvec_count(T, src);                                                      \
-        uvec_ret ret = uvec_reserve_##T(dest, count);                                              \
+        uvec_ret ret = uvec_reserve(T, dest, count);                                               \
                                                                                                    \
         if (!ret) {                                                                                \
             memcpy(uvec_data(T, dest), uvec_data(T, src), count * sizeof(T));                      \
@@ -440,36 +442,6 @@ typedef enum uvec_ret {
         T ret = uvec_data(T, vec)[count];                                                          \
         p_uvec_set_count_##T(vec, count);                                                          \
         return ret;                                                                                \
-    }                                                                                              \
-                                                                                                   \
-    ATTRS T uvec_remove_at_##T(UVec(T) *vec, ulib_uint idx) {                                      \
-        T *data = uvec_data(T, vec);                                                               \
-        T item = data[idx];                                                                        \
-        ulib_uint count = uvec_count(T, vec);                                                      \
-                                                                                                   \
-        if (idx < count - 1) {                                                                     \
-            size_t block_size = (count - idx - 1) * sizeof(T);                                     \
-            memmove(&(data[idx]), &(data[idx + 1]), block_size);                                   \
-        }                                                                                          \
-                                                                                                   \
-        p_uvec_set_count_##T(vec, count - 1);                                                      \
-        return item;                                                                               \
-    }                                                                                              \
-                                                                                                   \
-    ATTRS uvec_ret uvec_insert_at_##T(UVec(T) *vec, ulib_uint idx, T item) {                       \
-        if (uvec_expand_if_required_##T(vec)) return UVEC_ERR;                                     \
-        ulib_uint count = uvec_count(T, vec);                                                      \
-        T *data = uvec_data(T, vec);                                                               \
-                                                                                                   \
-        if (idx < count) {                                                                         \
-            size_t block_size = (count - idx) * sizeof(T);                                         \
-            memmove(&(data[idx + 1]), &(data[idx]), block_size);                                   \
-        }                                                                                          \
-                                                                                                   \
-        data[idx] = item;                                                                          \
-        p_uvec_set_count_##T(vec, count + 1);                                                      \
-                                                                                                   \
-        return UVEC_OK;                                                                            \
     }                                                                                              \
                                                                                                    \
     ATTRS void uvec_remove_range_##T(UVec(T) *vec, ulib_uint start, ulib_uint n) {                 \
@@ -547,7 +519,7 @@ typedef enum uvec_ret {
     }                                                                                              \
                                                                                                    \
     ATTRS bool uvec_remove_##T(UVec(T) *vec, T item) {                                             \
-        ulib_uint idx = uvec_index_of_##T(vec, item);                                              \
+        ulib_uint idx = uvec_index_of(T, vec, item);                                               \
         if (idx < uvec_count(T, vec)) {                                                            \
             uvec_remove_at(T, vec, idx);                                                           \
             return true;                                                                           \
@@ -577,7 +549,7 @@ typedef enum uvec_ret {
                                                                                                    \
     ATTRS uvec_ret uvec_push_unique_##T(UVec(T) *vec, T item) {                                    \
         ulib_uint count = uvec_count(T, vec);                                                      \
-        return uvec_index_of_##T(vec, item) < count ? UVEC_NO : uvec_push_##T(vec, item);          \
+        return uvec_index_of(T, vec, item) < count ? UVEC_NO : uvec_push(T, vec, item);            \
     }
 
 /*
@@ -691,30 +663,30 @@ typedef enum uvec_ret {
     }                                                                                              \
                                                                                                    \
     ATTRS ulib_uint uvec_index_of_sorted_##T(UVec(T) const *vec, T item) {                         \
-        ulib_uint const i = uvec_insertion_index_sorted_##T(vec, item);                            \
+        ulib_uint const i = uvec_insertion_index_sorted(T, vec, item);                             \
         T *data = uvec_data(T, vec);                                                               \
         ulib_uint count = uvec_count(T, vec);                                                      \
         return data && i < count && equal_func(data[i], item) ? i : count;                         \
     }                                                                                              \
                                                                                                    \
     ATTRS uvec_ret uvec_insert_sorted_##T(UVec(T) *vec, T item, ulib_uint *idx) {                  \
-        ulib_uint i = uvec_insertion_index_sorted_##T(vec, item);                                  \
+        ulib_uint i = uvec_insertion_index_sorted(T, vec, item);                                   \
         if (idx) *idx = i;                                                                         \
-        return uvec_insert_at_##T(vec, i, item);                                                   \
+        return uvec_insert_at(T, vec, i, item);                                                    \
     }                                                                                              \
                                                                                                    \
     ATTRS uvec_ret uvec_insert_sorted_unique_##T(UVec(T) *vec, T item, ulib_uint *idx) {           \
         T *data = uvec_data(T, vec);                                                               \
-        ulib_uint i = uvec_insertion_index_sorted_##T(vec, item);                                  \
+        ulib_uint i = uvec_insertion_index_sorted(T, vec, item);                                   \
         if (idx) *idx = i;                                                                         \
         if (i < uvec_count(T, vec) && equal_func(data[i], item)) return UVEC_NO;                   \
-        return uvec_insert_at_##T(vec, i, item);                                                   \
+        return uvec_insert_at(T, vec, i, item);                                                    \
     }                                                                                              \
                                                                                                    \
     ATTRS bool uvec_remove_sorted_##T(UVec(T) *vec, T item) {                                      \
-        ulib_uint i = uvec_index_of_sorted_##T(vec, item);                                         \
+        ulib_uint i = uvec_index_of_sorted(T, vec, item);                                          \
         if (!uvec_index_is_valid(T, vec, i)) return false;                                         \
-        uvec_remove_at_##T(vec, i);                                                                \
+        uvec_remove_at(T, vec, i);                                                                 \
         return true;                                                                               \
     }
 
@@ -1203,11 +1175,10 @@ typedef enum uvec_ret {
  * @param T [symbol] Vector type.
  * @param vec [UVec(T)*] Vector instance.
  * @param idx [ulib_uint] Index of the element to remove.
- * @return [T] Removed element.
  *
  * @public @related UVec
  */
-#define uvec_remove_at(T, vec, idx) P_ULIB_MACRO_CONCAT(uvec_remove_at_, T)(vec, idx)
+#define uvec_remove_at(T, vec, idx) uvec_remove_range(T, vec, idx, 1)
 
 /**
  * Inserts an element at the specified index.
