@@ -154,7 +154,10 @@ typedef enum uvec_ret {
     ATTRS uvec_ret uvec_push_##T(UVec(T) *vec, T item);                                            \
     ATTRS T uvec_pop_##T(UVec(T) *vec);                                                            \
     ATTRS T uvec_remove_at_##T(UVec(T) *vec, ulib_uint idx);                                       \
+    ATTRS void uvec_remove_range_##T(UVec(T) *vec, ulib_uint start, ulib_uint n);                  \
     ATTRS uvec_ret uvec_insert_at_##T(UVec(T) *vec, ulib_uint idx, T item);                        \
+    ATTRS uvec_ret uvec_insert_range_##T(UVec(T) *vec, T const *array, ulib_uint start,            \
+                                         ulib_uint n);                                             \
     ATTRS void uvec_remove_all_##T(UVec(T) *vec);                                                  \
     ATTRS void uvec_reverse_##T(UVec(T) *vec);                                                     \
     /** @endcond */
@@ -365,9 +368,7 @@ typedef enum uvec_ret {
                                                                                                    \
     ATTRS uvec_ret uvec_set_range_##T(UVec(T) *vec, T const *array, ulib_uint start,               \
                                       ulib_uint n) {                                               \
-        if (!(n && array)) return UVEC_OK;                                                         \
-        if (start > uvec_size(T, vec)) return UVEC_NO;                                             \
-                                                                                                   \
+        if (!n) return UVEC_OK;                                                                    \
         ulib_uint const old_c = uvec_count(T, vec), new_c = start + n;                             \
                                                                                                    \
         if (new_c > old_c) {                                                                       \
@@ -467,6 +468,32 @@ typedef enum uvec_ret {
                                                                                                    \
         data[idx] = item;                                                                          \
         p_uvec_set_count_##T(vec, count + 1);                                                      \
+                                                                                                   \
+        return UVEC_OK;                                                                            \
+    }                                                                                              \
+                                                                                                   \
+    ATTRS void uvec_remove_range_##T(UVec(T) *vec, ulib_uint start, ulib_uint n) {                 \
+        if (!n) return;                                                                            \
+        ulib_uint const move_aside = uvec_count(T, vec) - (start + n);                             \
+        if (move_aside) {                                                                          \
+            T *const data = uvec_data(T, vec) + start;                                             \
+            memmove(data, data + n, move_aside * sizeof(T));                                       \
+        }                                                                                          \
+        p_uvec_set_count_##T(vec, move_aside + start);                                             \
+    }                                                                                              \
+                                                                                                   \
+    ATTRS uvec_ret uvec_insert_range_##T(UVec(T) *vec, T const *array, ulib_uint start,            \
+                                         ulib_uint n) {                                            \
+        if (!n) return UVEC_OK;                                                                    \
+                                                                                                   \
+        ulib_uint count = uvec_count(T, vec);                                                      \
+        ulib_uint const move_aside = count - start;                                                \
+        if (uvec_reserve(T, vec, (count += n))) return UVEC_ERR;                                   \
+                                                                                                   \
+        T *const data = uvec_data(T, vec) + start;                                                 \
+        if (move_aside) memmove(data + n, data, move_aside * sizeof(T));                           \
+        memcpy(data, array, n * sizeof(T));                                                        \
+        p_uvec_set_count_##T(vec, count);                                                          \
                                                                                                    \
         return UVEC_OK;                                                                            \
     }                                                                                              \
@@ -1202,6 +1229,34 @@ typedef enum uvec_ret {
 #define uvec_insert_at(T, vec, idx, item) P_ULIB_MACRO_CONCAT(uvec_insert_at_, T)(vec, idx, item)
 
 /**
+ * Removes the elements in the specified range.
+ *
+ * @param T [symbol] Vector type.
+ * @param vec [UVec(T)*] Vector instance.
+ * @param start [ulib_uint] Range start index.
+ * @param n [ulib_uint] Range length.
+ *
+ * @public @related UVec
+ */
+#define uvec_remove_range(T, vec, start, n)                                                        \
+    P_ULIB_MACRO_CONCAT(uvec_remove_range_, T)(vec, start, n)
+
+/**
+ * Inserts the elements contained in an array at the specified index.
+ *
+ * @param T [symbol] Vector type.
+ * @param vec [UVec(T)*] Vector instance.
+ * @param array [T*] Array containing the items.
+ * @param start [ulib_uint] Range start index.
+ * @param n [ulib_uint] Number of elements in the array.
+ * @return [uvec_ret] UVEC_OK on success, otherwise UVEC_ERR.
+ *
+ * @public @related UVec
+ */
+#define uvec_insert_range(T, vec, array, start, n)                                                 \
+    P_ULIB_MACRO_CONCAT(uvec_insert_range_, T)(vec, array, start, n)
+
+/**
  * Removes all the elements in the vector.
  *
  * @param T [symbol] Vector type.
@@ -1288,8 +1343,7 @@ typedef enum uvec_ret {
  * @param array [T*] Array containing the items.
  * @param start [ulib_uint] Range start index.
  * @param n [ulib_uint] Number of elements in the array.
- * @return [uvec_ret] UVEC_OK on success, UVEC_ERR on memory error,
- *                    UVEC_NO if start is greater than the vector's capacity.
+ * @return [uvec_ret] UVEC_OK on success, otherwise UVEC_ERR.
  *
  * @public @related UVec
  */
