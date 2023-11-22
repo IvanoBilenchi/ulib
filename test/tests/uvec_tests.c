@@ -66,35 +66,49 @@ bool uvec_test_base(void) {
     uvec_remove_at(VTYPE, &v, 1);
     uvec_assert_elements(VTYPE, &v, 3, 4, 5, 1);
 
-    VTYPE items[] = { 6, 7 };
-    ret = uvec_set_range(VTYPE, &v, items, 3, ulib_array_count(items));
-    utest_assert(ret == UVEC_OK);
-    uvec_assert_elements(VTYPE, &v, 3, 4, 5, 6, 7);
-
     uvec_reverse(VTYPE, &v);
-    uvec_assert_elements(VTYPE, &v, 7, 6, 5, 4, 3);
+    uvec_assert_elements(VTYPE, &v, 1, 5, 4, 3);
+
+    uvec_remove_all(VTYPE, &v);
+    utest_assert_uint(uvec_count(VTYPE, &v), ==, 0);
+
+    uvec_deinit(VTYPE, &v);
+    return true;
+}
+
+bool uvec_test_range(void) {
+    UVec(VTYPE) v = uvec(VTYPE);
+    uvec_append_items(VTYPE, &v, 1, 2, 3, 4, 5);
+    VTYPE items[] = { 6, 7 };
+
+    // uvec_set_range
+    uvec_ret ret = uvec_set_range(VTYPE, &v, items, 3, ulib_array_count(items));
+    utest_assert(ret == UVEC_OK);
+    uvec_assert_elements(VTYPE, &v, 1, 2, 3, 6, 7);
+    uvec_set_range(VTYPE, &v, items, 1, ulib_array_count(items));
+    uvec_assert_elements(VTYPE, &v, 1, 6, 7, 6, 7);
+    uvec_set_range(VTYPE, &v, items, 0, ulib_array_count(items));
+    uvec_assert_elements(VTYPE, &v, 6, 7, 7, 6, 7);
 
     // uvec_insert_range
+    uvec_remove_all(VTYPE, &v);
+    uvec_append_items(VTYPE, &v, 1, 2, 3, 4, 5);
     ret = uvec_insert_range(VTYPE, &v, items, 2, ulib_array_count(items));
     utest_assert(ret == UVEC_OK);
-    uvec_assert_elements(VTYPE, &v, 7, 6, 6, 7, 5, 4, 3);
+    uvec_assert_elements(VTYPE, &v, 1, 2, 6, 7, 3, 4, 5);
     uvec_insert_range(VTYPE, &v, items, uvec_count(VTYPE, &v), ulib_array_count(items));
-    uvec_assert_elements(VTYPE, &v, 7, 6, 6, 7, 5, 4, 3, 6, 7);
+    uvec_assert_elements(VTYPE, &v, 1, 2, 6, 7, 3, 4, 5, 6, 7);
     uvec_insert_range(VTYPE, &v, items, 0, ulib_array_count(items));
-    uvec_assert_elements(VTYPE, &v, 6, 7, 7, 6, 6, 7, 5, 4, 3, 6, 7);
+    uvec_assert_elements(VTYPE, &v, 6, 7, 1, 2, 6, 7, 3, 4, 5, 6, 7);
 
     // uvec_remove_range
     uvec_remove_range(VTYPE, &v, 0, ulib_array_count(items));
-    uvec_assert_elements(VTYPE, &v, 7, 6, 6, 7, 5, 4, 3, 6, 7);
+    uvec_assert_elements(VTYPE, &v, 1, 2, 6, 7, 3, 4, 5, 6, 7);
     uvec_remove_range(VTYPE, &v, 2, 3);
-    uvec_assert_elements(VTYPE, &v, 7, 6, 4, 3, 6, 7);
+    uvec_assert_elements(VTYPE, &v, 1, 2, 4, 5, 6, 7);
     uvec_remove_range(VTYPE, &v, 3, 3);
-    uvec_assert_elements(VTYPE, &v, 7, 6, 4);
+    uvec_assert_elements(VTYPE, &v, 1, 2, 4);
     uvec_remove_range(VTYPE, &v, 0, 3);
-    utest_assert_uint(uvec_count(VTYPE, &v), ==, 0);
-
-    uvec_push(VTYPE, &v, 1);
-    uvec_remove_all(VTYPE, &v);
     utest_assert_uint(uvec_count(VTYPE, &v), ==, 0);
 
     uvec_deinit(VTYPE, &v);
