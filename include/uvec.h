@@ -648,9 +648,8 @@ typedef enum uvec_ret {
     }                                                                                              \
                                                                                                    \
     ATTRS ulib_uint uvec_insertion_index_sorted_##T(UVec(T) const *vec, T item) {                  \
-        T const *const data = uvec_data(T, vec);                                                   \
-        T const *cur = data;                                                                       \
         ulib_uint len = uvec_count(T, vec);                                                        \
+        T const *const data = uvec_data(T, vec), *const last = data + len, *cur = data;            \
                                                                                                    \
         while (len > UVEC_BINARY_SEARCH_THRESH) {                                                  \
             if (compare_func(cur[(len >>= 1)], item)) {                                            \
@@ -658,7 +657,7 @@ typedef enum uvec_ret {
             }                                                                                      \
         }                                                                                          \
                                                                                                    \
-        for (T const *last = cur + len; cur < last && compare_func(*cur, item); ++cur) {}          \
+        for (; cur < last && compare_func(*cur, item); ++cur) {}                                   \
         return (ulib_uint)(cur - data);                                                            \
     }                                                                                              \
                                                                                                    \
