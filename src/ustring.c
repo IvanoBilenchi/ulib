@@ -142,14 +142,16 @@ ulib_uint ustring_find_last(UString string, UString needle) {
 
 bool ustring_starts_with(UString string, UString prefix) {
     ulib_uint p_len = ustring_length(prefix);
-    return p_len <= ustring_length(string) &&
-           memcmp(ustring_data(string), ustring_data(prefix), p_len) == 0;
+    if (p_len > ustring_length(string)) return false;
+    char const *data = ustring_data(string), *p_data = ustring_data(prefix);
+    return *data == *p_data && memcmp(data, p_data, p_len) == 0;
 }
 
 bool ustring_ends_with(UString string, UString suffix) {
     ulib_uint str_len = ustring_length(string), s_len = ustring_length(suffix);
-    return s_len <= str_len &&
-           memcmp(ustring_data(string) + str_len - s_len, ustring_data(suffix), s_len) == 0;
+    if (s_len > str_len) return false;
+    char const *data = ustring_data(string) + str_len - s_len, *s_data = ustring_data(suffix);
+    return *data == *s_data && memcmp(data, s_data, s_len) == 0;
 }
 
 bool ustring_equals(UString lhs, UString rhs) {
@@ -158,11 +160,12 @@ bool ustring_equals(UString lhs, UString rhs) {
 
     if (p_ustring_last_byte_is_small(lb)) {
         ulib_uint size = p_ustring_last_byte_size(lb);
-        return size ? memcmp(lhs._s, rhs._s, size - 1) == 0 : true;
+        return size ? (*lhs._s == *rhs._s && memcmp(lhs._s, rhs._s, size - 1) == 0) : true;
     }
 
     ulib_uint lsize = p_ustring_large_size(lhs._l), rsize = p_ustring_large_size(rhs._l);
-    return lsize == rsize && memcmp(lhs._l._data, rhs._l._data, lsize - 1) == 0;
+    return lsize == rsize && *lhs._l._data == *rhs._l._data &&
+           memcmp(lhs._l._data, rhs._l._data, lsize - 1) == 0;
 }
 
 bool ustring_precedes(UString lhs, UString rhs) {
@@ -170,8 +173,16 @@ bool ustring_precedes(UString lhs, UString rhs) {
 }
 
 int ustring_compare(UString lhs, UString rhs) {
-    ulib_uint l_len = ustring_length(lhs), r_len = ustring_length(rhs);
-    int const res = memcmp(ustring_data(lhs), ustring_data(rhs), ulib_min(l_len, r_len));
+    ulib_uint const l_len = ustring_length(lhs), r_len = ustring_length(rhs);
+    ulib_uint const min_len = ulib_min(l_len, r_len);
+    int res = 0;
+
+    if (min_len) {
+        char const *l_data = ustring_data(lhs), *r_data = ustring_data(rhs);
+        if ((res = *l_data - *r_data) != 0) return res;
+        res = memcmp(l_data, r_data, min_len);
+    }
+
     return res == 0 ? (l_len > r_len) - (l_len < r_len) : res;
 }
 

@@ -270,7 +270,7 @@ typedef enum uvec_ret {
  * Generates function declarations for the specified equatable vector type.
  *
  * @param T [symbol] Vector type.
- * @param ATTRS [scope] Scope of the declarations.
+ * @param ATTRS [attributes] Attributes of the declarations.
  */
 #define P_UVEC_DECL_EQUATABLE(T, ATTRS)                                                            \
     /** @cond */                                                                                   \
@@ -285,7 +285,7 @@ typedef enum uvec_ret {
  * Generates inline function definitions for the specified equatable vector type.
  *
  * @param T [symbol] Vector type.
- * @param ATTRS [scope] Scope of the declarations.
+ * @param ATTRS [attributes] Attributes of the declarations.
  */
 #define P_UVEC_DEF_INLINE_EQUATABLE(T, ATTRS)                                                      \
     /** @cond */                                                                                   \
@@ -298,7 +298,7 @@ typedef enum uvec_ret {
  * Generates function declarations for the specified comparable vector type.
  *
  * @param T [symbol] Vector type.
- * @param ATTRS [scope] Scope of the declarations.
+ * @param ATTRS [attributes] Attributes of the declarations.
  */
 #define P_UVEC_DECL_COMPARABLE(T, ATTRS)                                                           \
     /** @cond */                                                                                   \
@@ -316,7 +316,7 @@ typedef enum uvec_ret {
  * Generates inline function definitions for the specified comparable vector type.
  *
  * @param T [symbol] Vector type.
- * @param ATTRS [scope] Scope of the declarations.
+ * @param ATTRS [attributes] Attributes of the declarations.
  */
 #define P_UVEC_DEF_INLINE_COMPARABLE(T, ATTRS)                                                     \
     /** @cond */                                                                                   \
@@ -333,7 +333,7 @@ typedef enum uvec_ret {
  * Generates function definitions for the specified vector type.
  *
  * @param T [symbol] Vector type.
- * @param ATTRS [scope] Scope of the definitions.
+ * @param ATTRS [attributes] Attributes of the definitions.
  */
 #define P_UVEC_IMPL(T, ATTRS)                                                                      \
                                                                                                    \
@@ -485,29 +485,13 @@ typedef enum uvec_ret {
     }
 
 /*
- * Generates function definitions for the specified equatable vector type.
+ * Generates common function definitions for the specified equatable vector type.
  *
  * @param T [symbol] Vector type.
- * @param ATTRS [scope] Scope of the definitions.
+ * @param ATTRS [attributes] Attributes of the definitions.
  * @param equal_func [(T, T) -> bool] Equality function.
- * @param equal_func_is_identity [bool] If true, generated code assumes equal_func is ==.
  */
-#define P_UVEC_IMPL_EQUATABLE(T, ATTRS, equal_func, equal_func_is_identity)                        \
-                                                                                                   \
-    ATTRS ulib_uint uvec_index_of_##T(UVec(T) const *vec, T item) {                                \
-        T *data = uvec_data(T, vec);                                                               \
-        ulib_uint count = uvec_count(T, vec);                                                      \
-        if (equal_func_is_identity) {                                                              \
-            if (count > UVEC_INDEX_OF_THRESH) {                                                    \
-                T *p = ulib_mem_mem(data, count * sizeof(T), &item, sizeof(item));                 \
-                return p ? (ulib_uint)(p - data) : count;                                          \
-            }                                                                                      \
-        }                                                                                          \
-        for (ulib_uint i = 0; i < count; ++i) {                                                    \
-            if (equal_func(data[i], item)) return i;                                               \
-        }                                                                                          \
-        return count;                                                                              \
-    }                                                                                              \
+#define P_UVEC_IMPL_EQUATABLE_COMMON(T, ATTRS, equal_func)                                         \
                                                                                                    \
     ATTRS ulib_uint uvec_index_of_reverse_##T(UVec(T) const *vec, T item) {                        \
         T *data = uvec_data(T, vec);                                                               \
@@ -527,6 +511,29 @@ typedef enum uvec_ret {
         return false;                                                                              \
     }                                                                                              \
                                                                                                    \
+    ATTRS uvec_ret uvec_push_unique_##T(UVec(T) *vec, T item) {                                    \
+        ulib_uint count = uvec_count(T, vec);                                                      \
+        return uvec_index_of(T, vec, item) < count ? UVEC_NO : uvec_push(T, vec, item);            \
+    }
+
+/*
+ * Generates default 'uvec_index_of' and 'uvec_equals' definitions.
+ *
+ * @param T [symbol] Vector type.
+ * @param ATTRS [attributes] Attributes of the definitions.
+ * @param equal_func [(T, T) -> bool] Equality function.
+ */
+#define P_UVEC_IMPL_EQUATABLE_FUNC(T, ATTRS, equal_func)                                           \
+                                                                                                   \
+    ATTRS ulib_uint uvec_index_of_##T(UVec(T) const *vec, T item) {                                \
+        T *data = uvec_data(T, vec);                                                               \
+        ulib_uint count = uvec_count(T, vec);                                                      \
+        for (ulib_uint i = 0; i < count; ++i) {                                                    \
+            if (equal_func(data[i], item)) return i;                                               \
+        }                                                                                          \
+        return count;                                                                              \
+    }                                                                                              \
+                                                                                                   \
     ATTRS bool uvec_equals_##T(UVec(T) const *vec, UVec(T) const *other) {                         \
         if (vec == other) return true;                                                             \
         ulib_uint count = uvec_count(T, vec), ocount = uvec_count(T, other);                       \
@@ -536,27 +543,73 @@ typedef enum uvec_ret {
         T *data = uvec_data(T, vec);                                                               \
         T *o_data = uvec_data(T, other);                                                           \
                                                                                                    \
-        if (equal_func_is_identity) {                                                              \
-            return memcmp(data, o_data, count * sizeof(T)) == 0;                                   \
-        }                                                                                          \
-                                                                                                   \
         for (ulib_uint i = 0; i < count; ++i) {                                                    \
             if (!equal_func(data[i], o_data[i])) return false;                                     \
         }                                                                                          \
                                                                                                    \
         return true;                                                                               \
+    }
+
+/*
+ * Generates 'uvec_index_of' and 'uvec_equals' definitions for vectors
+ * whose elements can be checked for equality with ==.
+ *
+ * @param T [symbol] Vector type.
+ * @param ATTRS [attributes] Attributes of the definitions.
+ */
+#define P_UVEC_IMPL_EQUATABLE_IDENTITY(T, ATTRS)                                                   \
+                                                                                                   \
+    ATTRS ulib_uint uvec_index_of_##T(UVec(T) const *vec, T item) {                                \
+        T *data = uvec_data(T, vec);                                                               \
+        ulib_uint count = uvec_count(T, vec);                                                      \
+        if (count > UVEC_INDEX_OF_THRESH) {                                                        \
+            T *p = ulib_mem_mem(data, count * sizeof(T), &item, sizeof(item));                     \
+            return p ? (ulib_uint)(p - data) : count;                                              \
+        }                                                                                          \
+        for (ulib_uint i = 0; i < count; ++i) {                                                    \
+            if (data[i] == item) return i;                                                         \
+        }                                                                                          \
+        return count;                                                                              \
     }                                                                                              \
                                                                                                    \
-    ATTRS uvec_ret uvec_push_unique_##T(UVec(T) *vec, T item) {                                    \
-        ulib_uint count = uvec_count(T, vec);                                                      \
-        return uvec_index_of(T, vec, item) < count ? UVEC_NO : uvec_push(T, vec, item);            \
+    ATTRS bool uvec_equals_##T(UVec(T) const *vec, UVec(T) const *other) {                         \
+        if (vec == other) return true;                                                             \
+        ulib_uint count = uvec_count(T, vec), ocount = uvec_count(T, other);                       \
+        if (count != ocount) return false;                                                         \
+        if (!count) return true;                                                                   \
+        T *data = uvec_data(T, vec);                                                               \
+        T *o_data = uvec_data(T, other);                                                           \
+        return *data == *o_data && memcmp(data, o_data, count * sizeof(T)) == 0;                   \
     }
+
+/*
+ * Generates function definitions for the specified equatable vector type.
+ *
+ * @param T [symbol] Vector type.
+ * @param ATTRS [attributes] Attributes of the definitions.
+ * @param equal_func [(T, T) -> bool] Equality function.
+ */
+#define P_UVEC_IMPL_EQUATABLE(T, ATTRS, equal_func)                                                \
+    P_UVEC_IMPL_EQUATABLE_COMMON(T, ATTRS, equal_func)                                             \
+    P_UVEC_IMPL_EQUATABLE_FUNC(T, ATTRS, equal_func)
+
+/*
+ * Generates function definitions for the specified equatable vector type
+ * whose elements can be checked for equality with ==.
+ *
+ * @param T [symbol] Vector type.
+ * @param ATTRS [attributes] Attributes of the definitions.
+ * @param equal_func [(T, T) -> bool] Equality function.
+ */
+#define P_UVEC_IMPL_IDENTIFIABLE(T, ATTRS)                                                         \
+    P_UVEC_IMPL_EQUATABLE_COMMON(T, ATTRS, p_uvec_identical)                                       \
+    P_UVEC_IMPL_EQUATABLE_IDENTITY(T, ATTRS)
 
 /*
  * Generates function definitions for the specified comparable vector type.
  *
  * @param T [symbol] Vector type.
- * @param ATTRS Scope of the definitions.
+ * @param ATTRS Attributes of the definitions.
  * @param equal_func Equality function: (T, T) -> bool
  * @param compare_func Comparison function: (T, T) -> bool
  */
@@ -798,7 +851,7 @@ typedef enum uvec_ret {
  */
 #define UVEC_IMPL_EQUATABLE(T, equal_func)                                                         \
     P_UVEC_IMPL(T, ulib_unused)                                                                    \
-    P_UVEC_IMPL_EQUATABLE(T, ulib_unused, equal_func, 0)
+    P_UVEC_IMPL_EQUATABLE(T, ulib_unused, equal_func)
 
 /**
  * Implements a previously declared comparable vector type.
@@ -813,7 +866,7 @@ typedef enum uvec_ret {
  */
 #define UVEC_IMPL_COMPARABLE(T, equal_func, compare_func)                                          \
     P_UVEC_IMPL(T, ulib_unused)                                                                    \
-    P_UVEC_IMPL_EQUATABLE(T, ulib_unused, equal_func, 0)                                           \
+    P_UVEC_IMPL_EQUATABLE(T, ulib_unused, equal_func)                                              \
     P_UVEC_IMPL_COMPARABLE(T, ulib_unused, equal_func, compare_func)
 
 /**
@@ -826,7 +879,7 @@ typedef enum uvec_ret {
  */
 #define UVEC_IMPL_IDENTIFIABLE(T)                                                                  \
     P_UVEC_IMPL(T, ulib_unused)                                                                    \
-    P_UVEC_IMPL_EQUATABLE(T, ulib_unused, p_uvec_identical, 1)                                     \
+    P_UVEC_IMPL_IDENTIFIABLE(T, ulib_unused)                                                       \
     P_UVEC_IMPL_COMPARABLE(T, ulib_unused, p_uvec_identical, p_uvec_less_than)
 
 /**
