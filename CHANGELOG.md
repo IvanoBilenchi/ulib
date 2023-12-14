@@ -5,6 +5,33 @@ All notable changes to uLib will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.4] - 2023-12-14
+### Added
+- `uvec_assign`, `uvec_wrap`, `uvec_remove_range`, `uvec_insert_range`.
+- `ulib_mem_chr_last`, `ulib_mem_mem`, `ulib_mem_mem_last`.
+- `ulib_stackalloc`.
+- `ULIB_PURE`, `ULIB_CONST`.
+- `UVEC_SORT_STACK_SIZE`, `UVEC_SORT_INSERTION_THRESH`,
+  `UVEC_INDEX_OF_THRESH`, `UVEC_BINARY_SEARCH_THRESH`.
+- `ULIB_TINY` and `ULIB_HUGE` CMake options.
+- Ability to install the library.
+
+### Changed
+- Renamed `ULIB_PUBLIC` to `ULIB_API`.
+- Replaced the `uvec_get_range` family of functions with `uvec_view`.
+- Improved the Small String Optimization (SSO) and Small Buffer Optimization (SBO).
+- Improved performance of `UVec` lookup and sorting.
+- Improved performance of `UString` and `UVec` comparisons.
+- Relicensed under the ISC license.
+
+### Removed
+- `ulib_vla`, `ulib_vla_deinit`.
+- `ULIB_PRIVATE`.
+- `ULIB_EMBEDDED` CMake option.
+
+### Fixed
+- `urand_range` returning out-of-bounds values for 2 byte integers.
+
 ## [0.2.3] - 2023-05-31
 ### Added
 - `ulib_ret`.
@@ -132,9 +159,9 @@ uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Added
 - Datetime type: `UTime`.
 - Builtin UVec types: `UVec(ulib_byte)`, `UVec(ulib_int)`, `UVec(ulib_uint)`,
-                      `UVec(ulib_float)`, `UVec(ulib_ptr)`, `UVec(UString)`.
+  `UVec(ulib_float)`, `UVec(ulib_ptr)`, `UVec(UString)`.
 - Builtin UHash types: `UHash(ulib_int)`, `UHash(ulib_uint)`, `UHash(ulib_ptr)`,
-                       `UHash(UString)`.
+  `UHash(UString)`.
 
 ### Changed
 - Renamed `utime_unit` enum values.
@@ -157,6 +184,7 @@ uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Test utilities.
 - Miscellaneous helper macros.
 
+[0.2.4]: https://github.com/ivanobilenchi/ulib/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/ivanobilenchi/ulib/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/ivanobilenchi/ulib/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/ivanobilenchi/ulib/compare/v0.2.0...v0.2.1
