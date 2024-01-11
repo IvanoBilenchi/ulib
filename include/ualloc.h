@@ -76,12 +76,15 @@
  * @note You must not free the returned pointer.
  */
 #ifndef ulib_stackalloc
-#ifdef _MSC_VER
-#define ulib_stackalloc(size) _alloca(size)
-#include <malloc.h>
-#else
-#define ulib_stackalloc(size) alloca(size)
+#if defined(__GLIBC__) || defined(__sun) || defined(__CYGWIN__)
 #include <alloca.h>
+#define ulib_stackalloc(size) alloca(size)
+#elif defined(_WIN32)
+#include <malloc.h>
+#define ulib_stackalloc(size) _alloca(size)
+#else
+#include <stdlib.h>
+#define ulib_stackalloc(size) alloca(size)
 #endif
 #endif
 
