@@ -37,6 +37,7 @@
 bool uvec_test_base(void) {
     UVec(VTYPE) v = uvec(VTYPE);
     utest_assert_uint(uvec_count(VTYPE, &v), ==, 0);
+    utest_assert_false(uvec_pop(VTYPE, &v, NULL));
 
     uvec_append_items(VTYPE, &v, 3, 2, 4, 1);
     utest_assert_uint(uvec_count(VTYPE, &v), !=, 0);
@@ -56,7 +57,9 @@ bool uvec_test_base(void) {
     UVec(VTYPE) view = uvec_view(VTYPE, &v, 2, 3);
     uvec_assert_elements(VTYPE, &view, 5, 1, 4);
 
-    utest_assert(uvec_pop(VTYPE, &v) == 4);
+    VTYPE item;
+    utest_assert(uvec_pop(VTYPE, &v, &item));
+    utest_assert_int(item, ==, 4);
     uvec_assert_elements(VTYPE, &v, 3, 2, 5, 1);
 
     ret = uvec_insert_at(VTYPE, &v, 2, 4);
@@ -206,7 +209,7 @@ bool uvec_test_equality(void) {
     uvec_assert_elements_array(VTYPE, &v1, arr);
     ulib_free(arr);
 
-    uvec_pop(VTYPE, &v2);
+    uvec_pop(VTYPE, &v2, NULL);
     utest_assert_false(uvec_equals(VTYPE, &v1, &v2));
 
     ret = uvec_push(VTYPE, &v2, 5);
@@ -241,7 +244,7 @@ bool uvec_test_contains(void) {
     ret = uvec_push_unique(VTYPE, &v1, 7);
     utest_assert(ret == UVEC_NO);
     uvec_assert_elements(VTYPE, &v1, 3, 2, 5, 4, 5, 1, 7);
-    uvec_pop(VTYPE, &v1);
+    uvec_pop(VTYPE, &v1, NULL);
 
     UVec(VTYPE) v2 = uvec(VTYPE);
     uvec_append_items(VTYPE, &v2, 1, 6, 4, 5);

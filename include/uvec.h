@@ -153,7 +153,7 @@ typedef enum uvec_ret {
     ATTRS void uvec_copy_to_array_##T(UVec(T) const *vec, T array[]);                              \
     ATTRS uvec_ret uvec_shrink_##T(UVec(T) *vec);                                                  \
     ATTRS uvec_ret uvec_push_##T(UVec(T) *vec, T item);                                            \
-    ATTRS T uvec_pop_##T(UVec(T) *vec);                                                            \
+    ATTRS bool uvec_pop_##T(UVec(T) *vec, T *item);                                                \
     ATTRS void uvec_remove_range_##T(UVec(T) *vec, ulib_uint start, ulib_uint n);                  \
     ATTRS uvec_ret uvec_insert_range_##T(UVec(T) *vec, T const *array, ulib_uint start,            \
                                          ulib_uint n);                                             \
@@ -439,11 +439,12 @@ typedef enum uvec_ret {
         return UVEC_OK;                                                                            \
     }                                                                                              \
                                                                                                    \
-    ATTRS T uvec_pop_##T(UVec(T) *vec) {                                                           \
-        ulib_uint count = uvec_count(T, vec) - 1;                                                  \
-        T ret = uvec_data(T, vec)[count];                                                          \
+    ATTRS bool uvec_pop_##T(UVec(T) *vec, T *item) {                                               \
+        ulib_uint count = uvec_count(T, vec);                                                      \
+        if (!count--) return false;                                                                \
+        if (item) *item = uvec_data(T, vec)[count];                                                \
         p_uvec_set_count_##T(vec, count);                                                          \
-        return ret;                                                                                \
+        return true;                                                                               \
     }                                                                                              \
                                                                                                    \
     ATTRS void uvec_remove_range_##T(UVec(T) *vec, ulib_uint start, ulib_uint n) {                 \
@@ -1225,11 +1226,12 @@ typedef enum uvec_ret {
  *
  * @param T [symbol] Vector type.
  * @param vec [UVec(T)*] Vector instance.
- * @return [T] Last element.
+ * @param[out] item [T*] Removed element.
+ * @return [bool] True if an element was removed, false if the vector was empty.
  *
  * @public @related UVec
  */
-#define uvec_pop(T, vec) P_ULIB_MACRO_CONCAT(uvec_pop_, T)(vec)
+#define uvec_pop(T, vec, item) P_ULIB_MACRO_CONCAT(uvec_pop_, T)(vec, item)
 
 /**
  * Removes the element at the specified index.
