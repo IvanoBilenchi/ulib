@@ -50,6 +50,7 @@ UString ustrbuf_to_ustring_reuse(UStrBuf *buf, ulib_uint length) {
         return ustring_null;
     }
 
+    nbuf[length] = '\0';
     UString ret = ustring_wrap(nbuf, length);
     // Suppress false positive about potentially leaking nbuf.
     p_ulib_analyzer_assert(ret._l._data == nbuf);
