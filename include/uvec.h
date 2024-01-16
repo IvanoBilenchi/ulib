@@ -315,6 +315,33 @@ typedef enum uvec_ret {
     /** @endcond */
 
 /*
+ * Generates heap queue function declarations.
+ *
+ * @param T [symbol] Vector type.
+ * @param ATTRS [attributes] Attributes of the declarations.
+ * @param TYPE [min/max] Heap queue type.
+ */
+#define P_UVEC_DECL_HEAPQ_TYPE(T, ATTRS, TYPE)                                                     \
+    /** @cond **/                                                                                  \
+    ATTRS void uvec_##TYPE##_heapq_make_##T(UVec(T) *vec);                                         \
+    ATTRS uvec_ret uvec_##TYPE##_heapq_push_##T(UVec(T) *vec, T item);                             \
+    ATTRS bool uvec_##TYPE##_heapq_pop_##T(UVec(T) *vec, T *item);                                 \
+    ATTRS void uvec_##TYPE##_heapq_push_pop_##T(UVec(T) *vec, T in, T *out);                       \
+    ATTRS bool uvec_##TYPE##_heapq_replace_##T(UVec(T) *vec, T in, T *out);                        \
+    ATTRS bool uvec_##TYPE##_heapq_remove_##T(UVec(T) *vec, T item);                               \
+    /** @endcond **/
+
+/*
+ * Generates heap queue function declarations.
+ *
+ * @param T [symbol] Vector type.
+ * @param ATTRS [attributes] Attributes of the declarations.
+ */
+#define P_UVEC_DECL_HEAPQ(T, ATTRS)                                                                \
+    P_UVEC_DECL_HEAPQ_TYPE(T, ATTRS, max)                                                          \
+    P_UVEC_DECL_HEAPQ_TYPE(T, ATTRS, min)
+
+/*
  * Generates inline function definitions for the specified comparable vector type.
  *
  * @param T [symbol] Vector type.
@@ -753,6 +780,114 @@ typedef enum uvec_ret {
         return true;                                                                               \
     }
 
+/*
+ * Generates heap queue function definitions.
+ *
+ * @param T [symbol] Vector type.
+ * @param ATTRS Attributes of the definitions.
+ * @param TYPE [min/max] Heap queue type.
+ * @param compare_func Comparison function: (T, T) -> bool
+ */
+#define P_UVEC_IMPL_HEAPQ_TYPE(T, ATTRS, TYPE, compare_func)                                       \
+                                                                                                   \
+    ULIB_INLINE void p_uvec_##TYPE##_heapq_down_##T(T *heap, ulib_uint len, ulib_uint i) {         \
+        while (true) {                                                                             \
+            ulib_uint l = (i << 1) + 1, r = l + 1;                                                 \
+            ulib_uint swap = (l < len && compare_func(heap[l], heap[i])) ? l : i;                  \
+            if (r < len && compare_func(heap[r], heap[swap])) swap = r;                            \
+            if (swap == i) break;                                                                  \
+            ulib_swap(T, heap[i], heap[swap]);                                                     \
+            i = swap;                                                                              \
+        }                                                                                          \
+    }                                                                                              \
+                                                                                                   \
+    ULIB_INLINE void p_uvec_##TYPE##_heapq_up_##T(T *heap, ulib_uint i) {                          \
+        T e = heap[i];                                                                             \
+        while (i) {                                                                                \
+            ulib_uint parent = (i - 1) >> 1;                                                       \
+            if (compare_func(heap[parent], e)) break;                                              \
+            heap[i] = heap[parent];                                                                \
+            i = parent;                                                                            \
+        }                                                                                          \
+        heap[i] = e;                                                                               \
+    }                                                                                              \
+                                                                                                   \
+    ATTRS void uvec_##TYPE##_heapq_make_##T(UVec(T) *vec) {                                        \
+        ulib_uint count = uvec_count(T, vec);                                                      \
+        T *heap = uvec_data(T, vec);                                                               \
+        for (ulib_uint i = count >> 1; i--;) {                                                     \
+            p_uvec_##TYPE##_heapq_down_##T(heap, count, i);                                        \
+        }                                                                                          \
+    }                                                                                              \
+                                                                                                   \
+    ATTRS uvec_ret uvec_##TYPE##_heapq_push_##T(UVec(T) *vec, T item) {                            \
+        uvec_ret ret = uvec_push(T, vec, item);                                                    \
+        if (ret) return ret;                                                                       \
+        T *heap = uvec_data(T, vec);                                                               \
+        ulib_uint count = uvec_count(T, vec);                                                      \
+        p_uvec_##TYPE##_heapq_up_##T(heap, count - 1);                                             \
+        return UVEC_OK;                                                                            \
+    }                                                                                              \
+                                                                                                   \
+    ATTRS bool uvec_##TYPE##_heapq_pop_##T(UVec(T) *vec, T *item) {                                \
+        ulib_uint count = uvec_count(T, vec);                                                      \
+        if (!count) return false;                                                                  \
+        T *heap = uvec_data(T, vec);                                                               \
+        if (item) *item = heap[0];                                                                 \
+        heap[0] = heap[--count];                                                                   \
+        p_uvec_set_count_##T(vec, count);                                                          \
+        p_uvec_##TYPE##_heapq_down_##T(heap, count, 0);                                            \
+        return true;                                                                               \
+    }                                                                                              \
+                                                                                                   \
+    ATTRS void uvec_##TYPE##_heapq_push_pop_##T(UVec(T) *vec, T in, T *out) {                      \
+        ulib_uint count = uvec_count(T, vec);                                                      \
+        T *heap = uvec_data(T, vec);                                                               \
+        if (count && compare_func(heap[0], in)) {                                                  \
+            ulib_swap(T, heap[0], in);                                                             \
+            p_uvec_##TYPE##_heapq_down_##T(heap, count, 0);                                        \
+        }                                                                                          \
+        if (out) *out = in;                                                                        \
+    }                                                                                              \
+                                                                                                   \
+    ATTRS bool uvec_##TYPE##_heapq_replace_##T(UVec(T) *vec, T in, T *out) {                       \
+        ulib_uint count = uvec_count(T, vec);                                                      \
+        if (!count) return false;                                                                  \
+        T *heap = uvec_data(T, vec);                                                               \
+        if (out) *out = heap[0];                                                                   \
+        heap[0] = in;                                                                              \
+        p_uvec_##TYPE##_heapq_down_##T(heap, count, 0);                                            \
+        return true;                                                                               \
+    }                                                                                              \
+                                                                                                   \
+    ATTRS bool uvec_##TYPE##_heapq_remove_##T(UVec(T) *vec, T item) {                              \
+        ulib_uint idx = uvec_index_of(T, vec, item), count = uvec_count(T, vec);                   \
+        if (idx >= count) return false;                                                            \
+        T *heap = uvec_data(T, vec);                                                               \
+        heap[idx] = heap[--count];                                                                 \
+        p_uvec_set_count_##T(vec, count);                                                          \
+        if (compare_func(heap[idx], item)) {                                                       \
+            p_uvec_##TYPE##_heapq_up_##T(heap, idx);                                               \
+        } else {                                                                                   \
+            p_uvec_##TYPE##_heapq_down_##T(heap, count, idx);                                      \
+        }                                                                                          \
+        return true;                                                                               \
+    }
+
+/*
+ * Generates heap queue function definitions.
+ *
+ * @param T [symbol] Vector type.
+ * @param ATTRS Attributes of the definitions.
+ * @param compare_func Comparison function: (T, T) -> bool
+ */
+#define P_UVEC_IMPL_HEAPQ(T, ATTRS, compare_func)                                                  \
+    ULIB_INLINE bool p_uvec_inv_##compare_func##_##T(T a, T b) {                                   \
+        return compare_func(b, a);                                                                 \
+    }                                                                                              \
+    P_UVEC_IMPL_HEAPQ_TYPE(T, ATTRS, max, p_uvec_inv_##compare_func##_##T)                         \
+    P_UVEC_IMPL_HEAPQ_TYPE(T, ATTRS, min, compare_func)
+
 /// @name Type definitions
 
 /**
@@ -821,6 +956,7 @@ typedef enum uvec_ret {
     P_UVEC_DECL(T, ulib_unused)                                                                    \
     P_UVEC_DECL_EQUATABLE(T, ulib_unused)                                                          \
     P_UVEC_DECL_COMPARABLE(T, ulib_unused)                                                         \
+    P_UVEC_DECL_HEAPQ(T, ulib_unused)                                                              \
     P_UVEC_DEF_INLINE(T, ulib_unused)                                                              \
     P_UVEC_DEF_INLINE_EQUATABLE(T, ulib_unused)                                                    \
     P_UVEC_DEF_INLINE_COMPARABLE(T, ulib_unused)
@@ -838,6 +974,7 @@ typedef enum uvec_ret {
     P_UVEC_DECL(T, SPEC ulib_unused)                                                               \
     P_UVEC_DECL_EQUATABLE(T, SPEC ulib_unused)                                                     \
     P_UVEC_DECL_COMPARABLE(T, SPEC ulib_unused)                                                    \
+    P_UVEC_DECL_HEAPQ(T, SPEC ulib_unused)                                                         \
     P_UVEC_DEF_INLINE(T, ulib_unused)                                                              \
     P_UVEC_DEF_INLINE_EQUATABLE(T, ulib_unused)                                                    \
     P_UVEC_DEF_INLINE_COMPARABLE(T, ulib_unused)
@@ -878,7 +1015,8 @@ typedef enum uvec_ret {
 #define UVEC_IMPL_COMPARABLE(T, equal_func, compare_func)                                          \
     P_UVEC_IMPL(T, ulib_unused)                                                                    \
     P_UVEC_IMPL_EQUATABLE(T, ulib_unused, equal_func)                                              \
-    P_UVEC_IMPL_COMPARABLE(T, ulib_unused, equal_func, compare_func)
+    P_UVEC_IMPL_COMPARABLE(T, ulib_unused, equal_func, compare_func)                               \
+    P_UVEC_IMPL_HEAPQ(T, ulib_unused, compare_func)
 
 /**
  * Implements a previously declared comparable vector type
@@ -891,7 +1029,8 @@ typedef enum uvec_ret {
 #define UVEC_IMPL_IDENTIFIABLE(T)                                                                  \
     P_UVEC_IMPL(T, ulib_unused)                                                                    \
     P_UVEC_IMPL_IDENTIFIABLE(T, ulib_unused)                                                       \
-    P_UVEC_IMPL_COMPARABLE(T, ulib_unused, p_uvec_identical, p_uvec_less_than)
+    P_UVEC_IMPL_COMPARABLE(T, ulib_unused, p_uvec_identical, p_uvec_less_than)                     \
+    P_UVEC_IMPL_HEAPQ(T, ulib_unused, p_uvec_less_than)
 
 /**
  * Defines a new static vector type.
@@ -1643,6 +1782,174 @@ typedef enum uvec_ret {
  * @public @related UVec
  */
 #define uvec_remove_sorted(T, vec, item) P_ULIB_MACRO_CONCAT(uvec_remove_sorted_, T)(vec, item)
+
+/// @name Heap queue
+
+/**
+ * Makes the specified vector a max heap queue.
+ *
+ * @param T [symbol] Vector type.
+ * @param vec [UVec(T)*] Vector instance.
+ *
+ * @note All functions named `uvec_max_heapq_*` require either:
+ *          (a) an empty vector;
+ *          (b) a non-empty vector that has been mutated by `uvec_max_heapq_*` functions only;
+ *          (c) any non-empty vector that has been transformed into a heap through this function.
+ *
+ * @public @related UVec
+ */
+#define uvec_max_heapq_make(T, vec) P_ULIB_MACRO_CONCAT(uvec_max_heapq_make_, T)(vec)
+
+/**
+ * Pushes the specified item into the max heap queue.
+ *
+ * @param T [symbol] Vector type.
+ * @param vec [UVec(T)*] Vector instance.
+ * @param item [T] Element to push.
+ * @return [uvec_ret] UVEC_OK on success, otherwise UVEC_ERR.
+ *
+ * @public @related UVec
+ */
+#define uvec_max_heapq_push(T, vec, item) P_ULIB_MACRO_CONCAT(uvec_max_heapq_push_, T)(vec, item)
+
+/**
+ * Removes and returns the maximum element from the queue.
+ *
+ * @param T [symbol] Vector type.
+ * @param vec [UVec(T)*] Vector instance.
+ * @param[out] item [T*] Removed element.
+ * @return [bool] True if the maximum was removed, false if the queue was empty.
+ *
+ * @public @related UVec
+ */
+#define uvec_max_heapq_pop(T, vec, item) P_ULIB_MACRO_CONCAT(uvec_max_heapq_pop_, T)(vec, item)
+
+/**
+ * Pushes `in` into the queue, and pops the maximum.
+ * Equivalent to push followed by pop, but with better performance.
+ *
+ * @param T [symbol] Vector type.
+ * @param vec [UVec(T)*] Vector instance.
+ * @param in [T] Element to push.
+ * @param[out] out [T*] Removed element.
+ *
+ * @public @related UVec
+ */
+#define uvec_max_heapq_push_pop(T, vec, in, out)                                                   \
+    P_ULIB_MACRO_CONCAT(uvec_max_heapq_push_pop_, T)(vec, in, out)
+
+/**
+ * Pops the maximum, and pushes `in` into the queue.
+ * Similar to pop followed by push, but with better performance.
+ *
+ * @param T [symbol] Vector type.
+ * @param vec [UVec(T)*] Vector instance.
+ * @param in [T] Element to push.
+ * @param[out] out [T*] Removed element.
+ * @return [bool] True if the operation succeeded, false if the queue was empty.
+ *
+ * @note If the queue is empty, `in` is not pushed.
+ *
+ * @public @related UVec
+ */
+#define uvec_max_heapq_replace(T, vec, in, out)                                                    \
+    P_ULIB_MACRO_CONCAT(uvec_max_heapq_replace_, T)(vec, in, out)
+
+/**
+ * Removes the specified item from the queue.
+ *
+ * @param T [symbol] Vector type.
+ * @param vec [UVec(T)*] Vector instance.
+ * @param item [T] Element to remove.
+ * @return [bool] True if the element was found and removed, false otherwise.
+ *
+ * @public @related UVec
+ */
+#define uvec_max_heapq_remove(T, vec, item)                                                        \
+    P_ULIB_MACRO_CONCAT(uvec_max_heapq_remove_, T)(vec, item)
+
+/**
+ * Makes the specified vector a min heap queue.
+ *
+ * @param T [symbol] Vector type.
+ * @param vec [UVec(T)*] Vector instance.
+ *
+ * @note All functions named `uvec_min_heapq_*` require either:
+ *          (a) an empty vector;
+ *          (b) a non-empty vector that has been mutated by `uvec_min_heapq_*` functions only;
+ *          (c) any non-empty vector that has been transformed into a heap through this function.
+ *
+ * @public @related UVec
+ */
+#define uvec_min_heapq_make(T, vec) P_ULIB_MACRO_CONCAT(uvec_min_heapq_make_, T)(vec)
+
+/**
+ * Pushes the specified item into the min heap queue.
+ *
+ * @param T [symbol] Vector type.
+ * @param vec [UVec(T)*] Vector instance.
+ * @param item [T] Element to push.
+ * @return [uvec_ret] UVEC_OK on success, otherwise UVEC_ERR.
+ *
+ * @public @related UVec
+ */
+#define uvec_min_heapq_push(T, vec, item) P_ULIB_MACRO_CONCAT(uvec_min_heapq_push_, T)(vec, item)
+
+/**
+ * Removes and returns the minimum element from the queue.
+ *
+ * @param T [symbol] Vector type.
+ * @param vec [UVec(T)*] Vector instance.
+ * @param[out] item [T*] Removed element.
+ * @return [bool] True if the minimum was removed, false if the queue was empty.
+ *
+ * @public @related UVec
+ */
+#define uvec_min_heapq_pop(T, vec, item) P_ULIB_MACRO_CONCAT(uvec_min_heapq_pop_, T)(vec, item)
+
+/**
+ * Pushes `in` into the queue, and pops the minimum.
+ * Equivalent to push followed by pop, but with better performance.
+ *
+ * @param T [symbol] Vector type.
+ * @param vec [UVec(T)*] Vector instance.
+ * @param in [T] Element to push.
+ * @param[out] out [T*] Removed element.
+ *
+ * @public @related UVec
+ */
+#define uvec_min_heapq_push_pop(T, vec, in, out)                                                   \
+    P_ULIB_MACRO_CONCAT(uvec_min_heapq_push_pop_, T)(vec, in, out)
+
+/**
+ * Pops the minimum, and pushes `in` into the queue.
+ * Similar to pop followed by push, but with better performance.
+ *
+ * @param T [symbol] Vector type.
+ * @param vec [UVec(T)*] Vector instance.
+ * @param in [T] Element to push.
+ * @param[out] out [T*] Removed element.
+ * @return [bool] True if the operation succeeded, false if the queue was empty.
+ *
+ * @note If the queue is empty, `in` is not pushed.
+ *
+ * @public @related UVec
+ */
+#define uvec_min_heapq_replace(T, vec, in, out)                                                    \
+    P_ULIB_MACRO_CONCAT(uvec_min_heapq_replace_, T)(vec, in, out)
+
+/**
+ * Removes the specified item from the queue.
+ *
+ * @param T [symbol] Vector type.
+ * @param vec [UVec(T)*] Vector instance.
+ * @param item [T] Element to remove.
+ * @return [bool] True if the element was found and removed, false otherwise.
+ *
+ * @public @related UVec
+ */
+#define uvec_min_heapq_remove(T, vec, item)                                                        \
+    P_ULIB_MACRO_CONCAT(uvec_min_heapq_remove_, T)(vec, item)
 
 ULIB_END_DECLS
 

@@ -20,6 +20,7 @@
 
 #define INSERT_COUNT_SMALL 128
 #define INSERT_COUNT_LARGE 10000
+#define HEAP_QUEUE_COUNT 20000
 
 typedef struct Result {
     char *name;
@@ -197,11 +198,56 @@ static void sorted_insertion_large(void) {
     uvec_deinit(ulib_int, &v);
 }
 
+static void heap_queue(void) {
+    UVec(ulib_int) items = uvec(ulib_int), heap = uvec(ulib_int), sorted = uvec(ulib_int);
+    uvec_reserve(ulib_int, &items, HEAP_QUEUE_COUNT);
+    uvec_reserve(ulib_int, &heap, HEAP_QUEUE_COUNT);
+    uvec_reserve(ulib_int, &sorted, HEAP_QUEUE_COUNT);
+
+    for (ulib_uint i = 0; i < HEAP_QUEUE_COUNT; ++i) {
+        uvec_push(ulib_int, &items, (ulib_int)i);
+    }
+    uvec_shuffle(ulib_int, &items);
+
+    utime_ns ns = utime_get_ns();
+    uvec_foreach (ulib_int, &items, e) {
+        uvec_min_heapq_push(ulib_int, &heap, *e.item);
+    }
+    ns = utime_get_ns() - ns;
+    print_result((Result){ "Heap queue push", ns });
+
+    ns = utime_get_ns();
+    for (ulib_uint i = 0; i < HEAP_QUEUE_COUNT; ++i) {
+        uvec_min_heapq_pop(ulib_int, &heap, NULL);
+    }
+    ns = utime_get_ns() - ns;
+    print_result((Result){ "Heap queue pop", ns });
+
+    ns = utime_get_ns();
+    uvec_foreach (ulib_int, &items, e) {
+        uvec_insert_sorted(ulib_int, &sorted, *e.item, NULL);
+    }
+    ns = utime_get_ns() - ns;
+    print_result((Result){ "Sorted array push", ns });
+
+    ns = utime_get_ns();
+    for (ulib_uint i = 0; i < HEAP_QUEUE_COUNT; ++i) {
+        uvec_pop(ulib_int, &sorted, NULL);
+    }
+    ns = utime_get_ns() - ns;
+    print_result((Result){ "Sorted array pop", ns });
+
+    uvec_deinit(ulib_int, &items);
+    uvec_deinit(ulib_int, &heap);
+    uvec_deinit(ulib_int, &sorted);
+}
+
 int main(void) {
     sort_small();
     sort_large();
     sort_large_repeated();
     sorted_insertion_small();
     sorted_insertion_large();
+    heap_queue();
     return EXIT_SUCCESS;
 }

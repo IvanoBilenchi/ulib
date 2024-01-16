@@ -10,6 +10,7 @@ Welcome to uLib's documentation!
    howto
 
 .. toctree::
+   :maxdepth: 1
    :caption: API docs
 
    api/alloc
