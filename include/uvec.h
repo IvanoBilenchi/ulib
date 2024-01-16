@@ -12,6 +12,7 @@
 #ifndef UVEC_H
 #define UVEC_H
 
+#include "urand.h"
 #include "ustd.h"
 #include "ustring_raw.h"
 
@@ -158,6 +159,7 @@ typedef enum uvec_ret {
                                          ulib_uint n);                                             \
     ATTRS void uvec_remove_all_##T(UVec(T) *vec);                                                  \
     ATTRS void uvec_reverse_##T(UVec(T) *vec);                                                     \
+    ATTRS void uvec_shuffle_##T(UVec(T) *vec);                                                     \
     /** @endcond */
 
 /*
@@ -477,9 +479,17 @@ typedef enum uvec_ret {
     ATTRS void uvec_reverse_##T(UVec(T) *vec) {                                                    \
         T *data = uvec_data(T, vec);                                                               \
         ulib_uint count = uvec_count(T, vec);                                                      \
-                                                                                                   \
         for (ulib_uint i = 0; i < count / 2; ++i) {                                                \
             ulib_uint swap_idx = count - i - 1;                                                    \
+            ulib_swap(T, data[i], data[swap_idx]);                                                 \
+        }                                                                                          \
+    }                                                                                              \
+                                                                                                   \
+    ATTRS void uvec_shuffle_##T(UVec(T) *vec) {                                                    \
+        T *data = uvec_data(T, vec);                                                               \
+        ulib_uint count = uvec_count(T, vec);                                                      \
+        for (ulib_uint i = 0; i < count; ++i) {                                                    \
+            ulib_uint swap_idx = (ulib_uint)urand_range(0, count);                                 \
             ulib_swap(T, data[i], data[swap_idx]);                                                 \
         }                                                                                          \
     }
@@ -1376,6 +1386,16 @@ typedef enum uvec_ret {
  * @public @related UVec
  */
 #define uvec_reverse(T, vec) P_ULIB_MACRO_CONCAT(uvec_reverse_, T)(vec)
+
+/**
+ * Randomly shuffles the elements of the vector.
+ *
+ * @param T [symbol] Vector type.
+ * @param vec [UVec(T)*] Vector instance.
+ *
+ * @public @related UVec
+ */
+#define uvec_shuffle(T, vec) P_ULIB_MACRO_CONCAT(uvec_shuffle_, T)(vec)
 
 /// @name Iteration
 
