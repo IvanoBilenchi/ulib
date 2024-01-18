@@ -28,6 +28,23 @@ bool urand_int_test(void) {
     return true;
 }
 
+bool urand_float_test(void) {
+    urand_set_seed(12345);
+
+    ulib_float val = urand_float();
+    for (unsigned i = 0; i < 100; ++i) {
+        utest_assert_float(val, !=, (val = urand_float()));
+    }
+
+    for (unsigned i = 0; i < 100; ++i) {
+        val = urand_float_range(-10.0, 20.0);
+        utest_assert_float(val, >=, -10.0);
+        utest_assert_float(val, <, 10.0);
+    }
+
+    return true;
+}
+
 bool urand_string_test(void) {
     urand_set_seed(12345);
 

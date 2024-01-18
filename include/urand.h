@@ -59,6 +59,24 @@ ULIB_API
 ulib_int urand_range(ulib_int start, ulib_uint len);
 
 /**
+ * Returns a random float between 0.0 and 1.0.
+ *
+ * @return Random float.
+ */
+ULIB_API
+ulib_float urand_float(void);
+
+/**
+ * Returns a random float in the specified range.
+ *
+ * @param start Start of the range.
+ * @param len Length of the range.
+ * @return Random float.
+ */
+ULIB_API
+ulib_float urand_float_range(ulib_float start, ulib_float len);
+
+/**
  * Returns a random string.
  *
  * @param len Length of the string.
