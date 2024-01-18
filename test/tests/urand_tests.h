@@ -15,7 +15,8 @@
 bool urand_int_test(void);
 bool urand_float_test(void);
 bool urand_string_test(void);
+bool urand_misc_test(void);
 
-#define URAND_TESTS urand_int_test, urand_float_test, urand_string_test
+#define URAND_TESTS urand_int_test, urand_float_test, urand_string_test, urand_misc_test
 
 #endif // URAND_TESTS_H

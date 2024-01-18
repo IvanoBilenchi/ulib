@@ -98,6 +98,16 @@ UString urand_string(ulib_uint len, UString const *charset);
 ULIB_API
 void urand_str(ulib_uint len, char *buf, UString const *charset);
 
+/**
+ * Randomly shuffles the elements of the array.
+ *
+ * @param array Array.
+ * @param element_size Size of each element of the array.
+ * @param length Length of the array.
+ */
+ULIB_API
+void urand_shuffle(void *array, size_t element_size, ulib_uint length);
+
 /// @}
 
 ULIB_END_DECLS

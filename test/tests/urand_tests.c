@@ -10,6 +10,7 @@
 #include "urand_tests.h"
 #include "urand.h"
 #include "utest.h"
+#include "uvec_builtin.h"
 
 bool urand_int_test(void) {
     urand_set_seed(12345);
@@ -75,5 +76,23 @@ bool urand_string_test(void) {
     ustring_deinit(&s);
     ustring_deinit(&charset);
 
+    return true;
+}
+
+bool urand_misc_test(void) {
+    UVec(ulib_uint) v = uvec(ulib_uint);
+    ulib_uint const max = 100;
+
+    for (ulib_uint i = 0; i < max; ++i) {
+        uvec_push(ulib_uint, &v, i);
+    }
+
+    urand_shuffle(uvec_data(ulib_uint, &v), sizeof(ulib_uint), uvec_count(ulib_uint, &v));
+
+    for (ulib_uint i = 0; i < max; ++i) {
+        utest_assert(uvec_contains(ulib_uint, &v, i));
+    }
+
+    uvec_deinit(ulib_uint, &v);
     return true;
 }

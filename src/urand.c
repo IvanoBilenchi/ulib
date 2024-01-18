@@ -74,3 +74,15 @@ void urand_str(ulib_uint len, char *buf, UString const *charset) {
 
     while (len--) buf[len] = chars[urand_range(0, char_len)];
 }
+
+void urand_shuffle(void *array, size_t element_size, ulib_uint length) {
+    ulib_byte *temp = ulib_stackalloc(element_size);
+    ulib_byte *bytes = array;
+    for (ulib_uint i = 0; i < length; ++i) {
+        ulib_byte *swap = bytes + element_size * (size_t)urand_range(0, length);
+        ulib_byte *cur = bytes + element_size * i;
+        memcpy(temp, cur, element_size);
+        memcpy(cur, swap, element_size);
+        memcpy(swap, temp, element_size);
+    }
+}
