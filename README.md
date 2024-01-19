@@ -12,7 +12,7 @@ See [CHANGELOG.md](CHANGELOG.md).
 
 ### Copyright and License
 
-Copyright © 2018-2023 [Ivano Bilenchi][home]
+Copyright © 2018-2024 [Ivano Bilenchi][home]
 
 uLib is distributed under the [ISC License](LICENSE).
 
