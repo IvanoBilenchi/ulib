@@ -12,7 +12,7 @@
 #include "utest.h"
 #include "uvec_builtin.h"
 
-/// @name Utility macros
+// Utility macros
 
 #define uvec_assert_elements(T, vec, ...)                                                          \
     do {                                                                                           \
@@ -30,7 +30,7 @@
         uvec_append_array(T, vec, p_items, ulib_array_count(p_items));                             \
     } while (0)
 
-/// @name Tests
+// Tests
 
 #define VTYPE ulib_int
 

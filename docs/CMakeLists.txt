@@ -1,6 +1,8 @@
 # Files and directories
 
 set(SPHINX_INPUT_DIRECTORY "${ULIB_DOCS_DIR}")
+set(DOXYGEN_UTILS_DIRECTORY "${ULIB_DOCS_DIR}/doxygen")
+list(APPEND CMAKE_MODULE_PATH "${ULIB_DOCS_DIR}/cmake")
 
 # Doxygen configuration
 
@@ -19,11 +21,26 @@ set(DOXYGEN_ALPHABETICAL_INDEX NO)
 set(DOXYGEN_IGNORE_PREFIX "U" "u")
 set(DOXYGEN_GENERATE_XML YES)
 set(DOXYGEN_MACRO_EXPANSION YES)
+set(DOXYGEN_PREDEFINED "ULIB_INLINE=")
 set(DOXYGEN_INCLUDE_PATH ${ULIB_PUBLIC_HEADERS_DIR})
 set(DOXYGEN_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/doxygen")
 set(DOXYGEN_XML_OUTPUT_DIRECTORY "${DOXYGEN_OUTPUT_DIRECTORY}/xml")
-set(DOXYGEN_ALIASES [[destructor{1}="@note The returned object must be destroyed by calling \1()."]])
+set(DOXYGEN_ALIASES
+    [[destructor{1}="@note The returned object must be destroyed by calling <tt>#\1()</tt>."]]
+    [[func{1}="<tt>\1</tt>"]]
+    [[type{1}="<tt>\1</tt>"]]
+    [[val{1}="<tt>\1</tt>"]]
+    [[alias=@noop]]
+)
 set(DOXYGEN_VERBATIM_VARS DOXYGEN_ALIASES)
+
+find_program(PYTHON
+             NAMES python3 python
+             DOC "Path to the Python interpreter")
+
+if (NOT PYTHON STREQUAL "PYTHON-NOTFOUND")
+    set(DOXYGEN_INPUT_FILTER "${PYTHON} ${DOXYGEN_UTILS_DIRECTORY}/alias.py")
+endif()
 
 # Documentation targets
 

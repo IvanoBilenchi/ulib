@@ -66,7 +66,7 @@ ulib_uint p_ustring_large_size(struct p_ustring_large string) {
 /// @endcond
 
 /**
- * The string type.
+ * An immutable string.
  *
  * @struct UString
  */
@@ -80,18 +80,15 @@ typedef struct UString {
 } UString;
 
 /**
- * String with a NULL buffer.
- *
- * @public @related UString
+ * @defgroup UString UString API
+ * @{
  */
+
+/// String with a NULL buffer.
 ULIB_API
 extern UString const ustring_null;
 
-/**
- * Empty string.
- *
- * @public @related UString
- */
+/// Empty string.
 ULIB_API
 extern UString const ustring_empty;
 
@@ -100,8 +97,6 @@ extern UString const ustring_empty;
  *
  * @param string String.
  * @return String size.
- *
- * @public @memberof UString
  */
 ULIB_CONST
 ULIB_INLINE
@@ -116,8 +111,6 @@ ulib_uint ustring_size(UString string) {
  *
  * @param string String.
  * @return String length.
- *
- * @public @memberof UString
  */
 ULIB_CONST
 ULIB_INLINE
@@ -129,10 +122,10 @@ ulib_uint ustring_length(UString string) {
 /**
  * Returns the buffer backing the string.
  *
- * @param string [UString] String.
- * @return [char const *] String buffer.
+ * @param string String.
+ * @return String buffer.
  *
- * @public @related UString
+ * @alias char const *ustring_data(UString string);
  */
 #define ustring_data(string)                                                                       \
     (p_ustring_is_large(string) ? (string)._l._data : (char const *)(string)._s)
@@ -147,10 +140,8 @@ ulib_uint ustring_length(UString string) {
  *
  * @destructor{ustring_deinit}
  * @note The buffer must be null-terminated.
- * @note Due to the internals of UString, you must not attempt to access the buffer
+ * @note Due to the internals of @type{#UString}, you must not attempt to access the buffer
  *       after calling this function as it may have been deallocated.
- *
- * @public @memberof UString
  */
 ULIB_API
 UString ustring_assign(char const *buf, size_t length);
@@ -164,8 +155,6 @@ UString ustring_assign(char const *buf, size_t length);
  *
  * @destructor{ustring_deinit}
  * @note The buffer must be null-terminated.
- *
- * @public @memberof UString
  */
 ULIB_API
 UString ustring_copy(char const *buf, size_t length);
@@ -179,9 +168,7 @@ UString ustring_copy(char const *buf, size_t length);
  *
  * @note The buffer must be null-terminated.
  * @note If the buffer has been dynamically allocated, you are responsible for its deallocation.
- * @note You must not call ustring_deinit() on a string initialized with this function.
- *
- * @public @memberof UString
+ * @note You must not call @func{#ustring_deinit()} on a string initialized with this function.
  */
 ULIB_API
 UString ustring_wrap(char const *buf, size_t length);
@@ -196,8 +183,6 @@ UString ustring_wrap(char const *buf, size_t length);
  *
  * @destructor{ustring_deinit}
  * @note The returned buffer is null-terminated but otherwise uninitialized.
- *
- * @public @memberof UString
  */
 ULIB_API
 char *ustring(UString *string, size_t length);
@@ -205,24 +190,20 @@ char *ustring(UString *string, size_t length);
 /**
  * Initializes a new string by copying the specified string literal.
  *
- * @param literal [char const []] String literal.
- * @return [UString] Initialized string.
+ * @param literal @type{char const []} String literal.
+ * @return @type{#UString} Initialized string.
  *
  * @destructor{ustring_deinit}
- *
- * @public @related UString
  */
 #define ustring_copy_literal(literal) ustring_copy(literal, sizeof(literal) - 1)
 
 /**
  * Wraps the specified literal in a string.
  *
- * @param literal [char const []] String literal.
- * @return [UString] String.
+ * @param literal @type{char const []} String literal.
+ * @return @type{#UString} String.
  *
- * @note You must not call ustring_deinit() on a string initialized with this function.
- *
- * @public @related UString
+ * @note You must not call @func{#ustring_deinit()} on a string initialized with this function.
  */
 #define ustring_literal(literal) ustring_wrap(literal, sizeof(literal) - 1)
 
@@ -235,10 +216,8 @@ char *ustring(UString *string, size_t length);
  *
  * @destructor{ustring_deinit}
  * @note The buffer must be null-terminated.
- * @note Due to the internals of UString, you must not attempt to access the buffer
+ * @note Due to the internals of @type{#UString}, you must not attempt to access the buffer
  *       after calling this function as it may have been deallocated.
- *
- * @public @memberof UString
  */
 ULIB_INLINE
 UString ustring_assign_buf(char const *buf) {
@@ -253,8 +232,6 @@ UString ustring_assign_buf(char const *buf) {
  *
  * @destructor{ustring_deinit}
  * @note The buffer must be null-terminated.
- *
- * @public @memberof UString
  */
 ULIB_INLINE
 UString ustring_copy_buf(char const *buf) {
@@ -269,9 +246,7 @@ UString ustring_copy_buf(char const *buf) {
  *
  * @note The buffer must be null-terminated.
  * @note If the buffer has been dynamically allocated, you are responsible for its deallocation.
- * @note You must not call ustring_deinit() on a string initialized with this function.
- *
- * @public @memberof UString
+ * @note You must not call @func{#ustring_deinit()} on a string initialized with this function.
  */
 ULIB_INLINE
 UString ustring_wrap_buf(char const *buf) {
@@ -285,8 +260,6 @@ UString ustring_wrap_buf(char const *buf) {
  * @return Duplicated string.
  *
  * @destructor{ustring_deinit}
- *
- * @public @memberof UString
  */
 ULIB_API
 UString ustring_dup(UString string);
@@ -299,8 +272,6 @@ UString ustring_dup(UString string);
  * @return New string.
  *
  * @destructor{ustring_deinit}
- *
- * @public @memberof UString
  */
 ULIB_API
 UString ustring_with_format(char const *format, ...);
@@ -313,8 +284,6 @@ UString ustring_with_format(char const *format, ...);
  * @return New string.
  *
  * @destructor{ustring_deinit}
- *
- * @public @memberof UString
  */
 ULIB_API
 UString ustring_with_format_list(char const *format, va_list args);
@@ -327,8 +296,6 @@ UString ustring_with_format_list(char const *format, va_list args);
  * @return Concatenation of the specified strings.
  *
  * @destructor{ustring_deinit}
- *
- * @public @memberof UString
  */
 ULIB_API
 UString ustring_concat(UString const *strings, ulib_uint count);
@@ -342,8 +309,6 @@ UString ustring_concat(UString const *strings, ulib_uint count);
  * @return Strings joined with the specified separator.
  *
  * @destructor{ustring_deinit}
- *
- * @public @memberof UString
  */
 ULIB_API
 UString ustring_join(UString const *strings, ulib_uint count, UString sep);
@@ -356,8 +321,6 @@ UString ustring_join(UString const *strings, ulib_uint count, UString sep);
  * @return New string.
  *
  * @destructor{ustring_deinit}
- *
- * @public @memberof UString
  */
 ULIB_API
 UString ustring_repeating(UString string, ulib_uint times);
@@ -367,8 +330,6 @@ UString ustring_repeating(UString string, ulib_uint times);
  *
  * @param string String.
  * @return True if the string does not contain lowercase characters, false otherwise.
- *
- * @public @memberof UString
  */
 ULIB_PURE
 ULIB_INLINE
@@ -381,8 +342,6 @@ bool ustring_is_upper(UString string) {
  *
  * @param string String.
  * @return True if the string does not contain uppercase characters, false otherwise.
- *
- * @public @memberof UString
  */
 ULIB_PURE
 ULIB_INLINE
@@ -397,8 +356,6 @@ bool ustring_is_lower(UString string) {
  * @return Uppercase string.
  *
  * @destructor{ustring_deinit}
- *
- * @public @memberof UString
  */
 ULIB_API
 UString ustring_to_upper(UString string);
@@ -410,8 +367,6 @@ UString ustring_to_upper(UString string);
  * @return Lowercase string.
  *
  * @destructor{ustring_deinit}
- *
- * @public @memberof UString
  */
 ULIB_API
 UString ustring_to_lower(UString string);
@@ -423,8 +378,6 @@ UString ustring_to_lower(UString string);
  * @param needle Character to find.
  * @return Index of the first occurrence of the specified character.
  *         If it cannot be found, returns an index greater than or equal to the string's length.
- *
- * @public @memberof UString
  */
 ULIB_API
 ULIB_PURE
@@ -437,8 +390,6 @@ ulib_uint ustring_index_of(UString string, char needle);
  * @param needle Character to find.
  * @return Index of the last occurrence of the specified character.
  *         If it cannot be found, returns an index greater than or equal to the string's length.
- *
- * @public @memberof UString
  */
 ULIB_API
 ULIB_PURE
@@ -451,8 +402,6 @@ ulib_uint ustring_index_of_last(UString string, char needle);
  * @param needle String to find.
  * @return Index of the first occurrence of the specified string.
  *         If it cannot be found, returns an index greater than or equal to the string's length.
- *
- * @public @memberof UString
  */
 ULIB_API
 ULIB_PURE
@@ -465,8 +414,6 @@ ulib_uint ustring_find(UString string, UString needle);
  * @param needle String to find.
  * @return Index of the last occurrence of the specified string.
  *         If it cannot be found, returns an index greater than or equal to the string's length.
- *
- * @public @memberof UString
  */
 ULIB_API
 ULIB_PURE
@@ -478,8 +425,6 @@ ulib_uint ustring_find_last(UString string, UString needle);
  * @param string String.
  * @param prefix Prefix.
  * @return True if the string starts with the specified prefix, false otherwise.
- *
- * @public @memberof UString
  */
 ULIB_API
 ULIB_PURE
@@ -491,8 +436,6 @@ bool ustring_starts_with(UString string, UString prefix);
  * @param string String.
  * @param suffix Suffix.
  * @return True if the string ends with the specified suffix, false otherwise.
- *
- * @public @memberof UString
  */
 ULIB_API
 ULIB_PURE
@@ -504,8 +447,6 @@ bool ustring_ends_with(UString string, UString suffix);
  * @param lhs First string.
  * @param rhs Second string.
  * @return True if the two strings are equal, false otherwise.
- *
- * @public @memberof UString
  */
 ULIB_API
 ULIB_PURE
@@ -516,9 +457,7 @@ bool ustring_equals(UString lhs, UString rhs);
  *
  * @param lhs First string.
  * @param rhs Second string.
- * @return True if lhs precedes rhs, False otherwise.
- *
- * @public @memberof UString
+ * @return True if `lhs` precedes `rhs`, False otherwise.
  */
 ULIB_API
 ULIB_PURE
@@ -529,9 +468,7 @@ bool ustring_precedes(UString lhs, UString rhs);
  *
  * @param lhs First string.
  * @param rhs Second string.
- * @return -1 if lhs comes before rhs, 0 if they are equal, 1 if lhs comes after rhs.
- *
- * @public @memberof UString
+ * @return -1 if `lhs` comes before `rhs`, 0 if they are equal, 1 if `lhs` comes after `rhs`.
  */
 ULIB_API
 ULIB_PURE
@@ -542,8 +479,6 @@ int ustring_compare(UString lhs, UString rhs);
  *
  * @param string String.
  * @return Hash.
- *
- * @public @memberof UString
  */
 ULIB_API
 ULIB_PURE
@@ -556,8 +491,6 @@ ulib_uint ustring_hash(UString string);
  * @param[out] out Converted value.
  * @param base Numeric base.
  * @return Return code.
- *
- * @public @memberof UString
  */
 ULIB_API
 ulib_ret ustring_to_int(UString string, ulib_int *out, unsigned base);
@@ -569,8 +502,6 @@ ulib_ret ustring_to_int(UString string, ulib_int *out, unsigned base);
  * @param[out] out Converted value.
  * @param base Numeric base.
  * @return Return code.
- *
- * @public @memberof UString
  */
 ULIB_API
 ulib_ret ustring_to_uint(UString string, ulib_uint *out, unsigned base);
@@ -581,8 +512,6 @@ ulib_ret ustring_to_uint(UString string, ulib_uint *out, unsigned base);
  * @param string String.
  * @param[out] out Converted value.
  * @return Return code.
- *
- * @public @memberof UString
  */
 ULIB_API
 ulib_ret ustring_to_float(UString string, ulib_float *out);
@@ -591,8 +520,6 @@ ulib_ret ustring_to_float(UString string, ulib_float *out);
  * Deinitializes the specified string.
  *
  * @param string String to deinitialize.
- *
- * @public @memberof UString
  */
 ULIB_API
 void ustring_deinit(UString *string);
@@ -604,8 +531,6 @@ void ustring_deinit(UString *string);
  * @return Buffer.
  *
  * @destructor{ulib_free}
- *
- * @public @memberof UString
  */
 ULIB_API
 char *ustring_deinit_return_data(UString *string);
@@ -615,8 +540,6 @@ char *ustring_deinit_return_data(UString *string);
  *
  * @param string String instance.
  * @return True if the string has a NULL buffer, false otherwise.
- *
- * @public @memberof UString
  */
 ULIB_CONST
 ULIB_INLINE
@@ -631,14 +554,14 @@ bool ustring_is_null(UString string) {
  * @return True if the string is empty, false otherwise.
  *
  * @note The null string is considered empty.
- *
- * @public @memberof UString
  */
 ULIB_CONST
 ULIB_INLINE
 bool ustring_is_empty(UString string) {
     return ustring_size(string) <= 1;
 }
+
+/// @}
 
 ULIB_END_DECLS
 

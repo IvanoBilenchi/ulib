@@ -16,10 +16,63 @@
 
 #include "ustd.h"
 
+// Types
+
 /**
- * A type safe, generic hash table.
- * @struct UHash
+ * References a specific hash table type.
+ *
+ * @param T Hash table type.
  */
+#define UHash(T) UHash_##T
+
+/**
+ * Generic hash table type.
+ *
+ * @note This is a placeholder for documentation purposes. You should use the
+ *       @func{#UHash(T)} macro to reference a specific hash table type.
+ * @alias typedef struct UHash(T) UHash(T);
+ */
+
+/**
+ * Hash table key type.
+ *
+ * @param T Hash table type.
+ *
+ * @note While you can use this macro to reference the key type of a @func{#UHash(T)},
+ *       it is usually better to directly use the type specified when defining the hash table type.
+ */
+#define UHashKey(T) uhash_##T##_key
+
+/**
+ * Generic hash table key type.
+ *
+ * @note This is a placeholder for documentation purposes.
+ * @alias typedef HashTableKeyType uhash_T_key;
+ */
+
+/**
+ * Hash table value type.
+ *
+ * @param T Hash table type.
+ *
+ * @note While you can use this macro to reference the value type of a @func{#UHash(T)},
+ *       it is usually better to directly use the type specified when defining the hash table type.
+ */
+#define UHashVal(T) uhash_##T##_val
+
+/**
+ * Generic hash table value type.
+ *
+ * @note This is a placeholder for documentation purposes.
+ * @alias typedef HashTableValueType uhash_T_val;
+ */
+
+/**
+ * Hash table type forward declaration.
+ *
+ * @param T @type{symbol} Hash table type.
+ */
+#define uhash_decl(T) typedef struct UHash(T) UHash(T)
 
 /// Return codes.
 typedef enum uhash_ret {
@@ -41,6 +94,11 @@ typedef enum uhash_ret {
 
 } uhash_ret;
 
+/**
+ * @defgroup UHash_constants UHash constants
+ * @{
+ */
+
 /// Index returned when a key is not present in the hash table.
 #define UHASH_INDEX_MISSING ULIB_UINT_MAX
 
@@ -54,6 +112,8 @@ typedef enum uhash_ret {
 #ifndef UHASH_MAX_LOAD
 #define UHASH_MAX_LOAD 0.77
 #endif
+
+/// @}
 
 // uhash_combine_hash constants.
 #if ULIB_TINY
@@ -90,8 +150,9 @@ typedef enum uhash_ret {
  * Computes the maximum number of elements that the table can contain
  * before it needs to be resized in order to keep its load factor under UHASH_MAX_LOAD.
  *
- * @param buckets [ulib_uint] Number of buckets.
- * @return [ulib_uint] Upper bound.
+ * @param buckets Number of buckets.
+ * @return Upper bound.
+ * @alias ulib_uint p_uhash_upper_bound(ulib_uint buckets);
  */
 #define p_uhash_upper_bound(buckets) ((ulib_uint)((buckets) * UHASH_MAX_LOAD + 0.5))
 
@@ -112,8 +173,8 @@ ulib_uint p_uhash_combine(ulib_uint h1, ulib_uint h2) {
 /*
  * Karl Nelson <kenelson@ece.ucdavis.edu>'s X31 string hash function.
  *
- * @param key [char const *] The string to hash.
- * @return [ulib_uint] The hash value.
+ * @param key The string to hash.
+ * @return The hash value.
  */
 ULIB_PURE
 ULIB_INLINE
@@ -176,8 +237,8 @@ ulib_uint p_uhash_int64_hash(uint64_t key) {
     UHash_##T;                                                                                     \
                                                                                                    \
     /** @cond */                                                                                   \
-    typedef uh_key uhash_##T##_key;                                                                \
-    typedef uh_val uhash_##T##_val;                                                                \
+    typedef uh_key UHashKey(T);                                                                    \
+    typedef uh_val UHashVal(T);                                                                    \
     typedef struct UHash_Loop_##T {                                                                \
         UHash(T) const *h;                                                                         \
         uh_key *key;                                                                               \
@@ -189,9 +250,9 @@ ulib_uint p_uhash_int64_hash(uint64_t key) {
 /*
  * Defines a new hash table type.
  *
- * @param T [symbol] Hash table name.
- * @param uh_key [type] Hash table key type.
- * @param uh_val [type] Hash table value type.
+ * @param T @type{symbol} Hash table type.
+ * @param uh_key @type{type} Hash table key type.
+ * @param uh_val @type{type} Hash table value type.
  */
 #define P_UHASH_DEF_TYPE(T, uh_key, uh_val)                                                        \
     P_UHASH_DEF_TYPE_HEAD(T, uh_key, uh_val)                                                       \
@@ -200,9 +261,9 @@ ulib_uint p_uhash_int64_hash(uint64_t key) {
 /*
  * Defines a new hash table type with per-instance hash and equality functions.
  *
- * @param T [symbol] Hash table name.
- * @param uh_key [type] Hash table key type.
- * @param uh_val [type] Hash table value type.
+ * @param T @type{symbol} Hash table type.
+ * @param uh_key @type{type} Hash table key type.
+ * @param uh_val @type{type} Hash table value type.
  */
 #define P_UHASH_DEF_TYPE_PI(T, uh_key, uh_val)                                                     \
     P_UHASH_DEF_TYPE_HEAD(T, uh_key, uh_val)                                                       \
@@ -213,10 +274,10 @@ ulib_uint p_uhash_int64_hash(uint64_t key) {
 /*
  * Generates function declarations for the specified hash table type.
  *
- * @param T [symbol] Hash table name.
- * @param ATTRS [attributes] Attributes of the declarations.
- * @param uh_key [type] Hash table key type.
- * @param uh_val [type] Hash table value type.
+ * @param T @type{symbol} Hash table type.
+ * @param ATTRS @type{attributes} Attributes of the declarations.
+ * @param uh_key @type{type} Hash table key type.
+ * @param uh_val @type{type} Hash table value type.
  */
 #define P_UHASH_DECL(T, ATTRS, uh_key, uh_val)                                                     \
     /** @cond */                                                                                   \
@@ -250,10 +311,10 @@ ulib_uint p_uhash_int64_hash(uint64_t key) {
  * Generates function declarations for the specified hash table type
  * with per-instance hash and equality functions.
  *
- * @param T [symbol] Hash table name.
- * @param ATTRS [scope] Scope of the declarations.
- * @param uh_key [type] Hash table key type.
- * @param uh_val [type] Hash table value type.
+ * @param T @type{symbol} Hash table type.
+ * @param ATTRS @type{attributes} Attributes of the declarations.
+ * @param uh_key @type{type} Hash table key type.
+ * @param uh_val @type{type} Hash table value type.
  */
 #define P_UHASH_DECL_PI(T, ATTRS, uh_key, uh_val)                                                  \
     P_UHASH_DECL(T, ATTRS, uh_key, uh_val)                                                         \
@@ -267,8 +328,8 @@ ulib_uint p_uhash_int64_hash(uint64_t key) {
 /*
  * Generates inline function definitions for the specified hash table type.
  *
- * @param T [symbol] Hash table name.
- * @param ATTRS [scope] Scope of the definitions.
+ * @param T @type{symbol} Hash table type.
+ * @param ATTRS @type{attributes} Attributes of the definitions.
  */
 #define P_UHASH_DEF_INLINE(T, ATTRS)                                                               \
     /** @cond */                                                                                   \
@@ -300,8 +361,8 @@ ulib_uint p_uhash_int64_hash(uint64_t key) {
 /*
  * Generates init function definitions for the specified hash table type.
  *
- * @param T [symbol] Hash table name.
- * @param ATTRS [scope] Scope of the definitions.
+ * @param T @type{symbol} Hash table type.
+ * @param ATTRS @type{attributes} Attributes of the definitions.
  */
 #define P_UHASH_IMPL_INIT(T, ATTRS)                                                                \
                                                                                                    \
@@ -320,11 +381,11 @@ ulib_uint p_uhash_int64_hash(uint64_t key) {
  * Generates init function definitions for the specified hash table type
  * with per-instance hash and equality functions.
  *
- * @param T [symbol] Hash table name.
- * @param ATTRS [scope] Scope of the definitions.
- * @param uh_key [type] Hash table key type.
- * @param default_hfunc [(uh_key) -> ulib_uint] Default hash function (can be NULL).
- * @param default_efunc [(uh_key, uh_key) -> bool] Default equality function (can be NULL).
+ * @param T @type{symbol} Hash table type.
+ * @param ATTRS @type{attributes} Attributes of the definitions.
+ * @param uh_key @type{type} Hash table key type.
+ * @param default_hfunc @type{(uh_key) -> #ulib_uint} Hash function.
+ * @param default_efunc @type{(uh_key, uh_key) -> bool} Equality function.
  */
 #define P_UHASH_IMPL_INIT_PI(T, ATTRS, uh_key, default_hfunc, default_efunc)                       \
                                                                                                    \
@@ -360,12 +421,12 @@ ulib_uint p_uhash_int64_hash(uint64_t key) {
 /*
  * Generates common function definitions for the specified hash table type.
  *
- * @param T [symbol] Hash table name.
- * @param ATTRS [scope] Scope of the definitions.
- * @param uh_key [type] Hash table key type.
- * @param uh_val [type] Hash table value type.
- * @param hash_func [(uh_key) -> ulib_uint] Hash function or expression.
- * @param equal_func [(uh_key, uh_key) -> bool] Equality function or expression.
+ * @param T @type{symbol} Hash table type.
+ * @param ATTRS @type{attributes} Attributes of the definitions.
+ * @param uh_key @type{type} Hash table key type.
+ * @param uh_val @type{type} Hash table value type.
+ * @param hash_func @type{(uh_key) -> #ulib_uint} Hash function.
+ * @param equal_func @type{(uh_key, uh_key) -> bool} Equality function.
  */
 #define P_UHASH_IMPL_COMMON(T, ATTRS, uh_key, uh_val, hash_func, equal_func)                       \
                                                                                                    \
@@ -756,16 +817,17 @@ ulib_uint p_uhash_int64_hash(uint64_t key) {
         return i == h->_size ? if_empty : h->_keys[i];                                             \
     }
 
-/// @name Type definitions
+/**
+ * @defgroup UHash_definitions UHash type definitions
+ * @{
+ */
 
 /**
  * Declares a new hash table type.
  *
- * @param T [symbol] Hash table name.
- * @param uh_key [symbol] Type of the keys.
- * @param uh_val [symbol] Type of the values.
- *
- * @public @related UHash
+ * @param T @type{symbol} Hash table type.
+ * @param uh_key @type{type} Type of the keys.
+ * @param uh_val @type{type} Type of the values.
  */
 #define UHASH_DECL(T, uh_key, uh_val)                                                              \
     P_UHASH_DEF_TYPE(T, uh_key, uh_val)                                                            \
@@ -775,12 +837,10 @@ ulib_uint p_uhash_int64_hash(uint64_t key) {
 /**
  * Declares a new hash table type, prepending a specifier to the generated declarations.
  *
- * @param T [symbol] Hash table name.
- * @param uh_key [symbol] Type of the keys.
- * @param uh_val [symbol] Type of the values.
- * @param SPEC [specifier] Specifier.
- *
- * @public @related UHash
+ * @param T @type{symbol} Hash table type.
+ * @param uh_key @type{type} Type of the keys.
+ * @param uh_val @type{type} Type of the values.
+ * @param SPEC @type{specifier} Specifier.
  */
 #define UHASH_DECL_SPEC(T, uh_key, uh_val, SPEC)                                                   \
     P_UHASH_DEF_TYPE(T, uh_key, uh_val)                                                            \
@@ -790,11 +850,9 @@ ulib_uint p_uhash_int64_hash(uint64_t key) {
 /**
  * Declares a new hash table type with per-instance hash and equality functions.
  *
- * @param T [symbol] Hash table name.
- * @param uh_key [symbol] Type of the keys.
- * @param uh_val [symbol] Type of the values.
- *
- * @public @related UHash
+ * @param T @type{symbol} Hash table type.
+ * @param uh_key @type{type} Type of the keys.
+ * @param uh_val @type{type} Type of the values.
  */
 #define UHASH_DECL_PI(T, uh_key, uh_val)                                                           \
     P_UHASH_DEF_TYPE_PI(T, uh_key, uh_val)                                                         \
@@ -805,12 +863,10 @@ ulib_uint p_uhash_int64_hash(uint64_t key) {
  * Declares a new hash table type with per-instance hash and equality functions,
  * prepending a specifier to the generated declarations.
  *
- * @param T [symbol] Hash table name.
- * @param uh_key [symbol] Type of the keys.
- * @param uh_val [symbol] Type of the values.
- * @param SPEC [specifier] Specifier.
- *
- * @public @related UHash
+ * @param T @type{symbol} Hash table type.
+ * @param uh_key @type{type} Type of the keys.
+ * @param uh_val @type{type} Type of the values.
+ * @param SPEC @type{specifier} Specifier.
  */
 #define UHASH_DECL_PI_SPEC(T, uh_key, uh_val, SPEC)                                                \
     P_UHASH_DEF_TYPE_PI(T, uh_key, uh_val)                                                         \
@@ -820,39 +876,33 @@ ulib_uint p_uhash_int64_hash(uint64_t key) {
 /**
  * Implements a previously declared hash table type.
  *
- * @param T [symbol] Hash table name.
- * @param hash_func [(uh_key) -> ulib_uint] Hash function or expression.
- * @param equal_func [(uh_key, uh_key) -> bool] Equality function or expression.
- *
- * @public @related UHash
+ * @param T @type{symbol} Hash table type.
+ * @param hash_func @type{(#UHashKey(T)) -> #ulib_uint} Hash function or expression.
+ * @param equal_func @type{(#UHashKey(T), #UHashKey(T)) -> bool} Equality function or expression.
  */
 #define UHASH_IMPL(T, hash_func, equal_func)                                                       \
     P_UHASH_IMPL_INIT(T, ulib_unused)                                                              \
-    P_UHASH_IMPL_COMMON(T, ulib_unused, uhash_##T##_key, uhash_##T##_val, hash_func, equal_func)
+    P_UHASH_IMPL_COMMON(T, ulib_unused, UHashKey(T), UHashVal(T), hash_func, equal_func)
 
 /**
  * Implements a previously declared hash table type with per-instance hash and equality functions.
  *
- * @param T [symbol] Hash table name.
- * @param default_hfunc [(uh_key) -> ulib_uint] Default hash function (can be NULL).
- * @param default_efunc [(uh_key, uh_key) -> bool] Default equality function (can be NULL).
- *
- * @public @related UHash
+ * @param T @type{symbol} Hash table type.
+ * @param default_hfunc @type{(#UHashKey(T)) -> #ulib_uint} Hash function.
+ * @param default_efunc @type{(#UHashKey(T), #UHashKey(T)) -> bool} Equality function.
  */
 #define UHASH_IMPL_PI(T, default_hfunc, default_efunc)                                             \
-    P_UHASH_IMPL_INIT_PI(T, ulib_unused, uhash_##T##_key, default_hfunc, default_efunc)            \
-    P_UHASH_IMPL_COMMON(T, ulib_unused, uhash_##T##_key, uhash_##T##_val, h->_hfunc, h->_efunc)
+    P_UHASH_IMPL_INIT_PI(T, ulib_unused, UHashKey(T), default_hfunc, default_efunc)                \
+    P_UHASH_IMPL_COMMON(T, ulib_unused, UHashKey(T), UHashVal(T), h->_hfunc, h->_efunc)
 
 /**
  * Defines a new static hash table type.
  *
- * @param T [symbol] Hash table name.
- * @param uh_key [symbol] Type of the keys.
- * @param uh_val [symbol] Type of the values.
- * @param hash_func [(uh_key) -> ulib_uint] Hash function or expression.
- * @param equal_func [(uh_key, uh_key) -> bool] Equality function or expression.
- *
- * @public @related UHash
+ * @param T @type{symbol} Hash table type.
+ * @param uh_key @type{type} Type of the keys.
+ * @param uh_val @type{type} Type of the values.
+ * @param hash_func @type{(#UHashKey(T)) -> #ulib_uint} Hash function or expression.
+ * @param equal_func @type{(#UHashKey(T), #UHashKey(T)) -> bool} Equality function or expression.
  */
 #define UHASH_INIT(T, uh_key, uh_val, hash_func, equal_func)                                       \
     P_UHASH_DEF_TYPE(T, uh_key, uh_val)                                                            \
@@ -864,13 +914,11 @@ ulib_uint p_uhash_int64_hash(uint64_t key) {
 /**
  * Defines a new static hash table type with per-instance hash and equality functions.
  *
- * @param T [symbol] Hash table name.
- * @param uh_key [symbol] Type of the keys.
- * @param uh_val [symbol] Type of the values.
- * @param default_hfunc [(uh_key) -> ulib_uint] Default hash function (can be NULL).
- * @param default_efunc [(uh_key, uh_key) -> bool] Default equality function (can be NULL).
- *
- * @public @related UHash
+ * @param T @type{symbol} Hash table type.
+ * @param uh_key @type{type} Type of the keys.
+ * @param uh_val @type{type} Type of the values.
+ * @param default_hfunc @type{(#UHashKey(T)) -> #ulib_uint} Hash function.
+ * @param default_efunc @type{(#UHashKey(T), #UHashKey(T)) -> bool} Equality function.
  */
 #define UHASH_INIT_PI(T, uh_key, uh_val, default_hfunc, default_efunc)                             \
     P_UHASH_DEF_TYPE_PI(T, uh_key, uh_val)                                                         \
@@ -879,87 +927,92 @@ ulib_uint p_uhash_int64_hash(uint64_t key) {
     P_UHASH_IMPL_INIT_PI(T, ULIB_INLINE ulib_unused, uh_key, default_hfunc, default_efunc)         \
     P_UHASH_IMPL_COMMON(T, ULIB_INLINE ulib_unused, uh_key, uh_val, h->_hfunc, h->_efunc)
 
-/// @name Hash and equality functions
+/// @}
 
 /**
- * Identity macro.
+ * @defgroup UHash_common UHash common API
+ * @{
+ */
+
+/**
+ * Identity function.
  *
  * @param a LHS of the identity.
  * @param b RHS of the identity.
  * @return a == b
  *
- * @public @related UHash
+ * @alias bool uhash_identical(T a, T b);
  */
 #define uhash_identical(a, b) ((a) == (b))
 
 /**
  * Equality function for strings.
  *
- * @param a [char const *] LHS of the equality relation (NULL terminated string).
- * @param b [char const *] RHS of the equality relation (NULL terminated string).
- * @return [bool] True if a is equal to b, false otherwise.
+ * @param a LHS of the equality relation (NULL terminated string).
+ * @param b RHS of the equality relation (NULL terminated string).
+ * @return True if a is equal to b, false otherwise.
  *
- * @public @related UHash
+ * @alias bool uhash_str_equals(char const *a, char const *b);
  */
 #define uhash_str_equals(a, b) (strcmp(a, b) == 0)
 
 /**
  * Hash function for 8 bit integers.
  *
- * @param key [int8_t/uint8_t] The integer.
- * @return [ulib_uint] The hash value.
+ * @param key The integer.
+ * @return The hash value.
  *
- * @public @related UHash
+ * @alias ulib_uint uhash_int8_hash(uint8_t key);
  */
 #define uhash_int8_hash(key) p_uhash_int8_hash(key)
 
 /**
  * Hash function for 16 bit integers.
  *
- * @param key [int16_t/uint16_t] The integer.
- * @return [ulib_uint] The hash value.
+ * @param key The integer.
+ * @return The hash value.
  *
- * @public @related UHash
+ * @alias ulib_uint uhash_int16_hash(uint16_t key);
  */
 #define uhash_int16_hash(key) p_uhash_int16_hash(key)
 
 /**
  * Hash function for 32 bit integers.
  *
- * @param key [int32_t/uint32_t] The integer.
- * @return [ulib_uint] The hash value.
+ * @param key The integer.
+ * @return The hash value.
  *
- * @public @related UHash
+ * @alias ulib_uint uhash_int32_hash(uint32_t key);
  */
 #define uhash_int32_hash(key) p_uhash_int32_hash(key)
 
 /**
  * Hash function for 64 bit integers.
  *
- * @param key [int64_t/uint64_t] The integer.
- * @return [ulib_uint] The hash value.
+ * @param key The integer.
+ * @return The hash value.
  *
- * @public @related UHash
+ * @alias ulib_uint uhash_int64_hash(uint64_t key);
  */
 #define uhash_int64_hash(key) p_uhash_int64_hash(key)
 
 /**
  * Hash function for strings.
  *
- * @param key [char const *] Pointer to a NULL-terminated string.
- * @return [ulib_uint] The hash value.
+ * @param key Pointer to a NULL-terminated string.
+ * @return The hash value.
  *
- * @public @related UHash
+ * @alias ulib_uint uhash_str_hash(char const *key);
  */
 #define uhash_str_hash(key) p_uhash_x31_str_hash(key)
 
 /**
  * Hash function for pointers.
  *
- * @param key [pointer] The pointer.
- * @return [ulib_uint] The hash value.
+ * @param key The pointer.
+ * @return The hash value.
  *
- * @public @related UHash
+ * @alias ulib_uint uhash_ptr_hash(T *key);
  */
 #if UINTPTR_MAX <= 0xffffffff
 #define uhash_ptr_hash(key) p_uhash_int32_hash((uint32_t)(key))
@@ -970,535 +1023,227 @@ ulib_uint p_uhash_int64_hash(uint64_t key) {
 /**
  * Combines two hashes.
  *
- * @param hash_1 [ulib_uint] First hash.
- * @param hash_2 [ulib_uint] Second hash.
- * @return [ulib_uint] The hash value.
+ * @param hash_1 First hash.
+ * @param hash_2 Second hash.
+ * @return The hash value.
  *
- * @public @related UHash
+ * @alias ulib_uint uhash_combine_hash(ulib_uint hash_1, ulib_uint hash_2);
  */
 #define uhash_combine_hash(hash_1, hash_2) p_uhash_combine(hash_1, hash_2)
-
-/// @name Declaration
-
-/**
- * Declares a new hash table variable.
- *
- * @param T [symbol] Hash table name.
- *
- * @public @related UHash
- */
-#define UHash(T) UHash_##T
-
-/**
- * Hash table type forward declaration.
- *
- * @param T [symbol] Hash table name.
- *
- * @public @related UHash
- */
-#define uhash_decl(T) typedef struct UHash(T) UHash(T)
-
-/// @name Memory management
 
 /**
  * Deinitializes the specified hash table.
  *
- * @param T [symbol] Hash table name.
- * @param h [UHash(T)*] Hash table to deinitialize.
+ * @param T Hash table type.
+ * @param h Hash table to deinitialize.
  *
- * @public @related UHash
+ * @alias void uhash_deinit(symbol T, UHash(T) *h);
  */
 #define uhash_deinit(T, h) uhash_deinit_##T(h)
 
 /**
  * Invalidates the hash table and returns its storage.
  *
- * @param T [symbol] Hash table name.
- * @param h [UHash(T)*] Hash table whose storage should be returned.
- * @return [UHash(T)] Hash table storage.
+ * @param T Hash table type.
+ * @param h Hash table whose storage should be returned.
+ * @return Hash table storage.
  *
  * @destructor{uhash_deinit}
- *
- * @public @related UHash
+ * @alias UHash(T) uhash_move(symbol T, UHash(T) *h);
  */
 #define uhash_move(T, h) uhash_move_##T(h)
 
 /**
  * Copies the specified hash table.
  *
- * @param T [symbol] Hash table name.
- * @param src [UHash(T)*] Hash table to copy.
- * @param dest [UHash(T)*] Hash table to copy into.
- * @return [uhash_ret] UHASH_OK if the operation succeeded, UHASH_ERR on error.
+ * @param T Hash table type.
+ * @param src Hash table to copy.
+ * @param dest Hash table to copy into.
+ * @return @val{#UHASH_OK} if the operation succeeded, @val{#UHASH_ERR} on error.
  *
- * @public @related UHash
+ * @alias uhash_ret uhash_copy(symbol T, UHash(T) const *src, UHash(T) *dest);
  */
 #define uhash_copy(T, src, dest) uhash_copy_##T(src, dest)
 
 /**
  * Returns a new hash set obtained by copying the keys of another hash table.
  *
- * @param T [symbol] Hash table name.
- * @param src [UHash(T)*] Hash table to copy.
- * @param dest [UHash(T)*] Hash table to copy into.
- * @return [uhash_ret] UHASH_OK if the operation succeeded, UHASH_ERR on error.
+ * @param T Hash table type.
+ * @param src Hash table to copy.
+ * @param dest Hash table to copy into.
+ * @return @val{#UHASH_OK} if the operation succeeded, @val{#UHASH_ERR} on error.
  *
- * @public @related UHash
+ * @alias uhash_ret uhash_copy_as_set(symbol T, UHash(T) const *src, UHash(T) *dest);
  */
 #define uhash_copy_as_set(T, src, dest) uhash_copy_as_set_##T(src, dest)
 
 /**
  * Resizes the specified hash table.
  *
- * @param T [symbol] Hash table name.
- * @param h [UHash(T)*] Hash table to resize.
- * @param s [ulib_uint] Hash table size.
- * @return [uhash_ret] UHASH_OK if the operation succeeded, UHASH_ERR on error.
+ * @param T Hash table type.
+ * @param h Hash table to resize.
+ * @param s Hash table size.
+ * @return @val{#UHASH_OK} if the operation succeeded, @val{#UHASH_ERR} on error.
  *
- * @public @related UHash
+ * @alias uhash_ret uhash_resize(symbol T, UHash(T) *h, ulib_uint s);
  */
 #define uhash_resize(T, h, s) uhash_resize_##T(h, s)
-
-/// @name Primitives
 
 /**
  * Checks whether the hash table is a map.
  *
- * @param T [symbol] Hash table name.
- * @param h [UHash(T)*] Hash table instance.
+ * @param T Hash table type.
+ * @param h Hash table instance.
  * @return True if the hash table is a map, false otherwise.
  *
- * @public @related UHash
+ * @alias bool uhash_is_map(symbol T, UHash(T) const *h);
  */
 #define uhash_is_map(T, h) uhash_is_map_##T(h)
 
 /**
  * Inserts a key into the specified hash table.
  *
- * @param T [symbol] Hash table name.
- * @param h [UHash(T)*] Hash table instance.
- * @param k [uhash_T_key] Key to insert.
- * @param[out] i [ulib_uint*] Index of the inserted element.
- * @return [uhash_ret] Return code (see uhash_ret).
+ * @param T Hash table type.
+ * @param h Hash table instance.
+ * @param k Key to insert.
+ * @param[out] i Index of the inserted element.
+ * @return Return code.
  *
- * @public @related UHash
+ * @alias uhash_ret uhash_put(symbol T, UHash(T) *h, UHashKey(T) k, ulib_uint *i);
  */
 #define uhash_put(T, h, k, i) uhash_put_##T(h, k, i)
 
 /**
  * Retrieves the index of the bucket associated with the specified key.
  *
- * @param T [symbol] Hash table name.
- * @param h [UHash(T)*] Hash table instance.
- * @param k [uhash_T_key] Key whose index should be retrieved.
- * @return [ulib_uint] Index of the key, or UHASH_INDEX_MISSING if it is absent.
+ * @param T Hash table type.
+ * @param h Hash table instance.
+ * @param k Key whose index should be retrieved.
+ * @return Index of the key, or @val{#UHASH_INDEX_MISSING} if it is absent.
  *
- * @public @related UHash
+ * @alias ulib_uint uhash_get(symbol T, UHash(T) const *h, UHashKey(T) k);
  */
 #define uhash_get(T, h, k) uhash_get_##T(h, k)
 
 /**
  * Deletes the bucket at the specified index.
  *
- * @param T [symbol] Hash table name.
- * @param h [UHash(T)*] Hash table instance.
- * @param k [ulib_uint] Index of the bucket to delete.
+ * @param T Hash table type.
+ * @param h Hash table instance.
+ * @param k Index of the bucket to delete.
  *
- * @public @related UHash
+ * @alias void uhash_delete(symbol T, UHash(T) *h, ulib_uint k);
  */
 #define uhash_delete(T, h, k) uhash_delete_##T(h, k)
 
 /**
  * Checks whether the hash table contains the specified key.
  *
- * @param T [symbol] Hash table name.
- * @param h [UHash(T)*] Hash table instance.
- * @param k [uhash_T_key] Key to test.
- * @return [bool] True if the hash table contains the specified key, false otherwise.
+ * @param T Hash table type.
+ * @param h Hash table instance.
+ * @param k Key to test.
+ * @return True if the hash table contains the specified key, false otherwise.
  *
- * @public @related UHash
+ * @alias bool uhash_contains(symbol T, UHash(T) const *h, UHashKey(T) k);
  */
 #define uhash_contains(T, h, k) (uhash_get_##T(h, k) != UHASH_INDEX_MISSING)
 
 /**
  * Tests whether a bucket contains data.
  *
- * @param T [symbol] Hash table name.
- * @param h [UHash(T)*] Hash table instance.
- * @param x [ulib_uint] Index of the bucket to test.
- * @return [bool] True if the bucket contains data, false otherwise.
+ * @param T Hash table type.
+ * @param h Hash table instance.
+ * @param x Index of the bucket to test.
+ * @return True if the bucket contains data, false otherwise.
  *
- * @public @related UHash
+ * @alias bool uhash_exists(symbol T, UHash(T) const *h, ulib_uint x);
  */
 #define uhash_exists(T, h, x) (!p_uhf_iseither(((UHash(T) *)(h))->_flags, (x)))
 
 /**
  * Retrieves the key at the specified index.
  *
- * @param T [symbol] Hash table name.
- * @param h [UHash(T)*] Hash table instance.
- * @param x [ulib_uint] Index of the bucket whose key should be retrieved.
- * @return [uhash_T_key] Key.
+ * @param T Hash table type.
+ * @param h Hash table instance.
+ * @param x Index of the bucket whose key should be retrieved.
+ * @return Key.
  *
- * @public @related UHash
+ * @alias UHashKey(T) uhash_key(symbol T, UHash(T) const *h, ulib_uint x);
  */
 #define uhash_key(T, h, x) (((UHash(T) *)(h))->_keys[x])
 
 /**
  * Retrieves the value at the specified index.
  *
- * @param T [symbol] Hash table name.
- * @param h [UHash(T)*] Hash table instance.
- * @param x [ulib_uint] Index of the bucket whose value should be retrieved.
- * @return [T value type] Value.
+ * @param T Hash table type.
+ * @param h Hash table instance.
+ * @param x Index of the bucket whose value should be retrieved.
+ * @return Value.
  *
  * @note Undefined behavior if used on hash sets.
- *
- * @public @related UHash
+ * @alias UHashVal(T) uhash_value(symbol T, UHash(T) const *h, ulib_uint x);
  */
 #define uhash_value(T, h, x) (((UHash(T) *)(h))->_vals[x])
 
 /**
  * Returns the maximum number of elements that can be held by the hash table.
  *
- * @param T [symbol] Hash table name.
- * @param h [UHash(T)*] Hash table instance.
- * @return [ulib_uint] Maximum number of elements.
+ * @param T Hash table type.
+ * @param h Hash table instance.
+ * @return Maximum number of elements.
  *
- * @public @related UHash
+ * @alias ulib_uint uhash_size(symbol T, UHash(T) const *h);
  */
 #define uhash_size(T, h) (((UHash(T) *)(h))->_size)
 
 /**
  * Returns the number of elements in the hash table.
  *
- * @param T [symbol] Hash table name.
- * @param h [UHash(T)*] Hash table instance.
- * @return [ulib_uint] Number of elements.
+ * @param T Hash table type.
+ * @param h Hash table instance.
+ * @return Number of elements.
  *
- * @public @related UHash
+ * @alias ulib_uint uhash_count(symbol T, UHash(T) const *h);
  */
 #define uhash_count(T, h) (((UHash(T) *)(h))->_count)
 
 /**
  * Resets the specified hash table without deallocating it.
  *
- * @param T [symbol] Hash table name.
- * @param h [UHash(T)*] Hash table instance.
+ * @param T Hash table type.
+ * @param h Hash table instance.
  *
- * @public @related UHash
+ * @alias void uhash_clear(symbol T, UHash(T) *h);
  */
 #define uhash_clear(T, h) uhash_clear_##T(h)
-
-/// @name Map-specific API
-
-/**
- * Initializes a new hash map.
- *
- * @param T [symbol] Hash table name.
- * @return [UHash(T)] Hash table instance.
- *
- * @destructor{uhash_deinit}
- *
- * @public @related UHash
- */
-#define uhmap(T) uhmap_##T()
-
-/**
- * Initializes a new hash map with per-instance hash and equality functions.
- *
- * @param T [symbol] Hash table name.
- * @param hash_func [(uh_key) -> ulib_uint] Hash function pointer.
- * @param equal_func [(uh_key, uh_key) -> bool] Equality function pointer.
- * @return [UHash(T)] Hash table instance.
- *
- * @destructor{uhash_deinit}
- *
- * @public @related UHash
- */
-#define uhmap_pi(T, hash_func, equal_func) uhmap_pi_##T(hash_func, equal_func)
-
-/**
- * Returns the value associated with the specified key.
- *
- * @param T [symbol] Hash table name.
- * @param h [UHash(T)*] Hash table instance.
- * @param k [uhash_T_key] The key.
- * @param m [uhash_T_val] Value to return if the key is missing.
- * @return [uhash_T_val] Value associated with the specified key.
- *
- * @public @related UHash
- */
-#define uhmap_get(T, h, k, m) uhmap_get_##T(h, k, m)
-
-/**
- * Adds a key:value pair to the map, returning the replaced value (if any).
- *
- * @param T [symbol] Hash table name.
- * @param h [UHash(T)*] Hash table instance.
- * @param k [uhash_T_key] The key.
- * @param v [uhash_T_val] The value.
- * @param[out] e [uhash_T_val*] Existing value, only set if key was already in the map.
- * @return [uhash_ret] Return code (see uhash_ret).
- *
- * @public @related UHash
- */
-#define uhmap_set(T, h, k, v, e) uhmap_set_##T(h, k, v, e)
-
-/**
- * Adds a key:value pair to the map, only if the key is missing.
- *
- * @param T [symbol] Hash table name.
- * @param h [UHash(T)*] Hash table instance.
- * @param k [uhash_T_key] The key.
- * @param v [uhash_T_val] The value.
- * @param[out] e [uhash_T_val*] Existing value, only set if key was already in the map.
- * @return [uhash_ret] Return code (see uhash_ret).
- *
- * @public @related UHash
- */
-#define uhmap_add(T, h, k, v, e) uhmap_add_##T(h, k, v, e)
-
-/**
- * Replaces a value in the map, only if its associated key exists.
- *
- * @param T [symbol] Hash table name.
- * @param h [UHash(T)*] Hash table instance.
- * @param k [uhash_T_key] The key.
- * @param v [uhash_T_val] The value.
- * @param[out] r [uhash_T_val*] Replaced value, only set if the return value is true.
- * @return [bool] True if the value was replaced (its key was present), false otherwise.
- *
- * @public @related UHash
- */
-#define uhmap_replace(T, h, k, v, r) uhmap_replace_##T(h, k, v, r)
-
-/**
- * Removes a key:value pair from the map.
- *
- * @param T [symbol] Hash table name.
- * @param h [UHash(T)*] Hash table instance.
- * @param k [uhash_T_key] The key.
- * @return [bool] True if the key was present (it was deleted), false otherwise.
- *
- * @public @related UHash
- */
-#define uhmap_remove(T, h, k) uhmap_remove_##T(h, k, NULL, NULL)
-
-/**
- * Removes a key:value pair from the map, returning the deleted key and value.
- *
- * @param T [symbol] Hash table name.
- * @param h [UHash(T)*] Hash table instance.
- * @param k [uhash_T_key] The key.
- * @param[out] dk [uhash_T_key*] Deleted key, only set if key was present in the map.
- * @param[out] dv [uhash_T_val*] Deleted value, only set if key was present in the map.
- * @return [bool] True if the key was present (it was deleted), false otherwise.
- *
- * @public @related UHash
- */
-#define uhmap_pop(T, h, k, dk, dv) uhmap_remove_##T(h, k, dk, dv)
-
-/// @name Set-specific API
-
-/**
- * Initializes a new hash set.
- *
- * @param T [symbol] Hash table name.
- * @return [UHash(T)] Hash table instance.
- *
- * @destructor{uhash_deinit}
- *
- * @public @related UHash
- */
-#define uhset(T) uhset_##T()
-
-/**
- * Initializes a new hash set with per-instance hash and equality functions.
- *
- * @param T [symbol] Hash table name.
- * @param hash_func [(uh_key) -> ulib_uint] Hash function pointer.
- * @param equal_func [(uh_key, uh_key) -> bool] Equality function pointer.
- * @return [UHash(T)] Hash table instance.
- *
- * @destructor{uhash_deinit}
- *
- * @public @related UHash
- */
-#define uhset_pi(T, hash_func, equal_func) uhset_pi_##T(hash_func, equal_func)
-
-/**
- * Inserts an element in the set.
- *
- * @param T [symbol] Hash table name.
- * @param h [UHash(T)*] Hash table instance.
- * @param k [uhash_T_key] Element to insert.
- * @return [uhash_ret] Return code (see uhash_ret).
- *
- * @public @related UHash
- */
-#define uhset_insert(T, h, k) uhset_insert_##T(h, k, NULL)
-
-/**
- * Inserts an element in the set, returning the existing element if it was already present.
- *
- * @param T [symbol] Hash table name.
- * @param h [UHash(T)*] Hash table instance.
- * @param k [uhash_T_key] Element to insert.
- * @param[out] e [uhash_T_key*] Existing element, only set if it was already in the set.
- * @return [uhash_ret] Return code (see uhash_ret).
- *
- * @public @related UHash
- */
-#define uhset_insert_get_existing(T, h, k, e) uhset_insert_##T(h, k, e)
-
-/**
- * Populates the set with elements from an array.
- *
- * @param T [symbol] Hash table name.
- * @param h [UHash(T)*] Hash table instance.
- * @param a [uhash_T_key*] Array of elements.
- * @param n [ulib_uint] Size of the array.
- * @return [uhash_ret] Return code (see uhash_ret).
- *
- * @note This function returns UHASH_INSERTED if at least one element in the array
- *       was missing from the set.
- *
- * @public @related UHash
- */
-#define uhset_insert_all(T, h, a, n) uhset_insert_all_##T(h, a, n)
-
-/**
- * Replaces an element in the set, only if it exists.
- *
- * @param T [symbol] Hash table name.
- * @param h [UHash(T)*] Hash table instance.
- * @param k [uhash_T_key] Element to replace.
- * @param[out] r [uhash_T_key*] Replaced element, only set if the return value is true.
- * @return [bool] True if the element was replaced (it was present), false otherwise.
- *
- * @public @related UHash
- */
-#define uhset_replace(T, h, k, r) uhset_replace_##T(h, k, r)
-
-/**
- * Removes an element from the set.
- *
- * @param T [symbol] Hash table name.
- * @param h [UHash(T)*] Hash table instance.
- * @param k [uhash_T_key] Element to remove.
- * @return [bool] True if the element was removed (it was present), false otherwise.
- *
- * @public @related UHash
- */
-#define uhset_remove(T, h, k) uhset_remove_##T(h, k, NULL)
-
-/**
- * Removes an element from the set, returning the deleted element.
- *
- * @param T [symbol] Hash table name.
- * @param h [UHash(T)*] Hash table instance.
- * @param k [uhash_T_key] Element to remove.
- * @param[out] d [uhash_T_key*] Deleted element, only set if element was present in the set.
- * @return [bool] True if the element was removed (it was present), false otherwise.
- *
- * @public @related UHash
- */
-#define uhset_pop(T, h, k, d) uhset_remove_##T(h, k, d)
-
-/**
- * Checks whether the set is a superset of another set.
- *
- * @param T [symbol] Hash table name.
- * @param h1 [UHash(T)*] Superset.
- * @param h2 [UHash(T)*] Subset.
- * @return [bool] True if the superset relation holds, false otherwise.
- *
- * @public @related UHash
- */
-#define uhset_is_superset(T, h1, h2) uhset_is_superset_##T(h1, h2)
-
-/**
- * Performs the union between two sets, mutating the first.
- *
- * @param T [symbol] Hash table name.
- * @param h1 [UHash(T)*] Set to mutate.
- * @param h2 [UHash(T)*] Other set.
- * @return [uhash_ret] UHASH_OK if the operation succeeded, UHASH_ERR on error.
- *
- * @public @related UHash
- */
-#define uhset_union(T, h1, h2) uhset_union_##T(h1, h2)
-
-/**
- * Performs the intersection between two sets, mutating the first.
- *
- * @param T [symbol] Hash table name.
- * @param h1 [UHash(T)*] Set to mutate.
- * @param h2 [UHash(T)*] Other set.
- *
- * @public @related UHash
- */
-#define uhset_intersect(T, h1, h2) uhset_intersect_##T(h1, h2)
-
-/**
- * Checks whether the set is equal to another set.
- *
- * @param T [symbol] Hash table name.
- * @param h1 [UHash(T)*] LHS of the equality relation.
- * @param h2 [UHash(T)*] RHS of the equality relation.
- * @return [bool] True if the equality relation holds, false otherwise.
- *
- * @public @related UHash
- */
-#define uhset_equals(T, h1, h2) uhset_equals_##T(h1, h2)
-
-/**
- * Computes the hash of the set.
- * The computed hash does not depend on the order of the elements.
- *
- * @param T [symbol] Hash table name.
- * @param h [UHash(T)*] Hash table instance.
- * @return [ulib_uint] Hash of the set.
- *
- * @public @related UHash
- */
-#define uhset_hash(T, h) uhset_hash_##T(h)
-
-/**
- * Returns one of the elements in the set.
- *
- * @param T [symbol] Hash table name.
- * @param h [UHash(T)*] Hash table instance.
- * @param m [uhash_T_key] Value returned if the set is empty.
- * @return [uhash_T_key] One of the elements in the set.
- *
- * @public @related UHash
- */
-#define uhset_get_any(T, h, m) uhset_get_any_##T(h, m)
-
-/// @name Iteration
 
 /**
  * Returns the index of the first bucket starting from (and including) `i` which contains data.
  *
- * @param T [symbol] Hash table name.
- * @param h [UHash(T)*] Hash table instance.
- * @param i [ulib_uint] Index of the bucket to start searching from.
+ * @param T Hash table type.
+ * @param h Hash table instance.
+ * @param i Index of the bucket to start searching from.
  * @return Index of the first bucket containing data.
  *
- * @public @related UHash
+ * @alias ulib_uint uhash_next(symbol T, UHash(T) const *h, ulib_uint i);
  */
 #define uhash_next(T, h, i) uhash_next_##T(h, i)
 
 /**
  * Iterates over the entries in the hash table.
  *
- * @param T [symbol] Hash table name.
- * @param ht [UHash(T)*] Hash table instance.
- * @param enum_name [symbol] Name of the variable holding the current index, key and value.
+ * Usage example:
+ * @code
+ * uhash_foreach (ulib_int, h, entry) {
+ *     ulib_int key = *entry.key;
+ *     void *val = *entry.val;
+ *     ...
+ * }
+ * @endcode
  *
- * @public @related UHash
+ * @param T @type{symbol} Hash table type.
+ * @param ht @type{#UHash(T) *} Hash table instance.
+ * @param enum_name @type{symbol} Name of the variable holding the current index, key and value.
  */
 // clang-format off
 #define uhash_foreach(T, ht, enum_name)                                                            \
@@ -1509,5 +1254,302 @@ ulib_uint p_uhash_int64_hash(uint64_t key) {
          (!uhash_is_map(T, enum_name.h) ||                                                         \
           (enum_name.val = enum_name.h->_vals + enum_name.i) != NULL);                             \
          enum_name.i = uhash_next(T, enum_name.h, enum_name.i + 1))
+// clang-format on
+
+/// @}
+
+/**
+ * @defgroup UHash_map UHash map API
+ * @{
+ */
+
+/**
+ * Initializes a new hash map.
+ *
+ * @param T Hash table type.
+ * @return Hash table instance.
+ *
+ * @destructor{uhash_deinit}
+ * @alias UHash(T) uhmap(symbol T);
+ */
+#define uhmap(T) uhmap_##T()
+
+/**
+ * Initializes a new hash map with per-instance hash and equality functions.
+ *
+ * @param T Hash table type.
+ * @param hash_func Hash function pointer.
+ * @param equal_func Equality function pointer.
+ * @return Hash table instance.
+ *
+ * @destructor{uhash_deinit}
+ * @alias UHash(T) uhmap_pi(symbol T, ulib_uint (*hash_func)(UHashKey(T) key),
+ *                          bool (*equal_func)(UHashKey(T) a, UHashKey(T) b));
+ */
+#define uhmap_pi(T, hash_func, equal_func) uhmap_pi_##T(hash_func, equal_func)
+
+/**
+ * Returns the value associated with the specified key.
+ *
+ * @param T Hash table type.
+ * @param h Hash table instance.
+ * @param k The key.
+ * @param m Value to return if the key is missing.
+ * @return Value associated with the specified key.
+ *
+ * @alias UHashVal(T) uhmap_get(symbol T, UHash(T) const *h, UHashKey(T) k, UHashVal(T) m);
+ */
+#define uhmap_get(T, h, k, m) uhmap_get_##T(h, k, m)
+
+/**
+ * Adds a key:value pair to the map, returning the replaced value (if any).
+ *
+ * @param T Hash table type.
+ * @param h Hash table instance.
+ * @param k The key.
+ * @param v The value.
+ * @param[out] e Existing value, only set if key was in the map.
+ * @return Return code.
+ *
+ * @alias uhash_ret uhmap_set(symbol T, UHash(T) *h, UHashKey(T) k, UHashVal(T) v, UHashVal(T) *e);
+ */
+#define uhmap_set(T, h, k, v, e) uhmap_set_##T(h, k, v, e)
+
+/**
+ * Adds a key:value pair to the map, only if the key is missing.
+ *
+ * @param T Hash table type.
+ * @param h Hash table instance.
+ * @param k The key.
+ * @param v The value.
+ * @param[out] e Existing value, only set if key was in the map.
+ * @return Return code.
+ *
+ * @alias uhash_ret uhmap_add(symbol T, UHash(T) *h, UHashKey(T) k, UHashVal(T) v, UHashVal(T) *e);
+ */
+#define uhmap_add(T, h, k, v, e) uhmap_add_##T(h, k, v, e)
+
+/**
+ * Replaces a value in the map, only if its associated key exists.
+ *
+ * @param T Hash table type.
+ * @param h Hash table instance.
+ * @param k The key.
+ * @param v The value.
+ * @param[out] r Replaced value, only set if key was in the map.
+ * @return True if the value was replaced, false otherwise.
+ *
+ * @alias bool uhmap_replace(symbol T, UHash(T) *h, UHashKey(T) k, UHashVal(T) v, UHashVal(T) *r);
+ */
+#define uhmap_replace(T, h, k, v, r) uhmap_replace_##T(h, k, v, r)
+
+/**
+ * Removes a key:value pair from the map.
+ *
+ * @param T Hash table type.
+ * @param h Hash table instance.
+ * @param k The key.
+ * @return True if the key was removed, false otherwise.
+ *
+ * @alias bool uhmap_remove(symbol T, UHash(T) *h, UHashKey(T) k);
+ */
+#define uhmap_remove(T, h, k) uhmap_remove_##T(h, k, NULL, NULL)
+
+/**
+ * Removes a key:value pair from the map, returning the removed key and value.
+ *
+ * @param T Hash table type.
+ * @param h Hash table instance.
+ * @param k The key.
+ * @param[out] dk Removed key, only set if key was in the map.
+ * @param[out] dv Removed value, only set if key was in the map.
+ * @return True if the key was present, false otherwise.
+ *
+ * @alias bool uhmap_pop(symbol T, UHash(T) *h, UHashKey(T) k, UHashKey(T) *dk, UHashVal(T) *dv);
+ */
+#define uhmap_pop(T, h, k, dk, dv) uhmap_remove_##T(h, k, dk, dv)
+
+/// @}
+
+/**
+ * @defgroup UHash_set UHash set API
+ * @{
+ */
+
+/**
+ * Initializes a new hash set.
+ *
+ * @param T Hash table type.
+ * @return Hash table instance.
+ *
+ * @destructor{uhash_deinit}
+ * @alias UHash(T) uhset(symbol T);
+ */
+#define uhset(T) uhset_##T()
+
+/**
+ * Initializes a new hash set with per-instance hash and equality functions.
+ *
+ * @param T Hash table type.
+ * @param hash_func Hash function pointer.
+ * @param equal_func Equality function pointer.
+ * @return Hash table instance.
+ *
+ * @destructor{uhash_deinit}
+ * @alias UHash(T) uhset_pi(symbol T, ulib_uint (*hash_func)(UHashKey(T) key),
+ *                          bool (*equal_func)(UHashKey(T) a, UHashKey(T) b));
+ */
+#define uhset_pi(T, hash_func, equal_func) uhset_pi_##T(hash_func, equal_func)
+
+/**
+ * Inserts an element in the set.
+ *
+ * @param T Hash table type.
+ * @param h Hash table instance.
+ * @param k Element to insert.
+ * @return Return code.
+ *
+ * @alias uhash_ret uhset_insert(symbol T, UHash(T) *h, UHashKey(T) k);
+ */
+#define uhset_insert(T, h, k) uhset_insert_##T(h, k, NULL)
+
+/**
+ * Inserts an element in the set, returning the existing element if it was already present.
+ *
+ * @param T Hash table type.
+ * @param h Hash table instance.
+ * @param k Element to insert.
+ * @param[out] e Existing element, only set if key was in the set.
+ * @return Return code.
+ *
+ * @alias uhash_ret uhset_insert_get_existing(symbol T, UHash(T) *h, UHashKey(T) k, UHashKey(T) *e);
+ */
+#define uhset_insert_get_existing(T, h, k, e) uhset_insert_##T(h, k, e)
+
+/**
+ * Populates the set with elements from an array.
+ *
+ * @param T Hash table type.
+ * @param h Hash table instance.
+ * @param a Array of elements.
+ * @param n Size of the array.
+ * @return Return code.
+ *
+ * @note This function returns @val{#UHASH_INSERTED} if at least one element in the array
+ *       was missing from the set.
+ * @alias uhash_ret uhset_insert_all(symbol T, UHash(T) *h, UHashKey(T) *a, ulib_uint n);
+ */
+#define uhset_insert_all(T, h, a, n) uhset_insert_all_##T(h, a, n)
+
+/**
+ * Replaces an element in the set, only if it exists.
+ *
+ * @param T Hash table type.
+ * @param h Hash table instance.
+ * @param k Element to replace.
+ * @param[out] r Replaced element, only set if key was in the set.
+ * @return True if the element was replaced, false otherwise.
+ *
+ * @alias bool uhset_replace(symbol T, UHash(T) *h, UHashKey(T) k, UHashKey(T) *r);
+ */
+#define uhset_replace(T, h, k, r) uhset_replace_##T(h, k, r)
+
+/**
+ * Removes an element from the set.
+ *
+ * @param T Hash table type.
+ * @param h Hash table instance.
+ * @param k Element to remove.
+ * @return True if the element was removed, false otherwise.
+ *
+ * @alias bool uhset_remove(symbol T, UHash(T) *h, UHashKey(T) k);
+ */
+#define uhset_remove(T, h, k) uhset_remove_##T(h, k, NULL)
+
+/**
+ * Removes and returns an element from the set.
+ *
+ * @param T Hash table type.
+ * @param h Hash table instance.
+ * @param k Element to remove.
+ * @param[out] d Removed element, only set if key was in the set.
+ * @return True if the element was removed, false otherwise.
+ *
+ * @alias bool uhset_pop(symbol T, UHash(T) *h, UHashKey(T) k, UHashKey(T) *d);
+ */
+#define uhset_pop(T, h, k, d) uhset_remove_##T(h, k, d)
+
+/**
+ * Checks whether the set is a superset of another set.
+ *
+ * @param T Hash table type.
+ * @param h1 Superset.
+ * @param h2 Subset.
+ * @return True if the superset relation holds, false otherwise.
+ *
+ * @alias bool uhset_is_superset(symbol T, UHash(T) const *h1, UHash(T) const *h2);
+ */
+#define uhset_is_superset(T, h1, h2) uhset_is_superset_##T(h1, h2)
+
+/**
+ * Performs the union between two sets, mutating the first.
+ *
+ * @param T Hash table type.
+ * @param h1 Set to mutate.
+ * @param h2 Other set.
+ * @return @val{#UHASH_OK} if the operation succeeded, @val{#UHASH_ERR} on error.
+ *
+ * @alias uhash_ret uhset_union(symbol T, UHash(T) *h1, UHash(T) const *h2);
+ */
+#define uhset_union(T, h1, h2) uhset_union_##T(h1, h2)
+
+/**
+ * Performs the intersection between two sets, mutating the first.
+ *
+ * @param T Hash table type.
+ * @param h1 Set to mutate.
+ * @param h2 Other set.
+ *
+ * @alias void uhset_intersect(symbol T, UHash(T) *h1, UHash(T) const *h2);
+ */
+#define uhset_intersect(T, h1, h2) uhset_intersect_##T(h1, h2)
+
+/**
+ * Checks whether the set is equal to another set.
+ *
+ * @param T Hash table type.
+ * @param h1 LHS of the equality relation.
+ * @param h2 RHS of the equality relation.
+ * @return True if the equality relation holds, false otherwise.
+ *
+ * @alias bool uhset_equals(symbol T, UHash(T) const *h1, UHash(T) const *h2);
+ */
+#define uhset_equals(T, h1, h2) uhset_equals_##T(h1, h2)
+
+/**
+ * Computes the hash of the set.
+ * The computed hash does not depend on the order of the elements.
+ *
+ * @param T Hash table type.
+ * @param h Hash table instance.
+ * @return Hash of the set.
+ *
+ * @alias ulib_uint uhset_hash(symbol T, UHash(T) const *h);
+ */
+#define uhset_hash(T, h) uhset_hash_##T(h)
+
+/**
+ * Returns one of the elements in the set.
+ *
+ * @param T Hash table type.
+ * @param h Hash table instance.
+ * @param m Value returned if the set is empty.
+ * @return One of the elements in the set.
+ *
+ * @alias UHashKey(T) uhset_get_any(symbol T, UHash(T) const *h, UHashKey(T) m);
+ */
+#define uhset_get_any(T, h, m) uhset_get_any_##T(h, m)
+
+/// @}
 
 #endif // UHASH_H

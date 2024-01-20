@@ -3,6 +3,7 @@ Time
 ====
 
 .. doxygenstruct:: UTime
-
-.. doxygengroup:: time
+.. doxygengroup:: UTime_types
+   :content-only:
+.. doxygengroup:: UTime
    :content-only:

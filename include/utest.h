@@ -18,9 +18,7 @@
 ULIB_BEGIN_DECLS
 
 /**
- * Essential test utilities.
- *
- * @defgroup test UTest
+ * @defgroup test Test utilities
  * @{
  */
 
@@ -42,8 +40,8 @@ ULIB_BEGIN_DECLS
 /**
  * Runs a test batch.
  *
- * @param NAME Name of the test batch (must be a string literal).
- * @param ... Comma separated list of [void] -> bool test functions.
+ * @param NAME @type{string literal} Name of the test batch.
+ * @param ... Comma separated list of \type{(void) -> bool} test functions.
  */
 #define utest_run(NAME, ...)                                                                       \
     do {                                                                                           \
@@ -87,9 +85,9 @@ ULIB_BEGIN_DECLS
 /**
  * Assert that `A OP B` must be true, where `A` and `B` are integers.
  *
- * @param A [long long] First integer.
+ * @param A @type{long long} First integer.
  * @param OP Comparison operator.
- * @param B [long long] Second integer.
+ * @param B @type{long long} Second integer.
  */
 #define utest_assert_int(A, OP, B)                                                                 \
     do {                                                                                           \
@@ -102,9 +100,9 @@ ULIB_BEGIN_DECLS
 /**
  * Assert that `A OP B` must be true, where `A` and `B` are unsigned integers.
  *
- * @param A [unsigned long long] First integer.
+ * @param A @type{unsigned long long} First integer.
  * @param OP Comparison operator.
- * @param B [unsigned long long] Second integer.
+ * @param B @type{unsigned long long} Second integer.
  */
 #define utest_assert_uint(A, OP, B)                                                                \
     do {                                                                                           \
@@ -117,9 +115,9 @@ ULIB_BEGIN_DECLS
 /**
  * Assert that `A OP B` must be true, where `A` and `B` are floating point numbers.
  *
- * @param A [double] First float.
+ * @param A @type{double} First float.
  * @param OP Comparison operator.
- * @param B [double] Second float.
+ * @param B @type{double} Second float.
  */
 #define utest_assert_float(A, OP, B)                                                               \
     do {                                                                                           \
@@ -131,9 +129,9 @@ ULIB_BEGIN_DECLS
 /**
  * Assert that `A OP B` must be true, where `A` and `B` are pointers.
  *
- * @param A [void *] First pointer.
+ * @param A @type{void *} First pointer.
  * @param OP Comparison operator.
- * @param B [void *] Second pointer.
+ * @param B @type{void *} Second pointer.
  */
 #define utest_assert_ptr(A, OP, B)                                                                 \
     do {                                                                                           \
@@ -145,9 +143,9 @@ ULIB_BEGIN_DECLS
 /**
  * Assert that `strcmp(A, B) OP 0` must be true.
  *
- * @param A [char const *] First string.
+ * @param A @type{char const *} First string.
  * @param OP Comparison operator.
- * @param B [char const *] Second string.
+ * @param B @type{char const *} Second string.
  */
 #define utest_assert_string(A, OP, B)                                                              \
     do {                                                                                           \
@@ -159,10 +157,10 @@ ULIB_BEGIN_DECLS
 /**
  * Assert that `memcmp(A, B, SIZE) OP 0` must be true.
  *
- * @param A [void *] First buffer.
+ * @param A @type{void *} First buffer.
  * @param OP Comparison operator.
- * @param B [void *] Second buffer.
- * @param SIZE [size_t] Buffer size.
+ * @param B @type{void *} Second buffer.
+ * @param SIZE @type{size_t} Buffer size.
  */
 #define utest_assert_buf(A, OP, B, SIZE)                                                           \
     utest_assert_wrap(memcmp(A, B, SIZE) OP 0, ,                                                   \
@@ -171,9 +169,9 @@ ULIB_BEGIN_DECLS
 /**
  * Assert that `ustring_compare(A, B) OP 0` must be true.
  *
- * @param A [UString] First string.
+ * @param A @type{#UString} First string.
  * @param OP Comparison operator.
- * @param B [UString] Second string.
+ * @param B @type{#UString} Second string.
  */
 #define utest_assert_ustring(A, OP, B)                                                             \
     do {                                                                                           \

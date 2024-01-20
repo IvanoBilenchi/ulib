@@ -12,6 +12,11 @@
 #ifndef UCOMPAT_H
 #define UCOMPAT_H
 
+/**
+ * @defgroup attributes API attributes
+ * @{
+ */
+
 // clang-format off
 
 /**
@@ -112,5 +117,7 @@
 // Concatenates the 'a' and 'b' tokens, allowing 'a' and 'b' to be macro-expanded.
 #define P_ULIB_MACRO_CONCAT(a, b) P_ULIB_MACRO_CONCAT_INNER(a, b)
 #define P_ULIB_MACRO_CONCAT_INNER(a, b) a##b
+
+/// @}
 
 #endif // UCOMPAT_H

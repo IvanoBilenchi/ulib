@@ -1,0 +1,29 @@
+.rst-content code.literal {
+    color: rgb(64, 64, 64);
+}
+
+.rst-content code.literal > a.reference {
+    color: inherit;
+    font-weight: 700;
+}
+
+.type-placeholder {
+    visibility: hidden;
+    margin: 0 !important;
+    height: 0;
+}
+
+@media (min-width: 1024px) {
+    .toctree-wrapper.two-col > ul {
+        column-count: 2;
+        column-rule: solid 1px rgba(0, 0, 0, 0.1);
+    }
+
+    .toctree-wrapper.two-col-break-l1 > ul li.toctree-l1 {
+        break-inside: avoid-column;
+    }
+
+    .toctree-wrapper.two-col-break-l2 > ul li.toctree-l2 {
+        break-inside: avoid-column;
+    }
+}

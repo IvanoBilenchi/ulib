@@ -1,4 +1,6 @@
 /**
+ * Function return codes.
+ *
  * @author Ivano Bilenchi
  *
  * @copyright Copyright (c) 2023 Ivano Bilenchi <https://ivanobilenchi.com>

@@ -17,9 +17,7 @@
 ULIB_BEGIN_DECLS
 
 /**
- * Time and date utilities.
- *
- * @defgroup time Time and date utilities
+ * @defgroup UTime_types Time types
  * @{
  */
 
@@ -87,13 +85,16 @@ typedef struct UTime {
 } UTime;
 
 /**
+ * @defgroup UTime UTime API
+ * @{
+ */
+
+/**
  * Checks whether the specified dates are equal.
  *
  * @param a First date.
  * @param b Second date.
  * @return True if the two dates are equal, false otherwise.
- *
- * @public @memberof UTime
  */
 ULIB_API
 ULIB_PURE
@@ -105,8 +106,6 @@ bool utime_equals(UTime const *a, UTime const *b);
  * @param time Date to normalize.
  * @param tz_hour Timezone offset hours.
  * @param tz_minute Timezone offset minutes.
- *
- * @public @memberof UTime
  */
 ULIB_API
 void utime_normalize_to_utc(UTime *time, int tz_hour, unsigned tz_minute);
@@ -116,8 +115,6 @@ void utime_normalize_to_utc(UTime *time, int tz_hour, unsigned tz_minute);
  *
  * @param time Date to convert.
  * @return Timestamp corresponding to the date.
- *
- * @public @memberof UTime
  */
 ULIB_API
 ULIB_PURE
@@ -128,8 +125,6 @@ utime_stamp utime_to_timestamp(UTime const *time);
  *
  * @param ts Timestamp to convert.
  * @return Date corresponding to the timestamp.
- *
- * @public @memberof UTime
  */
 ULIB_API
 ULIB_CONST
@@ -141,8 +136,6 @@ UTime utime_from_timestamp(utime_stamp ts);
  * @param time Date.
  * @param quantity Quantity to add.
  * @param unit Time unit.
- *
- * @public @memberof UTime
  */
 ULIB_API
 void utime_add(UTime *time, long long quantity, utime_unit unit);
@@ -154,8 +147,6 @@ void utime_add(UTime *time, long long quantity, utime_unit unit);
  * @param b Second date.
  * @param unit Time unit.
  * @return Difference between the specified dates.
- *
- * @public @memberof UTime
  */
 ULIB_API
 ULIB_PURE
@@ -167,9 +158,7 @@ long long utime_diff(UTime const *a, UTime const *b, utime_unit unit);
  * @param time Date.
  * @return Human readable date string.
  *
- * @destructor{UString::ustring_deinit}
- *
- * @public @memberof UTime
+ * @destructor{ustring_deinit}
  */
 ULIB_API
 UString utime_to_string(UTime const *time);
@@ -181,22 +170,15 @@ UString utime_to_string(UTime const *time);
  * @param string Date string.
  * @return True if the string was parsed without errors, false otherwise.
  *
- * @note The string must be in Y_M_D_H_M_S format, where each component is separated by any
+ * @note The string must be in `Y_M_D_H_M_S` format, where each component is separated by any
  *       non-digit character. An optional timezone specifier can also be specified, in which case
  *       the date is automatically normalized to UTC. Examples of equivalent dates:
  *       - 1990/02/14 13:30:00
  *       - 1990-02-14T13:30:00Z
  *       - 1990 02 14 14.30.00+1:00
- *
- * @public @memberof UTime
  */
 ULIB_API
 bool utime_from_string(UTime *time, UString const *string);
-
-/**
- * @addtogroup time
- * @{
- */
 
 /**
  * Checks whether the specified year is a leap year.
@@ -227,7 +209,7 @@ unsigned utime_days_in_month(long long year, unsigned month) {
 /**
  * Retrieves a timestamp expressed as seconds since January 1 1970, 00:00:00.
  *
- * @return Timestamp in days since January 1 1970, 00:00:00.
+ * @return Timestamp.
  */
 ULIB_API
 utime_stamp utime_get_timestamp(void);
@@ -270,7 +252,7 @@ double utime_interval_convert(utime_ns t, utime_unit unit);
  * @param unit Time unit.
  * @return Time interval in string form.
  *
- * @destructor{UString::ustring_deinit}
+ * @destructor{ustring_deinit}
  */
 ULIB_API
 UString utime_interval_to_string(utime_ns t, utime_unit unit);

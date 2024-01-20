@@ -3,6 +3,8 @@ Version
 =======
 
 .. doxygenstruct:: UVersion
+.. doxygengroup:: UVersion
+   :content-only:
 
 Library version
 ===============

@@ -15,8 +15,6 @@
 #define UMACROS_H
 
 /**
- * Miscellaneous macros.
- *
  * @defgroup macros Macros
  * @{
  */
@@ -27,6 +25,8 @@
  * @param a First number.
  * @param b Second number.
  * @return Minimum between the two numbers.
+ *
+ * @alias T ulib_min(T a, T b);
  */
 #define ulib_min(a, b) (((a) < (b)) ? (a) : (b))
 
@@ -36,6 +36,8 @@
  * @param a First number.
  * @param b Second number.
  * @return Maximum between the two numbers.
+ *
+ * @alias T ulib_max(T a, T b);
  */
 #define ulib_max(a, b) (((a) > (b)) ? (a) : (b))
 
@@ -44,6 +46,8 @@
  *
  * @param x The number.
  * @return Absolute value of the number.
+ *
+ * @alias T ulib_abs(T x);
  */
 #define ulib_abs(x) (((x) < 0) ? -(x) : (x))
 
@@ -54,6 +58,8 @@
  * @param xmin Minumum value.
  * @param xmax Maximum value.
  * @return Clamped value.
+ *
+ * @alias T ulib_clamp(T x, T xmin, T xmax);
  */
 #define ulib_clamp(x, xmin, xmax) (((x) > (xmax)) ? (xmax) : (((x) < (xmin)) ? (xmin) : (x)))
 
@@ -63,6 +69,8 @@
  * @param a First number.
  * @param b Second number.
  * @return Absolute difference.
+ *
+ * @alias T ulib_diff(T a, T b);
  */
 #define ulib_diff(a, b) (((a) > (b)) ? ((a) - (b)) : ((b) - (a)))
 

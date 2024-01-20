@@ -31,35 +31,76 @@ typedef void *ulib_ptr;
 /**
  * Unsigned integer type.
  *
- * The size of this type can be controlled through the *ULIB_TINY* and *ULIB_HUGE*
+ * The size of this type can be controlled through the **ULIB_TINY** and **ULIB_HUGE**
  * preprocessor definitions:
  *
- * - **No definitions** (*default*): 4 bytes (*uint32_t*)
+ * - **No definitions** (*default*): 4 bytes @type{uint32_t}
  *
- * - **ULIB_TINY**: 2 bytes (*uint16_t*)
+ * - **ULIB_TINY**: 2 bytes @type{uint16_t}
  *
- * - **ULIB_HUGE**: 8 bytes (*uint64_t*)
+ * - **ULIB_HUGE**: 8 bytes @type{uint64_t}
  *
  * @typedef ulib_uint
  */
 
 /**
- * Maximum value of a ulib_uint variable.
+ * Integer type.
+ *
+ * The size of this type can be controlled through the **ULIB_TINY** and **ULIB_HUGE**
+ * preprocessor definitions:
+ *
+ * - **No definitions** (*default*): 4 bytes @type{int32_t}
+ *
+ * - **ULIB_TINY**: 2 bytes @type{int16_t}
+ *
+ * - **ULIB_HUGE**: 8 bytes @type{int64_t}
+ *
+ * @typedef ulib_int
+ */
+
+/**
+ * @defgroup ulib_int Integer types API
+ * @{
+ */
+
+/**
+ * Minimum value of a @type{#ulib_int} variable.
+ *
+ * @def ULIB_INT_MIN
+ */
+
+/**
+ * Maximum value of a @type{#ulib_int} variable.
+ *
+ * @def ULIB_INT_MAX
+ */
+
+/**
+ * Format string for @type{#ulib_int} variables.
+ *
+ * @def ULIB_INT_FMT
+ */
+
+/// Minimum value of a @type{#ulib_uint} variable.
+#define ULIB_UINT_MIN 0u
+
+/**
+ * Maximum value of a @type{#ulib_uint} variable.
  *
  * @def ULIB_UINT_MAX
  */
 
 /**
- * Format string for ulib_uint variables.
+ * Format string for @type{#ulib_uint} variables.
  *
  * @def ULIB_UINT_FMT
  */
 
 /**
- * Rounds x to the nearest power of 2 that is equal to or smaller than x.
+ * Rounds `x` to the nearest power of 2 that is equal to or smaller than `x`.
  *
  * @param x Positive unsigned integer.
- * @return Nearest power of 2 equal to or smaller than x.
+ * @return Nearest power of 2 equal to or smaller than `x`.
  *
  * @warning Undefined for zero.
  *
@@ -67,10 +108,10 @@ typedef void *ulib_ptr;
  */
 
 /**
- * Rounds x to the nearest power of 2 that is equal to or greater than x.
+ * Rounds `x` to the nearest power of 2 that is equal to or greater than `x`.
  *
  * @param x Positive unsigned integer.
- * @return Nearest power of 2 equal to or greater than x.
+ * @return Nearest power of 2 equal to or greater than `x`.
  *
  * @warning Undefined for zero.
  *
@@ -78,7 +119,7 @@ typedef void *ulib_ptr;
  */
 
 /**
- * Returns the integer base 2 logarithm of x.
+ * Returns the integer base 2 logarithm of `x`.
  *
  * @param x Positive unsigned integer.
  * @return Integer base 2 logarithm.
@@ -88,67 +129,44 @@ typedef void *ulib_ptr;
  * @fn ulib_uint ulib_uint_log2(ulib_uint x)
  */
 
-/**
- * Integer type.
- *
- * The size of this type can be controlled through the *ULIB_TINY* and *ULIB_HUGE*
- * preprocessor definitions:
- *
- * - **No definitions** (*default*): 4 bytes (*int32_t*)
- *
- * - **ULIB_TINY**: 2 bytes (*int16_t*)
- *
- * - **ULIB_HUGE**: 8 bytes (*int64_t*)
- *
- * @typedef ulib_int
- */
-
-/**
- * Minimum value of a ulib_int variable.
- *
- * @def ULIB_INT_MIN
- */
-
-/**
- * Maximum value of a ulib_int variable.
- *
- * @def ULIB_INT_MAX
- */
-
-/**
- * Format string for ulib_int variables.
- *
- * @def ULIB_INT_FMT
- */
+/// @}
 
 /**
  * Float type.
  *
- * The size of this type can be controlled through the *ULIB_TINY* and *ULIB_HUGE*
+ * The size of this type can be controlled through the **ULIB_TINY** and **ULIB_HUGE**
  * preprocessor definitions:
  *
- * - **No definitions** or **ULIB_HUGE** (*default*): *double*
+ * - **No definitions** or **ULIB_HUGE** (*default*): @type{double}
  *
- * - **ULIB_TINY**: *float*
+ * - **ULIB_TINY**: @type{float}
  *
  * @typedef ulib_float
  */
 
 /**
- * Minimum positive value of a ulib_float variable.
+ * @defgroup ulib_float Float types API
+ * @{
+ */
+
+/**
+ * Minimum positive value of a @type{#ulib_float} variable.
  *
  * @def ULIB_FLOAT_MIN
  */
 
 /**
- * Maximum value of a ulib_float variable.
+ * Maximum value of a @type{#ulib_float} variable.
  *
  * @def ULIB_FLOAT_MAX
  */
 
+/// Format string for @type{#ulib_float} variables.
+#define ULIB_FLOAT_FMT "f"
+
 /**
  * Difference between 1 and the least value greater than 1 that is representable
- * by a ulib_float variable.
+ * by a @type{#ulib_float} variable.
  *
  * @def ULIB_FLOAT_EPSILON
  */
@@ -156,20 +174,22 @@ typedef void *ulib_ptr;
 /**
  * Returns the previous representable float value.
  *
- * @param x [ulib_float] Float number.
+ * @param x Float number.
  * @return Previous representable float value.
  *
- * @def ulib_float_prev
+ * @fn ulib_float ulib_float_prev(ulib_float x)
  */
 
 /**
  * Returns the next representable float value.
  *
- * @param x [ulib_float] Float number.
+ * @param x Float number.
  * @return Next representable float value.
  *
- * @def ulib_float_next
+ * @fn ulib_float ulib_float_next(ulib_float x)
  */
+
+/// @}
 
 #if defined ULIB_TINY
 
@@ -240,8 +260,18 @@ typedef float ulib_float;
 #define ULIB_FLOAT_MIN FLT_TRUE_MIN
 #define ULIB_FLOAT_MAX FLT_MAX
 #define ULIB_FLOAT_EPSILON FLT_EPSILON
-#define ulib_float_prev(x) nextafterf(x, -ULIB_FLOAT_MAX)
-#define ulib_float_next(x) nextafterf(x, ULIB_FLOAT_MAX)
+
+ULIB_CONST
+ULIB_INLINE
+ulib_float ulib_float_prev(ulib_float x) {
+    return nextafterf(x, -ULIB_FLOAT_MAX);
+}
+
+ULIB_CONST
+ULIB_INLINE
+ulib_float ulib_float_next(ulib_float x) {
+    return nextafterf(x, ULIB_FLOAT_MAX);
+}
 
 #elif defined ULIB_HUGE
 
@@ -319,8 +349,18 @@ typedef double ulib_float;
 #define ULIB_FLOAT_MIN DBL_TRUE_MIN
 #define ULIB_FLOAT_MAX DBL_MAX
 #define ULIB_FLOAT_EPSILON DBL_EPSILON
-#define ulib_float_prev(x) nextafter(x, -ULIB_FLOAT_MAX)
-#define ulib_float_next(x) nextafter(x, ULIB_FLOAT_MAX)
+
+ULIB_CONST
+ULIB_INLINE
+ulib_float ulib_float_prev(ulib_float x) {
+    return nextafter(x, -ULIB_FLOAT_MAX);
+}
+
+ULIB_CONST
+ULIB_INLINE
+ulib_float ulib_float_next(ulib_float x) {
+    return nextafter(x, ULIB_FLOAT_MAX);
+}
 
 #else
 
@@ -350,6 +390,11 @@ ulib_uint ulib_uint_log2(ulib_uint x) {
 }
 
 #else
+
+/**
+ * @addtogroup ulib_int
+ * @{
+ */
 
 ULIB_CONST
 ULIB_INLINE
@@ -384,6 +429,8 @@ ulib_uint ulib_uint_log2(ulib_uint x) {
     return tab[(ulib_uint)(ulib_uint_floor2(x) * 0x06EB14F9) >> 27];
 }
 
+/// @}
+
 #endif
 
 typedef int32_t ulib_int;
@@ -395,19 +442,38 @@ typedef double ulib_float;
 #define ULIB_FLOAT_MIN DBL_TRUE_MIN
 #define ULIB_FLOAT_MAX DBL_MAX
 #define ULIB_FLOAT_EPSILON DBL_EPSILON
-#define ulib_float_prev(x) nextafter(x, -ULIB_FLOAT_MAX)
-#define ulib_float_next(x) nextafter(x, ULIB_FLOAT_MAX)
+
+/**
+ * @addtogroup ulib_float
+ * @{
+ */
+
+ULIB_CONST
+ULIB_INLINE
+ulib_float ulib_float_prev(ulib_float x) {
+    return nextafter(x, -ULIB_FLOAT_MAX);
+}
+
+ULIB_CONST
+ULIB_INLINE
+ulib_float ulib_float_next(ulib_float x) {
+    return nextafter(x, ULIB_FLOAT_MAX);
+}
+
+/// @}
 
 #endif
 
-/// Minimum value of a ulib_uint variable.
-#define ULIB_UINT_MIN 0u
+/**
+ * @addtogroup ulib_int
+ * @{
+ */
 
 /**
- * Returns two to the power of x.
+ * Returns two to the power of `x`.
  *
  * @param x Exponent.
- * @return Two to the power of x.
+ * @return Two to the power of `x`.
  */
 ULIB_CONST
 ULIB_INLINE
@@ -416,10 +482,10 @@ ulib_uint ulib_uint_pow2(ulib_byte x) {
 }
 
 /**
- * Checks whether x is a power of two.
+ * Checks whether `x` is a power of two.
  *
  * @param x Unsigned integer.
- * @return True if x is a power of two, false otherwise.
+ * @return True if `x` is a power of two, false otherwise.
  */
 ULIB_CONST
 ULIB_INLINE
@@ -427,8 +493,7 @@ bool ulib_uint_is_pow2(ulib_uint x) {
     return !(x & (x - 1));
 }
 
-/// Format string for ulib_float variables.
-#define ULIB_FLOAT_FMT "f"
+/// @}
 
 ULIB_END_DECLS
 

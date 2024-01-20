@@ -7,18 +7,19 @@ Welcome to uLib's documentation!
 .. toctree::
    :caption: Getting started
 
-   howto
+   howto/index
 
+.. rst-class:: two-col two-col-break-l2
 .. toctree::
-   :maxdepth: 1
    :caption: API docs
 
-   api/alloc
-   api/base
-   api/macros
+   api/number
+   api/string
+   api/collection
+   api/stream
    api/time
-   api/collections
-   api/streams
    api/rand
+   api/alloc
+   api/macros
    api/test
    api/version

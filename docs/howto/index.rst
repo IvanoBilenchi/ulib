@@ -1,9 +1,4 @@
-======
-How-to
-======
-
-.. contents:: :local:
-
+====================
 Building from source
 ====================
 
@@ -75,6 +70,7 @@ to their respective documentations. A relatively headache-free way to integrate 
 involves compiling it and then linking against the built library, making sure
 the build system or compiler is aware of uLib's headers.
 
+========
 Examples
 ========
 

@@ -38,7 +38,7 @@ typedef enum ustream_ret {
     /**
      * Input/output error, usually returned when a file or stream operation fails.
      *
-     * @note When this happens, *errno* is sometimes set to a more meaningful value.
+     * @note When this happens, `errno` is sometimes set to a more meaningful value.
      */
     USTREAM_ERR_IO,
 
@@ -82,7 +82,7 @@ typedef struct UIStream {
 
     /**
      * Pointer to a function that releases any resource reserved by the stream.
-     * The provided function is invoked when uistream_deinit() is called.
+     * The provided function is invoked when @func{#uistream_deinit()} is called.
      *
      * @param ctx Stream context.
      * @return Return code.
@@ -94,6 +94,11 @@ typedef struct UIStream {
 } UIStream;
 
 /**
+ * @defgroup UIStream UIStream API
+ * @{
+ */
+
+/**
  * Initializes an input stream.
  *
  * @param ctx Stream context.
@@ -103,8 +108,6 @@ typedef struct UIStream {
  * @return Stream instance.
  *
  * @destructor{uistream_deinit}
- *
- * @public @memberof UIStream
  */
 ULIB_INLINE
 UIStream uistream(void *ctx, ustream_ret (*read_func)(void *, void *, size_t, size_t *),
@@ -118,8 +121,6 @@ UIStream uistream(void *ctx, ustream_ret (*read_func)(void *, void *, size_t, si
  *
  * @param stream Input stream.
  * @return Return code.
- *
- * @public @memberof UIStream
  */
 ULIB_API
 ustream_ret uistream_deinit(UIStream *stream);
@@ -129,8 +130,6 @@ ustream_ret uistream_deinit(UIStream *stream);
  *
  * @param stream Input stream.
  * @return Return code.
- *
- * @public @memberof UIStream
  */
 ULIB_API
 ustream_ret uistream_reset(UIStream *stream);
@@ -143,8 +142,6 @@ ustream_ret uistream_reset(UIStream *stream);
  * @param count Maximum number of bytes to read.
  * @param[out] read Number of bytes read.
  * @return Return code.
- *
- * @public @memberof UIStream
  */
 ULIB_API
 ustream_ret uistream_read(UIStream *stream, void *buf, size_t count, size_t *read);
@@ -153,8 +150,6 @@ ustream_ret uistream_read(UIStream *stream, void *buf, size_t count, size_t *rea
  * Returns a stream that reads from the standard input.
  *
  * @return Standard input stream.
- *
- * @public @memberof UIStream
  */
 ULIB_API
 UIStream *uistream_std(void);
@@ -167,8 +162,6 @@ UIStream *uistream_std(void);
  * @return Return code.
  *
  * @destructor{uistream_deinit}
- *
- * @public @memberof UIStream
  */
 ULIB_API
 ustream_ret uistream_from_path(UIStream *stream, char const *path);
@@ -181,8 +174,6 @@ ustream_ret uistream_from_path(UIStream *stream, char const *path);
  * @return Return code.
  *
  * @destructor{uistream_deinit}
- *
- * @public @memberof UIStream
  */
 ULIB_API
 ustream_ret uistream_from_file(UIStream *stream, FILE *file);
@@ -196,8 +187,6 @@ ustream_ret uistream_from_file(UIStream *stream, FILE *file);
  * @return Return code.
  *
  * @destructor{uistream_deinit}
- *
- * @public @memberof UIStream
  */
 ULIB_API
 ustream_ret uistream_from_buf(UIStream *stream, void const *buf, size_t size);
@@ -210,8 +199,6 @@ ustream_ret uistream_from_buf(UIStream *stream, void const *buf, size_t size);
  * @return Return code.
  *
  * @destructor{uistream_deinit}
- *
- * @public @memberof UIStream
  */
 ULIB_API
 ustream_ret uistream_from_strbuf(UIStream *stream, UStrBuf const *buf);
@@ -224,8 +211,6 @@ ustream_ret uistream_from_strbuf(UIStream *stream, UStrBuf const *buf);
  * @return Return code.
  *
  * @destructor{uistream_deinit}
- *
- * @public @memberof UIStream
  */
 ULIB_API
 ustream_ret uistream_from_string(UIStream *stream, char const *string);
@@ -238,11 +223,11 @@ ustream_ret uistream_from_string(UIStream *stream, char const *string);
  * @return Return code.
  *
  * @destructor{uistream_deinit}
- *
- * @public @memberof UIStream
  */
 ULIB_API
 ustream_ret uistream_from_ustring(UIStream *stream, UString const *string);
+
+/// @}
 
 /// Models an output stream.
 typedef struct UOStream {
@@ -292,7 +277,7 @@ typedef struct UOStream {
 
     /**
      * Pointer to a function that releases any resource reserved by the stream.
-     * The provided function is invoked when uostream_deinit() is called.
+     * The provided function is invoked when @func{#uostream_deinit()} is called.
      *
      * @param ctx Stream context.
      * @return Return code.
@@ -302,6 +287,11 @@ typedef struct UOStream {
     ustream_ret (*free)(void *ctx);
 
 } UOStream;
+
+/**
+ * @defgroup UOStream UOStream API
+ * @{
+ */
 
 /**
  * Initializes an output stream.
@@ -314,8 +304,6 @@ typedef struct UOStream {
  * @return Stream instance.
  *
  * @destructor{uostream_deinit}
- *
- * @public @memberof UOStream
  */
 ULIB_INLINE
 UOStream uostream(void *ctx, ustream_ret (*write_func)(void *, void const *, size_t, size_t *),
@@ -328,12 +316,10 @@ UOStream uostream(void *ctx, ustream_ret (*write_func)(void *, void const *, siz
 /**
  * Writes the specified string literal into the stream.
  *
- * @param stream [UOStream *] Output stream.
- * @param literal [char const []] String literal.
- * @param[out] written [size_t *] Number of bytes written.
+ * @param stream @type{#UOStream *} Output stream.
+ * @param literal @type{char const []} String literal.
+ * @param[out] written @type{size_t *} Number of bytes written.
  * @return Return code.
- *
- * @public @related UOStream
  */
 #define uostream_write_literal(stream, literal, written)                                           \
     uostream_write(stream, literal, sizeof(literal) - 1, written)
@@ -343,8 +329,6 @@ UOStream uostream(void *ctx, ustream_ret (*write_func)(void *, void const *, siz
  *
  * @param stream Output stream.
  * @return Return code.
- *
- * @public @memberof UOStream
  */
 ULIB_API
 ustream_ret uostream_deinit(UOStream *stream);
@@ -354,8 +338,6 @@ ustream_ret uostream_deinit(UOStream *stream);
  *
  * @param stream Output stream.
  * @return Return code.
- *
- * @public @memberof UOStream
  */
 ULIB_API
 ustream_ret uostream_flush(UOStream *stream);
@@ -368,8 +350,6 @@ ustream_ret uostream_flush(UOStream *stream);
  * @param count Number of bytes to write.
  * @param[out] written Number of bytes written.
  * @return Return code.
- *
- * @public @memberof UOStream
  */
 ULIB_API
 ustream_ret uostream_write(UOStream *stream, void const *buf, size_t count, size_t *written);
@@ -382,8 +362,6 @@ ustream_ret uostream_write(UOStream *stream, void const *buf, size_t count, size
  * @param format Format string.
  * @param ... Format arguments.
  * @return Return code.
- *
- * @public @memberof UOStream
  */
 ULIB_API
 ustream_ret uostream_writef(UOStream *stream, size_t *written, char const *format, ...);
@@ -396,8 +374,6 @@ ustream_ret uostream_writef(UOStream *stream, size_t *written, char const *forma
  * @param format Format string.
  * @param args Format arguments.
  * @return Return code.
- *
- * @public @memberof UOStream
  */
 ULIB_API
 ustream_ret
@@ -410,8 +386,6 @@ uostream_writef_list(UOStream *stream, size_t *written, char const *format, va_l
  * @param string String.
  * @param[out] written Number of bytes written.
  * @return Return code.
- *
- * @public @memberof UOStream
  */
 ULIB_API
 ustream_ret uostream_write_string(UOStream *stream, UString const *string, size_t *written);
@@ -423,8 +397,6 @@ ustream_ret uostream_write_string(UOStream *stream, UString const *string, size_
  * @param time Date and time.
  * @param[out] written Number of bytes written.
  * @return Return code.
- *
- * @public @memberof UOStream
  */
 ULIB_API
 ustream_ret uostream_write_time(UOStream *stream, UTime const *time, size_t *written);
@@ -438,8 +410,6 @@ ustream_ret uostream_write_time(UOStream *stream, UTime const *time, size_t *wri
  * @param decimal_digits Number of decimal digits to write.
  * @param[out] written Number of bytes written.
  * @return Return code.
- *
- * @public @memberof UOStream
  */
 ULIB_API
 ustream_ret uostream_write_time_interval(UOStream *stream, utime_ns interval, utime_unit unit,
@@ -452,8 +422,6 @@ ustream_ret uostream_write_time_interval(UOStream *stream, utime_ns interval, ut
  * @param version Version.
  * @param[out] written Number of bytes written.
  * @return Return code.
- *
- * @public @memberof UOStream
  */
 ULIB_API
 ustream_ret uostream_write_version(UOStream *stream, UVersion const *version, size_t *written);
@@ -462,8 +430,6 @@ ustream_ret uostream_write_version(UOStream *stream, UVersion const *version, si
  * Returns a stream that writes to the standard output.
  *
  * @return Standard output stream.
- *
- * @public @memberof UOStream
  */
 ULIB_API
 UOStream *uostream_std(void);
@@ -472,8 +438,6 @@ UOStream *uostream_std(void);
  * Returns a stream that writes to the standard error.
  *
  * @return Standard error stream.
- *
- * @public @memberof UOStream
  */
 ULIB_API
 UOStream *uostream_stderr(void);
@@ -482,8 +446,6 @@ UOStream *uostream_stderr(void);
  * Returns a stream that discards its output.
  *
  * @return Null output stream.
- *
- * @public @memberof UOStream
  */
 ULIB_API
 UOStream *uostream_null(void);
@@ -496,8 +458,6 @@ UOStream *uostream_null(void);
  * @return Return code.
  *
  * @destructor{uostream_deinit}
- *
- * @public @memberof UOStream
  */
 ULIB_API
 ustream_ret uostream_to_path(UOStream *stream, char const *path);
@@ -511,8 +471,6 @@ ustream_ret uostream_to_path(UOStream *stream, char const *path);
  *
  * @destructor{uostream_deinit}
  * @note You are responsible for closing the file.
- *
- * @public @memberof UOStream
  */
 ULIB_API
 ustream_ret uostream_to_file(UOStream *stream, FILE *file);
@@ -526,8 +484,6 @@ ustream_ret uostream_to_file(UOStream *stream, FILE *file);
  * @return Return code.
  *
  * @destructor{uostream_deinit}
- *
- * @public @memberof UOStream
  */
 ULIB_API
 ustream_ret uostream_to_buf(UOStream *stream, void *buf, size_t size);
@@ -541,9 +497,8 @@ ustream_ret uostream_to_buf(UOStream *stream, void *buf, size_t size);
  *
  * @destructor{uostream_deinit}
  * @note If `buf` is NULL, the stream will allocate a new string buffer and set it as its context.
- *       In this case, the string buffer will be deinitialized when calling uostream_deinit().
- *
- * @public @memberof UOStream
+ *       In this case, the string buffer will be deinitialized when calling
+ *       @func{#uostream_deinit()}.
  */
 ULIB_API
 ustream_ret uostream_to_strbuf(UOStream *stream, UStrBuf *buf);
@@ -561,9 +516,7 @@ ustream_ret uostream_to_strbuf(UOStream *stream, UStrBuf *buf);
  *         substream if that is important for your use case.
  *       - The reported written bytes are the maximum bytes written by any of the underlying
  *         substreams.
- *       - Calling uostream_deinit() deinitializes all substreams.
- *
- * @public @memberof UOStream
+ *       - Calling @func{#uostream_deinit()} deinitializes all substreams.
  */
 ULIB_API
 ustream_ret uostream_to_multi(UOStream *stream);
@@ -576,12 +529,12 @@ ustream_ret uostream_to_multi(UOStream *stream);
  * @return Return code.
  *
  * @note Both streams must have been initialized beforehand, and `stream`
- *       must have been initialized via uostream_to_multi().
- *
- * @public @memberof UOStream
+ *       must have been initialized via @func{#uostream_to_multi()}.
  */
 ULIB_API
 ustream_ret uostream_add_substream(UOStream *stream, UOStream const *other);
+
+/// @}
 
 ULIB_END_DECLS
 

@@ -17,9 +17,7 @@
 ULIB_BEGIN_DECLS
 
 /**
- * Random number and string generators.
- *
- * @defgroup rand Random number and string generators.
+ * @defgroup rand Random generators
  * @{
  */
 
@@ -83,7 +81,7 @@ ulib_float urand_float_range(ulib_float start, ulib_float len);
  * @param charset Character set, or NULL for the default alphanumeric character set.
  * @return Random string.
  *
- * @destructor{UString::ustring_deinit}
+ * @destructor{ustring_deinit}
  */
 ULIB_API
 UString urand_string(ulib_uint len, UString const *charset);

@@ -18,10 +18,29 @@
 
 ULIB_BEGIN_DECLS
 
+// Types
+
 /**
- * A type safe, generic vector.
- * @struct UVec
+ * References a specific vector type.
+ *
+ * @param T Vector type.
  */
+#define UVec(T) P_ULIB_MACRO_CONCAT(UVec_, T)
+
+/**
+ * Generic vector type.
+ *
+ * @note This is a placeholder for documentation purposes. You should use the
+ *       @func{#UVec(T)} macro to reference a specific vector type.
+ * @alias typedef struct UVec(T) UVec(T);
+ */
+
+/**
+ * Vector type forward declaration.
+ *
+ * @param T @type{symbol} Vector type.
+ */
+#define uvec_decl(T) typedef struct UVec(T) UVec(T)
 
 /// Return codes.
 typedef enum uvec_ret {
@@ -39,6 +58,11 @@ typedef enum uvec_ret {
     UVEC_NO
 
 } uvec_ret;
+
+/**
+ * @defgroup UVec_constants UVec constants
+ * @{
+ */
 
 /// Cache line size (B).
 #ifndef UVEC_CACHE_LINE_SIZE
@@ -64,7 +88,7 @@ typedef enum uvec_ret {
 #endif
 
 /**
- * Use `ulib_mem_mem` in `uvec_index_of` above this many elements.
+ * Use @func{#ulib_mem_mem()} in @func{#uvec_index_of()} above this many elements.
  *
  * @note Only affects vectors of scalar types.
  */
@@ -76,6 +100,8 @@ typedef enum uvec_ret {
 #ifndef UVEC_BINARY_SEARCH_THRESH
 #define UVEC_BINARY_SEARCH_THRESH (sizeof(ulib_uint) * CHAR_BIT)
 #endif
+
+/// @}
 
 #define P_UVEC_EXP_COMPACT ((ulib_byte)0xFF)
 #define P_UVEC_EXP_WRAPPED ((ulib_byte)0xFE)
@@ -105,7 +131,7 @@ typedef enum uvec_ret {
 /*
  * Defines a new vector struct.
  *
- * @param T [symbol] Vector type.
+ * @param T @type{symbol} Vector type.
  */
 #define P_UVEC_DEF_TYPE(T)                                                                         \
     /** @cond **/                                                                                  \
@@ -142,8 +168,8 @@ typedef enum uvec_ret {
 /*
  * Generates function declarations for the specified vector type.
  *
- * @param T [symbol] Vector type.
- * @param ATTRS [attributes] Attributes of the declarations.
+ * @param T @type{symbol} Vector type.
+ * @param ATTRS @type{attributes} Attributes of the declarations.
  */
 #define P_UVEC_DECL(T, ATTRS)                                                                      \
     /** @cond */                                                                                   \
@@ -165,8 +191,8 @@ typedef enum uvec_ret {
 /*
  * Generates inline function definitions for the specified vector type.
  *
- * @param T [symbol] Vector type.
- * @param ATTRS [attributes] Attributes of the declarations.
+ * @param T @type{symbol} Vector type.
+ * @param ATTRS @type{attributes} Attributes of the declarations.
  */
 #define P_UVEC_DEF_INLINE(T, ATTRS)                                                                \
     /** @cond */                                                                                   \
@@ -271,8 +297,8 @@ typedef enum uvec_ret {
 /*
  * Generates function declarations for the specified equatable vector type.
  *
- * @param T [symbol] Vector type.
- * @param ATTRS [attributes] Attributes of the declarations.
+ * @param T @type{symbol} Vector type.
+ * @param ATTRS @type{attributes} Attributes of the declarations.
  */
 #define P_UVEC_DECL_EQUATABLE(T, ATTRS)                                                            \
     /** @cond */                                                                                   \
@@ -286,8 +312,8 @@ typedef enum uvec_ret {
 /*
  * Generates inline function definitions for the specified equatable vector type.
  *
- * @param T [symbol] Vector type.
- * @param ATTRS [attributes] Attributes of the declarations.
+ * @param T @type{symbol} Vector type.
+ * @param ATTRS @type{attributes} Attributes of the declarations.
  */
 #define P_UVEC_DEF_INLINE_EQUATABLE(T, ATTRS)                                                      \
     /** @cond */                                                                                   \
@@ -299,8 +325,8 @@ typedef enum uvec_ret {
 /*
  * Generates function declarations for the specified comparable vector type.
  *
- * @param T [symbol] Vector type.
- * @param ATTRS [attributes] Attributes of the declarations.
+ * @param T @type{symbol} Vector type.
+ * @param ATTRS @type{attributes} Attributes of the declarations.
  */
 #define P_UVEC_DECL_COMPARABLE(T, ATTRS)                                                           \
     /** @cond */                                                                                   \
@@ -317,9 +343,9 @@ typedef enum uvec_ret {
 /*
  * Generates heap queue function declarations.
  *
- * @param T [symbol] Vector type.
- * @param ATTRS [attributes] Attributes of the declarations.
- * @param TYPE [min/max] Heap queue type.
+ * @param T @type{symbol} Vector type.
+ * @param ATTRS @type{attributes} Attributes of the declarations.
+ * @param TYPE @type{min | max} Heap queue type.
  */
 #define P_UVEC_DECL_HEAPQ_TYPE(T, ATTRS, TYPE)                                                     \
     /** @cond **/                                                                                  \
@@ -334,8 +360,8 @@ typedef enum uvec_ret {
 /*
  * Generates heap queue function declarations.
  *
- * @param T [symbol] Vector type.
- * @param ATTRS [attributes] Attributes of the declarations.
+ * @param T @type{symbol} Vector type.
+ * @param ATTRS @type{attributes} Attributes of the declarations.
  */
 #define P_UVEC_DECL_HEAPQ(T, ATTRS)                                                                \
     P_UVEC_DECL_HEAPQ_TYPE(T, ATTRS, max)                                                          \
@@ -344,8 +370,8 @@ typedef enum uvec_ret {
 /*
  * Generates inline function definitions for the specified comparable vector type.
  *
- * @param T [symbol] Vector type.
- * @param ATTRS [attributes] Attributes of the declarations.
+ * @param T @type{symbol} Vector type.
+ * @param ATTRS @type{attributes} Attributes of the declarations.
  */
 #define P_UVEC_DEF_INLINE_COMPARABLE(T, ATTRS)                                                     \
     /** @cond */                                                                                   \
@@ -361,8 +387,8 @@ typedef enum uvec_ret {
 /*
  * Generates function definitions for the specified vector type.
  *
- * @param T [symbol] Vector type.
- * @param ATTRS [attributes] Attributes of the definitions.
+ * @param T @type{symbol} Vector type.
+ * @param ATTRS @type{attributes} Attributes of the definitions.
  */
 #define P_UVEC_IMPL(T, ATTRS)                                                                      \
                                                                                                    \
@@ -525,9 +551,9 @@ typedef enum uvec_ret {
 /*
  * Generates common function definitions for the specified equatable vector type.
  *
- * @param T [symbol] Vector type.
- * @param ATTRS [attributes] Attributes of the definitions.
- * @param equal_func [(T, T) -> bool] Equality function.
+ * @param T @type{symbol} Vector type.
+ * @param ATTRS @type{attributes} Attributes of the definitions.
+ * @param equal_func @type{(T, T) -> bool} Equality function.
  */
 #define P_UVEC_IMPL_EQUATABLE_COMMON(T, ATTRS, equal_func)                                         \
                                                                                                    \
@@ -557,9 +583,9 @@ typedef enum uvec_ret {
 /*
  * Generates default 'uvec_index_of' and 'uvec_equals' definitions.
  *
- * @param T [symbol] Vector type.
- * @param ATTRS [attributes] Attributes of the definitions.
- * @param equal_func [(T, T) -> bool] Equality function.
+ * @param T @type{symbol} Vector type.
+ * @param ATTRS @type{attributes} Attributes of the definitions.
+ * @param equal_func \type{(T, T) -> bool} Equality function.
  */
 #define P_UVEC_IMPL_EQUATABLE_FUNC(T, ATTRS, equal_func)                                           \
                                                                                                    \
@@ -592,8 +618,8 @@ typedef enum uvec_ret {
  * Generates 'uvec_index_of' and 'uvec_equals' definitions for vectors
  * whose elements can be checked for equality with ==.
  *
- * @param T [symbol] Vector type.
- * @param ATTRS [attributes] Attributes of the definitions.
+ * @param T @type{symbol} Vector type.
+ * @param ATTRS @type{attributes} Attributes of the definitions.
  */
 #define P_UVEC_IMPL_EQUATABLE_IDENTITY(T, ATTRS)                                                   \
                                                                                                    \
@@ -623,9 +649,9 @@ typedef enum uvec_ret {
 /*
  * Generates function definitions for the specified equatable vector type.
  *
- * @param T [symbol] Vector type.
- * @param ATTRS [attributes] Attributes of the definitions.
- * @param equal_func [(T, T) -> bool] Equality function.
+ * @param T @type{symbol} Vector type.
+ * @param ATTRS @type{attributes} Attributes of the definitions.
+ * @param equal_func @type{(T, T) -> bool} Equality function.
  */
 #define P_UVEC_IMPL_EQUATABLE(T, ATTRS, equal_func)                                                \
     P_UVEC_IMPL_EQUATABLE_COMMON(T, ATTRS, equal_func)                                             \
@@ -635,9 +661,9 @@ typedef enum uvec_ret {
  * Generates function definitions for the specified equatable vector type
  * whose elements can be checked for equality with ==.
  *
- * @param T [symbol] Vector type.
- * @param ATTRS [attributes] Attributes of the definitions.
- * @param equal_func [(T, T) -> bool] Equality function.
+ * @param T @type{symbol} Vector type.
+ * @param ATTRS @type{attributes} Attributes of the definitions.
+ * @param equal_func @type{(T, T) -> bool} Equality function.
  */
 #define P_UVEC_IMPL_IDENTIFIABLE(T, ATTRS)                                                         \
     P_UVEC_IMPL_EQUATABLE_COMMON(T, ATTRS, p_uvec_identical)                                       \
@@ -646,10 +672,10 @@ typedef enum uvec_ret {
 /*
  * Generates function definitions for the specified comparable vector type.
  *
- * @param T [symbol] Vector type.
- * @param ATTRS Attributes of the definitions.
- * @param equal_func Equality function: (T, T) -> bool
- * @param compare_func Comparison function: (T, T) -> bool
+ * @param T @type{symbol} Vector type.
+ * @param ATTRS @type{attributes} Attributes of the definitions.
+ * @param equal_func @type{(T, T) -> bool} Equality function.
+ * @param compare_func @type{(T, T) -> bool} Comparison function.
  */
 #define P_UVEC_IMPL_COMPARABLE(T, ATTRS, equal_func, compare_func)                                 \
                                                                                                    \
@@ -783,10 +809,10 @@ typedef enum uvec_ret {
 /*
  * Generates heap queue function definitions.
  *
- * @param T [symbol] Vector type.
- * @param ATTRS Attributes of the definitions.
- * @param TYPE [min/max] Heap queue type.
- * @param compare_func Comparison function: (T, T) -> bool
+ * @param T @type{symbol} Vector type.
+ * @param ATTRS @type{attributes} Attributes of the definitions.
+ * @param TYPE @type{min | max} Heap queue type.
+ * @param compare_func @type{(T, T) -> bool} Comparison function.
  */
 #define P_UVEC_IMPL_HEAPQ_TYPE(T, ATTRS, TYPE, compare_func)                                       \
                                                                                                    \
@@ -877,9 +903,9 @@ typedef enum uvec_ret {
 /*
  * Generates heap queue function definitions.
  *
- * @param T [symbol] Vector type.
- * @param ATTRS Attributes of the definitions.
- * @param compare_func Comparison function: (T, T) -> bool
+ * @param T @type{symbol} Vector type.
+ * @param ATTRS @type{attributes} Attributes of the definitions.
+ * @param compare_func @type{(T, T) -> bool} Comparison function.
  */
 #define P_UVEC_IMPL_HEAPQ(T, ATTRS, compare_func)                                                  \
     ULIB_INLINE bool p_uvec_inv_##compare_func##_##T(T a, T b) {                                   \
@@ -888,14 +914,15 @@ typedef enum uvec_ret {
     P_UVEC_IMPL_HEAPQ_TYPE(T, ATTRS, max, p_uvec_inv_##compare_func##_##T)                         \
     P_UVEC_IMPL_HEAPQ_TYPE(T, ATTRS, min, compare_func)
 
-/// @name Type definitions
+/**
+ * @defgroup UVec_definitions UVec type definitions
+ * @{
+ */
 
 /**
  * Declares a new vector type.
  *
- * @param T [symbol] Vector type.
- *
- * @public @related UVec
+ * @param T @type{symbol} Vector type.
  */
 #define UVEC_DECL(T)                                                                               \
     P_UVEC_DEF_TYPE(T)                                                                             \
@@ -905,10 +932,8 @@ typedef enum uvec_ret {
 /**
  * Declares a new vector type, prepending a specifier to the generated declarations.
  *
- * @param T [symbol] Vector type.
- * @param SPEC [specifier] Specifier.
- *
- * @public @related UVec
+ * @param T @type{symbol} Vector type.
+ * @param SPEC @type{specifier} Specifier.
  */
 #define UVEC_DECL_SPEC(T, SPEC)                                                                    \
     P_UVEC_DEF_TYPE(T)                                                                             \
@@ -918,9 +943,7 @@ typedef enum uvec_ret {
 /**
  * Declares a new equatable vector type.
  *
- * @param T [symbol] Vector type.
- *
- * @public @related UVec
+ * @param T @type{symbol} Vector type.
  */
 #define UVEC_DECL_EQUATABLE(T)                                                                     \
     P_UVEC_DEF_TYPE(T)                                                                             \
@@ -932,10 +955,8 @@ typedef enum uvec_ret {
 /**
  * Declares a new equatable vector type, prepending a specifier to the generated declarations.
  *
- * @param T [symbol] Vector type.
- * @param SPEC [specifier] Specifier.
- *
- * @public @related UVec
+ * @param T @type{symbol} Vector type.
+ * @param SPEC @type{specifier} Specifier.
  */
 #define UVEC_DECL_EQUATABLE_SPEC(T, SPEC)                                                          \
     P_UVEC_DEF_TYPE(T)                                                                             \
@@ -947,9 +968,7 @@ typedef enum uvec_ret {
 /**
  * Declares a new comparable vector type.
  *
- * @param T [symbol] Vector type.
- *
- * @public @related UVec
+ * @param T @type{symbol} Vector type.
  */
 #define UVEC_DECL_COMPARABLE(T)                                                                    \
     P_UVEC_DEF_TYPE(T)                                                                             \
@@ -964,10 +983,8 @@ typedef enum uvec_ret {
 /**
  * Declares a new comparable vector type, prepending a specifier to the generated declarations.
  *
- * @param T [symbol] Vector type.
- * @param SPEC [specifier] Specifier.
- *
- * @public @related UVec
+ * @param T @type{symbol} Vector type.
+ * @param SPEC @type{specifier} Specifier.
  */
 #define UVEC_DECL_COMPARABLE_SPEC(T, SPEC)                                                         \
     P_UVEC_DEF_TYPE(T)                                                                             \
@@ -982,20 +999,16 @@ typedef enum uvec_ret {
 /**
  * Implements a previously declared vector type.
  *
- * @param T [symbol] Vector type.
- *
- * @public @related UVec
+ * @param T @type{symbol} Vector type.
  */
 #define UVEC_IMPL(T) P_UVEC_IMPL(T, ulib_unused)
 
 /**
  * Implements a previously declared equatable vector type.
- * Elements of an equatable vector can be checked for equality via equal_func.
+ * Elements of an equatable vector can be checked for equality via `equal_func`.
  *
- * @param T [symbol] Vector type.
- * @param equal_func [(T, T) -> bool] Equality function.
- *
- * @public @related UVec
+ * @param T @type{symbol} Vector type.
+ * @param equal_func @type{(T, T) -> bool} Equality function.
  */
 #define UVEC_IMPL_EQUATABLE(T, equal_func)                                                         \
     P_UVEC_IMPL(T, ulib_unused)                                                                    \
@@ -1003,14 +1016,12 @@ typedef enum uvec_ret {
 
 /**
  * Implements a previously declared comparable vector type.
- * Elements of a comparable vector can be checked for equality via equal_func
- * and ordered via compare_func.
+ * Elements of a comparable vector can be checked for equality via `equal_func`
+ * and ordered via `compare_func`.
  *
- * @param T [symbol] Vector type.
- * @param equal_func [(T, T) -> bool] Equality function.
- * @param compare_func [(T, T) -> bool] Comparison function (True if LHS is smaller than RHS).
- *
- * @public @related UVec
+ * @param T @type{symbol} Vector type.
+ * @param equal_func @type{(T, T) -> bool} Equality function.
+ * @param compare_func @type{(T, T) -> bool} Comparison function (a < b).
  */
 #define UVEC_IMPL_COMPARABLE(T, equal_func, compare_func)                                          \
     P_UVEC_IMPL(T, ulib_unused)                                                                    \
@@ -1020,11 +1031,9 @@ typedef enum uvec_ret {
 
 /**
  * Implements a previously declared comparable vector type
- * whose elements can be checked for equality via == and compared via <.
+ * whose elements can be checked for equality via `==` and compared via `<`.
  *
- * @param T [symbol] Vector type.
- *
- * @public @related UVec
+ * @param T @type{symbol} Vector type.
  */
 #define UVEC_IMPL_IDENTIFIABLE(T)                                                                  \
     P_UVEC_IMPL(T, ulib_unused)                                                                    \
@@ -1035,9 +1044,7 @@ typedef enum uvec_ret {
 /**
  * Defines a new static vector type.
  *
- * @param T [symbol] Vector type.
- *
- * @public @related UVec
+ * @param T @type{symbol} Vector type.
  */
 #define UVEC_INIT(T)                                                                               \
     P_UVEC_DEF_TYPE(T)                                                                             \
@@ -1048,10 +1055,8 @@ typedef enum uvec_ret {
 /**
  * Defines a new static equatable vector type.
  *
- * @param T [symbol] Vector type.
- * @param equal_func [(T, T) -> bool] Equality function.
- *
- * @public @related UVec
+ * @param T @type{symbol} Vector type.
+ * @param equal_func @type{(T, T) -> bool} Equality function.
  */
 #define UVEC_INIT_EQUATABLE(T, equal_func)                                                         \
     P_UVEC_DEF_TYPE(T)                                                                             \
@@ -1065,11 +1070,9 @@ typedef enum uvec_ret {
 /**
  * Defines a new static comparable vector type.
  *
- * @param T [symbol] Vector type.
- * @param equal_func [(T, T) -> bool] Equality function.
- * @param compare_func [(T, T) -> bool] Comparison function (True if LHS is smaller than RHS).
- *
- * @public @related UVec
+ * @param T @type{symbol} Vector type.
+ * @param equal_func @type{(T, T) -> bool} Equality function.
+ * @param compare_func @type{(T, T) -> bool} Comparison function (a < b).
  */
 #define UVEC_INIT_COMPARABLE(T, equal_func, compare_func)                                          \
     P_UVEC_DEF_TYPE(T)                                                                             \
@@ -1084,12 +1087,10 @@ typedef enum uvec_ret {
     P_UVEC_IMPL_COMPARABLE(T, ULIB_INLINE ulib_unused, equal_func, compare_func)
 
 /**
- * Defines a new static equatable vector type
- * whose elements can be checked for equality via == and compared via <.
+ * Defines a new static comparable vector type
+ * whose elements can be checked for equality via `==` and compared via `<`.
  *
- * @param T [symbol] Vector type.
- *
- * @public @related UVec
+ * @param T @type{symbol} Vector type.
  */
 #define UVEC_INIT_IDENTIFIABLE(T)                                                                  \
     P_UVEC_DEF_TYPE(T)                                                                             \
@@ -1103,37 +1104,21 @@ typedef enum uvec_ret {
     P_UVEC_IMPL_EQUATABLE(T, ULIB_INLINE ulib_unused, p_uvec_identical, 1)                         \
     P_UVEC_IMPL_COMPARABLE(T, ULIB_INLINE ulib_unused, p_uvec_identical, p_uvec_less_than)
 
-/// @name Declaration
+/// @}
 
 /**
- * Declares a new vector variable.
- *
- * @param T [symbol] Vector type.
- *
- * @public @related UVec
+ * @defgroup UVec_common UVec common API
+ * @{
  */
-#define UVec(T) P_ULIB_MACRO_CONCAT(UVec_, T)
-
-/**
- * Vector type forward declaration.
- *
- * @param T [symbol] Vector type.
- *
- * @public @related UVec
- */
-#define uvec_decl(T) typedef struct UVec(T) UVec(T)
-
-/// @name Memory management
 
 /**
  * Initializes a new vector.
  *
- * @param T [symbol] Vector type.
- * @return [UVec(T)] Initialized vector instance.
+ * @param T Vector type.
+ * @return Initialized vector instance.
  *
  * @destructor{uvec_deinit}
- *
- * @public @related UVec
+ * @alias UVec(T) uvec(symbol T);
  */
 #define uvec(T) P_ULIB_MACRO_CONCAT(uvec_, T)()
 
@@ -1141,104 +1126,102 @@ typedef enum uvec_ret {
  * Initializes a new vector by taking ownership of the specified array,
  * which must have been dynamically allocated.
  *
- * @param T [symbol] Vector type.
- * @param array [T*] Array.
- * @param count [ulib_uint] Number of elements in the array.
+ * @param T Vector type.
+ * @param array Array.
+ * @param count Number of elements in the array.
+ * @return Initialized vector.
  *
  * @destructor{uvec_deinit}
- * @note Due to the internals of UVec, you must not attempt to access the buffer
+ * @note Due to the internals of @type{#UVec(T)}, you must not attempt to access the buffer
  *       after calling this function as it may have been deallocated.
- *
- * @public @related UVec
+ * @alias UVec(T) uvec_assign(symbol T, T *array, ulib_uint count);
  */
 #define uvec_assign(T, array, count) P_ULIB_MACRO_CONCAT(uvec_assign_, T)(array, count)
 
 /**
  * Initializes a new vector by wrapping the specified array.
  *
- * @param T [symbol] Vector type.
- * @param array [T*] Array.
- * @param count [ulib_uint] Number of elements in the array.
+ * @param T Vector type.
+ * @param array Array.
+ * @param count Number of elements in the array.
+ * @return Initialized vector.
  *
  * @note If the array has been dynamically allocated, you are responsible for its deallocation.
- * @note You must not call uvec_deinit() on a vector initialized with this function.
+ * @note You must not call @func{#uvec_deinit()} on a vector initialized with this function.
  * @note The array will never be resized, and it is assumed it can contain any number of elements.
- *       This is also reflected by uvec_size() returning ULIB_UINT_MAX for vectors initialized
- *       with this function. It is up to you to avoid overflowing the underlying buffer.
- *
- * @public @related UVec
+ *       This is also reflected by @func{#uvec_size()} returning @val{#ULIB_UINT_MAX} for vectors
+ *       initialized with this function. It is up to you to avoid overflowing the underlying buffer.
+ * @alias UVec(T) uvec_wrap(symbol T, T *array, ulib_uint count);
  */
 #define uvec_wrap(T, array, count) P_ULIB_MACRO_CONCAT(uvec_wrap_, T)(array, count)
 
 /**
- * De-initializes a vector previously initialized via uvec(T).
+ * De-initializes a vector previously initialized via @func{#uvec()}.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector to de-initialize.
+ * @param T Vector type.
+ * @param vec Vector to de-initialize.
  *
- * @public @related UVec
+ * @alias void uvec_deinit(symbol T, UVec(T) *vec);
  */
 #define uvec_deinit(T, vec) P_ULIB_MACRO_CONCAT(uvec_deinit_, T)(vec)
 
 /**
  * Invalidates the vector and returns its storage.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector whose storage should be returned.
- * @return [UVec(T)] Vector storage.
+ * @param T Vector type.
+ * @param vec Vector whose storage should be returned.
+ * @return Vector storage.
  *
  * @destructor{uvec_deinit}
- *
- * @public @related UVec
+ * @alias UVec(T) uvec_move(symbol T, UVec(T) *vec);
  */
 #define uvec_move(T, vec) P_ULIB_MACRO_CONCAT(uvec_move_, T)(vec)
 
 /**
  * Copies the specified vector.
  *
- * @param T [symbol] Vector type.
- * @param src [UVec(T)*] Vector to copy.
- * @param dest [UVec(T)*] Vector to copy into.
- * @return [uvec_ret] UVEC_OK on success, otherwise UVEC_ERR.
+ * @param T Vector type.
+ * @param src Vector to copy.
+ * @param dest Vector to copy into.
+ * @return @val{#UVEC_OK} on success, otherwise @val{#UVEC_ERR}.
  *
- * @public @related UVec
+ * @alias uvec_ret uvec_copy(symbol T, UVec(T) const *src, UVec(T) *dest);
  */
 #define uvec_copy(T, src, dest) P_ULIB_MACRO_CONCAT(uvec_copy_, T)(src, dest)
 
 /**
  * Copies the elements of the specified vector into the given array.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector to copy.
- * @param array [T*] Array to copy the elements into.
+ * @param T Vector type.
+ * @param vec Vector to copy.
+ * @param array Array to copy the elements into.
  *
  * @note The array must be sufficiently large to hold all the elements.
- *
- * @public @related UVec
+ * @alias void uvec_copy_to_array(symbol T, UVec(T) const *vec, T *array);
  */
 #define uvec_copy_to_array(T, vec, array) P_ULIB_MACRO_CONCAT(uvec_copy_to_array_, T)(vec, array)
 
 /**
- * Ensures the specified vector can hold at least as many elements as 'size'.
+ * Ensures the specified vector can hold at least as many elements as `size`.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param size [ulib_uint] Number of elements the vector should be able to hold.
- * @return [uvec_ret] UVEC_OK on success, otherwise UVEC_ERR.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param size Number of elements the vector should be able to hold.
+ * @return @val{#UVEC_OK} on success, otherwise @val{#UVEC_ERR}.
  *
- * @public @related UVec
+ * @alias uvec_ret uvec_reserve(symbol T, UVec(T) vec, ulib_uint size);
  */
 #define uvec_reserve(T, vec, size) P_ULIB_MACRO_CONCAT(uvec_reserve_, T)(vec, size)
 
 /**
- * Expands the specified vector so that it can contain additional 'size' elements.
+ * Expands the specified vector so that it can contain additional `size` elements.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector to expand.
- * @param size [ulib_uint] Number of additional elements the vector should be able to hold.
- * @return [uvec_ret] UVEC_OK on success, otherwise UVEC_ERR.
+ * @param T Vector type.
+ * @param vec Vector to expand.
+ * @param size Number of additional elements the vector should be able to hold.
+ * @return @val{#UVEC_OK} on success, otherwise @val{#UVEC_ERR}.
  *
- * @public @related UVec
+ * @alias uvec_ret uvec_expand(symbol T, UVec(T) *vec, ulib_uint size);
  */
 #define uvec_expand(T, vec, size) P_ULIB_MACRO_CONCAT(uvec_expand_, T)(vec, size)
 
@@ -1246,165 +1229,162 @@ typedef enum uvec_ret {
  * Shrinks the specified vector so that its allocated size
  * is just large enough to hold the elements it currently contains.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector to shrink.
- * @return [uvec_ret] UVEC_OK on success, otherwise UVEC_ERR.
+ * @param T Vector type.
+ * @param vec Vector to shrink.
+ * @return @val{#UVEC_OK} on success, otherwise @val{#UVEC_ERR}.
  *
- * @public @related UVec
+ * @alias uvec_ret uvec_shrink(symbol T, UVec(T) *vec);
  */
 #define uvec_shrink(T, vec) P_ULIB_MACRO_CONCAT(uvec_shrink_, T)(vec)
-
-/// @name Primitives
 
 /**
  * Returns the raw array backing the vector.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @return [T*] Pointer to the first element of the raw array.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @return Pointer to the first element of the raw array.
  *
- * @public @related UVec
+ * @alias T *uvec_data(symbol T, UVec(T) const *vec);
  */
 #define uvec_data(T, vec) P_ULIB_MACRO_CONCAT(uvec_data_, T)(vec)
 
 /**
  * Retrieves the element at the specified index.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param idx [ulib_uint] Index.
- * @return [T] Element at the specified index.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param idx Index.
+ * @return Element at the specified index.
  *
- * @public @related UVec
+ * @alias T uvec_get(symbol T, UVec(T) const *vec, ulib_uint idx);
  */
 #define uvec_get(T, vec, idx) (uvec_data(T, vec)[(idx)])
 
 /**
  * Replaces the element at the specified index.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param idx [ulib_uint] Index.
- * @param item [T] Replacement element.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param idx Index.
+ * @param item Replacement element.
  *
- * @public @related UVec
+ * @alias void uvec_set(symbol T, UVec(T) *vec, ulib_uint idx, T item);
  */
 #define uvec_set(T, vec, idx, item) (uvec_data(T, vec)[(idx)] = (item))
 
 /**
  * Returns the first element in the vector.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @return [T] First element.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @return First element.
  *
- * @public @related UVec
+ * @alias T uvec_first(symbol T, UVec(T) const *vec);
  */
 #define uvec_first(T, vec) (uvec_data(T, vec)[0])
 
 /**
  * Returns the last element in the vector.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @return [T] Last element.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @return Last element.
  *
- * @public @related UVec
+ * @alias T uvec_last(symbol T, UVec(T) const *vec);
  */
 #define uvec_last(T, vec) P_ULIB_MACRO_CONCAT(uvec_last_, T)(vec)
 
 /**
  * Returns the number of elements in the vector.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @return [ulib_uint] Number of elements.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @return Number of elements.
  *
- * @public @related UVec
+ * @alias ulib_uint uvec_count(symbol T, UVec(T) const *vec);
  */
 #define uvec_count(T, vec) P_ULIB_MACRO_CONCAT(uvec_count_, T)(vec)
 
 /**
- * Returns the maximum number of elements that can be held by the raw array backing the vector,
- * i.e. the vector's capacity.
+ * Returns the maximum number of elements that can be held by the raw array backing the vector.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @return [ulib_uint] Capacity.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @return Capacity.
  *
- * @public @related UVec
+ * @alias ulib_uint uvec_size(symbol T, UVec(T) const *vec);
  */
 #define uvec_size(T, vec) P_ULIB_MACRO_CONCAT(uvec_size_, T)(vec)
 
 /**
  * Checks if the specified index is valid.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param idx [ulib_uint] Index.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param idx Index.
  * @return True if the index is valid, false otherwise.
  *
- * @public @related UVec
+ * @alias bool uvec_index_is_valid(symbol T, UVec(T) const *vec, ulib_uint idx);
  */
 #define uvec_index_is_valid(T, vec, idx) ((idx) < uvec_count(T, vec))
 
 /**
  * Pushes the specified element to the top of the vector (last element).
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param item [T] Element to push.
- * @return [uvec_ret] UVEC_OK on success, otherwise UVEC_ERR.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param item Element to push.
+ * @return @val{#UVEC_OK} on success, otherwise @val{#UVEC_ERR}.
  *
- * @public @related UVec
+ * @alias uvec_ret uvec_push(symbol T, UVec(T) *vec, T item);
  */
 #define uvec_push(T, vec, item) P_ULIB_MACRO_CONCAT(uvec_push_, T)(vec, item)
 
 /**
  * Removes and returns the element at the top of the vector (last element).
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param[out] item [T*] Removed element.
- * @return [bool] True if an element was removed, false if the vector was empty.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param[out] item Removed element.
+ * @return True if an element was removed, false if the vector was empty.
  *
- * @public @related UVec
+ * @alias bool uvec_pop(symbol T, UVec(T) *vec, T *item);
  */
 #define uvec_pop(T, vec, item) P_ULIB_MACRO_CONCAT(uvec_pop_, T)(vec, item)
 
 /**
  * Removes the element at the specified index.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param idx [ulib_uint] Index of the element to remove.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param idx Index of the element to remove.
  *
- * @public @related UVec
+ * @alias void uvec_remove_at(symbol T, UVec(T) *vec, ulib_uint idx);
  */
 #define uvec_remove_at(T, vec, idx) uvec_remove_range(T, vec, idx, 1)
 
 /**
  * Inserts an element at the specified index.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param idx [ulib_uint] Index at which the element should be inserted.
- * @param item [T] Element to insert.
- * @return [uvec_ret] UVEC_OK on success, otherwise UVEC_ERR.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param idx Index at which the element should be inserted.
+ * @param item Element to insert.
+ * @return @val{#UVEC_OK} on success, otherwise @val{#UVEC_ERR}.
  *
- * @public @related UVec
+ * @alias uvec_ret uvec_insert_at(symbol T, UVec(T) *vec, ulib_uint idx, T item);
  */
 #define uvec_insert_at(T, vec, idx, item) P_ULIB_MACRO_CONCAT(uvec_insert_at_, T)(vec, idx, item)
 
 /**
  * Removes the elements in the specified range.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param start [ulib_uint] Range start index.
- * @param n [ulib_uint] Range length.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param start Range start index.
+ * @param n Range length.
  *
- * @public @related UVec
+ * @alias void uvec_remove_range(symbol T, UVec(T) *vec, ulib_uint start, ulib_uint n);
  */
 #define uvec_remove_range(T, vec, start, n)                                                        \
     P_ULIB_MACRO_CONCAT(uvec_remove_range_, T)(vec, start, n)
@@ -1412,14 +1392,15 @@ typedef enum uvec_ret {
 /**
  * Inserts the elements contained in an array at the specified index.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param array [T*] Array containing the items.
- * @param start [ulib_uint] Range start index.
- * @param n [ulib_uint] Number of elements in the array.
- * @return [uvec_ret] UVEC_OK on success, otherwise UVEC_ERR.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param array Array containing the items.
+ * @param start Range start index.
+ * @param n Number of elements in the array.
+ * @return @val{#UVEC_OK} on success, otherwise @val{#UVEC_ERR}.
  *
- * @public @related UVec
+ * @alias uvec_ret uvec_insert_range(symbol T, UVec(T) *vec, T const *array,
+ *                                   ulib_uint start, ulib_uint n);
  */
 #define uvec_insert_range(T, vec, array, start, n)                                                 \
     P_ULIB_MACRO_CONCAT(uvec_insert_range_, T)(vec, array, start, n)
@@ -1427,35 +1408,35 @@ typedef enum uvec_ret {
 /**
  * Removes all the elements in the vector.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
+ * @param T Vector type.
+ * @param vec Vector instance.
  *
- * @public @related UVec
+ * @alias void uvec_remove_all(symbol T, UVec(T) *vec);
  */
 #define uvec_remove_all(T, vec) P_ULIB_MACRO_CONCAT(uvec_remove_all_, T)(vec)
 
 /**
  * Appends a vector to another.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param src [UVec(T)*] Vector to append.
- * @return [uvec_ret] UVEC_OK on success, otherwise UVEC_ERR.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param src Vector to append.
+ * @return @val{#UVEC_OK} on success, otherwise @val{#UVEC_ERR}.
  *
- * @public @related UVec
+ * @alias uvec_ret uvec_append(symbol T, UVec(T) *vec, UVec(T) const *src);
  */
 #define uvec_append(T, vec, src) P_ULIB_MACRO_CONCAT(uvec_append_, T)(vec, src)
 
 /**
  * Appends an array to the specified vector.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param array [T*] Array to append.
- * @param n [ulib_uint] Number of elements to append.
- * @return [uvec_ret] UVEC_OK on success, otherwise UVEC_ERR.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param array Array to append.
+ * @param n Number of elements to append.
+ * @return @val{#UVEC_OK} on success, otherwise @val{#UVEC_ERR}.
  *
- * @public @related UVec
+ * @alias uvec_ret uvec_append_array(symbol T, UVec(T) *vec, T const *array, ulib_uint n);
  */
 #define uvec_append_array(T, vec, array, n)                                                        \
     P_ULIB_MACRO_CONCAT(uvec_append_array_, T)(vec, array, n)
@@ -1463,57 +1444,55 @@ typedef enum uvec_ret {
 /**
  * Returns a view over a section of the specified vector.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param start [ulib_uint] Start index of the view.
- * @param len [ulib_uint] Length of the view.
- * @return [UVec(T)] View.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param start Start index of the view.
+ * @param len Length of the view.
+ * @return View.
  *
- * @note Views are affected by the same limitations as vectors created via uvec_wrap().
- *
- * @public @related UVec
+ * @note Views are affected by the same limitations as vectors created via @func{#uvec_wrap()}.
+ * @alias UVec(T) uvec_view(symbol T, UVec(T) const *vec, ulib_uint start, ulib_uint len);
  */
 #define uvec_view(T, vec, start, len) uvec_wrap(T, uvec_data(T, vec) + start, len)
 
 /**
  * Returns a view over a section of the specified vector.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param start [ulib_uint] Start index of the view.
- * @return [UVec(T)] View.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param start Start index of the view.
+ * @return View.
  *
- * @note Views are affected by the same limitations as vectors created via uvec_wrap().
- *
- * @public @related UVec
+ * @note Views are affected by the same limitations as vectors created via @func{#uvec_wrap()}.
+ * @alias UVec(T) uvec_view_from(symbol T, UVec(T) const *vec, ulib_uint start);
  */
 #define uvec_view_from(T, vec, start) P_ULIB_MACRO_CONCAT(uvec_view_from_, T)(vec, start)
 
 /**
  * Returns a view over a section of the specified vector.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param len [ulib_uint] Length of the view.
- * @return [UVec(T)] View.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param len Length of the view.
+ * @return View.
  *
- * @note Views are affected by the same limitations as vectors created via uvec_wrap().
- *
- * @public @related UVec
+ * @note Views are affected by the same limitations as vectors created via @func{#uvec_wrap()}.
+ * @alias UVec(T) uvec_view_to(symbol T, UVec(T) const *vec, ulib_uint len);
  */
 #define uvec_view_to(T, vec, len) uvec_view(T, vec, 0, len)
 
 /**
  * Sets items in the specified range to those contained in an array.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param array [T*] Array containing the items.
- * @param start [ulib_uint] Range start index.
- * @param n [ulib_uint] Number of elements in the array.
- * @return [uvec_ret] UVEC_OK on success, otherwise UVEC_ERR.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param array Array containing the items.
+ * @param start Range start index.
+ * @param n Number of elements in the array.
+ * @return @val{#UVEC_OK} on success, otherwise @val{#UVEC_ERR}.
  *
- * @public @related UVec
+ * @alias uvec_ret uvec_set_range(symbol T, UVec(T) *vec, T const *array,
+ *                                ulib_uint start, ulib_uint n);
  */
 #define uvec_set_range(T, vec, array, start, n)                                                    \
     P_ULIB_MACRO_CONCAT(uvec_set_range_, T)(vec, array, start, n)
@@ -1521,35 +1500,40 @@ typedef enum uvec_ret {
 /**
  * Reverses the vector.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
+ * @param T Vector type.
+ * @param vec Vector instance.
  *
- * @public @related UVec
+ * @alias void uvec_reverse(symbol T, UVec(T) *vec);
  */
 #define uvec_reverse(T, vec) P_ULIB_MACRO_CONCAT(uvec_reverse_, T)(vec)
 
 /**
  * Randomly shuffles the elements of the vector.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
+ * @param T Vector type.
+ * @param vec Vector instance.
  *
- * @public @related UVec
+ * @alias void uvec_shuffle(symbol T, UVec(T) *vec);
  */
 #define uvec_shuffle(T, vec) P_ULIB_MACRO_CONCAT(uvec_shuffle_, T)(vec)
-
-/// @name Iteration
 
 // clang-format off
 
 /**
  * Iterates over the vector, executing the specified code block for each element.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param enum_name [symbol] Name of the variable holding the current item and its index.
+ * Usage example:
+ * @code
+ * uvec_foreach (ulib_int, vec, entry) {
+ *     ulib_uint index = entry.i;
+ *     ulib_int item = *entry.item;
+ *     ...
+ * }
+ * @endcode
  *
- * @public @related UVec
+ * @param T @type{symbol} Vector type.
+ * @param vec @type{#UVec(T) *} Vector instance.
+ * @param enum_name @type{symbol} Name of the variable holding the current item and its index.
  */
 #define uvec_foreach(T, vec, enum_name)                                                            \
     for (P_ULIB_MACRO_CONCAT(UVec_Loop_, T) enum_name =                                            \
@@ -1559,44 +1543,54 @@ typedef enum uvec_ret {
 /**
  * Iterates over the vector in reverse order, executing the specified code block for each element.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param enum_name [symbol] Name of the variable holding the current item and its index.
+ * Usage example:
+ * @code
+ * uvec_foreach_reverse (ulib_int, vec, entry) {
+ *     ulib_uint index = entry.i;
+ *     ulib_int item = *entry.item;
+ *     ...
+ * }
+ * @endcode
  *
- * @public @related UVec
+ * @param T @type{symbol} Vector type.
+ * @param vec @type{#UVec(T) *} Vector instance.
+ * @param enum_name @type{symbol} Name of the variable holding the current item and its index.
  */
 #define uvec_foreach_reverse(T, vec, enum_name)                                                    \
     for (P_ULIB_MACRO_CONCAT(UVec_Loop_, T) enum_name =                                            \
          P_ULIB_MACRO_CONCAT(p_uvec_loop_reverse_init_, T)(vec);                                   \
          --enum_name.item, enum_name.i-- != 0;)
 
+/// @}
+
 // clang-format on
 
-/// @name Equatable
+/**
+ * @defgroup UVec_equatable UVec equatable API
+ * @{
+ */
 
 /**
  * Returns the index of the first occurrence of the specified element.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param item [T] Element to search.
- * @return [ulib_uint] Index of the found element,
- *                     or an invalid index if the element cannot be found.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param item Element to search.
+ * @return Index of the found element, or an invalid index if the element cannot be found.
  *
- * @public @related UVec
+ * @alias ulib_uint uvec_index_of(symbol T, UVec(T) const *vec, T item);
  */
 #define uvec_index_of(T, vec, item) P_ULIB_MACRO_CONCAT(uvec_index_of_, T)(vec, item)
 
 /**
  * Returns the index of the last occurrence of the specified element.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param item [T] Element to search.
- * @return [ulib_uint] Index of the found element,
- *                     or an invalid index if the element cannot be found.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param item Element to search.
+ * @return Index of the found element, or an invalid index if the element cannot be found.
  *
- * @public @related UVec
+ * @alias ulib_uint uvec_index_of_reverse(symbol T, UVec(T) const *vec, T item);
  */
 #define uvec_index_of_reverse(T, vec, item)                                                        \
     P_ULIB_MACRO_CONCAT(uvec_index_of_reverse_, T)(vec, item)
@@ -1604,24 +1598,24 @@ typedef enum uvec_ret {
 /**
  * Checks whether the vector contains the specified element.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param item [T] Element to search.
- * @return [bool] True if the vector contains the specified element, false otherwise.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param item Element to search.
+ * @return True if the vector contains the specified element, false otherwise.
  *
- * @public @related UVec
+ * @alias bool uvec_contains(symbol T, UVec(T) const *vec, T item);
  */
 #define uvec_contains(T, vec, item) P_ULIB_MACRO_CONCAT(uvec_contains_, T)(vec, item)
 
 /**
  * Removes the specified element.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param item [T] Element to remove.
- * @return [bool] True if the element was found and removed, false otherwise.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param item Element to remove.
+ * @return True if the element was found and removed, false otherwise.
  *
- * @public @related UVec
+ * @alias bool uvec_remove(symbol T, UVec(T) const *vec, T item);
  */
 #define uvec_remove(T, vec, item) P_ULIB_MACRO_CONCAT(uvec_remove_, T)(vec, item)
 
@@ -1629,129 +1623,133 @@ typedef enum uvec_ret {
  * Checks whether the two vectors are equal.
  * Two vectors are considered equal if they contain the same elements in the same order.
  *
- * @param T [symbol] Vector type.
- * @param vec_a [UVec(T)*] First vector.
- * @param vec_b [UVec(T)*] Second vector.
- * @return [bool] True if the vectors are equal, false otherwise.
+ * @param T Vector type.
+ * @param vec_a First vector.
+ * @param vec_b Second vector.
+ * @return True if the vectors are equal, false otherwise.
  *
- * @public @related UVec
+ * @alias bool uvec_equals(symbol T, UVec(T) const *vec_a, UVec(T) const *vec_b);
  */
 #define uvec_equals(T, vec_a, vec_b) P_ULIB_MACRO_CONCAT(uvec_equals_, T)(vec_a, vec_b)
 
 /**
  * Pushes the specified element to the top of the vector if it does not already contain it.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param item [T] Element to push.
- * @return [uvec_ret] UVEC_OK if the element was pushed,
- *                    UVEC_NO if the element was already present, otherwise UVEC_ERR.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param item Element to push.
+ * @return @val{#UVEC_OK} if the element was pushed,
+ *         @val{#UVEC_NO} if the element was already present, otherwise @val{#UVEC_ERR}.
  *
- * @public @related UVec
+ * @alias uvec_ret uvec_push_unique(symbol T, UVec(T) *vec, T item);
  */
 #define uvec_push_unique(T, vec, item) P_ULIB_MACRO_CONCAT(uvec_push_unique_, T)(vec, item)
 
-/// @name Comparable
+/// @}
+
+/**
+ * @defgroup UVec_comparable UVec comparable API
+ * @{
+ */
 
 /**
  * Returns the index of the minimum element in the vector.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @return [ulib_uint] Index of the minimum element.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @return Index of the minimum element.
  *
- * @public @related UVec
+ * @alias ulib_uint uvec_index_of_min(symbol T, UVec(T) const *vec);
  */
 #define uvec_index_of_min(T, vec) P_ULIB_MACRO_CONCAT(uvec_index_of_min_, T)(vec)
 
 /**
  * Returns the index of the maximum element in the vector.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @return [ulib_uint] Index of the maximum element.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @return Index of the maximum element.
  *
- * @public @related UVec
+ * @alias ulib_uint uvec_index_of_max(symbol T, UVec(T) const *vec);
  */
 #define uvec_index_of_max(T, vec) P_ULIB_MACRO_CONCAT(uvec_index_of_max_, T)(vec)
 
 /**
  * Sorts the vector.
- * Average performance: O(n log n)
+ * Average performance: *O(n log n)*
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
+ * @param T Vector type.
+ * @param vec Vector instance.
  *
- * @public @related UVec
+ * @alias void uvec_sort(symbol T, UVec(T) *vec);
  */
 #define uvec_sort(T, vec) P_ULIB_MACRO_CONCAT(uvec_sort_, T)(vec)
 
 /**
  * Sorts the elements in the specified range.
- * Average performance: O(n log n)
+ * Average performance: *O(n log n)*
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param start [ulib_uint] Range start index.
- * @param len [ulib_uint] Range length.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param start Range start index.
+ * @param len Range length.
  *
- * @public @related UVec
+ * @alias void uvec_sort_range(symbol T, UVec(T) *vec, ulib_uint start, ulib_uint len);
  */
 #define uvec_sort_range(T, vec, start, len)                                                        \
     P_ULIB_MACRO_CONCAT(uvec_sort_range_, T)(vec, start, len)
 
 /**
  * Finds the insertion index for the specified item in a sorted vector.
- * Average performance: O(log n)
+ * Average performance: *O(log n)*
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param item [T] Element whose insertion index should be found.
- * @return [ulib_uint] Insertion index.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param item Element whose insertion index should be found.
+ * @return Insertion index.
  *
- * @public @related UVec
+ * @alias ulib_uint uvec_insertion_index_sorted(symbol T, UVec(T) const *vec, T item);
  */
 #define uvec_insertion_index_sorted(T, vec, item)                                                  \
     P_ULIB_MACRO_CONCAT(uvec_insertion_index_sorted_, T)(vec, item)
 
 /**
  * Returns the index of the specified element in a sorted vector.
- * Average performance: O(log n)
+ * Average performance: *O(log n)*
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param item [T] Element to search.
- * @return [ulib_uint] Index of the found element, or an invalid index.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param item Element to search.
+ * @return Index of the found element, or an invalid index.
  *
  * @note The returned index is not necessarily the first occurrence of the item.
- *
- * @public @related UVec
+ * @alias ulib_uint uvec_index_of_sorted(symbol T, UVec(T) const *vec, T item);
  */
 #define uvec_index_of_sorted(T, vec, item) P_ULIB_MACRO_CONCAT(uvec_index_of_sorted_, T)(vec, item)
 
 /**
  * Checks whether a sorted vector contains the specified element.
- * Average performance: O(log n)
+ * Average performance: *O(log n)*
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param item [T] Element to search.
- * @return [bool] True if the vector contains the specified element, false otherwise.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param item Element to search.
+ * @return True if the vector contains the specified element, false otherwise.
  *
- * @public @related UVec
+ * @alias bool uvec_contains_sorted(symbol T, UVec(T) const *vec, T item);
  */
 #define uvec_contains_sorted(T, vec, item) P_ULIB_MACRO_CONCAT(uvec_contains_sorted_, T)(vec, item)
 
 /**
  * Inserts the specified element in a sorted vector.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param item [T] Element to insert.
- * @param[out] idx [ulib_uint] Index of the inserted element.
- * @return [uvec_ret] UVEC_OK on success, otherwise UVEC_ERR.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param item Element to insert.
+ * @param[out] idx Index of the inserted element.
+ * @return @val{#UVEC_OK} on success, otherwise @val{#UVEC_ERR}.
  *
- * @public @related UVec
+ * @alias uvec_ret uvec_insert_sorted(symbol T, UVec(T) *vec, T item, ulib_uint *idx);
  */
 #define uvec_insert_sorted(T, vec, item, idx)                                                      \
     P_ULIB_MACRO_CONCAT(uvec_insert_sorted_, T)(vec, item, idx)
@@ -1759,14 +1757,14 @@ typedef enum uvec_ret {
 /**
  * Inserts the specified element in a sorted vector only if it does not already contain it.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param item [T] Element to insert.
- * @param[out] idx [ulib_uint] Index of the inserted (or that of the already present) element.
- * @return [uvec_ret] UVEC_OK if the element was inserted,
- *                    UVEC_NO if the element was already present, otherwise UVEC_ERR.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param item Element to insert.
+ * @param[out] idx Index of the inserted (or that of the already present) element.
+ * @return @val{#UVEC_OK} if the element was inserted,
+ *         @val{#UVEC_NO} if the element was already present, otherwise @val{#UVEC_ERR}.
  *
- * @public @related UVec
+ * @alias uvec_ret uvec_insert_sorted_unique(symbol T, UVec(T) *vec, T item, ulib_uint *idx);
  */
 #define uvec_insert_sorted_unique(T, vec, item, idx)                                               \
     P_ULIB_MACRO_CONCAT(uvec_insert_sorted_unique_, T)(vec, item, idx)
@@ -1774,53 +1772,59 @@ typedef enum uvec_ret {
 /**
  * Removes the specified element from a sorted vector.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param item [T] Element to remove.
- * @return [bool] True if the element was found and removed, false otherwise.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param item Element to remove.
+ * @return True if the element was found and removed, false otherwise.
  *
- * @public @related UVec
+ * @alias bool uvec_remove_sorted(symbol T, UVec(T) *vec, T item);
  */
 #define uvec_remove_sorted(T, vec, item) P_ULIB_MACRO_CONCAT(uvec_remove_sorted_, T)(vec, item)
 
-/// @name Heap queue
+/// @}
+
+/**
+ * @defgroup UVec_heapq UVec heap queue API
+ * @{
+ */
 
 /**
  * Makes the specified vector a max heap queue.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
+ * @param T Vector type.
+ * @param vec Vector instance.
  *
  * @note All functions named `uvec_max_heapq_*` require either:
- *          (a) an empty vector;
- *          (b) a non-empty vector that has been mutated by `uvec_max_heapq_*` functions only;
- *          (c) any non-empty vector that has been transformed into a heap through this function.
- *
- * @public @related UVec
+ *          - an empty vector;
+ *          - a non-empty vector that has been mutated by `uvec_max_heapq_*` functions only;
+ *          - any non-empty vector that has been transformed into a heap through this function.
+ * @alias void uvec_max_heapq_make(symbol T, UVec(T) *vec);
  */
 #define uvec_max_heapq_make(T, vec) P_ULIB_MACRO_CONCAT(uvec_max_heapq_make_, T)(vec)
 
 /**
  * Pushes the specified item into the max heap queue.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param item [T] Element to push.
- * @return [uvec_ret] UVEC_OK on success, otherwise UVEC_ERR.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param item Element to push.
+ * @return @val{#UVEC_OK} on success, otherwise @val{#UVEC_ERR}.
  *
- * @public @related UVec
+ * @see @func{#uvec_max_heapq_make()}
+ * @alias uvec_ret uvec_max_heapq_push(symbol T, UVec(T) *vec, T item);
  */
 #define uvec_max_heapq_push(T, vec, item) P_ULIB_MACRO_CONCAT(uvec_max_heapq_push_, T)(vec, item)
 
 /**
  * Removes and returns the maximum element from the queue.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param[out] item [T*] Removed element.
- * @return [bool] True if the maximum was removed, false if the queue was empty.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param[out] item Removed element.
+ * @return True if the maximum was removed, false if the queue was empty.
  *
- * @public @related UVec
+ * @see @func{#uvec_max_heapq_make()}
+ * @alias bool uvec_max_heapq_pop(symbol T, UVec(T) *vec, T *item);
  */
 #define uvec_max_heapq_pop(T, vec, item) P_ULIB_MACRO_CONCAT(uvec_max_heapq_pop_, T)(vec, item)
 
@@ -1828,12 +1832,13 @@ typedef enum uvec_ret {
  * Pushes `in` into the queue, and pops the maximum.
  * Equivalent to push followed by pop, but with better performance.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param in [T] Element to push.
- * @param[out] out [T*] Removed element.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param in Element to push.
+ * @param[out] out Removed element.
  *
- * @public @related UVec
+ * @see @func{#uvec_max_heapq_make()}
+ * @alias void uvec_max_heapq_push_pop(symbol T, UVec(T) *vec, T in, T *out);
  */
 #define uvec_max_heapq_push_pop(T, vec, in, out)                                                   \
     P_ULIB_MACRO_CONCAT(uvec_max_heapq_push_pop_, T)(vec, in, out)
@@ -1842,15 +1847,15 @@ typedef enum uvec_ret {
  * Pops the maximum, and pushes `in` into the queue.
  * Similar to pop followed by push, but with better performance.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param in [T] Element to push.
- * @param[out] out [T*] Removed element.
- * @return [bool] True if the operation succeeded, false if the queue was empty.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param in Element to push.
+ * @param[out] out Removed element.
+ * @return True if the operation succeeded, false if the queue was empty.
  *
  * @note If the queue is empty, `in` is not pushed.
- *
- * @public @related UVec
+ * @see @func{#uvec_max_heapq_make()}
+ * @alias bool uvec_max_heapq_replace(symbol T, UVec(T) *vec, T in, T *out);
  */
 #define uvec_max_heapq_replace(T, vec, in, out)                                                    \
     P_ULIB_MACRO_CONCAT(uvec_max_heapq_replace_, T)(vec, in, out)
@@ -1858,12 +1863,13 @@ typedef enum uvec_ret {
 /**
  * Removes the specified item from the queue.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param item [T] Element to remove.
- * @return [bool] True if the element was found and removed, false otherwise.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param item Element to remove.
+ * @return True if the element was found and removed, false otherwise.
  *
- * @public @related UVec
+ * @see @func{#uvec_max_heapq_make()}
+ * @alias bool uvec_max_heapq_remove(symbol T, UVec(T) *vec, T item);
  */
 #define uvec_max_heapq_remove(T, vec, item)                                                        \
     P_ULIB_MACRO_CONCAT(uvec_max_heapq_remove_, T)(vec, item)
@@ -1871,39 +1877,41 @@ typedef enum uvec_ret {
 /**
  * Makes the specified vector a min heap queue.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
+ * @param T Vector type.
+ * @param vec Vector instance.
  *
  * @note All functions named `uvec_min_heapq_*` require either:
- *          (a) an empty vector;
- *          (b) a non-empty vector that has been mutated by `uvec_min_heapq_*` functions only;
- *          (c) any non-empty vector that has been transformed into a heap through this function.
+ *          - an empty vector;
+ *          - a non-empty vector that has been mutated by `uvec_min_heapq_*` functions only;
+ *          - any non-empty vector that has been transformed into a heap through this function.
  *
- * @public @related UVec
+ * @alias void uvec_min_heapq_make(symbol T, UVec(T) *vec);
  */
 #define uvec_min_heapq_make(T, vec) P_ULIB_MACRO_CONCAT(uvec_min_heapq_make_, T)(vec)
 
 /**
  * Pushes the specified item into the min heap queue.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param item [T] Element to push.
- * @return [uvec_ret] UVEC_OK on success, otherwise UVEC_ERR.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param item Element to push.
+ * @return @val{#UVEC_OK} on success, otherwise @val{#UVEC_ERR}.
  *
- * @public @related UVec
+ * @see @func{#uvec_min_heapq_make()}
+ * @alias uvec_ret uvec_min_heapq_push(symbol T, UVec(T) *vec, T item);
  */
 #define uvec_min_heapq_push(T, vec, item) P_ULIB_MACRO_CONCAT(uvec_min_heapq_push_, T)(vec, item)
 
 /**
  * Removes and returns the minimum element from the queue.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param[out] item [T*] Removed element.
- * @return [bool] True if the minimum was removed, false if the queue was empty.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param[out] item Removed element.
+ * @return True if the minimum was removed, false if the queue was empty.
  *
- * @public @related UVec
+ * @see @func{#uvec_min_heapq_make()}
+ * @alias bool uvec_min_heapq_pop(symbol T, UVec(T) *vec, T *item);
  */
 #define uvec_min_heapq_pop(T, vec, item) P_ULIB_MACRO_CONCAT(uvec_min_heapq_pop_, T)(vec, item)
 
@@ -1911,12 +1919,13 @@ typedef enum uvec_ret {
  * Pushes `in` into the queue, and pops the minimum.
  * Equivalent to push followed by pop, but with better performance.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param in [T] Element to push.
- * @param[out] out [T*] Removed element.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param in Element to push.
+ * @param[out] out Removed element.
  *
- * @public @related UVec
+ * @see @func{#uvec_min_heapq_make()}
+ * @alias void uvec_min_heapq_push_pop(symbol T, UVec(T) *vec, T in, T *out);
  */
 #define uvec_min_heapq_push_pop(T, vec, in, out)                                                   \
     P_ULIB_MACRO_CONCAT(uvec_min_heapq_push_pop_, T)(vec, in, out)
@@ -1925,15 +1934,15 @@ typedef enum uvec_ret {
  * Pops the minimum, and pushes `in` into the queue.
  * Similar to pop followed by push, but with better performance.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param in [T] Element to push.
- * @param[out] out [T*] Removed element.
- * @return [bool] True if the operation succeeded, false if the queue was empty.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param in Element to push.
+ * @param[out] out Removed element.
+ * @return True if the operation succeeded, false if the queue was empty.
  *
  * @note If the queue is empty, `in` is not pushed.
- *
- * @public @related UVec
+ * @see @func{#uvec_min_heapq_make()}
+ * @alias bool uvec_min_heapq_replace(symbol T, UVec(T) *vec, T in, T *out);
  */
 #define uvec_min_heapq_replace(T, vec, in, out)                                                    \
     P_ULIB_MACRO_CONCAT(uvec_min_heapq_replace_, T)(vec, in, out)
@@ -1941,15 +1950,18 @@ typedef enum uvec_ret {
 /**
  * Removes the specified item from the queue.
  *
- * @param T [symbol] Vector type.
- * @param vec [UVec(T)*] Vector instance.
- * @param item [T] Element to remove.
- * @return [bool] True if the element was found and removed, false otherwise.
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param item Element to remove.
+ * @return True if the element was found and removed, false otherwise.
  *
- * @public @related UVec
+ * @see @func{#uvec_min_heapq_make()}
+ * @alias bool uvec_min_heapq_remove(symbol T, UVec(T) *vec, T item);
  */
 #define uvec_min_heapq_remove(T, vec, item)                                                        \
     P_ULIB_MACRO_CONCAT(uvec_min_heapq_remove_, T)(vec, item)
+
+/// @}
 
 ULIB_END_DECLS
 

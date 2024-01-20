@@ -15,18 +15,57 @@
 #include "ustd.h"
 
 /**
- * Bitmask manipulation API.
+ * References a specific bitmask type.
  *
- * @defgroup bits Bitmask manipulation API
+ * @param N Bitmask size in bits. Allowed values: 8, 16, 32 and 64.
+ *
+ * @alias #define UBit(N) UBit_##N
+ */
+#define UBit(N) P_ULIB_MACRO_CONCAT(P_ULIB_MACRO_CONCAT(uint, N), _t)
+
+/**
+ * Generic bitmask type.
+ *
+ * @note This is a placeholder for documentation purposes. You should use the
+ *       @func{#UBit(N)} macro to reference a specific bitmask type.
+ * @alias typedef uintN_t UBit(N);
+ */
+
+/**
+ * @defgroup UBit_types UBit types
  * @{
  */
 
 /**
- * Bitmask type.
+ * 8 bit bitmask type.
  *
- * @param N Bitmask size in bits. Allowed values: 8, 16, 32 and 64.
+ * @alias typedef uint8_t UBit(8);
  */
-#define UBit(N) P_ULIB_MACRO_CONCAT(P_ULIB_MACRO_CONCAT(uint, N), _t)
+
+/**
+ * 16 bit bitmask type.
+ *
+ * @alias typedef uint16_t UBit(16);
+ */
+
+/**
+ * 32 bit bitmask type.
+ *
+ * @alias typedef uint32_t UBit(32);
+ */
+
+/**
+ * 64 bit bitmask type.
+ *
+ * @alias typedef uint64_t UBit(64);
+ */
+
+/// @}
+
+/**
+ * @defgroup UBit_api UBit API
+ * @{
+ */
 
 /**
  * Returns a bitmask given its integer representation.
@@ -34,6 +73,8 @@
  * @param N Bitmask size in bits.
  * @param mask Integer representation of the bitmask.
  * @return Bitmask with the specified integer representation.
+ *
+ * @alias UBit(N) ubit(bitsize N, unsigned mask);
  */
 #define ubit(N, mask) (UBit(N))(mask)
 
@@ -42,6 +83,8 @@
  *
  * @param N Bitmask size in bits.
  * @return Bitmask with all bits set to zero.
+ *
+ * @alias UBit(N) ubit_none(bitsize N);
  */
 #define ubit_none(N) ubit(N, 0)
 
@@ -50,6 +93,8 @@
  *
  * @param N Bitmask size in bits.
  * @return Bitmask with all bits set to one.
+ *
+ * @alias UBit(N) ubit_all(bitsize N);
  */
 #define ubit_all(N) ubit(N, ~ubit_none(N))
 
@@ -60,6 +105,8 @@
  * @param mask Bitmask to shift.
  * @param shift Number of places to shift.
  * @return Result of the shift operation.
+ *
+ * @alias UBit(N) ubit_lshift(bitsize N, unsigned mask, unsigned shift);
  */
 #define ubit_lshift(N, mask, shift) ubit(N, ubit(N, mask) << (unsigned)(shift))
 
@@ -70,6 +117,8 @@
  * @param mask Bitmask to shift.
  * @param shift Number of places to shift.
  * @return Result of the shift operation.
+ *
+ * @alias UBit(N) ubit_rshift(bitsize N, unsigned mask, unsigned shift);
  */
 #define ubit_rshift(N, mask, shift) ubit(N, ubit(N, mask) >> (unsigned)(shift))
 
@@ -79,6 +128,8 @@
  * @param N Bitmask size in bits.
  * @param bit Bit to set.
  * @return Bitmask with the specified bit set.
+ *
+ * @alias UBit(N) ubit_bit(bitsize N, unsigned bit);
  */
 #define ubit_bit(N, bit) ubit_lshift(N, 1, bit)
 
@@ -89,6 +140,8 @@
  * @param start Range start.
  * @param len Range length.
  * @return Bitmask with len bits set starting from start.
+ *
+ * @alias UBit(N) ubit_range(bitsize N, unsigned start, unsigned len);
  */
 #define ubit_range(N, start, len) ubit_lshift(N, ubit_rshift(N, ubit_all(N), N - (len)), start)
 
@@ -99,6 +152,8 @@
  * @param mask Bitmask.
  * @param bits Bit(s) to check.
  * @return True if the bits are set, false otherwise.
+ *
+ * @alias bool ubit_is_set(bitsize N, unsigned mask, unsigned bits);
  */
 #define ubit_is_set(N, mask, bits) ((ubit(N, mask) & ubit(N, bits)) == ubit(N, bits))
 
@@ -109,6 +164,8 @@
  * @param mask Bitmask.
  * @param bits Bit(s) to check.
  * @return True if at least one of the specified bits is set, false otherwise.
+ *
+ * @alias bool ubit_is_any_set(bitsize N, unsigned mask, unsigned bits);
  */
 #define ubit_is_any_set(N, mask, bits) ((ubit(N, mask) & ubit(N, bits)) != 0)
 
@@ -119,6 +176,8 @@
  * @param mask Bitmask.
  * @param bits Bit(s) to set.
  * @return Bitmask with the specified bits set.
+ *
+ * @alias UBit(N) ubit_set(bitsize N, unsigned mask, unsigned bits);
  */
 #define ubit_set(N, mask, bits) (ubit(N, mask) | ubit(N, bits))
 
@@ -129,6 +188,8 @@
  * @param mask Bitmask.
  * @param bits Bit(s) to unset.
  * @return Bitmask with the specified bits unset.
+ *
+ * @alias UBit(N) ubit_unset(bitsize N, unsigned mask, unsigned bits);
  */
 #define ubit_unset(N, mask, bits) (ubit(N, mask) & ~ubit(N, bits))
 
@@ -140,6 +201,8 @@
  * @param bits Bit(s) to set or unset.
  * @param exp True to set, false to unset.
  * @return Bitmask with the specified bits set or unset.
+ *
+ * @alias UBit(N) ubit_set_bool(bitsize N, unsigned mask, unsigned bits, bool exp);
  */
 #define ubit_set_bool(N, mask, bits, exp)                                                          \
     ((exp) ? ubit_set(N, mask, bits) : ubit_unset(N, mask, bits))
@@ -151,19 +214,24 @@
  * @param mask Bitmask.
  * @param bits Bit(s) to toggle.
  * @return Bitmask with the specified bits toggled.
+ *
+ * @alias UBit(N) ubit_toggle(bitsize N, unsigned mask, unsigned bits);
  */
 #define ubit_toggle(N, mask, bits) (ubit(N, mask) ^ ubit(N, bits))
 
 /**
  * Overwrites the bits in the bitmask with those from another bitmask.
  *
- * Example: if mask = 0101 0101, n_mask = 1010 1010 and mask = 0111 0000, the output is 0010 0101.
+ * **Example:** if mask = 0101 0101, n_mask = 1010 1010 and mask = 0111 0000,
+ * the output is 0010 0101.
  *
  * @param N Bitmask size in bits.
  * @param mask Bitmask.
  * @param n_mask Other bitmask.
  * @param bits Bitmask indicating the bits that should be overwritten.
  * @return Bitmask with the specified bits overwritten.
+ *
+ * @alias UBit(N) ubit_overwrite(bitsize N, unsigned mask, unsigned n_mask, unsigned bits);
  */
 #define ubit_overwrite(N, mask, n_mask, bits)                                                      \
     ((ubit(N, mask) & ~ubit(N, bits)) | (ubit(N, n_mask) & ubit(N, bits)))
@@ -174,6 +242,8 @@
  * @param N Bitmask size in bits.
  * @param mask Bitmask.
  * @return Number of set bits.
+ *
+ * @alias unsigned ubit_count_set(bitsize N, unsigned mask);
  */
 #define ubit_count_set(N, mask) P_ULIB_MACRO_CONCAT(p_ubit_count_set_, N)(mask)
 
@@ -183,6 +253,8 @@
  * @param N Bitmask size in bits.
  * @param mask Bitmask.
  * @return Number of unset bits.
+ *
+ * @alias unsigned ubit_count_unset(bitsize N, unsigned mask);
  */
 #define ubit_count_unset(N, mask) ((N)-ubit_count_set(N, mask))
 

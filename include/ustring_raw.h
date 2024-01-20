@@ -17,12 +17,15 @@
 ULIB_BEGIN_DECLS
 
 /**
+ * @defgroup ulib_str Raw C string API
+ * @{
+ */
+
+/**
  * Checks if the specified character is an uppercase letter.
  *
  * @param c Character.
  * @return True if the character is an uppercase letter, false otherwise.
- *
- * @public @related UString
  */
 ULIB_CONST
 ULIB_INLINE
@@ -35,8 +38,6 @@ bool ulib_char_is_upper(char c) {
  *
  * @param c Character.
  * @return True if the character is a lowercase letter, false otherwise.
- *
- * @public @related UString
  */
 ULIB_CONST
 ULIB_INLINE
@@ -49,8 +50,6 @@ bool ulib_char_is_lower(char c) {
  *
  * @param c Character to convert.
  * @return Uppercase character.
- *
- * @public @related UString
  */
 ULIB_CONST
 ULIB_INLINE
@@ -63,8 +62,6 @@ char ulib_char_to_upper(char c) {
  *
  * @param c Character to convert.
  * @return Lowercase character.
- *
- * @public @related UString
  */
 ULIB_CONST
 ULIB_INLINE
@@ -80,8 +77,6 @@ char ulib_char_to_lower(char c) {
  * @return Duplicated string.
  *
  * @destructor{ulib_free}
- *
- * @public @related UString
  */
 ULIB_API
 char *ulib_str_dup(char const *string, size_t length);
@@ -92,8 +87,6 @@ char *ulib_str_dup(char const *string, size_t length);
  * @param format Format string.
  * @param ... Format arguments.
  * @return Length of the formatted string.
- *
- * @public @related UString
  */
 ULIB_API
 ULIB_PURE
@@ -105,8 +98,6 @@ size_t ulib_str_flength(char const *format, ...);
  * @param format Format string.
  * @param args Format arguments.
  * @return Length of the formatted string.
- *
- * @public @related UString
  */
 ULIB_API
 ULIB_PURE
@@ -118,8 +109,6 @@ size_t ulib_str_flength_list(char const *format, va_list args);
  * @param string String.
  * @param length String length.
  * @return True if the string does not contain lowercase characters, false otherwise.
- *
- * @public @related UString
  */
 ULIB_PURE
 ULIB_INLINE
@@ -136,8 +125,6 @@ bool ulib_str_is_upper(char const *string, size_t length) {
  * @param string String.
  * @param length String length.
  * @return True if the string does not contain uppercase characters, false otherwise.
- *
- * @public @related UString
  */
 ULIB_PURE
 ULIB_INLINE
@@ -155,9 +142,7 @@ bool ulib_str_is_lower(char const *string, size_t length) {
  * @param src Source string.
  * @param length Length of the source string.
  *
- * @public @related UString
- *
- * @note dst and src can be equal.
+ * @note `dst` and `src` can be equal.
  */
 ULIB_INLINE
 void ulib_str_to_upper(char *dst, char const *src, size_t length) {
@@ -171,9 +156,7 @@ void ulib_str_to_upper(char *dst, char const *src, size_t length) {
  * @param src Source string.
  * @param length Length of the source string
  *
- * @public @related UString
- *
- * @note dst and src can be equal.
+ * @note `dst` and `src` can be equal.
  */
 ULIB_INLINE
 void ulib_str_to_lower(char *dst, char const *src, size_t length) {
@@ -188,10 +171,8 @@ void ulib_str_to_lower(char *dst, char const *src, size_t length) {
  * @param base Numeric base.
  * @return Integer.
  *
- * @note Size-appropriate wrapper for strtol/strtoll.
+ * @note Size-appropriate wrapper for @func{strtol()} and @func{strtoll()}.
  *       Refer to their documentation for extended information (e.g. error handling).
- *
- * @public @related UString
  */
 ULIB_INLINE
 ulib_int ulib_str_to_int(char const *src, char **end, unsigned base) {
@@ -213,10 +194,8 @@ ulib_int ulib_str_to_int(char const *src, char **end, unsigned base) {
  * @param base Numeric base.
  * @return Unsigned integer.
  *
- * @note Size-appropriate wrapper for strtoul/strtoull.
+ * @note Size-appropriate wrapper for @func{strtoul()} and @func{strtoull()}.
  *       Refer to their documentation for extended information (e.g. error handling).
- *
- * @public @related UString
  */
 ULIB_INLINE
 ulib_uint ulib_str_to_uint(char const *src, char **end, unsigned base) {
@@ -237,10 +216,8 @@ ulib_uint ulib_str_to_uint(char const *src, char **end, unsigned base) {
  * @param[out] end End pointer.
  * @return Float.
  *
- * @note Size-appropriate wrapper for strtof/strtod.
+ * @note Size-appropriate wrapper for @func{strtof()} and @func{strtod()}.
  *       Refer to their documentation for extended information (e.g. error handling).
- *
- * @public @related UString
  */
 ULIB_INLINE
 ulib_float ulib_str_to_float(char const *src, char **end) {
@@ -261,8 +238,6 @@ ulib_float ulib_str_to_float(char const *src, char **end) {
  * @param c Character to find.
  * @param h_len Length of the memory area.
  * @return Pointer to the first occurrence of the character, or NULL.
- *
- * @public @related UString
  */
 ULIB_API
 ULIB_PURE
@@ -276,8 +251,6 @@ void *ulib_mem_chr_last(void const *haystack, int c, size_t h_len);
  * @param needle Substring.
  * @param n_len Length of the substring.
  * @return Pointer to the first occurrence of the substring, or NULL.
- *
- * @public @related UString
  */
 ULIB_API
 ULIB_PURE
@@ -291,12 +264,12 @@ void *ulib_mem_mem(void const *haystack, size_t h_len, void const *needle, size_
  * @param needle Substring.
  * @param n_len Length of the substring.
  * @return Pointer to the last occurrence of the substring, or NULL.
- *
- * @public @related UString
  */
 ULIB_API
 ULIB_PURE
 void *ulib_mem_mem_last(void const *haystack, size_t h_len, void const *needle, size_t n_len);
+
+/// @}
 
 ULIB_END_DECLS
 
