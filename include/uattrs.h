@@ -1,5 +1,5 @@
 /**
- * Defines miscellaneous compatibility macros.
+ * Defines API attributes.
  *
  * @author Ivano Bilenchi
  *
@@ -9,8 +9,8 @@
  * @file
  */
 
-#ifndef UCOMPAT_H
-#define UCOMPAT_H
+#ifndef UATTRS_H
+#define UATTRS_H
 
 /**
  * @defgroup attributes API attributes
@@ -107,17 +107,6 @@
     #define ulib_unused
 #endif
 
-// Give hints to the static analyzer.
-#if __clang_analyzer__
-    #define p_ulib_analyzer_assert(exp) do { if (!(exp)) exit(1); } while(0)
-#else
-    #define p_ulib_analyzer_assert(exp) ((void)0)
-#endif
-
-// Concatenates the 'a' and 'b' tokens, allowing 'a' and 'b' to be macro-expanded.
-#define P_ULIB_MACRO_CONCAT(a, b) P_ULIB_MACRO_CONCAT_INNER(a, b)
-#define P_ULIB_MACRO_CONCAT_INNER(a, b) a##b
-
 /// @}
 
-#endif // UCOMPAT_H
+#endif // UATTRS_H

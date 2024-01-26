@@ -226,7 +226,7 @@ bool utime_from_string(UTime *time, UString const *string) {
 }
 
 #define FMT_FDIGITS 2
-#define UNIT_DIV (utime_ns)(P_ULIB_MACRO_CONCAT(2e, FMT_FDIGITS))
+#define UNIT_DIV (utime_ns)(ULIB_MACRO_CONCAT(2e, FMT_FDIGITS))
 
 static utime_ns unit_ns[] = { NS_PER_NS, NS_PER_US, NS_PER_MS, NS_PER_S,
                               NS_PER_M,  NS_PER_H,  NS_PER_D,  NS_MAX };

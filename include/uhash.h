@@ -610,7 +610,7 @@ ulib_uint p_uhash_int64_hash(uint64_t key) {
     /* NOLINTEND(clang-analyzer-core.uninitialized.Assign) */                                      \
                                                                                                    \
     ATTRS uhash_ret uhash_put_##T(UHash_##T *h, uh_key key, ulib_uint *idx) {                      \
-        p_ulib_analyzer_assert(h->_flags);                                                         \
+        ulib_analyzer_assert(h->_flags);                                                           \
         ulib_uint x;                                                                               \
         if (p_uhash_occupied_##T(h) >= p_uhash_upper_bound(h->_size)) {                            \
             /* Update the hash table. */                                                           \
@@ -688,13 +688,13 @@ ulib_uint p_uhash_int64_hash(uint64_t key) {
     }                                                                                              \
                                                                                                    \
     ATTRS uh_val uhmap_get_##T(UHash_##T const *h, uh_key key, uh_val if_missing) {                \
-        p_ulib_analyzer_assert(h->_vals);                                                          \
+        ulib_analyzer_assert(h->_vals);                                                            \
         ulib_uint k = uhash_get_##T(h, key);                                                       \
         return k == UHASH_INDEX_MISSING ? if_missing : h->_vals[k];                                \
     }                                                                                              \
                                                                                                    \
     ATTRS uhash_ret uhmap_set_##T(UHash_##T *h, uh_key key, uh_val value, uh_val *existing) {      \
-        p_ulib_analyzer_assert(h->_vals);                                                          \
+        ulib_analyzer_assert(h->_vals);                                                            \
                                                                                                    \
         ulib_uint k;                                                                               \
         uhash_ret ret = uhash_put_##T(h, key, &k);                                                 \
@@ -708,7 +708,7 @@ ulib_uint p_uhash_int64_hash(uint64_t key) {
     }                                                                                              \
                                                                                                    \
     ATTRS uhash_ret uhmap_add_##T(UHash_##T *h, uh_key key, uh_val value, uh_val *existing) {      \
-        p_ulib_analyzer_assert(h->_vals);                                                          \
+        ulib_analyzer_assert(h->_vals);                                                            \
                                                                                                    \
         ulib_uint k;                                                                               \
         uhash_ret ret = uhash_put_##T(h, key, &k);                                                 \
@@ -723,7 +723,7 @@ ulib_uint p_uhash_int64_hash(uint64_t key) {
     }                                                                                              \
                                                                                                    \
     ATTRS bool uhmap_replace_##T(UHash_##T *h, uh_key key, uh_val value, uh_val *replaced) {       \
-        p_ulib_analyzer_assert(h->_vals);                                                          \
+        ulib_analyzer_assert(h->_vals);                                                            \
         ulib_uint k = uhash_get_##T(h, key);                                                       \
         if (k == UHASH_INDEX_MISSING) return false;                                                \
         if (replaced) *replaced = h->_vals[k];                                                     \

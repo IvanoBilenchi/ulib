@@ -7,9 +7,9 @@
  * @file
  */
 
-#include "umacros.h"
 #include "urand.h"
 #include "utest.h"
+#include "uutils.h"
 #include "uvec_builtin.h"
 
 // Utility macros

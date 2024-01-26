@@ -12,7 +12,7 @@
 #ifndef UVERSION_H
 #define UVERSION_H
 
-#include "ucompat.h"
+#include "uattrs.h"
 #include "ustring.h"
 
 ULIB_BEGIN_DECLS

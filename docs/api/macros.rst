@@ -11,5 +11,5 @@ API attributes
 Utilities
 =========
 
-.. doxygengroup:: macros
+.. doxygengroup:: utils
    :content-only:

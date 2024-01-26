@@ -8,8 +8,8 @@
  */
 
 #include "ustring.h"
-#include "umacros.h"
 #include "ustrbuf.h"
+#include "uutils.h"
 
 UString const ustring_null = p_ustring_init_small(0);
 UString const ustring_empty = p_ustring_init_small(1);
@@ -83,7 +83,7 @@ char *ustring(UString *string, size_t length) {
     if (buf) buf[length] = '\0';
 
     // Suppress false positive about potentially leaking buf.
-    p_ulib_analyzer_assert(buf == string->_s || buf == string->_l._data);
+    ulib_analyzer_assert(buf == string->_s || buf == string->_l._data);
 
     return buf;
 }

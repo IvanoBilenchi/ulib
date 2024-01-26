@@ -1,5 +1,5 @@
 /**
- * Defines base types used throughout the API.
+ * Defines numeric types and their API.
  *
  * @author Ivano Bilenchi
  *
@@ -9,10 +9,10 @@
  * @file
  */
 
-#ifndef UBASE_H
-#define UBASE_H
+#ifndef UNUMBER_H
+#define UNUMBER_H
 
-#include "ucompat.h"
+#include "uattrs.h"
 
 #include <float.h>
 #include <inttypes.h>
@@ -24,9 +24,6 @@ ULIB_BEGIN_DECLS
 
 /// Byte type.
 typedef uint8_t ulib_byte;
-
-/// Pointer type.
-typedef void *ulib_ptr;
 
 /**
  * Unsigned integer type.
@@ -495,6 +492,68 @@ bool ulib_uint_is_pow2(ulib_uint x) {
 
 /// @}
 
+/**
+ * @defgroup number_utils Utilities for numeric types
+ * @{
+ */
+
+/**
+ * Returns the minimum between two numbers.
+ *
+ * @param a First number.
+ * @param b Second number.
+ * @return Minimum between the two numbers.
+ *
+ * @alias T ulib_min(T a, T b);
+ */
+#define ulib_min(a, b) (((a) < (b)) ? (a) : (b))
+
+/**
+ * Returns the maximum between two numbers.
+ *
+ * @param a First number.
+ * @param b Second number.
+ * @return Maximum between the two numbers.
+ *
+ * @alias T ulib_max(T a, T b);
+ */
+#define ulib_max(a, b) (((a) > (b)) ? (a) : (b))
+
+/**
+ * Returns the absolute value of a number.
+ *
+ * @param x The number.
+ * @return Absolute value of the number.
+ *
+ * @alias T ulib_abs(T x);
+ */
+#define ulib_abs(x) (((x) < 0) ? -(x) : (x))
+
+/**
+ * Clamps a number between two values.
+ *
+ * @param x The number.
+ * @param xmin Minumum value.
+ * @param xmax Maximum value.
+ * @return Clamped value.
+ *
+ * @alias T ulib_clamp(T x, T xmin, T xmax);
+ */
+#define ulib_clamp(x, xmin, xmax) (((x) > (xmax)) ? (xmax) : (((x) < (xmin)) ? (xmin) : (x)))
+
+/**
+ * Returns the absolute difference between two numbers.
+ *
+ * @param a First number.
+ * @param b Second number.
+ * @return Absolute difference.
+ *
+ * @alias T ulib_diff(T a, T b);
+ */
+#define ulib_diff(a, b) (((a) > (b)) ? ((a) - (b)) : ((b) - (a)))
+
+/// @}
+
 ULIB_END_DECLS
 
-#endif // UBASE_H
+#endif // UNUMBER_H

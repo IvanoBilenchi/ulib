@@ -21,7 +21,7 @@
  *
  * @alias #define UBit(N) UBit_##N
  */
-#define UBit(N) P_ULIB_MACRO_CONCAT(P_ULIB_MACRO_CONCAT(uint, N), _t)
+#define UBit(N) ULIB_MACRO_CONCAT(ULIB_MACRO_CONCAT(uint, N), _t)
 
 /**
  * Generic bitmask type.
@@ -245,7 +245,7 @@
  *
  * @alias unsigned ubit_count_set(bitsize N, unsigned mask);
  */
-#define ubit_count_set(N, mask) P_ULIB_MACRO_CONCAT(p_ubit_count_set_, N)(mask)
+#define ubit_count_set(N, mask) ULIB_MACRO_CONCAT(p_ubit_count_set_, N)(mask)
 
 /**
  * Returns the number of bigs that are not set in a bitmask.

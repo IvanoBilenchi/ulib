@@ -17,6 +17,12 @@ Floating point numbers
 .. doxygengroup:: ulib_float
    :content-only:
 
+Utilities for numeric types
+===========================
+
+.. doxygengroup:: number_utils
+   :content-only:
+
 Bitmasks
 ========
 

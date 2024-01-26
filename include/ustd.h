@@ -21,8 +21,11 @@
 #include <string.h>
 
 #include "ualloc.h"
-#include "ubase.h"
-#include "ucompat.h"
-#include "umacros.h"
+#include "uattrs.h"
+#include "unumber.h"
+#include "uutils.h"
+
+/// Pointer type.
+typedef void *ulib_ptr;
 
 #endif // USTD_H

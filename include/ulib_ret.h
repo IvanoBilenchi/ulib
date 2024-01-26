@@ -12,7 +12,7 @@
 #ifndef ULIB_RET_H
 #define ULIB_RET_H
 
-#include "ucompat.h"
+#include "uattrs.h"
 
 ULIB_BEGIN_DECLS
 

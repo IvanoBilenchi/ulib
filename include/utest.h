@@ -12,8 +12,8 @@
 #ifndef UTEST_H
 #define UTEST_H
 
-#include "umacros.h"
 #include "ustd.h"
+#include "uutils.h"
 
 ULIB_BEGIN_DECLS
 

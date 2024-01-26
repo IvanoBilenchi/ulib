@@ -25,7 +25,7 @@ ULIB_BEGIN_DECLS
  *
  * @param T Vector type.
  */
-#define UVec(T) P_ULIB_MACRO_CONCAT(UVec_, T)
+#define UVec(T) ULIB_MACRO_CONCAT(UVec_, T)
 
 /**
  * Generic vector type.
@@ -108,11 +108,10 @@ typedef enum uvec_ret {
 #define P_UVEC_EXP_MIN_MARKER P_UVEC_EXP_WRAPPED
 #define P_UVEC_FLAG_LARGE ((ulib_byte)0x80)
 
-#define p_uvec_size(T) (sizeof(struct P_ULIB_MACRO_CONCAT(p_uvec_large_, T)))
+#define p_uvec_size(T) (sizeof(struct ULIB_MACRO_CONCAT(p_uvec_large_, T)))
 #define p_uvec_exp_size(T)                                                                         \
-    (sizeof(struct P_ULIB_MACRO_CONCAT(p_uvec_sizing_, T)) - sizeof(T *) - sizeof(ulib_uint))
-#define p_uvec_small_size(T)                                                                       \
-    ((sizeof(struct P_ULIB_MACRO_CONCAT(p_uvec_large_, T)) - 1) / sizeof(T))
+    (sizeof(struct ULIB_MACRO_CONCAT(p_uvec_sizing_, T)) - sizeof(T *) - sizeof(ulib_uint))
+#define p_uvec_small_size(T) ((sizeof(struct ULIB_MACRO_CONCAT(p_uvec_large_, T)) - 1) / sizeof(T))
 #define p_uvec_exp(T, v) ((v)->_s[p_uvec_size(T) - 1])
 #define p_uvec_exp_set(T, v, e) (p_uvec_exp(T, v) = (ulib_byte)(e))
 #define p_uvec_exp_is_large(e) ((e) & (P_UVEC_FLAG_LARGE))
@@ -219,7 +218,7 @@ typedef enum uvec_ret {
                                                                                                    \
     ATTRS ULIB_PURE ULIB_INLINE T *uvec_data_##T(UVec(T) const *vec) {                             \
         if (p_uvec_is_large(T, vec)) return (T *)vec->_l._data;                                    \
-        p_ulib_analyzer_assert(vec->_l._data == NULL);                                             \
+        ulib_analyzer_assert(vec->_l._data == NULL);                                               \
         return (T *)vec->_s;                                                                       \
     }                                                                                              \
                                                                                                    \
@@ -277,7 +276,7 @@ typedef enum uvec_ret {
         if (p_uvec_is_large(T, vec)) {                                                             \
             vec->_l._count = count;                                                                \
         } else {                                                                                   \
-            p_ulib_analyzer_assert(vec->_l._data == NULL);                                         \
+            ulib_analyzer_assert(vec->_l._data == NULL);                                           \
             p_uvec_exp_set(T, vec, count);                                                         \
         }                                                                                          \
     }                                                                                              \
@@ -1120,7 +1119,7 @@ typedef enum uvec_ret {
  * @destructor{uvec_deinit}
  * @alias UVec(T) uvec(symbol T);
  */
-#define uvec(T) P_ULIB_MACRO_CONCAT(uvec_, T)()
+#define uvec(T) ULIB_MACRO_CONCAT(uvec_, T)()
 
 /**
  * Initializes a new vector by taking ownership of the specified array,
@@ -1136,7 +1135,7 @@ typedef enum uvec_ret {
  *       after calling this function as it may have been deallocated.
  * @alias UVec(T) uvec_assign(symbol T, T *array, ulib_uint count);
  */
-#define uvec_assign(T, array, count) P_ULIB_MACRO_CONCAT(uvec_assign_, T)(array, count)
+#define uvec_assign(T, array, count) ULIB_MACRO_CONCAT(uvec_assign_, T)(array, count)
 
 /**
  * Initializes a new vector by wrapping the specified array.
@@ -1153,7 +1152,7 @@ typedef enum uvec_ret {
  *       initialized with this function. It is up to you to avoid overflowing the underlying buffer.
  * @alias UVec(T) uvec_wrap(symbol T, T *array, ulib_uint count);
  */
-#define uvec_wrap(T, array, count) P_ULIB_MACRO_CONCAT(uvec_wrap_, T)(array, count)
+#define uvec_wrap(T, array, count) ULIB_MACRO_CONCAT(uvec_wrap_, T)(array, count)
 
 /**
  * De-initializes a vector previously initialized via @func{#uvec()}.
@@ -1163,7 +1162,7 @@ typedef enum uvec_ret {
  *
  * @alias void uvec_deinit(symbol T, UVec(T) *vec);
  */
-#define uvec_deinit(T, vec) P_ULIB_MACRO_CONCAT(uvec_deinit_, T)(vec)
+#define uvec_deinit(T, vec) ULIB_MACRO_CONCAT(uvec_deinit_, T)(vec)
 
 /**
  * Invalidates the vector and returns its storage.
@@ -1175,7 +1174,7 @@ typedef enum uvec_ret {
  * @destructor{uvec_deinit}
  * @alias UVec(T) uvec_move(symbol T, UVec(T) *vec);
  */
-#define uvec_move(T, vec) P_ULIB_MACRO_CONCAT(uvec_move_, T)(vec)
+#define uvec_move(T, vec) ULIB_MACRO_CONCAT(uvec_move_, T)(vec)
 
 /**
  * Copies the specified vector.
@@ -1187,7 +1186,7 @@ typedef enum uvec_ret {
  *
  * @alias uvec_ret uvec_copy(symbol T, UVec(T) const *src, UVec(T) *dest);
  */
-#define uvec_copy(T, src, dest) P_ULIB_MACRO_CONCAT(uvec_copy_, T)(src, dest)
+#define uvec_copy(T, src, dest) ULIB_MACRO_CONCAT(uvec_copy_, T)(src, dest)
 
 /**
  * Copies the elements of the specified vector into the given array.
@@ -1199,7 +1198,7 @@ typedef enum uvec_ret {
  * @note The array must be sufficiently large to hold all the elements.
  * @alias void uvec_copy_to_array(symbol T, UVec(T) const *vec, T *array);
  */
-#define uvec_copy_to_array(T, vec, array) P_ULIB_MACRO_CONCAT(uvec_copy_to_array_, T)(vec, array)
+#define uvec_copy_to_array(T, vec, array) ULIB_MACRO_CONCAT(uvec_copy_to_array_, T)(vec, array)
 
 /**
  * Ensures the specified vector can hold at least as many elements as `size`.
@@ -1211,7 +1210,7 @@ typedef enum uvec_ret {
  *
  * @alias uvec_ret uvec_reserve(symbol T, UVec(T) vec, ulib_uint size);
  */
-#define uvec_reserve(T, vec, size) P_ULIB_MACRO_CONCAT(uvec_reserve_, T)(vec, size)
+#define uvec_reserve(T, vec, size) ULIB_MACRO_CONCAT(uvec_reserve_, T)(vec, size)
 
 /**
  * Expands the specified vector so that it can contain additional `size` elements.
@@ -1223,7 +1222,7 @@ typedef enum uvec_ret {
  *
  * @alias uvec_ret uvec_expand(symbol T, UVec(T) *vec, ulib_uint size);
  */
-#define uvec_expand(T, vec, size) P_ULIB_MACRO_CONCAT(uvec_expand_, T)(vec, size)
+#define uvec_expand(T, vec, size) ULIB_MACRO_CONCAT(uvec_expand_, T)(vec, size)
 
 /**
  * Shrinks the specified vector so that its allocated size
@@ -1235,7 +1234,7 @@ typedef enum uvec_ret {
  *
  * @alias uvec_ret uvec_shrink(symbol T, UVec(T) *vec);
  */
-#define uvec_shrink(T, vec) P_ULIB_MACRO_CONCAT(uvec_shrink_, T)(vec)
+#define uvec_shrink(T, vec) ULIB_MACRO_CONCAT(uvec_shrink_, T)(vec)
 
 /**
  * Returns the raw array backing the vector.
@@ -1246,7 +1245,7 @@ typedef enum uvec_ret {
  *
  * @alias T *uvec_data(symbol T, UVec(T) const *vec);
  */
-#define uvec_data(T, vec) P_ULIB_MACRO_CONCAT(uvec_data_, T)(vec)
+#define uvec_data(T, vec) ULIB_MACRO_CONCAT(uvec_data_, T)(vec)
 
 /**
  * Retrieves the element at the specified index.
@@ -1292,7 +1291,7 @@ typedef enum uvec_ret {
  *
  * @alias T uvec_last(symbol T, UVec(T) const *vec);
  */
-#define uvec_last(T, vec) P_ULIB_MACRO_CONCAT(uvec_last_, T)(vec)
+#define uvec_last(T, vec) ULIB_MACRO_CONCAT(uvec_last_, T)(vec)
 
 /**
  * Returns the number of elements in the vector.
@@ -1303,7 +1302,7 @@ typedef enum uvec_ret {
  *
  * @alias ulib_uint uvec_count(symbol T, UVec(T) const *vec);
  */
-#define uvec_count(T, vec) P_ULIB_MACRO_CONCAT(uvec_count_, T)(vec)
+#define uvec_count(T, vec) ULIB_MACRO_CONCAT(uvec_count_, T)(vec)
 
 /**
  * Returns the maximum number of elements that can be held by the raw array backing the vector.
@@ -1314,7 +1313,7 @@ typedef enum uvec_ret {
  *
  * @alias ulib_uint uvec_size(symbol T, UVec(T) const *vec);
  */
-#define uvec_size(T, vec) P_ULIB_MACRO_CONCAT(uvec_size_, T)(vec)
+#define uvec_size(T, vec) ULIB_MACRO_CONCAT(uvec_size_, T)(vec)
 
 /**
  * Checks if the specified index is valid.
@@ -1338,7 +1337,7 @@ typedef enum uvec_ret {
  *
  * @alias uvec_ret uvec_push(symbol T, UVec(T) *vec, T item);
  */
-#define uvec_push(T, vec, item) P_ULIB_MACRO_CONCAT(uvec_push_, T)(vec, item)
+#define uvec_push(T, vec, item) ULIB_MACRO_CONCAT(uvec_push_, T)(vec, item)
 
 /**
  * Removes and returns the element at the top of the vector (last element).
@@ -1350,7 +1349,7 @@ typedef enum uvec_ret {
  *
  * @alias bool uvec_pop(symbol T, UVec(T) *vec, T *item);
  */
-#define uvec_pop(T, vec, item) P_ULIB_MACRO_CONCAT(uvec_pop_, T)(vec, item)
+#define uvec_pop(T, vec, item) ULIB_MACRO_CONCAT(uvec_pop_, T)(vec, item)
 
 /**
  * Removes the element at the specified index.
@@ -1374,7 +1373,7 @@ typedef enum uvec_ret {
  *
  * @alias uvec_ret uvec_insert_at(symbol T, UVec(T) *vec, ulib_uint idx, T item);
  */
-#define uvec_insert_at(T, vec, idx, item) P_ULIB_MACRO_CONCAT(uvec_insert_at_, T)(vec, idx, item)
+#define uvec_insert_at(T, vec, idx, item) ULIB_MACRO_CONCAT(uvec_insert_at_, T)(vec, idx, item)
 
 /**
  * Removes the elements in the specified range.
@@ -1386,8 +1385,7 @@ typedef enum uvec_ret {
  *
  * @alias void uvec_remove_range(symbol T, UVec(T) *vec, ulib_uint start, ulib_uint n);
  */
-#define uvec_remove_range(T, vec, start, n)                                                        \
-    P_ULIB_MACRO_CONCAT(uvec_remove_range_, T)(vec, start, n)
+#define uvec_remove_range(T, vec, start, n) ULIB_MACRO_CONCAT(uvec_remove_range_, T)(vec, start, n)
 
 /**
  * Inserts the elements contained in an array at the specified index.
@@ -1403,7 +1401,7 @@ typedef enum uvec_ret {
  *                                   ulib_uint start, ulib_uint n);
  */
 #define uvec_insert_range(T, vec, array, start, n)                                                 \
-    P_ULIB_MACRO_CONCAT(uvec_insert_range_, T)(vec, array, start, n)
+    ULIB_MACRO_CONCAT(uvec_insert_range_, T)(vec, array, start, n)
 
 /**
  * Removes all the elements in the vector.
@@ -1413,7 +1411,7 @@ typedef enum uvec_ret {
  *
  * @alias void uvec_remove_all(symbol T, UVec(T) *vec);
  */
-#define uvec_remove_all(T, vec) P_ULIB_MACRO_CONCAT(uvec_remove_all_, T)(vec)
+#define uvec_remove_all(T, vec) ULIB_MACRO_CONCAT(uvec_remove_all_, T)(vec)
 
 /**
  * Appends a vector to another.
@@ -1425,7 +1423,7 @@ typedef enum uvec_ret {
  *
  * @alias uvec_ret uvec_append(symbol T, UVec(T) *vec, UVec(T) const *src);
  */
-#define uvec_append(T, vec, src) P_ULIB_MACRO_CONCAT(uvec_append_, T)(vec, src)
+#define uvec_append(T, vec, src) ULIB_MACRO_CONCAT(uvec_append_, T)(vec, src)
 
 /**
  * Appends an array to the specified vector.
@@ -1438,8 +1436,7 @@ typedef enum uvec_ret {
  *
  * @alias uvec_ret uvec_append_array(symbol T, UVec(T) *vec, T const *array, ulib_uint n);
  */
-#define uvec_append_array(T, vec, array, n)                                                        \
-    P_ULIB_MACRO_CONCAT(uvec_append_array_, T)(vec, array, n)
+#define uvec_append_array(T, vec, array, n) ULIB_MACRO_CONCAT(uvec_append_array_, T)(vec, array, n)
 
 /**
  * Returns a view over a section of the specified vector.
@@ -1466,7 +1463,7 @@ typedef enum uvec_ret {
  * @note Views are affected by the same limitations as vectors created via @func{#uvec_wrap()}.
  * @alias UVec(T) uvec_view_from(symbol T, UVec(T) const *vec, ulib_uint start);
  */
-#define uvec_view_from(T, vec, start) P_ULIB_MACRO_CONCAT(uvec_view_from_, T)(vec, start)
+#define uvec_view_from(T, vec, start) ULIB_MACRO_CONCAT(uvec_view_from_, T)(vec, start)
 
 /**
  * Returns a view over a section of the specified vector.
@@ -1495,7 +1492,7 @@ typedef enum uvec_ret {
  *                                ulib_uint start, ulib_uint n);
  */
 #define uvec_set_range(T, vec, array, start, n)                                                    \
-    P_ULIB_MACRO_CONCAT(uvec_set_range_, T)(vec, array, start, n)
+    ULIB_MACRO_CONCAT(uvec_set_range_, T)(vec, array, start, n)
 
 /**
  * Reverses the vector.
@@ -1505,7 +1502,7 @@ typedef enum uvec_ret {
  *
  * @alias void uvec_reverse(symbol T, UVec(T) *vec);
  */
-#define uvec_reverse(T, vec) P_ULIB_MACRO_CONCAT(uvec_reverse_, T)(vec)
+#define uvec_reverse(T, vec) ULIB_MACRO_CONCAT(uvec_reverse_, T)(vec)
 
 /**
  * Randomly shuffles the elements of the vector.
@@ -1515,7 +1512,7 @@ typedef enum uvec_ret {
  *
  * @alias void uvec_shuffle(symbol T, UVec(T) *vec);
  */
-#define uvec_shuffle(T, vec) P_ULIB_MACRO_CONCAT(uvec_shuffle_, T)(vec)
+#define uvec_shuffle(T, vec) ULIB_MACRO_CONCAT(uvec_shuffle_, T)(vec)
 
 // clang-format off
 
@@ -1536,8 +1533,8 @@ typedef enum uvec_ret {
  * @param enum_name @type{symbol} Name of the variable holding the current item and its index.
  */
 #define uvec_foreach(T, vec, enum_name)                                                            \
-    for (P_ULIB_MACRO_CONCAT(UVec_Loop_, T) enum_name =                                            \
-         P_ULIB_MACRO_CONCAT(p_uvec_loop_init_, T)(vec);                                           \
+    for (ULIB_MACRO_CONCAT(UVec_Loop_, T) enum_name =                                              \
+         ULIB_MACRO_CONCAT(p_uvec_loop_init_, T)(vec);                                             \
          enum_name.i != enum_name.count; ++enum_name.item, ++enum_name.i)
 
 /**
@@ -1557,8 +1554,8 @@ typedef enum uvec_ret {
  * @param enum_name @type{symbol} Name of the variable holding the current item and its index.
  */
 #define uvec_foreach_reverse(T, vec, enum_name)                                                    \
-    for (P_ULIB_MACRO_CONCAT(UVec_Loop_, T) enum_name =                                            \
-         P_ULIB_MACRO_CONCAT(p_uvec_loop_reverse_init_, T)(vec);                                   \
+    for (ULIB_MACRO_CONCAT(UVec_Loop_, T) enum_name =                                              \
+         ULIB_MACRO_CONCAT(p_uvec_loop_reverse_init_, T)(vec);                                     \
          --enum_name.item, enum_name.i-- != 0;)
 
 /// @}
@@ -1580,7 +1577,7 @@ typedef enum uvec_ret {
  *
  * @alias ulib_uint uvec_index_of(symbol T, UVec(T) const *vec, T item);
  */
-#define uvec_index_of(T, vec, item) P_ULIB_MACRO_CONCAT(uvec_index_of_, T)(vec, item)
+#define uvec_index_of(T, vec, item) ULIB_MACRO_CONCAT(uvec_index_of_, T)(vec, item)
 
 /**
  * Returns the index of the last occurrence of the specified element.
@@ -1592,8 +1589,7 @@ typedef enum uvec_ret {
  *
  * @alias ulib_uint uvec_index_of_reverse(symbol T, UVec(T) const *vec, T item);
  */
-#define uvec_index_of_reverse(T, vec, item)                                                        \
-    P_ULIB_MACRO_CONCAT(uvec_index_of_reverse_, T)(vec, item)
+#define uvec_index_of_reverse(T, vec, item) ULIB_MACRO_CONCAT(uvec_index_of_reverse_, T)(vec, item)
 
 /**
  * Checks whether the vector contains the specified element.
@@ -1605,7 +1601,7 @@ typedef enum uvec_ret {
  *
  * @alias bool uvec_contains(symbol T, UVec(T) const *vec, T item);
  */
-#define uvec_contains(T, vec, item) P_ULIB_MACRO_CONCAT(uvec_contains_, T)(vec, item)
+#define uvec_contains(T, vec, item) ULIB_MACRO_CONCAT(uvec_contains_, T)(vec, item)
 
 /**
  * Removes the specified element.
@@ -1617,7 +1613,7 @@ typedef enum uvec_ret {
  *
  * @alias bool uvec_remove(symbol T, UVec(T) const *vec, T item);
  */
-#define uvec_remove(T, vec, item) P_ULIB_MACRO_CONCAT(uvec_remove_, T)(vec, item)
+#define uvec_remove(T, vec, item) ULIB_MACRO_CONCAT(uvec_remove_, T)(vec, item)
 
 /**
  * Checks whether the two vectors are equal.
@@ -1630,7 +1626,7 @@ typedef enum uvec_ret {
  *
  * @alias bool uvec_equals(symbol T, UVec(T) const *vec_a, UVec(T) const *vec_b);
  */
-#define uvec_equals(T, vec_a, vec_b) P_ULIB_MACRO_CONCAT(uvec_equals_, T)(vec_a, vec_b)
+#define uvec_equals(T, vec_a, vec_b) ULIB_MACRO_CONCAT(uvec_equals_, T)(vec_a, vec_b)
 
 /**
  * Pushes the specified element to the top of the vector if it does not already contain it.
@@ -1643,7 +1639,7 @@ typedef enum uvec_ret {
  *
  * @alias uvec_ret uvec_push_unique(symbol T, UVec(T) *vec, T item);
  */
-#define uvec_push_unique(T, vec, item) P_ULIB_MACRO_CONCAT(uvec_push_unique_, T)(vec, item)
+#define uvec_push_unique(T, vec, item) ULIB_MACRO_CONCAT(uvec_push_unique_, T)(vec, item)
 
 /// @}
 
@@ -1661,7 +1657,7 @@ typedef enum uvec_ret {
  *
  * @alias ulib_uint uvec_index_of_min(symbol T, UVec(T) const *vec);
  */
-#define uvec_index_of_min(T, vec) P_ULIB_MACRO_CONCAT(uvec_index_of_min_, T)(vec)
+#define uvec_index_of_min(T, vec) ULIB_MACRO_CONCAT(uvec_index_of_min_, T)(vec)
 
 /**
  * Returns the index of the maximum element in the vector.
@@ -1672,7 +1668,7 @@ typedef enum uvec_ret {
  *
  * @alias ulib_uint uvec_index_of_max(symbol T, UVec(T) const *vec);
  */
-#define uvec_index_of_max(T, vec) P_ULIB_MACRO_CONCAT(uvec_index_of_max_, T)(vec)
+#define uvec_index_of_max(T, vec) ULIB_MACRO_CONCAT(uvec_index_of_max_, T)(vec)
 
 /**
  * Sorts the vector.
@@ -1683,7 +1679,7 @@ typedef enum uvec_ret {
  *
  * @alias void uvec_sort(symbol T, UVec(T) *vec);
  */
-#define uvec_sort(T, vec) P_ULIB_MACRO_CONCAT(uvec_sort_, T)(vec)
+#define uvec_sort(T, vec) ULIB_MACRO_CONCAT(uvec_sort_, T)(vec)
 
 /**
  * Sorts the elements in the specified range.
@@ -1696,8 +1692,7 @@ typedef enum uvec_ret {
  *
  * @alias void uvec_sort_range(symbol T, UVec(T) *vec, ulib_uint start, ulib_uint len);
  */
-#define uvec_sort_range(T, vec, start, len)                                                        \
-    P_ULIB_MACRO_CONCAT(uvec_sort_range_, T)(vec, start, len)
+#define uvec_sort_range(T, vec, start, len) ULIB_MACRO_CONCAT(uvec_sort_range_, T)(vec, start, len)
 
 /**
  * Finds the insertion index for the specified item in a sorted vector.
@@ -1711,7 +1706,7 @@ typedef enum uvec_ret {
  * @alias ulib_uint uvec_insertion_index_sorted(symbol T, UVec(T) const *vec, T item);
  */
 #define uvec_insertion_index_sorted(T, vec, item)                                                  \
-    P_ULIB_MACRO_CONCAT(uvec_insertion_index_sorted_, T)(vec, item)
+    ULIB_MACRO_CONCAT(uvec_insertion_index_sorted_, T)(vec, item)
 
 /**
  * Returns the index of the specified element in a sorted vector.
@@ -1725,7 +1720,7 @@ typedef enum uvec_ret {
  * @note The returned index is not necessarily the first occurrence of the item.
  * @alias ulib_uint uvec_index_of_sorted(symbol T, UVec(T) const *vec, T item);
  */
-#define uvec_index_of_sorted(T, vec, item) P_ULIB_MACRO_CONCAT(uvec_index_of_sorted_, T)(vec, item)
+#define uvec_index_of_sorted(T, vec, item) ULIB_MACRO_CONCAT(uvec_index_of_sorted_, T)(vec, item)
 
 /**
  * Checks whether a sorted vector contains the specified element.
@@ -1738,7 +1733,7 @@ typedef enum uvec_ret {
  *
  * @alias bool uvec_contains_sorted(symbol T, UVec(T) const *vec, T item);
  */
-#define uvec_contains_sorted(T, vec, item) P_ULIB_MACRO_CONCAT(uvec_contains_sorted_, T)(vec, item)
+#define uvec_contains_sorted(T, vec, item) ULIB_MACRO_CONCAT(uvec_contains_sorted_, T)(vec, item)
 
 /**
  * Inserts the specified element in a sorted vector.
@@ -1752,7 +1747,7 @@ typedef enum uvec_ret {
  * @alias uvec_ret uvec_insert_sorted(symbol T, UVec(T) *vec, T item, ulib_uint *idx);
  */
 #define uvec_insert_sorted(T, vec, item, idx)                                                      \
-    P_ULIB_MACRO_CONCAT(uvec_insert_sorted_, T)(vec, item, idx)
+    ULIB_MACRO_CONCAT(uvec_insert_sorted_, T)(vec, item, idx)
 
 /**
  * Inserts the specified element in a sorted vector only if it does not already contain it.
@@ -1767,7 +1762,7 @@ typedef enum uvec_ret {
  * @alias uvec_ret uvec_insert_sorted_unique(symbol T, UVec(T) *vec, T item, ulib_uint *idx);
  */
 #define uvec_insert_sorted_unique(T, vec, item, idx)                                               \
-    P_ULIB_MACRO_CONCAT(uvec_insert_sorted_unique_, T)(vec, item, idx)
+    ULIB_MACRO_CONCAT(uvec_insert_sorted_unique_, T)(vec, item, idx)
 
 /**
  * Removes the specified element from a sorted vector.
@@ -1779,7 +1774,7 @@ typedef enum uvec_ret {
  *
  * @alias bool uvec_remove_sorted(symbol T, UVec(T) *vec, T item);
  */
-#define uvec_remove_sorted(T, vec, item) P_ULIB_MACRO_CONCAT(uvec_remove_sorted_, T)(vec, item)
+#define uvec_remove_sorted(T, vec, item) ULIB_MACRO_CONCAT(uvec_remove_sorted_, T)(vec, item)
 
 /// @}
 
@@ -1800,7 +1795,7 @@ typedef enum uvec_ret {
  *          - any non-empty vector that has been transformed into a heap through this function.
  * @alias void uvec_max_heapq_make(symbol T, UVec(T) *vec);
  */
-#define uvec_max_heapq_make(T, vec) P_ULIB_MACRO_CONCAT(uvec_max_heapq_make_, T)(vec)
+#define uvec_max_heapq_make(T, vec) ULIB_MACRO_CONCAT(uvec_max_heapq_make_, T)(vec)
 
 /**
  * Pushes the specified item into the max heap queue.
@@ -1813,7 +1808,7 @@ typedef enum uvec_ret {
  * @see @func{#uvec_max_heapq_make()}
  * @alias uvec_ret uvec_max_heapq_push(symbol T, UVec(T) *vec, T item);
  */
-#define uvec_max_heapq_push(T, vec, item) P_ULIB_MACRO_CONCAT(uvec_max_heapq_push_, T)(vec, item)
+#define uvec_max_heapq_push(T, vec, item) ULIB_MACRO_CONCAT(uvec_max_heapq_push_, T)(vec, item)
 
 /**
  * Removes and returns the maximum element from the queue.
@@ -1826,7 +1821,7 @@ typedef enum uvec_ret {
  * @see @func{#uvec_max_heapq_make()}
  * @alias bool uvec_max_heapq_pop(symbol T, UVec(T) *vec, T *item);
  */
-#define uvec_max_heapq_pop(T, vec, item) P_ULIB_MACRO_CONCAT(uvec_max_heapq_pop_, T)(vec, item)
+#define uvec_max_heapq_pop(T, vec, item) ULIB_MACRO_CONCAT(uvec_max_heapq_pop_, T)(vec, item)
 
 /**
  * Pushes `in` into the queue, and pops the maximum.
@@ -1841,7 +1836,7 @@ typedef enum uvec_ret {
  * @alias void uvec_max_heapq_push_pop(symbol T, UVec(T) *vec, T in, T *out);
  */
 #define uvec_max_heapq_push_pop(T, vec, in, out)                                                   \
-    P_ULIB_MACRO_CONCAT(uvec_max_heapq_push_pop_, T)(vec, in, out)
+    ULIB_MACRO_CONCAT(uvec_max_heapq_push_pop_, T)(vec, in, out)
 
 /**
  * Pops the maximum, and pushes `in` into the queue.
@@ -1858,7 +1853,7 @@ typedef enum uvec_ret {
  * @alias bool uvec_max_heapq_replace(symbol T, UVec(T) *vec, T in, T *out);
  */
 #define uvec_max_heapq_replace(T, vec, in, out)                                                    \
-    P_ULIB_MACRO_CONCAT(uvec_max_heapq_replace_, T)(vec, in, out)
+    ULIB_MACRO_CONCAT(uvec_max_heapq_replace_, T)(vec, in, out)
 
 /**
  * Removes the specified item from the queue.
@@ -1871,8 +1866,7 @@ typedef enum uvec_ret {
  * @see @func{#uvec_max_heapq_make()}
  * @alias bool uvec_max_heapq_remove(symbol T, UVec(T) *vec, T item);
  */
-#define uvec_max_heapq_remove(T, vec, item)                                                        \
-    P_ULIB_MACRO_CONCAT(uvec_max_heapq_remove_, T)(vec, item)
+#define uvec_max_heapq_remove(T, vec, item) ULIB_MACRO_CONCAT(uvec_max_heapq_remove_, T)(vec, item)
 
 /**
  * Makes the specified vector a min heap queue.
@@ -1887,7 +1881,7 @@ typedef enum uvec_ret {
  *
  * @alias void uvec_min_heapq_make(symbol T, UVec(T) *vec);
  */
-#define uvec_min_heapq_make(T, vec) P_ULIB_MACRO_CONCAT(uvec_min_heapq_make_, T)(vec)
+#define uvec_min_heapq_make(T, vec) ULIB_MACRO_CONCAT(uvec_min_heapq_make_, T)(vec)
 
 /**
  * Pushes the specified item into the min heap queue.
@@ -1900,7 +1894,7 @@ typedef enum uvec_ret {
  * @see @func{#uvec_min_heapq_make()}
  * @alias uvec_ret uvec_min_heapq_push(symbol T, UVec(T) *vec, T item);
  */
-#define uvec_min_heapq_push(T, vec, item) P_ULIB_MACRO_CONCAT(uvec_min_heapq_push_, T)(vec, item)
+#define uvec_min_heapq_push(T, vec, item) ULIB_MACRO_CONCAT(uvec_min_heapq_push_, T)(vec, item)
 
 /**
  * Removes and returns the minimum element from the queue.
@@ -1913,7 +1907,7 @@ typedef enum uvec_ret {
  * @see @func{#uvec_min_heapq_make()}
  * @alias bool uvec_min_heapq_pop(symbol T, UVec(T) *vec, T *item);
  */
-#define uvec_min_heapq_pop(T, vec, item) P_ULIB_MACRO_CONCAT(uvec_min_heapq_pop_, T)(vec, item)
+#define uvec_min_heapq_pop(T, vec, item) ULIB_MACRO_CONCAT(uvec_min_heapq_pop_, T)(vec, item)
 
 /**
  * Pushes `in` into the queue, and pops the minimum.
@@ -1928,7 +1922,7 @@ typedef enum uvec_ret {
  * @alias void uvec_min_heapq_push_pop(symbol T, UVec(T) *vec, T in, T *out);
  */
 #define uvec_min_heapq_push_pop(T, vec, in, out)                                                   \
-    P_ULIB_MACRO_CONCAT(uvec_min_heapq_push_pop_, T)(vec, in, out)
+    ULIB_MACRO_CONCAT(uvec_min_heapq_push_pop_, T)(vec, in, out)
 
 /**
  * Pops the minimum, and pushes `in` into the queue.
@@ -1945,7 +1939,7 @@ typedef enum uvec_ret {
  * @alias bool uvec_min_heapq_replace(symbol T, UVec(T) *vec, T in, T *out);
  */
 #define uvec_min_heapq_replace(T, vec, in, out)                                                    \
-    P_ULIB_MACRO_CONCAT(uvec_min_heapq_replace_, T)(vec, in, out)
+    ULIB_MACRO_CONCAT(uvec_min_heapq_replace_, T)(vec, in, out)
 
 /**
  * Removes the specified item from the queue.
@@ -1958,8 +1952,7 @@ typedef enum uvec_ret {
  * @see @func{#uvec_min_heapq_make()}
  * @alias bool uvec_min_heapq_remove(symbol T, UVec(T) *vec, T item);
  */
-#define uvec_min_heapq_remove(T, vec, item)                                                        \
-    P_ULIB_MACRO_CONCAT(uvec_min_heapq_remove_, T)(vec, item)
+#define uvec_min_heapq_remove(T, vec, item) ULIB_MACRO_CONCAT(uvec_min_heapq_remove_, T)(vec, item)
 
 /// @}
 
