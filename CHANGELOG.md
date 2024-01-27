@@ -5,6 +5,23 @@ All notable changes to uLib will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.5] - 2024-01-26
+### Added
+- Heap queue functionality (`uvec_max_heapq_*`, `uvec_min_heapq_*`).
+- `urand_float`, `urand_float_range`, `urand_shuffle`.
+- `uvec_shuffle`.
+- `ulib_analyzer_assert`.
+- `ULIB_MACRO_CONCAT`.
+
+### Changed
+- `uvec_pop` now accounts for empty vectors.
+- Improved portability of `ulib_stackalloc`.
+- Improved the documentation.
+- Reworked header structure.
+
+### Fixed
+- Ensure null-termination of strings returned by `ustrbuf_to_ustring`.
+
 ## [0.2.4] - 2023-12-14
 ### Added
 - `uvec_assign`, `uvec_wrap`, `uvec_remove_range`, `uvec_insert_range`.
@@ -184,6 +201,7 @@ uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Test utilities.
 - Miscellaneous helper macros.
 
+[0.2.5]: https://github.com/ivanobilenchi/ulib/compare/v0.2.4...v0.2.5
 [0.2.4]: https://github.com/ivanobilenchi/ulib/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/ivanobilenchi/ulib/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/ivanobilenchi/ulib/compare/v0.2.1...v0.2.2
