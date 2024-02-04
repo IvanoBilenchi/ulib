@@ -98,6 +98,43 @@
     #define ULIB_CONST
 #endif
 
+/**
+ * Marks deprecated APIs.
+ *
+ * Deprecated APIs are usually replaced by alternatives, and will be removed in later
+ * major versions of the library.
+ *
+ * @param msg Deprecation message.
+ * @def ULIB_DEPRECATED
+ */
+
+/**
+ * Marks deprecated macros.
+ *
+ * Deprecated macros are usually replaced by alternatives, and will be removed in later
+ * major versions of the library.
+ *
+ * @param msg Deprecation message.
+ * @def ULIB_DEPRECATED_MACRO
+ */
+
+#ifndef ULIB_NO_DEPRECATED
+#if defined(__GNUC__) || defined(__clang__)
+    #define ULIB_DEPRECATED(msg) __attribute__((__deprecated__(msg)))
+    #define P_ULIB_PRAGMA(msg) _Pragma(#msg)
+    #define ULIB_DEPRECATED_MACRO(msg) P_ULIB_PRAGMA(GCC warning "Deprecated. " msg)
+#elif defined(_MSC_VER)
+    #define ULIB_DEPRECATED(msg) __declspec(deprecated(msg))
+    #define ULIB_DEPRECATED_MACRO(msg) __pragma(message("Deprecated. " msg))
+#else
+    #define ULIB_DEPRECATED(msg)
+    #define ULIB_DEPRECATED_MACRO(msg)
+#endif
+#else
+    #define ULIB_DEPRECATED(msg)
+    #define ULIB_DEPRECATED_MACRO(msg)
+#endif
+
 /// Suppresses unused variable warnings.
 #if defined(__GNUC__) || defined(__clang__)
     #define ulib_unused __attribute__((__unused__))
