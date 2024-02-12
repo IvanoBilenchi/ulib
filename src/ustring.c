@@ -8,6 +8,7 @@
  */
 
 #include "ustring.h"
+#include "uhash_func.h"
 #include "ustrbuf.h"
 #include "uutils.h"
 
@@ -187,27 +188,18 @@ int ustring_compare(UString lhs, UString rhs) {
 }
 
 ulib_uint ustring_hash(UString string) {
-#define ulib_cstring_hash_range(HASH, STR, START, END)                                             \
-    do {                                                                                           \
-        for (ulib_uint i = (START); i < (END); ++i) {                                              \
-            (HASH) = ((HASH) << 5u) - (HASH) + (ulib_uint)(STR)[i];                                \
-        }                                                                                          \
-    } while (0)
-
     ulib_uint const length = ustring_length(string);
-    char const *cstr = ustring_data(string);
+    char const *buf = ustring_data(string);
 
     ulib_uint const part_size = 32;
     ulib_uint hash = length;
 
-    if (length <= 3 * part_size) {
-        ulib_cstring_hash_range(hash, cstr, 0, length);
+    if (length <= (part_size * 3)) {
+        hash = ustring_hash_func(hash, buf, length);
     } else {
-        ulib_uint const half_idx = length / 2;
-        ulib_uint const half_part_size = part_size / 2;
-        ulib_cstring_hash_range(hash, cstr, 0, part_size);
-        ulib_cstring_hash_range(hash, cstr, half_idx - half_part_size, half_idx + half_part_size);
-        ulib_cstring_hash_range(hash, cstr, length - part_size, length);
+        hash = ustring_hash_func(hash, buf, part_size);
+        hash = ustring_hash_func(hash, buf + ((length + part_size) >> 1U), part_size);
+        hash = ustring_hash_func(hash, buf + length - part_size, part_size);
     }
 
     return hash;

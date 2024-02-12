@@ -44,3 +44,5 @@ Other types
 
 .. doxygentypedef:: ulib_byte
 .. doxygentypedef:: ulib_ptr
+.. doxygengroup:: ulib_ptr
+   :content-only:

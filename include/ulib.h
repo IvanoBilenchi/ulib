@@ -17,6 +17,7 @@
 #include "ubit.h"
 #include "uhash.h"
 #include "uhash_builtin.h"
+#include "uhash_func.h"
 #include "ulib_ret.h"
 #include "umeta.h"
 #include "unumber.h"

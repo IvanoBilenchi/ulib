@@ -84,6 +84,21 @@ typedef struct UString {
  * @{
  */
 
+/**
+ * Low-level hash function used by @func{ustring_hash()}.
+ * Can be customized by setting the ``ustring_hash_func`` macro.
+ *
+ * @param init Hash initialization constant.
+ * @param buf Pointer to the start of the buffer.
+ * @param size Size of the buffer.
+ * @return Hash value.
+ *
+ * @alias ulib_uint ustring_hash_func(ulib_uint init, void const *buf, size_t size);
+ */
+#ifndef ustring_hash_func
+#define ustring_hash_func(init, buf, size) ulib_hash_mem_kr2(init, buf, size)
+#endif
+
 /// String with a NULL buffer.
 ULIB_API
 extern UString const ustring_null;

@@ -22,7 +22,7 @@
 #ifdef ULIB_LEAKS
 
 typedef void *AllocPtr;
-UHASH_INIT(AllocTable, AllocPtr, char *, uhash_ptr_hash, uhash_identical)
+UHASH_INIT(AllocTable, AllocPtr, char *, ulib_hash_alloc_ptr, ulib_equals)
 static UHash(AllocTable) *alloc_table = NULL;
 
 #define alloc_table_add(PTR, FILE, FN, LINE)                                                       \

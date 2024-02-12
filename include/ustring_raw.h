@@ -70,6 +70,19 @@ char ulib_char_to_lower(char c) {
 }
 
 /**
+ * Checks whether two strings are equal.
+ *
+ * @param lhs First string.
+ * @param rhs Second string.
+ * @return True if the two strings are equal, false otherwise.
+ */
+ULIB_PURE
+ULIB_INLINE
+bool ulib_str_equals(char const *lhs, char const *rhs) {
+    return strcmp(lhs, rhs) == 0;
+}
+
+/**
  * Duplicates the specified string.
  *
  * @param string String to duplicate.

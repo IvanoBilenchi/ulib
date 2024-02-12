@@ -498,6 +498,17 @@ bool ulib_uint_is_pow2(ulib_uint x) {
  */
 
 /**
+ * Checks if two numbers are equal.
+ *
+ * @param a First number.
+ * @param b Second number.
+ * @return a == b.
+ *
+ * @alias bool ulib_equals(T a, T b);
+ */
+#define ulib_equals(a, b) ((a) == (b))
+
+/**
  * Returns the minimum between two numbers.
  *
  * @param a First number.

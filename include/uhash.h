@@ -14,6 +14,7 @@
 #ifndef UHASH_H
 #define UHASH_H
 
+#include "uhash_func.h"
 #include "ustd.h"
 
 // Types
@@ -115,27 +116,6 @@ typedef enum uhash_ret {
 
 /// @}
 
-// uhash_combine_hash constants.
-#if ULIB_TINY
-
-#define P_UHASH_COMBINE_MAGIC 0x9e37U
-#define P_UHASH_COMBINE_LS 3U
-#define P_UHASH_COMBINE_RS 1U
-
-#elif ULIB_HUGE
-
-#define P_UHASH_COMBINE_MAGIC 0x9e3779b97f4a7c15LLU
-#define P_UHASH_COMBINE_LS 12U
-#define P_UHASH_COMBINE_RS 4U
-
-#else
-
-#define P_UHASH_COMBINE_MAGIC 0x9e3779b9U
-#define P_UHASH_COMBINE_LS 6U
-#define P_UHASH_COMBINE_RS 2U
-
-#endif
-
 // Flags manipulation macros.
 #define p_uhf_size(m) ((m) < 16 ? 1 : (m) >> 4U)
 #define p_uhf_isempty(flag, i) (((flag)[(i) >> 4U] >> (((i) & 0xfU) << 1U)) & 2U)
@@ -155,71 +135,6 @@ typedef enum uhash_ret {
  * @alias ulib_uint p_uhash_upper_bound(ulib_uint buckets);
  */
 #define p_uhash_upper_bound(buckets) ((ulib_uint)((buckets) * UHASH_MAX_LOAD + 0.5))
-
-/*
- * Combines two hashes.
- *
- * @param h1 First hash.
- * @param h2 Second hash.
- * @return Combined hash.
- */
-ULIB_CONST
-ULIB_INLINE
-ulib_uint p_uhash_combine(ulib_uint h1, ulib_uint h2) {
-    return (h1 ^ h2) + P_UHASH_COMBINE_MAGIC + (h1 << P_UHASH_COMBINE_LS) +
-           (h2 >> P_UHASH_COMBINE_RS);
-}
-
-/*
- * Karl Nelson <kenelson@ece.ucdavis.edu>'s X31 string hash function.
- *
- * @param key The string to hash.
- * @return The hash value.
- */
-ULIB_PURE
-ULIB_INLINE
-ulib_uint p_uhash_x31_str_hash(char const *key) {
-    ulib_uint h = (ulib_uint)*key;
-    if (!h) return 0;
-    for (++key; *key; ++key) h = (h << 5U) - h + (ulib_uint)(*key);
-    return h;
-}
-
-#define p_uhash_cast_hash(key) (ulib_uint)(key)
-#define p_uhash_int8_hash(key) p_uhash_cast_hash(key)
-#define p_uhash_int16_hash(key) p_uhash_cast_hash(key)
-
-#if defined ULIB_TINY
-
-ULIB_CONST
-ULIB_INLINE
-ulib_uint p_uhash_int32_hash(uint32_t key) {
-    return (ulib_uint)(key >> 17U ^ key ^ key << 6U);
-}
-
-ULIB_CONST
-ULIB_INLINE
-ulib_uint p_uhash_int64_hash(uint64_t key) {
-    return (ulib_uint)(key >> 49U ^ key >> 33U ^ key >> 17U ^ key ^ key << 6U ^ key << 23U ^
-                       key << 39U);
-}
-
-#elif defined ULIB_HUGE
-
-#define p_uhash_int32_hash(key) p_uhash_cast_hash(key)
-#define p_uhash_int64_hash(key) p_uhash_cast_hash(key)
-
-#else
-
-#define p_uhash_int32_hash(key) p_uhash_cast_hash(key)
-
-ULIB_CONST
-ULIB_INLINE
-ulib_uint p_uhash_int64_hash(uint64_t key) {
-    return (ulib_uint)(key >> 33U ^ key ^ key << 11U);
-}
-
-#endif
 
 #define P_UHASH_DEF_TYPE_HEAD(T, uh_key, uh_val)                                                   \
     typedef struct UHash_##T {                                                                     \
@@ -941,9 +856,11 @@ ulib_uint p_uhash_int64_hash(uint64_t key) {
  * @param b RHS of the identity.
  * @return a == b
  *
+ * @deprecated Use @func{ulib_equals()} instead.
  * @alias bool uhash_identical(T a, T b);
  */
-#define uhash_identical(a, b) ((a) == (b))
+#define uhash_identical(a, b)                                                                      \
+    ULIB_DEPRECATED_MACRO("Use ulib_equals instead.") (a) == (b))
 
 /**
  * Equality function for strings.
@@ -952,9 +869,11 @@ ulib_uint p_uhash_int64_hash(uint64_t key) {
  * @param b RHS of the equality relation (NULL terminated string).
  * @return True if a is equal to b, false otherwise.
  *
+ * @deprecated Use @func{ulib_str_equals()} instead.
  * @alias bool uhash_str_equals(char const *a, char const *b);
  */
-#define uhash_str_equals(a, b) (strcmp(a, b) == 0)
+#define uhash_str_equals(a, b)                                                                     \
+    ULIB_DEPRECATED_MACRO("Use ulib_str_equals instead.")(strcmp(a, b) == 0)
 
 /**
  * Hash function for 8 bit integers.
@@ -962,9 +881,11 @@ ulib_uint p_uhash_int64_hash(uint64_t key) {
  * @param key The integer.
  * @return The hash value.
  *
+ * @deprecated Use @func{ulib_hash_int8()} instead.
  * @alias ulib_uint uhash_int8_hash(uint8_t key);
  */
-#define uhash_int8_hash(key) p_uhash_int8_hash(key)
+#define uhash_int8_hash(key)                                                                       \
+    ULIB_DEPRECATED_MACRO("Use ulib_hash_int8 instead.") ulib_hash_int8(key)
 
 /**
  * Hash function for 16 bit integers.
@@ -972,9 +893,11 @@ ulib_uint p_uhash_int64_hash(uint64_t key) {
  * @param key The integer.
  * @return The hash value.
  *
+ * @deprecated Use @func{ulib_hash_int16()} instead.
  * @alias ulib_uint uhash_int16_hash(uint16_t key);
  */
-#define uhash_int16_hash(key) p_uhash_int16_hash(key)
+#define uhash_int16_hash(key)                                                                      \
+    ULIB_DEPRECATED_MACRO("Use ulib_hash_int16 instead.") ulib_hash_int16(key)
 
 /**
  * Hash function for 32 bit integers.
@@ -982,9 +905,11 @@ ulib_uint p_uhash_int64_hash(uint64_t key) {
  * @param key The integer.
  * @return The hash value.
  *
+ * @deprecated Use @func{ulib_hash_int32()} instead.
  * @alias ulib_uint uhash_int32_hash(uint32_t key);
  */
-#define uhash_int32_hash(key) p_uhash_int32_hash(key)
+#define uhash_int32_hash(key)                                                                      \
+    ULIB_DEPRECATED_MACRO("Use ulib_hash_int32 instead.") ulib_hash_int32(key)
 
 /**
  * Hash function for 64 bit integers.
@@ -992,19 +917,11 @@ ulib_uint p_uhash_int64_hash(uint64_t key) {
  * @param key The integer.
  * @return The hash value.
  *
+ * @deprecated Use @func{ulib_hash_int64()} instead.
  * @alias ulib_uint uhash_int64_hash(uint64_t key);
  */
-#define uhash_int64_hash(key) p_uhash_int64_hash(key)
-
-/**
- * Hash function for strings.
- *
- * @param key Pointer to a NULL-terminated string.
- * @return The hash value.
- *
- * @alias ulib_uint uhash_str_hash(char const *key);
- */
-#define uhash_str_hash(key) p_uhash_x31_str_hash(key)
+#define uhash_int64_hash(key)                                                                      \
+    ULIB_DEPRECATED_MACRO("Use ulib_hash_int64 instead.") ulib_hash_int64(key)
 
 /**
  * Hash function for pointers.
@@ -1012,13 +929,11 @@ ulib_uint p_uhash_int64_hash(uint64_t key) {
  * @param key The pointer.
  * @return The hash value.
  *
+ * @deprecated Use @func{ulib_hash_ptr()} or @func{ulib_hash_alloc_ptr()} instead.
  * @alias ulib_uint uhash_ptr_hash(T *key);
  */
-#if UINTPTR_MAX <= 0xffffffff
-#define uhash_ptr_hash(key) p_uhash_int32_hash((uint32_t)(key))
-#else
-#define uhash_ptr_hash(key) p_uhash_int64_hash((uint64_t)(key))
-#endif
+#define uhash_ptr_hash(key)                                                                        \
+    ULIB_DEPRECATED_MACRO("Use ulib_hash_ptr or ulib_hash_alloc_ptr instead.") ulib_hash_ptr(key)
 
 /**
  * Combines two hashes.
@@ -1027,9 +942,11 @@ ulib_uint p_uhash_int64_hash(uint64_t key) {
  * @param hash_2 Second hash.
  * @return The hash value.
  *
+ * @deprecated Use @func{ulib_hash_combine()} instead.
  * @alias ulib_uint uhash_combine_hash(ulib_uint hash_1, ulib_uint hash_2);
  */
-#define uhash_combine_hash(hash_1, hash_2) p_uhash_combine(hash_1, hash_2)
+#define uhash_combine_hash(hash_1, hash_2)                                                         \
+    ULIB_DEPRECATED_MACRO("Use ulib_hash_combine instead.") ulib_hash_combine(hash_1, hash_2)
 
 /**
  * Deinitializes the specified hash table.

@@ -32,6 +32,12 @@ Constants
 .. doxygengroup:: UHash_constants
    :content-only:
 
+Hash functions
+==============
+
+.. doxygengroup:: UHash_func
+   :content-only:
+
 Defining new hash table types
 =============================
 

@@ -12,11 +12,11 @@
 
 #define MAX_VAL 100
 
-UHASH_INIT(IntHash, uint32_t, uint32_t, uhash_int32_hash, uhash_identical)
+UHASH_INIT(IntHash, uint32_t, uint32_t, ulib_hash_int32, ulib_equals)
 UHASH_INIT_PI(IntHashPi, uint32_t, uint32_t, NULL, NULL)
 
 static ulib_uint int32_hash(uint32_t num) {
-    return uhash_int32_hash(num);
+    return ulib_hash_int32(num);
 }
 
 static bool int32_eq(uint32_t lhs, uint32_t rhs) {

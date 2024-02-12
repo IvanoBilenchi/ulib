@@ -9,7 +9,7 @@
 
 #include "uhash_builtin.h"
 
-UHASH_IMPL(ulib_int, p_uhash_cast_hash, uhash_identical)
-UHASH_IMPL(ulib_uint, p_uhash_cast_hash, uhash_identical)
-UHASH_IMPL(ulib_ptr, uhash_ptr_hash, uhash_identical)
+UHASH_IMPL(ulib_int, ulib_hash_int, ulib_equals)
+UHASH_IMPL(ulib_uint, ulib_hash_int, ulib_equals)
+UHASH_IMPL(ulib_ptr, ulib_hash_alloc_ptr, ulib_equals)
 UHASH_IMPL(UString, ustring_hash, ustring_equals)
