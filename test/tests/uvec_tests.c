@@ -72,7 +72,7 @@ bool uvec_test_base(void) {
     uvec_reverse(VTYPE, &v);
     uvec_assert_elements(VTYPE, &v, 1, 5, 4, 3);
 
-    uvec_remove_all(VTYPE, &v);
+    uvec_clear(VTYPE, &v);
     utest_assert_uint(uvec_count(VTYPE, &v), ==, 0);
 
     uvec_append_items(VTYPE, &v, 1, 2, 3, 4, 5);
@@ -82,7 +82,7 @@ bool uvec_test_base(void) {
     uvec_unordered_remove_at(VTYPE, &v, 1);
     uvec_assert_elements(VTYPE, &v, 1, 4, 3);
 
-    uvec_remove_all(VTYPE, &v);
+    uvec_clear(VTYPE, &v);
     uvec_append_items(VTYPE, &v, 1, 2, 3, 4, 5);
     uvec_unordered_remove_range(VTYPE, &v, 0, 2);
     uvec_assert_elements(VTYPE, &v, 4, 5, 3);
@@ -112,7 +112,7 @@ bool uvec_test_range(void) {
     uvec_assert_elements(VTYPE, &v, 6, 7, 7, 6, 7);
 
     // uvec_insert_range
-    uvec_remove_all(VTYPE, &v);
+    uvec_clear(VTYPE, &v);
     uvec_append_items(VTYPE, &v, 1, 2, 3, 4, 5);
     ret = uvec_insert_range(VTYPE, &v, items, 2, ulib_array_count(items));
     utest_assert(ret == UVEC_OK);
@@ -152,7 +152,7 @@ bool uvec_test_capacity(void) {
     utest_assert(ret == UVEC_OK);
     utest_assert(p_uvec_is_large(VTYPE, &v));
     utest_assert_false(p_uvec_is_small(VTYPE, &v));
-    uvec_remove_all(VTYPE, &v);
+    uvec_clear(VTYPE, &v);
 
     ulib_uint const capacity = 10;
     ret = uvec_reserve(VTYPE, &v, capacity);
@@ -174,7 +174,7 @@ bool uvec_test_capacity(void) {
     utest_assert(p_uvec_is_compact(VTYPE, &v));
     utest_assert_uint(uvec_size(VTYPE, &v), ==, uvec_count(VTYPE, &v));
 
-    uvec_remove_all(VTYPE, &v);
+    uvec_clear(VTYPE, &v);
     utest_assert_uint(uvec_count(VTYPE, &v), ==, 0);
 
     ret = uvec_shrink(VTYPE, &v);
@@ -294,7 +294,7 @@ bool uvec_test_comparable(void) {
     utest_assert_uint(uvec_sorted_index_of(VTYPE, &v, 3), ==, 4);
     utest_assert_false(uvec_index_is_valid(VTYPE, &v, uvec_sorted_index_of(VTYPE, &v, 7)));
 
-    uvec_remove_all(VTYPE, &v);
+    uvec_clear(VTYPE, &v);
 
     uvec_foreach (VTYPE, &values, loop) {
         if (!uvec_contains(VTYPE, &v, *loop.item)) {
@@ -333,7 +333,7 @@ bool uvec_test_comparable(void) {
     utest_assert_uint(idx, ==, 3);
 
     // uvec_insertion_index_sorted with binary search
-    uvec_remove_all(VTYPE, &v);
+    uvec_clear(VTYPE, &v);
     ulib_uint const last = UVEC_BINARY_SEARCH_THRESH * 2;
     for (VTYPE i = 0; i < last; ++i) {
         uvec_push(VTYPE, &v, i);
@@ -376,7 +376,7 @@ bool uvec_test_sort(void) {
         array[i] = urand() % 10;
     }
 
-    uvec_remove_all(VTYPE, &v);
+    uvec_clear(VTYPE, &v);
     uvec_append_array(VTYPE, &v, array, SORT_COUNT);
     qsort(array, SORT_COUNT, sizeof(*array), vtype_compare);
     uvec_sort(VTYPE, &v);

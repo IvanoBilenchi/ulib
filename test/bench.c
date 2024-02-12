@@ -77,7 +77,7 @@ static void sort_small(void) {
             uvec_push(ulib_int, &v, urand());
         }
         uvec_sort(ulib_int, &v);
-        uvec_remove_all(ulib_int, &v);
+        uvec_clear(ulib_int, &v);
     }
     uvec_sort_ns = utime_get_ns() - uvec_sort_ns;
 
@@ -137,7 +137,7 @@ static void sort_large_repeated(void) {
         array[i] = urand() % 100;
     }
 
-    uvec_remove_all(ulib_int, &v);
+    uvec_clear(ulib_int, &v);
     uvec_append_array(ulib_int, &v, array, SORT_COUNT_LARGE);
 
     utime_ns qsort_ns = utime_get_ns();
@@ -178,7 +178,7 @@ static void sorted_insertion_small(void) {
         for (ulib_uint j = 0; j < INSERT_COUNT_SMALL; ++j) {
             uvec_sorted_insert(ulib_int, &v, urand(), NULL);
         }
-        uvec_remove_all(ulib_int, &v);
+        uvec_clear(ulib_int, &v);
     }
     ns = utime_get_ns() - ns;
     print_result((Result){ "Sorted insertion in small arrays", ns });

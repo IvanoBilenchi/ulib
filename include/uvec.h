@@ -183,7 +183,6 @@ typedef enum uvec_ret {
     ATTRS uvec_ret uvec_insert_range_##T(UVec(T) *vec, T const *array, ulib_uint start,            \
                                          ulib_uint n);                                             \
     ATTRS void uvec_unordered_remove_range_##T(UVec(T) *vec, ulib_uint start, ulib_uint n);        \
-    ATTRS void uvec_remove_all_##T(UVec(T) *vec);                                                  \
     ATTRS void uvec_reverse_##T(UVec(T) *vec);                                                     \
     ATTRS void uvec_shuffle_##T(UVec(T) *vec);                                                     \
     /** @endcond */
@@ -287,6 +286,10 @@ typedef enum uvec_ret {
         T *const data = uvec_data(T, vec);                                                         \
         data[idx] = data[--count];                                                                 \
         p_uvec_set_count_##T(vec, count);                                                          \
+    }                                                                                              \
+                                                                                                   \
+    ATTRS ULIB_INLINE void uvec_clear_##T(UVec(T) *vec) {                                          \
+        p_uvec_set_count_##T(vec, 0);                                                              \
     }                                                                                              \
                                                                                                    \
     ATTRS ULIB_PURE ULIB_INLINE UVec_Loop_##T p_uvec_loop_init_##T(UVec(T) const *vec) {           \
@@ -547,10 +550,6 @@ typedef enum uvec_ret {
         T *const data = uvec_data(T, vec);                                                         \
         memcpy(data + start, data + count - n, n * sizeof(T));                                     \
         p_uvec_set_count_##T(vec, count - n);                                                      \
-    }                                                                                              \
-                                                                                                   \
-    ATTRS void uvec_remove_all_##T(UVec(T) *vec) {                                                 \
-        p_uvec_set_count_##T(vec, 0);                                                              \
     }                                                                                              \
                                                                                                    \
     ATTRS void uvec_reverse_##T(UVec(T) *vec) {                                                    \
@@ -1469,9 +1468,20 @@ typedef enum uvec_ret {
  * @param T Vector type.
  * @param vec Vector instance.
  *
+ * @alias void uvec_clear(symbol T, UVec(T) *vec);
+ */
+#define uvec_clear(T, vec) ULIB_MACRO_CONCAT(uvec_clear_, T)(vec)
+
+/**
+ * Removes all the elements in the vector.
+ *
+ * @param T Vector type.
+ * @param vec Vector instance.
+ *
+ * @deprecated Use @func{uvec_clear()} instead.
  * @alias void uvec_remove_all(symbol T, UVec(T) *vec);
  */
-#define uvec_remove_all(T, vec) ULIB_MACRO_CONCAT(uvec_remove_all_, T)(vec)
+#define uvec_remove_all(T, vec) ULIB_DEPRECATED_MACRO("Use uvec_clear instead.") uvec_clear(T, vec)
 
 /**
  * Appends a vector to another.
