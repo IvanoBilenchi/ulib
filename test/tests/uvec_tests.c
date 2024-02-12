@@ -75,6 +75,24 @@ bool uvec_test_base(void) {
     uvec_remove_all(VTYPE, &v);
     utest_assert_uint(uvec_count(VTYPE, &v), ==, 0);
 
+    uvec_append_items(VTYPE, &v, 1, 2, 3, 4, 5);
+    uvec_unordered_remove_at(VTYPE, &v, 4);
+    uvec_assert_elements(VTYPE, &v, 1, 2, 3, 4);
+
+    uvec_unordered_remove_at(VTYPE, &v, 1);
+    uvec_assert_elements(VTYPE, &v, 1, 4, 3);
+
+    uvec_remove_all(VTYPE, &v);
+    uvec_append_items(VTYPE, &v, 1, 2, 3, 4, 5);
+    uvec_unordered_remove_range(VTYPE, &v, 0, 2);
+    uvec_assert_elements(VTYPE, &v, 4, 5, 3);
+
+    uvec_unordered_remove_range(VTYPE, &v, 0, 2);
+    uvec_assert_elements(VTYPE, &v, 3);
+
+    uvec_unordered_remove_range(VTYPE, &v, 0, 1);
+    utest_assert_uint(uvec_count(VTYPE, &v), ==, 0);
+
     uvec_deinit(VTYPE, &v);
     return true;
 }
