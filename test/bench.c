@@ -176,7 +176,7 @@ static void sorted_insertion_small(void) {
     utime_ns ns = utime_get_ns();
     for (ulib_uint i = 0; i < INSERT_COUNT_LARGE; ++i) {
         for (ulib_uint j = 0; j < INSERT_COUNT_SMALL; ++j) {
-            uvec_insert_sorted(ulib_int, &v, urand(), NULL);
+            uvec_sorted_insert(ulib_int, &v, urand(), NULL);
         }
         uvec_remove_all(ulib_int, &v);
     }
@@ -191,7 +191,7 @@ static void sorted_insertion_large(void) {
 
     utime_ns ns = utime_get_ns();
     for (ulib_uint i = 0; i < INSERT_COUNT_LARGE; ++i) {
-        uvec_insert_sorted(ulib_int, &v, urand(), NULL);
+        uvec_sorted_insert(ulib_int, &v, urand(), NULL);
     }
     ns = utime_get_ns() - ns;
     print_result((Result){ "Sorted insertion in large array", ns });
@@ -225,7 +225,7 @@ static void heap_queue(void) {
 
     ns = utime_get_ns();
     uvec_foreach (ulib_int, &items, e) {
-        uvec_insert_sorted(ulib_int, &sorted, *e.item, NULL);
+        uvec_sorted_insert(ulib_int, &sorted, *e.item, NULL);
     }
     ns = utime_get_ns() - ns;
     print_result((Result){ "Sorted array push", ns });

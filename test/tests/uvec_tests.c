@@ -256,7 +256,7 @@ bool uvec_test_contains(void) {
 
 bool uvec_test_comparable(void) {
     UVec(VTYPE) v = uvec(VTYPE);
-    utest_assert_uint(uvec_insertion_index_sorted(VTYPE, &v, 0), ==, 0);
+    utest_assert_uint(uvec_sorted_insertion_index(VTYPE, &v, 0), ==, 0);
 
     UVec(VTYPE) values = uvec(VTYPE);
     uvec_append_items(VTYPE, &values, 3, 2, 2, 2, 4, 1, 5, 6, 5);
@@ -271,10 +271,10 @@ bool uvec_test_comparable(void) {
 
     uvec_sort(VTYPE, &v);
     uvec_assert_elements(VTYPE, &v, 1, 2, 2, 2, 3, 4, 5, 5, 6);
-    utest_assert(uvec_contains_sorted(VTYPE, &v, 6));
-    utest_assert_false(uvec_contains_sorted(VTYPE, &v, -1));
-    utest_assert_uint(uvec_index_of_sorted(VTYPE, &v, 3), ==, 4);
-    utest_assert_false(uvec_index_is_valid(VTYPE, &v, uvec_index_of_sorted(VTYPE, &v, 7)));
+    utest_assert(uvec_sorted_contains(VTYPE, &v, 6));
+    utest_assert_false(uvec_sorted_contains(VTYPE, &v, -1));
+    utest_assert_uint(uvec_sorted_index_of(VTYPE, &v, 3), ==, 4);
+    utest_assert_false(uvec_index_is_valid(VTYPE, &v, uvec_sorted_index_of(VTYPE, &v, 7)));
 
     uvec_remove_all(VTYPE, &v);
 
@@ -286,30 +286,30 @@ bool uvec_test_comparable(void) {
     }
 
     uvec_sort(VTYPE, &v);
-    utest_assert(uvec_remove_sorted(VTYPE, &v, 4));
+    utest_assert(uvec_sorted_remove(VTYPE, &v, 4));
     uvec_assert_elements(VTYPE, &v, 1, 2, 3, 5, 6);
-    utest_assert_false(uvec_remove_sorted(VTYPE, &v, 7));
+    utest_assert_false(uvec_sorted_remove(VTYPE, &v, 7));
 
-    utest_assert_uint(uvec_insertion_index_sorted(VTYPE, &v, 1), ==, 0);
-    utest_assert_uint(uvec_insertion_index_sorted(VTYPE, &v, 2), ==, 1);
-    utest_assert_uint(uvec_insertion_index_sorted(VTYPE, &v, 6), ==, 4);
+    utest_assert_uint(uvec_sorted_insertion_index(VTYPE, &v, 1), ==, 0);
+    utest_assert_uint(uvec_sorted_insertion_index(VTYPE, &v, 2), ==, 1);
+    utest_assert_uint(uvec_sorted_insertion_index(VTYPE, &v, 6), ==, 4);
 
     ulib_uint idx;
-    uvec_insert_sorted(VTYPE, &v, 0, &idx);
+    uvec_sorted_insert(VTYPE, &v, 0, &idx);
     uvec_assert_elements(VTYPE, &v, 0, 1, 2, 3, 5, 6);
     utest_assert_uint(idx, ==, 0);
 
-    uvec_insert_sorted(VTYPE, &v, 3, &idx);
+    uvec_sorted_insert(VTYPE, &v, 3, &idx);
     uvec_assert_elements(VTYPE, &v, 0, 1, 2, 3, 3, 5, 6);
     utest_assert_uint(idx, ==, 3);
-    utest_assert_uint(uvec_insertion_index_sorted(VTYPE, &v, 3), ==, 3);
+    utest_assert_uint(uvec_sorted_insertion_index(VTYPE, &v, 3), ==, 3);
 
-    ret = uvec_insert_sorted_unique(VTYPE, &v, 7, &idx);
+    ret = uvec_sorted_unique_insert(VTYPE, &v, 7, &idx);
     uvec_assert_elements(VTYPE, &v, 0, 1, 2, 3, 3, 5, 6, 7);
     utest_assert(ret == UVEC_OK);
     utest_assert_uint(idx, ==, 7);
 
-    ret = uvec_insert_sorted_unique(VTYPE, &v, 3, &idx);
+    ret = uvec_sorted_unique_insert(VTYPE, &v, 3, &idx);
     uvec_assert_elements(VTYPE, &v, 0, 1, 2, 3, 3, 5, 6, 7);
     utest_assert(ret == UVEC_NO);
     utest_assert_uint(idx, ==, 3);
@@ -320,9 +320,9 @@ bool uvec_test_comparable(void) {
     for (VTYPE i = 0; i < last; ++i) {
         uvec_push(VTYPE, &v, i);
     }
-    utest_assert_uint(uvec_insertion_index_sorted(VTYPE, &v, 0), ==, 0);
-    utest_assert_uint(uvec_insertion_index_sorted(VTYPE, &v, last / 2), ==, last / 2);
-    utest_assert_uint(uvec_insertion_index_sorted(VTYPE, &v, last + 1), ==, last);
+    utest_assert_uint(uvec_sorted_insertion_index(VTYPE, &v, 0), ==, 0);
+    utest_assert_uint(uvec_sorted_insertion_index(VTYPE, &v, last / 2), ==, last / 2);
+    utest_assert_uint(uvec_sorted_insertion_index(VTYPE, &v, last + 1), ==, last);
 
     uvec_deinit(VTYPE, &v);
     uvec_deinit(VTYPE, &values);

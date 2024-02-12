@@ -332,11 +332,11 @@ typedef enum uvec_ret {
     ATTRS ULIB_PURE ulib_uint uvec_index_of_min_##T(UVec(T) const *vec);                           \
     ATTRS ULIB_PURE ulib_uint uvec_index_of_max_##T(UVec(T) const *vec);                           \
     ATTRS void uvec_sort_range_##T(UVec(T) *vec, ulib_uint start, ulib_uint len);                  \
-    ATTRS ULIB_PURE ulib_uint uvec_insertion_index_sorted_##T(UVec(T) const *vec, T item);         \
-    ATTRS ULIB_PURE ulib_uint uvec_index_of_sorted_##T(UVec(T) const *vec, T item);                \
-    ATTRS uvec_ret uvec_insert_sorted_##T(UVec(T) *vec, T item, ulib_uint *idx);                   \
-    ATTRS uvec_ret uvec_insert_sorted_unique_##T(UVec(T) *vec, T item, ulib_uint *idx);            \
-    ATTRS bool uvec_remove_sorted_##T(UVec(T) *vec, T item);                                       \
+    ATTRS ULIB_PURE ulib_uint uvec_sorted_insertion_index_##T(UVec(T) const *vec, T item);         \
+    ATTRS ULIB_PURE ulib_uint uvec_sorted_index_of_##T(UVec(T) const *vec, T item);                \
+    ATTRS uvec_ret uvec_sorted_insert_##T(UVec(T) *vec, T item, ulib_uint *idx);                   \
+    ATTRS uvec_ret uvec_sorted_unique_insert_##T(UVec(T) *vec, T item, ulib_uint *idx);            \
+    ATTRS bool uvec_sorted_remove_##T(UVec(T) *vec, T item);                                       \
     /** @endcond */
 
 /*
@@ -378,8 +378,8 @@ typedef enum uvec_ret {
         uvec_sort_range(T, vec, 0, uvec_count(T, vec));                                            \
     }                                                                                              \
                                                                                                    \
-    ATTRS ULIB_PURE ULIB_INLINE bool uvec_contains_sorted_##T(UVec(T) const *vec, T item) {        \
-        return uvec_index_of_sorted(T, vec, item) < uvec_count(T, vec);                            \
+    ATTRS ULIB_PURE ULIB_INLINE bool uvec_sorted_contains_##T(UVec(T) const *vec, T item) {        \
+        return uvec_sorted_index_of(T, vec, item) < uvec_count(T, vec);                            \
     }                                                                                              \
     /** @endcond */
 
@@ -763,7 +763,7 @@ typedef enum uvec_ret {
         p_uvec_isort_##T(array, len);                                                              \
     }                                                                                              \
                                                                                                    \
-    ATTRS ulib_uint uvec_insertion_index_sorted_##T(UVec(T) const *vec, T item) {                  \
+    ATTRS ulib_uint uvec_sorted_insertion_index_##T(UVec(T) const *vec, T item) {                  \
         ulib_uint len = uvec_count(T, vec);                                                        \
         T const *const data = uvec_data(T, vec), *const last = data + len, *cur = data;            \
                                                                                                    \
@@ -777,29 +777,29 @@ typedef enum uvec_ret {
         return (ulib_uint)(cur - data);                                                            \
     }                                                                                              \
                                                                                                    \
-    ATTRS ulib_uint uvec_index_of_sorted_##T(UVec(T) const *vec, T item) {                         \
-        ulib_uint const i = uvec_insertion_index_sorted(T, vec, item);                             \
+    ATTRS ulib_uint uvec_sorted_index_of_##T(UVec(T) const *vec, T item) {                         \
+        ulib_uint const i = uvec_sorted_insertion_index(T, vec, item);                             \
         T *data = uvec_data(T, vec);                                                               \
         ulib_uint count = uvec_count(T, vec);                                                      \
         return data && i < count && equal_func(data[i], item) ? i : count;                         \
     }                                                                                              \
                                                                                                    \
-    ATTRS uvec_ret uvec_insert_sorted_##T(UVec(T) *vec, T item, ulib_uint *idx) {                  \
-        ulib_uint i = uvec_insertion_index_sorted(T, vec, item);                                   \
+    ATTRS uvec_ret uvec_sorted_insert_##T(UVec(T) *vec, T item, ulib_uint *idx) {                  \
+        ulib_uint i = uvec_sorted_insertion_index(T, vec, item);                                   \
         if (idx) *idx = i;                                                                         \
         return uvec_insert_at(T, vec, i, item);                                                    \
     }                                                                                              \
                                                                                                    \
-    ATTRS uvec_ret uvec_insert_sorted_unique_##T(UVec(T) *vec, T item, ulib_uint *idx) {           \
+    ATTRS uvec_ret uvec_sorted_unique_insert_##T(UVec(T) *vec, T item, ulib_uint *idx) {           \
         T *data = uvec_data(T, vec);                                                               \
-        ulib_uint i = uvec_insertion_index_sorted(T, vec, item);                                   \
+        ulib_uint i = uvec_sorted_insertion_index(T, vec, item);                                   \
         if (idx) *idx = i;                                                                         \
         if (i < uvec_count(T, vec) && equal_func(data[i], item)) return UVEC_NO;                   \
         return uvec_insert_at(T, vec, i, item);                                                    \
     }                                                                                              \
                                                                                                    \
-    ATTRS bool uvec_remove_sorted_##T(UVec(T) *vec, T item) {                                      \
-        ulib_uint i = uvec_index_of_sorted(T, vec, item);                                          \
+    ATTRS bool uvec_sorted_remove_##T(UVec(T) *vec, T item) {                                      \
+        ulib_uint i = uvec_sorted_index_of(T, vec, item);                                          \
         if (!uvec_index_is_valid(T, vec, i)) return false;                                         \
         uvec_remove_at(T, vec, i);                                                                 \
         return true;                                                                               \
@@ -1703,10 +1703,10 @@ typedef enum uvec_ret {
  * @param item Element whose insertion index should be found.
  * @return Insertion index.
  *
- * @alias ulib_uint uvec_insertion_index_sorted(symbol T, UVec(T) const *vec, T item);
+ * @alias ulib_uint uvec_sorted_insertion_index(symbol T, UVec(T) const *vec, T item);
  */
-#define uvec_insertion_index_sorted(T, vec, item)                                                  \
-    ULIB_MACRO_CONCAT(uvec_insertion_index_sorted_, T)(vec, item)
+#define uvec_sorted_insertion_index(T, vec, item)                                                  \
+    ULIB_MACRO_CONCAT(uvec_sorted_insertion_index_, T)(vec, item)
 
 /**
  * Returns the index of the specified element in a sorted vector.
@@ -1718,9 +1718,9 @@ typedef enum uvec_ret {
  * @return Index of the found element, or an invalid index.
  *
  * @note The returned index is not necessarily the first occurrence of the item.
- * @alias ulib_uint uvec_index_of_sorted(symbol T, UVec(T) const *vec, T item);
+ * @alias ulib_uint uvec_sorted_index_of(symbol T, UVec(T) const *vec, T item);
  */
-#define uvec_index_of_sorted(T, vec, item) ULIB_MACRO_CONCAT(uvec_index_of_sorted_, T)(vec, item)
+#define uvec_sorted_index_of(T, vec, item) ULIB_MACRO_CONCAT(uvec_sorted_index_of_, T)(vec, item)
 
 /**
  * Checks whether a sorted vector contains the specified element.
@@ -1731,9 +1731,9 @@ typedef enum uvec_ret {
  * @param item Element to search.
  * @return True if the vector contains the specified element, false otherwise.
  *
- * @alias bool uvec_contains_sorted(symbol T, UVec(T) const *vec, T item);
+ * @alias bool uvec_sorted_contains(symbol T, UVec(T) const *vec, T item);
  */
-#define uvec_contains_sorted(T, vec, item) ULIB_MACRO_CONCAT(uvec_contains_sorted_, T)(vec, item)
+#define uvec_sorted_contains(T, vec, item) ULIB_MACRO_CONCAT(uvec_sorted_contains_, T)(vec, item)
 
 /**
  * Inserts the specified element in a sorted vector.
@@ -1744,10 +1744,10 @@ typedef enum uvec_ret {
  * @param[out] idx Index of the inserted element.
  * @return @val{#UVEC_OK} on success, otherwise @val{#UVEC_ERR}.
  *
- * @alias uvec_ret uvec_insert_sorted(symbol T, UVec(T) *vec, T item, ulib_uint *idx);
+ * @alias uvec_ret uvec_sorted_insert(symbol T, UVec(T) *vec, T item, ulib_uint *idx);
  */
-#define uvec_insert_sorted(T, vec, item, idx)                                                      \
-    ULIB_MACRO_CONCAT(uvec_insert_sorted_, T)(vec, item, idx)
+#define uvec_sorted_insert(T, vec, item, idx)                                                      \
+    ULIB_MACRO_CONCAT(uvec_sorted_insert_, T)(vec, item, idx)
 
 /**
  * Inserts the specified element in a sorted vector only if it does not already contain it.
@@ -1759,10 +1759,10 @@ typedef enum uvec_ret {
  * @return @val{#UVEC_OK} if the element was inserted,
  *         @val{#UVEC_NO} if the element was already present, otherwise @val{#UVEC_ERR}.
  *
- * @alias uvec_ret uvec_insert_sorted_unique(symbol T, UVec(T) *vec, T item, ulib_uint *idx);
+ * @alias uvec_ret uvec_sorted_unique_insert(symbol T, UVec(T) *vec, T item, ulib_uint *idx);
  */
-#define uvec_insert_sorted_unique(T, vec, item, idx)                                               \
-    ULIB_MACRO_CONCAT(uvec_insert_sorted_unique_, T)(vec, item, idx)
+#define uvec_sorted_unique_insert(T, vec, item, idx)                                               \
+    ULIB_MACRO_CONCAT(uvec_sorted_unique_insert_, T)(vec, item, idx)
 
 /**
  * Removes the specified element from a sorted vector.
@@ -1772,9 +1772,102 @@ typedef enum uvec_ret {
  * @param item Element to remove.
  * @return True if the element was found and removed, false otherwise.
  *
+ * @alias bool uvec_sorted_remove(symbol T, UVec(T) *vec, T item);
+ */
+#define uvec_sorted_remove(T, vec, item) ULIB_MACRO_CONCAT(uvec_sorted_remove_, T)(vec, item)
+
+/**
+ * Finds the insertion index for the specified item in a sorted vector.
+ * Average performance: *O(log n)*
+ *
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param item Element whose insertion index should be found.
+ * @return Insertion index.
+ *
+ * @deprecated Use @func{uvec_sorted_insertion_index()} instead.
+ * @alias ulib_uint uvec_insertion_index_sorted(symbol T, UVec(T) const *vec, T item);
+ */
+#define uvec_insertion_index_sorted(T, vec, item)                                                  \
+    ULIB_DEPRECATED_MACRO("Use uvec_sorted_insertion_index instead.")                              \
+    uvec_sorted_insertion_index(T, vec, item)
+
+/**
+ * Returns the index of the specified element in a sorted vector.
+ * Average performance: *O(log n)*
+ *
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param item Element to search.
+ * @return Index of the found element, or an invalid index.
+ *
+ * @note The returned index is not necessarily the first occurrence of the item.
+ * @deprecated Use @func{uvec_sorted_index_of()} instead.
+ * @alias ulib_uint uvec_index_of_sorted(symbol T, UVec(T) const *vec, T item);
+ */
+#define uvec_index_of_sorted(T, vec, item)                                                         \
+    ULIB_DEPRECATED_MACRO("Use uvec_sorted_index_of instead.") uvec_sorted_index_of(T, vec, item)
+
+/**
+ * Checks whether a sorted vector contains the specified element.
+ * Average performance: *O(log n)*
+ *
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param item Element to search.
+ * @return True if the vector contains the specified element, false otherwise.
+ *
+ * @deprecated Use @func{uvec_sorted_contains()} instead.
+ * @alias bool uvec_contains_sorted(symbol T, UVec(T) const *vec, T item);
+ */
+#define uvec_contains_sorted(T, vec, item)                                                         \
+    ULIB_DEPRECATED_MACRO("Use uvec_sorted_contains instead.") uvec_sorted_contains(T, vec, item)
+
+/**
+ * Inserts the specified element in a sorted vector.
+ *
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param item Element to insert.
+ * @param[out] idx Index of the inserted element.
+ * @return @val{#UVEC_OK} on success, otherwise @val{#UVEC_ERR}.
+ *
+ * @deprecated Use @func{uvec_sorted_insert()} instead.
+ * @alias uvec_ret uvec_insert_sorted(symbol T, UVec(T) *vec, T item, ulib_uint *idx);
+ */
+#define uvec_insert_sorted(T, vec, item, idx)                                                      \
+    ULIB_DEPRECATED_MACRO("Use uvec_sorted_insert instead.") uvec_sorted_insert(T, vec, item, idx)
+
+/**
+ * Inserts the specified element in a sorted vector only if it does not already contain it.
+ *
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param item Element to insert.
+ * @param[out] idx Index of the inserted (or that of the already present) element.
+ * @return @val{#UVEC_OK} if the element was inserted,
+ *         @val{#UVEC_NO} if the element was already present, otherwise @val{#UVEC_ERR}.
+ *
+ * @deprecated Use @func{uvec_sorted_unique_insert()} instead.
+ * @alias uvec_ret uvec_insert_sorted_unique(symbol T, UVec(T) *vec, T item, ulib_uint *idx);
+ */
+#define uvec_insert_sorted_unique(T, vec, item, idx)                                               \
+    ULIB_DEPRECATED_MACRO("Use uvec_sorted_unique_insert instead.")                                \
+    uvec_sorted_unique_insert(T, vec, item, idx)
+
+/**
+ * Removes the specified element from a sorted vector.
+ *
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @param item Element to remove.
+ * @return True if the element was found and removed, false otherwise.
+ *
+ * @deprecated Use @func{uvec_sorted_remove()} instead.
  * @alias bool uvec_remove_sorted(symbol T, UVec(T) *vec, T item);
  */
-#define uvec_remove_sorted(T, vec, item) ULIB_MACRO_CONCAT(uvec_remove_sorted_, T)(vec, item)
+#define uvec_remove_sorted(T, vec, item)                                                           \
+    ULIB_DEPRECATED_MACRO("Use uvec_sorted_remove instead.") uvec_sorted_remove(T, vec, item)
 
 /// @}
 
