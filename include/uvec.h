@@ -196,7 +196,7 @@ typedef enum uvec_ret {
 #define P_UVEC_DEF_INLINE(T, ATTRS)                                                                \
     /** @cond */                                                                                   \
     ATTRS ULIB_INLINE UVec(T) uvec_##T(void) {                                                     \
-        UVec(T) vec = { 0 };                                                                       \
+        UVec(T) vec = ulib_struct_init;                                                            \
         return vec;                                                                                \
     }                                                                                              \
                                                                                                    \
@@ -260,7 +260,7 @@ typedef enum uvec_ret {
     }                                                                                              \
                                                                                                    \
     ATTRS ULIB_INLINE UVec(T) uvec_move_##T(UVec(T) *vec) {                                        \
-        UVec(T) temp = *vec, zero = { 0 };                                                         \
+        UVec(T) temp = *vec, zero = ulib_struct_init;                                              \
         *vec = zero;                                                                               \
         return temp;                                                                               \
     }                                                                                              \

@@ -9,6 +9,7 @@ Cpp11BracedListStyle: false
 ForEachMacros:
   - uhash_foreach
   - uvec_foreach
+  - uvec_foreach_reverse
 IndentCaseLabels: true
 IndentWidth: 4
 PenaltyBreakAssignment: 100

@@ -254,7 +254,7 @@ typedef enum uhash_ret {
     }                                                                                              \
                                                                                                    \
     ATTRS ULIB_INLINE UHash_##T uhash_move_##T(UHash_##T *h) {                                     \
-        UHash_##T temp = *h, zero = { 0 };                                                         \
+        UHash_##T temp = *h, zero = ulib_struct_init;                                              \
         *h = zero;                                                                                 \
         return temp;                                                                               \
     }                                                                                              \
@@ -288,7 +288,7 @@ typedef enum uhash_ret {
     }                                                                                              \
                                                                                                    \
     ATTRS UHash_##T uhset_##T(void) {                                                              \
-        UHash_##T h = { 0 };                                                                       \
+        UHash_##T h = ulib_struct_init;                                                            \
         return h;                                                                                  \
     }
 
@@ -319,7 +319,7 @@ typedef enum uhash_ret {
     }                                                                                              \
                                                                                                    \
     ATTRS UHash_##T uhset_##T(void) {                                                              \
-        UHash_##T h = { 0 };                                                                       \
+        UHash_##T h = ulib_struct_init;                                                            \
         h._hfunc = default_hfunc;                                                                  \
         h._efunc = default_efunc;                                                                  \
         return h;                                                                                  \

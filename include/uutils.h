@@ -39,6 +39,15 @@
  */
 #define ulib_array_count(array) (sizeof(array) / sizeof(*(array)))
 
+/// C and C++ compatible struct initializer.
+// clang-format off
+#ifdef __cplusplus
+#define ulib_struct_init {}
+#else
+#define ulib_struct_init { 0 }
+#endif
+// clang-format on
+
 /**
  * Give hints to static analyzers, asserting that `exp` is true.
  *
