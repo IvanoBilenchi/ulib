@@ -26,3 +26,5 @@ StatementMacros:
 TypenameMacros:
   - UHash
   - UVec
+WhitespaceSensitiveMacros:
+  - ULIB_DEPRECATED

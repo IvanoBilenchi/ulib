@@ -114,25 +114,26 @@
  * Deprecated macros are usually replaced by alternatives, and will be removed in later
  * major versions of the library.
  *
- * @param msg Deprecation message.
  * @def ULIB_DEPRECATED_MACRO
  */
 
 #ifndef ULIB_NO_DEPRECATED
 #if defined(__GNUC__) || defined(__clang__)
-    #define ULIB_DEPRECATED(msg) __attribute__((__deprecated__(msg)))
+    #define ULIB_DEPRECATED(msg) __attribute__((__deprecated__(#msg)))
     #define P_ULIB_PRAGMA(msg) _Pragma(#msg)
-    #define ULIB_DEPRECATED_MACRO(msg) P_ULIB_PRAGMA(GCC warning "Deprecated. " msg)
+    #define ULIB_DEPRECATED_MACRO                                                                  \
+        P_ULIB_PRAGMA(GCC warning "Deprecated. See the docstring for a possible replacement.")
 #elif defined(_MSC_VER)
-    #define ULIB_DEPRECATED(msg) __declspec(deprecated(msg))
-    #define ULIB_DEPRECATED_MACRO(msg) __pragma(message("Deprecated. " msg))
+    #define ULIB_DEPRECATED(msg) __declspec(deprecated(#msg))
+    #define ULIB_DEPRECATED_MACRO                                                                  \
+        __pragma(message("Deprecated. See the docstring for a possible replacement."))
 #else
     #define ULIB_DEPRECATED(msg)
-    #define ULIB_DEPRECATED_MACRO(msg)
+    #define ULIB_DEPRECATED_MACRO
 #endif
 #else
     #define ULIB_DEPRECATED(msg)
-    #define ULIB_DEPRECATED_MACRO(msg)
+    #define ULIB_DEPRECATED_MACRO
 #endif
 
 /// Suppresses unused variable warnings.

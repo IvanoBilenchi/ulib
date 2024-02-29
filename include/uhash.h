@@ -859,8 +859,7 @@ typedef enum uhash_ret {
  * @deprecated Use @func{ulib_equals()} instead.
  * @alias bool uhash_identical(T a, T b);
  */
-#define uhash_identical(a, b)                                                                      \
-    ULIB_DEPRECATED_MACRO("Use ulib_equals instead.") (a) == (b))
+#define uhash_identical(a, b) ULIB_DEPRECATED_MACRO ulib_equals(a, b)
 
 /**
  * Equality function for strings.
@@ -872,8 +871,7 @@ typedef enum uhash_ret {
  * @deprecated Use @func{ulib_str_equals()} instead.
  * @alias bool uhash_str_equals(char const *a, char const *b);
  */
-#define uhash_str_equals(a, b)                                                                     \
-    ULIB_DEPRECATED_MACRO("Use ulib_str_equals instead.")(strcmp(a, b) == 0)
+#define uhash_str_equals(a, b) ULIB_DEPRECATED_MACRO ulib_str_equals(a, b)
 
 /**
  * Hash function for 8 bit integers.
@@ -884,8 +882,7 @@ typedef enum uhash_ret {
  * @deprecated Use @func{ulib_hash_int8()} instead.
  * @alias ulib_uint uhash_int8_hash(uint8_t key);
  */
-#define uhash_int8_hash(key)                                                                       \
-    ULIB_DEPRECATED_MACRO("Use ulib_hash_int8 instead.") ulib_hash_int8(key)
+#define uhash_int8_hash(key) ULIB_DEPRECATED_MACRO ulib_hash_int8(key)
 
 /**
  * Hash function for 16 bit integers.
@@ -896,8 +893,7 @@ typedef enum uhash_ret {
  * @deprecated Use @func{ulib_hash_int16()} instead.
  * @alias ulib_uint uhash_int16_hash(uint16_t key);
  */
-#define uhash_int16_hash(key)                                                                      \
-    ULIB_DEPRECATED_MACRO("Use ulib_hash_int16 instead.") ulib_hash_int16(key)
+#define uhash_int16_hash(key) ULIB_DEPRECATED_MACRO ulib_hash_int16(key)
 
 /**
  * Hash function for 32 bit integers.
@@ -908,8 +904,7 @@ typedef enum uhash_ret {
  * @deprecated Use @func{ulib_hash_int32()} instead.
  * @alias ulib_uint uhash_int32_hash(uint32_t key);
  */
-#define uhash_int32_hash(key)                                                                      \
-    ULIB_DEPRECATED_MACRO("Use ulib_hash_int32 instead.") ulib_hash_int32(key)
+#define uhash_int32_hash(key) ULIB_DEPRECATED_MACRO ulib_hash_int32(key)
 
 /**
  * Hash function for 64 bit integers.
@@ -920,8 +915,7 @@ typedef enum uhash_ret {
  * @deprecated Use @func{ulib_hash_int64()} instead.
  * @alias ulib_uint uhash_int64_hash(uint64_t key);
  */
-#define uhash_int64_hash(key)                                                                      \
-    ULIB_DEPRECATED_MACRO("Use ulib_hash_int64 instead.") ulib_hash_int64(key)
+#define uhash_int64_hash(key) ULIB_DEPRECATED_MACRO ulib_hash_int64(key)
 
 /**
  * Hash function for pointers.
@@ -932,8 +926,7 @@ typedef enum uhash_ret {
  * @deprecated Use @func{ulib_hash_ptr()} or @func{ulib_hash_alloc_ptr()} instead.
  * @alias ulib_uint uhash_ptr_hash(T *key);
  */
-#define uhash_ptr_hash(key)                                                                        \
-    ULIB_DEPRECATED_MACRO("Use ulib_hash_ptr or ulib_hash_alloc_ptr instead.") ulib_hash_ptr(key)
+#define uhash_ptr_hash(key) ULIB_DEPRECATED_MACRO ulib_hash_ptr(key)
 
 /**
  * Combines two hashes.
@@ -945,8 +938,7 @@ typedef enum uhash_ret {
  * @deprecated Use @func{ulib_hash_combine()} instead.
  * @alias ulib_uint uhash_combine_hash(ulib_uint hash_1, ulib_uint hash_2);
  */
-#define uhash_combine_hash(hash_1, hash_2)                                                         \
-    ULIB_DEPRECATED_MACRO("Use ulib_hash_combine instead.") ulib_hash_combine(hash_1, hash_2)
+#define uhash_combine_hash(hash_1, hash_2) ULIB_DEPRECATED_MACRO ulib_hash_combine(hash_1, hash_2)
 
 /**
  * Deinitializes the specified hash table.

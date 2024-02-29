@@ -1481,7 +1481,7 @@ typedef enum uvec_ret {
  * @deprecated Use @func{uvec_clear()} instead.
  * @alias void uvec_remove_all(symbol T, UVec(T) *vec);
  */
-#define uvec_remove_all(T, vec) ULIB_DEPRECATED_MACRO("Use uvec_clear instead.") uvec_clear(T, vec)
+#define uvec_remove_all(T, vec) ULIB_DEPRECATED_MACRO uvec_clear(T, vec)
 
 /**
  * Appends a vector to another.
@@ -1871,8 +1871,7 @@ typedef enum uvec_ret {
  * @alias ulib_uint uvec_insertion_index_sorted(symbol T, UVec(T) const *vec, T item);
  */
 #define uvec_insertion_index_sorted(T, vec, item)                                                  \
-    ULIB_DEPRECATED_MACRO("Use uvec_sorted_insertion_index instead.")                              \
-    uvec_sorted_insertion_index(T, vec, item)
+    ULIB_DEPRECATED_MACRO uvec_sorted_insertion_index(T, vec, item)
 
 /**
  * Returns the index of the specified element in a sorted vector.
@@ -1887,8 +1886,7 @@ typedef enum uvec_ret {
  * @deprecated Use @func{uvec_sorted_index_of()} instead.
  * @alias ulib_uint uvec_index_of_sorted(symbol T, UVec(T) const *vec, T item);
  */
-#define uvec_index_of_sorted(T, vec, item)                                                         \
-    ULIB_DEPRECATED_MACRO("Use uvec_sorted_index_of instead.") uvec_sorted_index_of(T, vec, item)
+#define uvec_index_of_sorted(T, vec, item) ULIB_DEPRECATED_MACRO uvec_sorted_index_of(T, vec, item)
 
 /**
  * Checks whether a sorted vector contains the specified element.
@@ -1902,8 +1900,7 @@ typedef enum uvec_ret {
  * @deprecated Use @func{uvec_sorted_contains()} instead.
  * @alias bool uvec_contains_sorted(symbol T, UVec(T) const *vec, T item);
  */
-#define uvec_contains_sorted(T, vec, item)                                                         \
-    ULIB_DEPRECATED_MACRO("Use uvec_sorted_contains instead.") uvec_sorted_contains(T, vec, item)
+#define uvec_contains_sorted(T, vec, item) ULIB_DEPRECATED_MACRO uvec_sorted_contains(T, vec, item)
 
 /**
  * Inserts the specified element in a sorted vector.
@@ -1918,7 +1915,7 @@ typedef enum uvec_ret {
  * @alias uvec_ret uvec_insert_sorted(symbol T, UVec(T) *vec, T item, ulib_uint *idx);
  */
 #define uvec_insert_sorted(T, vec, item, idx)                                                      \
-    ULIB_DEPRECATED_MACRO("Use uvec_sorted_insert instead.") uvec_sorted_insert(T, vec, item, idx)
+    ULIB_DEPRECATED_MACRO uvec_sorted_insert(T, vec, item, idx)
 
 /**
  * Inserts the specified element in a sorted vector only if it does not already contain it.
@@ -1934,8 +1931,7 @@ typedef enum uvec_ret {
  * @alias uvec_ret uvec_insert_sorted_unique(symbol T, UVec(T) *vec, T item, ulib_uint *idx);
  */
 #define uvec_insert_sorted_unique(T, vec, item, idx)                                               \
-    ULIB_DEPRECATED_MACRO("Use uvec_sorted_unique_insert instead.")                                \
-    uvec_sorted_unique_insert(T, vec, item, idx)
+    ULIB_DEPRECATED_MACRO uvec_sorted_unique_insert(T, vec, item, idx)
 
 /**
  * Removes the specified element from a sorted vector.
@@ -1948,8 +1944,7 @@ typedef enum uvec_ret {
  * @deprecated Use @func{uvec_sorted_remove()} instead.
  * @alias bool uvec_remove_sorted(symbol T, UVec(T) *vec, T item);
  */
-#define uvec_remove_sorted(T, vec, item)                                                           \
-    ULIB_DEPRECATED_MACRO("Use uvec_sorted_remove instead.") uvec_sorted_remove(T, vec, item)
+#define uvec_remove_sorted(T, vec, item) ULIB_DEPRECATED_MACRO uvec_sorted_remove(T, vec, item)
 
 /// @}
 
