@@ -169,7 +169,6 @@ UString ustring_assign(char const *buf, size_t length);
  * @return New string.
  *
  * @destructor{ustring_deinit}
- * @note The buffer must be null-terminated.
  */
 ULIB_API
 UString ustring_copy(char const *buf, size_t length);
@@ -302,6 +301,22 @@ UString ustring_with_format(char const *format, ...);
  */
 ULIB_API
 UString ustring_with_format_list(char const *format, va_list args);
+
+/**
+ * Returns a new string containing the characters in a range of the specified string.
+ *
+ * @param str String.
+ * @param start Range start.
+ * @param len Range length.
+ * @return New string.
+ *
+ * @destructor{ustring_deinit}
+ */
+ULIB_INLINE
+UString ustring_range(UString str, ulib_uint start, ulib_uint len) {
+    if ((start + len) > ustring_length(str)) return ustring_null;
+    return ustring_copy(ustring_data(str) + start, len);
+}
 
 /**
  * Concatenates the specified strings.

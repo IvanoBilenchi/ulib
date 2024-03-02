@@ -177,6 +177,18 @@ bool ustring_test_base(void) {
     utest_assert_uint(ustring_compare(a, ustring_literal(str)), ==, 0);
     utest_assert_uint(ustring_hash(a), ==, ustring_hash(ustring_literal(str)));
     utest_assert_uint(ustring_hash(a), !=, ustring_hash(ustring_literal("012345678")));
+
+    UString b = ustring_dup(a);
+    utest_assert_ustring(a, ==, b);
+    utest_assert_ptr(ustring_data(a), !=, ustring_data(b));
+    ustring_deinit(&b);
+
+    b = ustring_range(a, 5, 3);
+    utest_assert_ustring(b, ==, ustring_literal("456"));
+    ustring_deinit(&b);
+    b = ustring_range(a, 5, str_len - 4);
+    utest_assert(ustring_is_null(b));
+    ustring_deinit(&b);
     ustring_deinit(&a);
 
     UString strings[] = { ustring_literal("123"), ustring_literal("4"), ustring_literal("567") };
@@ -195,13 +207,7 @@ bool ustring_test_base(void) {
     a = ustring_with_format("%d%d%d", 1, 2, 3);
     utest_assert_ustring(a, ==, ustring_literal("123"));
 
-    UString b = ustring_dup(a);
-    utest_assert_ustring(a, ==, b);
-    utest_assert_ptr(ustring_data(a), !=, ustring_data(b));
-
     ustring_deinit(&a);
-    ustring_deinit(&b);
-
     return true;
 }
 
