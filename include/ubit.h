@@ -237,6 +237,17 @@
     ((ubit(N, mask) & ~ubit(N, bits)) | (ubit(N, n_mask) & ubit(N, bits)))
 
 /**
+ * Returns the two's complement of the given bitmask.
+ *
+ * @param N Bitmask size in bits.
+ * @param mask Bitmask.
+ * @return Two's complement of the bitmask.
+ *
+ * @alias UBit(N) ubit_two_compl(bitsize N, unsigned mask);
+ */
+#define ubit_two_compl(N, mask) (~(ubit(N, mask)) + ubit(N, 1))
+
+/**
  * Returns the number of bits that are set in a bitmask.
  *
  * @param N Bitmask size in bits.
@@ -248,7 +259,7 @@
 #define ubit_count_set(N, mask) ULIB_MACRO_CONCAT(p_ubit_count_set_, N)(mask)
 
 /**
- * Returns the number of bigs that are not set in a bitmask.
+ * Returns the number of bits that are not set in a bitmask.
  *
  * @param N Bitmask size in bits.
  * @param mask Bitmask.
@@ -258,13 +269,28 @@
  */
 #define ubit_count_unset(N, mask) ((N)-ubit_count_set(N, mask))
 
-// Bit count implementations
+/**
+ * Returns the index of the first set bit.
+ *
+ * @param N Bitmask size in bits.
+ * @param mask Bitmask.
+ * @return Index of the first set bit, or a value >= N if no bits are set.
+ *
+ * @alias unsigned ubit_first_set(bitsize N, unsigned mask);
+ */
+#define ubit_first_set(N, mask) ULIB_MACRO_CONCAT(p_ubit_first_set_, N)(mask)
+
 #if !defined(ULIB_NO_BUILTINS) && defined(__GNUC__)
 
 #define p_ubit_count_set_8(mask) __builtin_popcount(mask)
 #define p_ubit_count_set_16(mask) __builtin_popcount(mask)
 #define p_ubit_count_set_32(mask) __builtin_popcountl(mask)
 #define p_ubit_count_set_64(mask) __builtin_popcountll(mask)
+
+#define p_ubit_first_set_8(mask) ((mask) ? __builtin_ctz(mask) : 8)
+#define p_ubit_first_set_16(mask) ((mask) ? __builtin_ctz(mask) : 16)
+#define p_ubit_first_set_32(mask) ((mask) ? __builtin_ctzl(mask) : 32)
+#define p_ubit_first_set_64(mask) ((mask) ? __builtin_ctzll(mask) : 64)
 
 #else
 
@@ -282,12 +308,26 @@
         return (unsigned)mask;                                                                     \
     }
 
+#define p_ubit_first_set_def(N, M)                                                                 \
+    ULIB_CONST                                                                                     \
+    ULIB_INLINE                                                                                    \
+    unsigned p_ubit_first_set_##N(UBit(N) mask) {                                                  \
+        return mask ? ulib_uint##M##_log2(mask & ubit_two_compl(N, mask)) : N;                     \
+    }
+
+// clang-format off
+
 ULIB_BEGIN_DECLS
 
 p_ubit_count_set_def(8)
 p_ubit_count_set_def(16)
 p_ubit_count_set_def(32)
 p_ubit_count_set_def(64)
+
+p_ubit_first_set_def(8, 16)
+p_ubit_first_set_def(16, 16)
+p_ubit_first_set_def(32, 32)
+p_ubit_first_set_def(64, 64)
 
 ULIB_END_DECLS
 

@@ -22,7 +22,6 @@ StatementMacros:
   - ULIB_BEGIN_DECLS
   - ULIB_END_DECLS
   - p_ubit_count_set_def
-  - ubit_test_impl
 TypenameMacros:
   - UHash
   - UVec

@@ -16,6 +16,7 @@
         utest_assert_uint(mask, ==, 0);                                                            \
         utest_assert_uint(ubit_count_set(N, mask), ==, 0);                                         \
         utest_assert_uint(ubit_count_unset(N, mask), ==, N);                                       \
+        utest_assert_uint(ubit_first_set(N, mask), >=, N);                                         \
                                                                                                    \
         for (unsigned i = 0; i < N; ++i) {                                                         \
             utest_assert_false(ubit_is_set(N, mask, ubit_bit(N, i)));                              \
@@ -25,6 +26,7 @@
         utest_assert_uint(mask, !=, 0);                                                            \
         utest_assert_uint(ubit_count_set(N, mask), ==, N);                                         \
         utest_assert_uint(ubit_count_unset(N, mask), ==, 0);                                       \
+        utest_assert_uint(ubit_first_set(N, mask), ==, 0);                                         \
                                                                                                    \
         for (unsigned i = 0; i < N; ++i) {                                                         \
             utest_assert(ubit_is_set(N, mask, ubit_bit(N, i)));                                    \
@@ -34,6 +36,7 @@
         utest_assert_uint(mask, !=, 0);                                                            \
         utest_assert_uint(ubit_count_set(N, mask), ==, 1);                                         \
         utest_assert_uint(ubit_count_unset(N, mask), ==, (N - 1));                                 \
+        utest_assert_uint(ubit_first_set(N, mask), ==, (N - 2));                                   \
                                                                                                    \
         for (unsigned i = 0; i < N; ++i) {                                                         \
             if (i == (N - 2)) {                                                                    \
@@ -75,12 +78,16 @@
                                                                                                    \
         mask = ubit_range(N, 4, 3);                                                                \
         utest_assert_uint(mask, ==, 0x70);                                                         \
+        utest_assert_uint(ubit_first_set(N, mask), ==, 4);                                         \
                                                                                                    \
         mask = ubit_overwrite(N, 0x55, 0x20, 0x70);                                                \
         utest_assert_uint(mask, ==, 0x25);                                                         \
+        utest_assert_uint(ubit_first_set(N, mask), ==, 0);                                         \
                                                                                                    \
         return true;                                                                               \
     }
+
+// clang-format off
 
 ubit_test_impl(8)
 ubit_test_impl(16)
