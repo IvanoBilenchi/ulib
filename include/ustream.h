@@ -109,6 +109,7 @@ typedef struct UIStream {
  *
  * @destructor{uistream_deinit}
  */
+ULIB_CONST
 ULIB_INLINE
 UIStream uistream(void *ctx, ustream_ret (*read_func)(void *, void *, size_t, size_t *),
                   ustream_ret (*reset_func)(void *), ustream_ret (*free_func)(void *)) {
@@ -305,6 +306,7 @@ typedef struct UOStream {
  *
  * @destructor{uostream_deinit}
  */
+ULIB_CONST
 ULIB_INLINE
 UOStream uostream(void *ctx, ustream_ret (*write_func)(void *, void const *, size_t, size_t *),
                   ustream_ret (*writef_func)(void *, size_t *, char const *, va_list),

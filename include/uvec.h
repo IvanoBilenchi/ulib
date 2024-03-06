@@ -186,12 +186,12 @@ typedef enum uvec_ret {
  */
 #define P_UVEC_DEF_INLINE(T, ATTRS)                                                                \
     /** @cond */                                                                                   \
-    ATTRS ULIB_INLINE UVec(T) uvec_##T(void) {                                                     \
+    ATTRS ULIB_CONST ULIB_INLINE UVec(T) uvec_##T(void) {                                          \
         UVec(T) vec = ulib_struct_init;                                                            \
         return vec;                                                                                \
     }                                                                                              \
                                                                                                    \
-    ATTRS ULIB_INLINE UVec(T) uvec_assign_##T(T *array, ulib_uint count) {                         \
+    ATTRS ULIB_CONST ULIB_INLINE UVec(T) uvec_assign_##T(T *array, ulib_uint count) {              \
         UVec(T) vec = uvec(T);                                                                     \
         p_uvec_exp_set(T, &vec, P_UVEC_EXP_COMPACT);                                               \
         vec._l._data = array;                                                                      \
@@ -199,7 +199,7 @@ typedef enum uvec_ret {
         return vec;                                                                                \
     }                                                                                              \
                                                                                                    \
-    ATTRS ULIB_INLINE UVec(T) uvec_wrap_##T(T *array, ulib_uint count) {                           \
+    ATTRS ULIB_CONST ULIB_INLINE UVec(T) uvec_wrap_##T(T *array, ulib_uint count) {                \
         UVec(T) vec = uvec(T);                                                                     \
         p_uvec_exp_set(T, &vec, P_UVEC_EXP_WRAPPED);                                               \
         vec._l._data = array;                                                                      \

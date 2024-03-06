@@ -204,13 +204,13 @@ typedef enum uhash_ret {
     ATTRS uhash_ret uhash_resize_##T(UHash_##T *h, ulib_uint new_size);                            \
     ATTRS uhash_ret uhash_put_##T(UHash_##T *h, uh_key key, ulib_uint *idx);                       \
     ATTRS void uhash_delete_##T(UHash_##T *h, ulib_uint x);                                        \
-    ATTRS UHash_##T uhmap_##T(void);                                                               \
+    ATTRS ULIB_CONST UHash_##T uhmap_##T(void);                                                    \
     ATTRS ULIB_PURE uh_val uhmap_get_##T(UHash_##T const *h, uh_key key, uh_val if_missing);       \
     ATTRS uhash_ret uhmap_set_##T(UHash_##T *h, uh_key key, uh_val value, uh_val *existing);       \
     ATTRS uhash_ret uhmap_add_##T(UHash_##T *h, uh_key key, uh_val value, uh_val *existing);       \
     ATTRS bool uhmap_replace_##T(UHash_##T *h, uh_key key, uh_val value, uh_val *replaced);        \
     ATTRS bool uhmap_remove_##T(UHash_##T *h, uh_key key, uh_key *r_key, uh_val *r_val);           \
-    ATTRS UHash_##T uhset_##T(void);                                                               \
+    ATTRS ULIB_CONST UHash_##T uhset_##T(void);                                                    \
     ATTRS uhash_ret uhset_insert_##T(UHash_##T *h, uh_key key, uh_key *existing);                  \
     ATTRS uhash_ret uhset_insert_all_##T(UHash_##T *h, uh_key const *items, ulib_uint n);          \
     ATTRS bool uhset_replace_##T(UHash_##T *h, uh_key key, uh_key *replaced);                      \
@@ -234,10 +234,10 @@ typedef enum uhash_ret {
 #define P_UHASH_DECL_PI(T, ATTRS, uh_key, uh_val)                                                  \
     P_UHASH_DECL(T, ATTRS, uh_key, uh_val)                                                         \
     /** @cond */                                                                                   \
-    ATTRS UHash_##T uhmap_pi_##T(ulib_uint (*hash_func)(uh_key key),                               \
-                                 bool (*equal_func)(uh_key lhs, uh_key rhs));                      \
-    ATTRS UHash_##T uhset_pi_##T(ulib_uint (*hash_func)(uh_key key),                               \
-                                 bool (*equal_func)(uh_key lhs, uh_key rhs));                      \
+    ATTRS ULIB_CONST UHash_##T uhmap_pi_##T(ulib_uint (*hash_func)(uh_key key),                    \
+                                            bool (*equal_func)(uh_key lhs, uh_key rhs));           \
+    ATTRS ULIB_CONST UHash_##T uhset_pi_##T(ulib_uint (*hash_func)(uh_key key),                    \
+                                            bool (*equal_func)(uh_key lhs, uh_key rhs));           \
     /** @endcond */
 
 /*
