@@ -87,15 +87,6 @@ typedef enum uvec_ret {
 #define UVEC_SORT_INSERTION_THRESH (sizeof(ulib_uint) * CHAR_BIT)
 #endif
 
-/**
- * Use @func{#ulib_mem_mem()} in @func{#uvec_index_of()} above this many elements.
- *
- * @note Only affects vectors of scalar types.
- */
-#ifndef UVEC_INDEX_OF_THRESH
-#define UVEC_INDEX_OF_THRESH (sizeof(ulib_ptr) * CHAR_BIT * 2)
-#endif
-
 /// Switch from binary to linear search below this many elements.
 #ifndef UVEC_BINARY_SEARCH_THRESH
 #define UVEC_BINARY_SEARCH_THRESH (sizeof(ulib_uint) * CHAR_BIT)
@@ -579,6 +570,15 @@ typedef enum uvec_ret {
  */
 #define P_UVEC_IMPL_EQUATABLE_COMMON(T, ATTRS, equal_func)                                         \
                                                                                                    \
+    ATTRS ulib_uint uvec_index_of_##T(UVec(T) const *vec, T item) {                                \
+        T *data = uvec_data(T, vec);                                                               \
+        ulib_uint count = uvec_count(T, vec);                                                      \
+        for (ulib_uint i = 0; i < count; ++i) {                                                    \
+            if (equal_func(data[i], item)) return i;                                               \
+        }                                                                                          \
+        return count;                                                                              \
+    }                                                                                              \
+                                                                                                   \
     ATTRS ulib_uint uvec_index_of_reverse_##T(UVec(T) const *vec, T item) {                        \
         T *data = uvec_data(T, vec);                                                               \
         ulib_uint count = uvec_count(T, vec);                                                      \
@@ -620,15 +620,6 @@ typedef enum uvec_ret {
  */
 #define P_UVEC_IMPL_EQUATABLE_FUNC(T, ATTRS, equal_func)                                           \
                                                                                                    \
-    ATTRS ulib_uint uvec_index_of_##T(UVec(T) const *vec, T item) {                                \
-        T *data = uvec_data(T, vec);                                                               \
-        ulib_uint count = uvec_count(T, vec);                                                      \
-        for (ulib_uint i = 0; i < count; ++i) {                                                    \
-            if (equal_func(data[i], item)) return i;                                               \
-        }                                                                                          \
-        return count;                                                                              \
-    }                                                                                              \
-                                                                                                   \
     ATTRS bool uvec_equals_##T(UVec(T) const *vec, UVec(T) const *other) {                         \
         if (vec == other) return true;                                                             \
         ulib_uint count = uvec_count(T, vec), ocount = uvec_count(T, other);                       \
@@ -653,19 +644,6 @@ typedef enum uvec_ret {
  * @param ATTRS @type{attributes} Attributes of the definitions.
  */
 #define P_UVEC_IMPL_EQUATABLE_IDENTITY(T, ATTRS)                                                   \
-                                                                                                   \
-    ATTRS ulib_uint uvec_index_of_##T(UVec(T) const *vec, T item) {                                \
-        T *data = uvec_data(T, vec);                                                               \
-        ulib_uint count = uvec_count(T, vec);                                                      \
-        if (count > UVEC_INDEX_OF_THRESH) {                                                        \
-            T *p = ulib_mem_mem(data, count * sizeof(T), &item, sizeof(item));                     \
-            return p ? (ulib_uint)(p - data) : count;                                              \
-        }                                                                                          \
-        for (ulib_uint i = 0; i < count; ++i) {                                                    \
-            if (data[i] == item) return i;                                                         \
-        }                                                                                          \
-        return count;                                                                              \
-    }                                                                                              \
                                                                                                    \
     ATTRS bool uvec_equals_##T(UVec(T) const *vec, UVec(T) const *other) {                         \
         if (vec == other) return true;                                                             \
