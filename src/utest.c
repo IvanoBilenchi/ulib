@@ -21,8 +21,7 @@
 
 #ifdef ULIB_LEAKS
 
-typedef void *AllocPtr;
-UHASH_INIT(AllocTable, AllocPtr, char *, ulib_hash_alloc_ptr, ulib_equals)
+UHASH_INIT(AllocTable, uintptr_t, char *, ulib_hash_alloc_ptr, ulib_equals)
 static UHash(AllocTable) *alloc_table = NULL;
 
 #define alloc_table_add(PTR, FILE, FN, LINE)                                                       \
@@ -32,7 +31,7 @@ static UHash(AllocTable) *alloc_table = NULL;
             size_t buf_size = (size_t)snprintf(NULL, 0, fmt, FILE, FN, LINE) + 1;                  \
             char *loc = malloc(buf_size);                                                          \
             if (loc) snprintf(loc, buf_size, fmt, FILE, FN, LINE);                                 \
-            uhmap_set(AllocTable, alloc_table, PTR, loc, NULL);                                    \
+            uhmap_set(AllocTable, alloc_table, (uintptr_t)(PTR), loc, NULL);                       \
         }                                                                                          \
     } while (0)
 
@@ -40,7 +39,7 @@ static UHash(AllocTable) *alloc_table = NULL;
     do {                                                                                           \
         if (alloc_table) {                                                                         \
             char *buf;                                                                             \
-            if (uhmap_pop(AllocTable, alloc_table, PTR, NULL, &buf)) free(buf);                    \
+            if (uhmap_pop(AllocTable, alloc_table, (uintptr_t)(PTR), NULL, &buf)) free(buf);       \
         }                                                                                          \
     } while (0)
 
@@ -64,7 +63,7 @@ bool utest_leak_end(void) {
         unsigned i = 0;
         printf("Detected %" ULIB_UINT_FMT " leaked objects.\n", leaks);
         uhash_foreach (AllocTable, alloc_table, alloc) {
-            printf("Leak %u: %p (%s)\n", ++i, *alloc.key, *alloc.val);
+            printf("Leak %u: 0x%" PRIxPTR "(%s)\n", ++i, *alloc.key, *alloc.val);
             free(*alloc.val);
         }
     } else {
@@ -92,10 +91,11 @@ p_utest_leak_calloc_impl(size_t num, size_t size, char const *file, char const *
 
 void *
 p_utest_leak_realloc_impl(void *ptr, size_t size, char const *file, char const *fn, int line) {
+    uintptr_t old = (uintptr_t)ptr;
     void *new_ptr = realloc(ptr, size);
 
-    if (new_ptr && ptr != new_ptr) {
-        alloc_table_remove(ptr); // NOLINT: suppress "use of memory after it is freed".
+    if (new_ptr && old != (uintptr_t)(new_ptr)) {
+        alloc_table_remove(old);
         alloc_table_add(new_ptr, file, fn, line);
     }
 
