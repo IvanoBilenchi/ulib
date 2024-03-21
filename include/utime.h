@@ -101,14 +101,27 @@ ULIB_PURE
 bool utime_equals(UTime const *a, UTime const *b);
 
 /**
+ * Transforms a date from the specified timezone to UTC.
+ *
+ * @param time Date to transform.
+ * @param tz_hour Timezone offset hours.
+ * @param tz_minute Timezone offset minutes.
+ */
+ULIB_API
+void utime_to_utc(UTime *time, int tz_hour, unsigned tz_minute);
+
+/**
  * Normalizes a date from the specified timezone to UTC.
  *
  * @param time Date to normalize.
  * @param tz_hour Timezone offset hours.
  * @param tz_minute Timezone offset minutes.
  */
-ULIB_API
-void utime_normalize_to_utc(UTime *time, int tz_hour, unsigned tz_minute);
+ULIB_DEPRECATED(Use @func{utime_to_utc()} instead.)
+ULIB_INLINE
+void utime_normalize_to_utc(UTime *time, int tz_hour, unsigned tz_minute) {
+    utime_to_utc(time, tz_hour, tz_minute);
+}
 
 /**
  * Converts the specified date into a timestamp.

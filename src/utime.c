@@ -38,10 +38,14 @@ bool utime_equals(UTime const *a, UTime const *b) {
            a->minute == b->minute && a->second == b->second;
 }
 
-void utime_normalize_to_utc(UTime *time, int tz_hour, unsigned tz_minute) {
-    long long m = ((long long)tz_hour * MINUTES_PER_HOUR);
-    m += tz_hour >= 0 ? tz_minute : -(long long)tz_minute;
-    utime_add(time, -m, UTIME_MINUTES);
+ULIB_CONST
+ULIB_INLINE
+long long utime_tz_offset_minutes(int h, unsigned m) {
+    return ((long long)h * MINUTES_PER_HOUR) + (h >= 0 ? m : -(long long)m);
+}
+
+void utime_to_utc(UTime *time, int tz_hour, unsigned tz_minute) {
+    utime_add(time, -utime_tz_offset_minutes(tz_hour, tz_minute), UTIME_MINUTES);
 }
 
 ULIB_CONST
@@ -219,7 +223,7 @@ bool utime_from_string(UTime *time, UString const *string) {
         min = strtoul(ptr, &newptr, 0);
         if (newptr != endptr || newptr == ptr || min >= MINUTES_PER_HOUR) return false;
 
-        utime_normalize_to_utc(time, (int)tzh, min);
+        utime_to_utc(time, (int)tzh, min);
     }
 
     return true;
