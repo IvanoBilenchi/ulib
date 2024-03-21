@@ -110,5 +110,9 @@ bool utime_test_date(void) {
     utest_assert_ustring(str, ==, ustring_literal("1990/02/14-15:59:00"));
     ustring_deinit(&str);
 
+    a = utime_now();
+    b = utime_local();
+    utest_assert_int(utime_diff(&a, &b, UTIME_HOURS), <, 48);
+
     return true;
 }

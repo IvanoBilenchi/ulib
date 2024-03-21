@@ -71,6 +71,23 @@ void utime_days_to_ymd(long long days, long long *oy, unsigned *om, unsigned *od
     *oy = y + (*om <= 2);
 }
 
+UTime utime_now(void) {
+    return utime_from_timestamp(utime_get_timestamp());
+}
+
+UTime utime_local(void) {
+    time_t timestamp = time(NULL);
+    struct tm *time = localtime(&timestamp);
+    return (UTime){
+        .year = (long long)time->tm_year + 1900,
+        .month = (unsigned)time->tm_mon + 1,
+        .day = (unsigned)time->tm_mday,
+        .hour = (unsigned)time->tm_hour,
+        .minute = (unsigned)time->tm_min,
+        .second = (unsigned)time->tm_sec,
+    };
+}
+
 UTime utime_from_timestamp(utime_stamp ts) {
     UTime time;
 

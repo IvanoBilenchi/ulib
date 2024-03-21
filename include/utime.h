@@ -90,40 +90,56 @@ typedef struct UTime {
  */
 
 /**
- * Checks whether the specified dates are equal.
+ * Checks whether the specified dates and times are equal.
  *
- * @param a First date.
- * @param b Second date.
- * @return True if the two dates are equal, false otherwise.
+ * @param a First date and time.
+ * @param b Second date and time.
+ * @return True if the two dates and times are equal, false otherwise.
  */
 ULIB_API
 ULIB_PURE
 bool utime_equals(UTime const *a, UTime const *b);
 
 /**
- * Converts the specified date into a timestamp.
+ * Converts the specified UTC date abd time into a timestamp.
  *
- * @param time Date to convert.
- * @return Timestamp corresponding to the date.
+ * @param time Date and time to convert.
+ * @return Corresponding timestamp.
  */
 ULIB_API
 ULIB_PURE
 utime_stamp utime_to_timestamp(UTime const *time);
 
 /**
- * Converts the specified timestamp into a date.
+ * Gets the current UTC date and time.
+ *
+ * @return Current UTC date and time.
+ */
+ULIB_API
+UTime utime_now(void);
+
+/**
+ * Gets the current local date and time.
+ *
+ * @return Current local date and time.
+ */
+ULIB_API
+UTime utime_local(void);
+
+/**
+ * Converts the specified timestamp into a UTC date and time.
  *
  * @param ts Timestamp to convert.
- * @return Date corresponding to the timestamp.
+ * @return Corresponding UTC date and time.
  */
 ULIB_API
 ULIB_CONST
 UTime utime_from_timestamp(utime_stamp ts);
 
 /**
- * Adds a certain time interval to the specified date.
+ * Adds a certain time interval to the specified date and time.
  *
- * @param time Date.
+ * @param time Date and time.
  * @param quantity Quantity to add.
  * @param unit Time unit.
  */
@@ -131,9 +147,9 @@ ULIB_API
 void utime_add(UTime *time, long long quantity, utime_unit unit);
 
 /**
- * Transforms a date from the specified timezone to UTC.
+ * Transforms a date and time from the specified timezone to UTC.
  *
- * @param time Date to transform.
+ * @param time Date and time to transform.
  * @param tz_hour Timezone offset hours.
  * @param tz_minute Timezone offset minutes.
  */
@@ -141,9 +157,9 @@ ULIB_API
 void utime_to_utc(UTime *time, int tz_hour, unsigned tz_minute);
 
 /**
- * Transforms a date from UTC to the specified timezone.
+ * Transforms a date and time from UTC to the specified timezone.
  *
- * @param time Date to transform.
+ * @param time Date and time to transform.
  * @param tz_hour Timezone offset hours.
  * @param tz_minute Timezone offset minutes.
  */
@@ -151,9 +167,9 @@ ULIB_API
 void utime_to_timezone(UTime *time, int tz_hour, unsigned tz_minute);
 
 /**
- * Normalizes a date from the specified timezone to UTC.
+ * Normalizes a date and time from the specified timezone to UTC.
  *
- * @param time Date to normalize.
+ * @param time Date and time to normalize.
  * @param tz_hour Timezone offset hours.
  * @param tz_minute Timezone offset minutes.
  */
@@ -164,22 +180,22 @@ void utime_normalize_to_utc(UTime *time, int tz_hour, unsigned tz_minute) {
 }
 
 /**
- * Returns the difference between the specified dates.
+ * Returns the difference between the specified dates and times.
  *
- * @param a First date.
- * @param b Second date.
+ * @param a First date and time.
+ * @param b Second date and time.
  * @param unit Time unit.
- * @return Difference between the specified dates.
+ * @return Difference between the specified dates and times.
  */
 ULIB_API
 ULIB_PURE
 long long utime_diff(UTime const *a, UTime const *b, utime_unit unit);
 
 /**
- * Converts the specified date into a human readable string.
+ * Converts the specified date and time into a human readable string.
  *
- * @param time Date.
- * @return Human readable date string.
+ * @param time Date and time.
+ * @return Human readable string.
  *
  * @destructor{ustring_deinit}
  */
@@ -187,9 +203,9 @@ ULIB_API
 UString utime_to_string(UTime const *time);
 
 /**
- * Parses a date from the specified string.
+ * Parses a date and time from the specified string.
  *
- * @param[out] time Date.
+ * @param[out] time Date and time.
  * @param string Date string.
  * @return True if the string was parsed without errors, false otherwise.
  *
