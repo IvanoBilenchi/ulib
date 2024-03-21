@@ -85,7 +85,10 @@ bool utime_test_date(void) {
     utime_add(&a, 24 * 60 * 60, UTIME_SECONDS);
     utest_assert(utime_equals(&a, &b));
 
-    utime_to_utc(&b, 1, 31);
+    utime_to_timezone(&b, 1, 0);
+    utest_assert_int(utime_diff(&a, &b, UTIME_MINUTES), ==, -60);
+
+    utime_to_utc(&b, 2, 31);
     utest_assert_int(utime_diff(&a, &b, UTIME_MINUTES), ==, 91);
 
     UString str = ustring_literal("abcd");

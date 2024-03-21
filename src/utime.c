@@ -40,16 +40,6 @@ bool utime_equals(UTime const *a, UTime const *b) {
 
 ULIB_CONST
 ULIB_INLINE
-long long utime_tz_offset_minutes(int h, unsigned m) {
-    return ((long long)h * MINUTES_PER_HOUR) + (h >= 0 ? m : -(long long)m);
-}
-
-void utime_to_utc(UTime *time, int tz_hour, unsigned tz_minute) {
-    utime_add(time, -utime_tz_offset_minutes(tz_hour, tz_minute), UTIME_MINUTES);
-}
-
-ULIB_CONST
-ULIB_INLINE
 long long utime_ymd_to_days(long long y, unsigned m, unsigned d) {
     y -= m <= 2;
     long long const era = (y >= 0 ? y : y - 399) / 400;
@@ -135,6 +125,20 @@ void utime_add(UTime *time, long long quantity, utime_unit unit) {
     }
 
     *time = utime_from_timestamp(utime_to_timestamp(time) + quantity);
+}
+
+ULIB_CONST
+ULIB_INLINE
+long long utime_tz_offset_minutes(int h, unsigned m) {
+    return ((long long)h * MINUTES_PER_HOUR) + (h >= 0 ? m : -(long long)m);
+}
+
+void utime_to_utc(UTime *time, int tz_hour, unsigned tz_minute) {
+    utime_add(time, -utime_tz_offset_minutes(tz_hour, tz_minute), UTIME_MINUTES);
+}
+
+void utime_to_timezone(UTime *time, int tz_hour, unsigned tz_minute) {
+    utime_add(time, utime_tz_offset_minutes(tz_hour, tz_minute), UTIME_MINUTES);
 }
 
 long long utime_diff(UTime const *a, UTime const *b, utime_unit unit) {
