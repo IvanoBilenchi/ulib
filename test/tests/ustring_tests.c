@@ -202,7 +202,10 @@ bool ustring_test_base(void) {
 
     a = ustring_repeating(ustring_literal("123"), 4);
     utest_assert_ustring(a, ==, ustring_literal("123123123123"));
+    b = ustring_replacing_char(a, '3', '4');
+    utest_assert_ustring(b, ==, ustring_literal("124124124124"));
     ustring_deinit(&a);
+    ustring_deinit(&b);
 
     a = ustring_with_format("%d%d%d", 1, 2, 3);
     utest_assert_ustring(a, ==, ustring_literal("123"));

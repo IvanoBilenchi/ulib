@@ -290,6 +290,18 @@ UString ustring_repeating(UString string, ulib_uint times) {
     return ret;
 }
 
+UString ustring_replacing_char(UString string, char needle, char replacement) {
+    ulib_uint const len = ustring_length(string);
+    UString ret;
+    char *buf = ustring(&ret, len);
+    if (!len) return ret;
+    memcpy(buf, ustring_data(string), len);
+    for (char *cur = buf; (cur = memchr(cur, needle, len - (cur - buf))) != NULL; ++cur) {
+        *cur = replacement;
+    }
+    return ret;
+}
+
 UString ustring_to_upper(UString string) {
     UString ret;
     ulib_uint const len = ustring_length(string);

@@ -356,6 +356,19 @@ ULIB_API
 UString ustring_repeating(UString string, ulib_uint times);
 
 /**
+ * Returns a new string obtained by replacing all occurrences of a character with another.
+ *
+ * @param string String.
+ * @param needle Character to replace.
+ * @param replacement Replacement character.
+ * @return New string.
+ *
+ * @destructor{ustring_deinit}
+ */
+ULIB_API
+UString ustring_replacing_char(UString string, char needle, char replacement);
+
+/**
  * Checks if the string does not contain lowercase characters.
  *
  * @param string String.
