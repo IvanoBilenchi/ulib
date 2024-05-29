@@ -1,4 +1,4 @@
-name: Build and test
+name: CI pipeline
 
 on:
   push:
@@ -7,12 +7,6 @@ on:
 env:
   build_dir: build
   build_config: Debug
-  cflags_gnuc: -Werror -fsanitize=address
-  lflags_gnuc: -fsanitize=address
-  cflags_clang: -Werror -fsanitize=address
-  lflags_clang: -fsanitize=address
-  cflags_msvc: /WX
-  lflags_msvc: ''
   test_target: ulib-test
   cpp_test_target: ulib-cpp-test
   bench_target: ulib-bench
@@ -21,31 +15,27 @@ env:
 jobs:
   build:
     name: Build and test
-    runs-on: ${{matrix.os}}
+
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os:
+          - name: ubuntu
+            cflags: -Werror -fsanitize=address
+            lflags: -fsanitize=address
+          - name: windows
+            cflags: /WX
+          - name: macos
+            cflags: -Werror -fsanitize=address
+            lflags: -fsanitize=address
         lib_type: [STATIC, SHARED]
         types: [normal, tiny, huge]
+
+    runs-on: ${{matrix.os.name}}-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Configure runner
-        run: |
-          if [ $RUNNER_OS == 'Windows' ]; then
-            echo 'cflags="${{env.cflags_msvc}}"' >> $GITHUB_ENV
-            echo 'lflags="${{env.lflags_msvc}}"' >> $GITHUB_ENV
-          elif [ $RUNNER_OS == 'Linux' ]; then
-            echo 'cflags="${{env.cflags_gnuc}}"' >> $GITHUB_ENV
-            echo 'lflags="${{env.lflags_gnuc}}"' >> $GITHUB_ENV
-          elif [ $RUNNER_OS == 'macOS' ]; then
-            echo 'cflags="${{env.cflags_clang}}"' >> $GITHUB_ENV
-            echo 'lflags="${{env.lflags_clang}}"' >> $GITHUB_ENV
-          fi
-        shell: bash
 
       - name: Configure CMake
         run: >
@@ -56,10 +46,10 @@ jobs:
           -DULIB_LEAKS=ON
           -DCMAKE_SYSTEM_VERSION=''
           -DCMAKE_BUILD_TYPE=${{env.build_config}}
-          -DCMAKE_C_FLAGS=${{env.cflags}}
-          -DCMAKE_CXX_FLAGS=${{env.cflags}}
-          -DCMAKE_SHARED_LINKER_FLAGS=${{env.lflags}}
-          -DCMAKE_EXE_LINKER_FLAGS=${{env.lflags}}
+          -DCMAKE_C_FLAGS='${{matrix.os.cflags}}'
+          -DCMAKE_CXX_FLAGS='${{matrix.os.cflags}}'
+          -DCMAKE_SHARED_LINKER_FLAGS='${{matrix.os.lflags}}'
+          -DCMAKE_EXE_LINKER_FLAGS='${{matrix.os.lflags}}'
 
       - name: Build
         run: >
@@ -69,7 +59,7 @@ jobs:
 
       - name: Configure tests
         working-directory: ${{env.build_dir}}/test
-        if: matrix.os == 'windows-latest'
+        if: runner.os == 'Windows'
         run: |
           mv ${{env.build_config}}/*.exe ./
           if [ ${{matrix.lib_type}} == 'SHARED' ]; then
