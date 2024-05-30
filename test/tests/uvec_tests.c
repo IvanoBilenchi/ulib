@@ -201,7 +201,7 @@ bool uvec_test_storage(void) {
 
     VTYPE *d_array = (VTYPE *)ulib_calloc_array(d_array, 4);
     vec = uvec_assign(VTYPE, d_array, 4);
-    utest_assert_uint(uvec_count(VTYPE, &vec), ==, 4);
+    utest_assert_uint(uvec_count(VTYPE, &vec), ==, 4); // NOLINT(clang-analyzer-unix.Malloc)
     utest_assert_uint(uvec_size(VTYPE, &vec), ==, 4);
     uvec_assert_elements(VTYPE, &vec, 0, 0, 0, 0);
 

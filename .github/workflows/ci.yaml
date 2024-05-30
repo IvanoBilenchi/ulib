@@ -6,32 +6,49 @@ on:
 
 env:
   build_dir: build
-  build_config: Debug
+  build_config: Release
   test_target: ulib-test
   cpp_test_target: ulib-cpp-test
   bench_target: ulib-bench
   docs_target: ulib-docs
 
 jobs:
-  build:
-    name: Build and test
+
+  analyze:
+    name: Run analyzers
+    runs-on: ${{vars.ubuntu_runner || 'ubuntu-latest'}}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Run pre-commit
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install pre-commit
+          pre-commit run --from-ref=HEAD~1 --to-ref=HEAD
+      - name: Configure CMake
+        run: >
+          CC=clang cmake -B ${{env.build_dir}}
+          -DULIB_CLANG_TIDY=ON
+          -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
+      - name: Build
+        run: cmake --build ${{env.build_dir}}
+
+  test:
+    name: Test
+    runs-on: ${{matrix.os}}
 
     strategy:
       fail-fast: false
       matrix:
         os:
-          - name: ubuntu
-            cflags: -Werror -fsanitize=address
-            lflags: -fsanitize=address
-          - name: windows
-            cflags: /WX
-          - name: macos
-            cflags: -Werror -fsanitize=address
-            lflags: -fsanitize=address
+          - ${{vars.ubuntu_runner || 'ubuntu-latest'}}
+          - ${{vars.windows_runner || 'windows-latest'}}
+          - ${{vars.macos_runner || 'macos-latest'}}
         lib_type: [STATIC, SHARED]
         types: [normal, tiny, huge]
-
-    runs-on: ${{matrix.os.name}}-latest
 
     steps:
       - name: Checkout repository
@@ -44,12 +61,10 @@ jobs:
           -DULIB_TINY=${{matrix.types == 'tiny' && 'ON' || 'OFF'}}
           -DULIB_HUGE=${{matrix.types == 'huge' && 'ON' || 'OFF'}}
           -DULIB_LEAKS=ON
+          -DULIB_SANITIZERS=ON
           -DCMAKE_SYSTEM_VERSION=''
+          -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
           -DCMAKE_BUILD_TYPE=${{env.build_config}}
-          -DCMAKE_C_FLAGS='${{matrix.os.cflags}}'
-          -DCMAKE_CXX_FLAGS='${{matrix.os.cflags}}'
-          -DCMAKE_SHARED_LINKER_FLAGS='${{matrix.os.lflags}}'
-          -DCMAKE_EXE_LINKER_FLAGS='${{matrix.os.lflags}}'
 
       - name: Build
         run: >
@@ -57,7 +72,7 @@ jobs:
           --config ${{env.build_config}}
           --target ${{env.test_target}} ${{env.cpp_test_target}} ${{env.bench_target}}
 
-      - name: Configure tests
+      - name: Configure tests (Windows)
         working-directory: ${{env.build_dir}}/test
         if: runner.os == 'Windows'
         run: |
@@ -67,32 +82,31 @@ jobs:
           fi
         shell: bash
 
-      - name: Test
+      - name: Run tests
         working-directory: ${{env.build_dir}}/test
         run: ./${{env.test_target}}
 
-      - name: Test (C++)
+      - name: Run tests (C++)
         working-directory: ${{env.build_dir}}/test
         run: ./${{env.cpp_test_target}}
 
-      - name: Benchmark
+      - name: Run benchmark
         working-directory: ${{env.build_dir}}/test
         run: ./${{env.bench_target}}
 
   docs:
     name: Generate the documentation
-    runs-on: ubuntu-latest
+    runs-on: ${{vars.ubuntu_runner || 'ubuntu-latest'}}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Configure runner
-        run: |
-          sudo apt install doxygen
-          pip3 install -U Sphinx sphinx-rtd-theme breathe
-
       - name: Build docs
         run: |
+          sudo apt install doxygen
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install Sphinx sphinx-rtd-theme breathe
           cmake -B ${{env.build_dir}}
           cmake --build ${{env.build_dir}} --target ${{env.docs_target}}

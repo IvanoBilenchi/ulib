@@ -4,7 +4,7 @@
 
 # CMake
 
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.24)
 
 # Project
 
@@ -29,7 +29,9 @@ project(uLib
 option(ULIB_TINY "Use small types" OFF)
 option(ULIB_HUGE "Use large types" OFF)
 option(ULIB_LTO "Enable link-time optimization, if available" ON)
+option(ULIB_CLANG_TIDY "Enable clang-tidy, if available" OFF)
 option(ULIB_LEAKS "Enable debugging of memory leaks (keep OFF in production builds)" OFF)
+option(ULIB_SANITIZERS "Enable sanitizers (keep OFF in production builds)" OFF)
 set(ULIB_LIBRARY_TYPE "STATIC" CACHE STRING "Type of library to build.")
 set(ULIB_USER_HEADERS "" CACHE STRING "User-specified header files")
 set(ULIB_USER_SOURCES "" CACHE STRING "User-specified source files")
@@ -54,8 +56,11 @@ set(ULIB_HEADERS_OUT_DIR "${ULIB_OUTPUT_DIR}/include")
 
 set(ULIB_COMPILE_FEATURES c_std_11)
 
-if(CMAKE_C_COMPILER_ID MATCHES "Clang")
-    find_program(ULIB_CLANG_TIDY NAMES clang-tidy DOC "Path to clang-tidy executable")
+if(ULIB_CLANG_TIDY)
+    set(ULIB_CLANG_TIDY_COMMAND "clang-tidy")
+    if(CMAKE_COMPILE_WARNING_AS_ERROR)
+        list(APPEND ULIB_CLANG_TIDY_COMMAND "-warnings-as-errors=*")
+    endif()
 endif()
 
 if(ULIB_LEAKS)
@@ -97,6 +102,9 @@ if(MSVC)
     set(ULIB_WARNING_OPTIONS /W4 /wd4996)
 else()
     set(ULIB_WARNING_OPTIONS -Wall -Wextra)
+    if(ULIB_SANITIZERS)
+        set(ULIB_SANITIZER_OPTIONS "-fsanitize=address,undefined")
+    endif()
 endif()
 
 if(ULIB_LTO)
@@ -130,7 +138,10 @@ set_target_properties(ulib PROPERTIES
                       C_VISIBILITY_PRESET hidden
                       VISIBILITY_INLINES_HIDDEN ON)
 target_compile_features(ulib PRIVATE ${ULIB_COMPILE_FEATURES})
-target_compile_options(ulib PRIVATE ${ULIB_WARNING_OPTIONS})
+target_compile_options(ulib
+                       PUBLIC ${ULIB_SANITIZER_OPTIONS}
+                       PRIVATE ${ULIB_WARNING_OPTIONS})
+target_link_options(ulib PUBLIC ${ULIB_SANITIZER_OPTIONS})
 target_compile_definitions(ulib
                            PUBLIC ${ULIB_PUBLIC_DEFINES}
                            PRIVATE ${ULIB_PRIVATE_DEFINES})
@@ -147,8 +158,8 @@ if(ULIB_LTO_ENABLED)
     set_property(TARGET ulib PROPERTY INTERPROCEDURAL_OPTIMIZATION ON)
 endif()
 
-if(ULIB_CLANG_TIDY)
-    set_property(TARGET ulib PROPERTY C_CLANG_TIDY "${ULIB_CLANG_TIDY}")
+if(ULIB_CLANG_TIDY_COMMAND)
+    set_property(TARGET ulib PROPERTY C_CLANG_TIDY "${ULIB_CLANG_TIDY_COMMAND}")
 endif()
 
 install(TARGETS ulib)
