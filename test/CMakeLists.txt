@@ -13,9 +13,7 @@ endforeach()
 file(GLOB ULIB_CPP_TEST_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/*.cpp")
 
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${ULIB_TEST_SOURCES})
-set_source_files_properties(${ULIB_CPP_TEST_SOURCES}
-                            DIRECTORY "${ULIB_PROJECT_DIR}"
-                            PROPERTIES GENERATED ON)
+set_property(SOURCE ${ULIB_CPP_TEST_SOURCES} DIRECTORY "${ULIB_PROJECT_DIR}" PROPERTY GENERATED ON)
 
 # Test target
 

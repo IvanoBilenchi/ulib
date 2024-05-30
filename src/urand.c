@@ -9,6 +9,8 @@
 
 #include "urand.h"
 
+// NOLINTBEGIN(clang-analyzer-security.insecureAPI.rand)
+
 #ifndef ULIB_RAND
 #define ULIB_RAND rand
 #endif
@@ -86,3 +88,5 @@ void urand_shuffle(void *array, size_t element_size, ulib_uint length) {
         memcpy(swap, temp, element_size);
     }
 }
+
+// NOLINTEND(clang-analyzer-security.insecureAPI.rand)

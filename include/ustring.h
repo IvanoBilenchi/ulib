@@ -96,6 +96,7 @@ typedef struct UString {
  * @alias ulib_uint ustring_hash_func(ulib_uint init, void const *buf, size_t size);
  */
 #ifndef ustring_hash_func
+#include "uhash_func.h" // IWYU pragma: keep, declares ulib_hash_mem_kr2
 #define ustring_hash_func(init, buf, size) ulib_hash_mem_kr2(init, buf, size)
 #endif
 

@@ -8,7 +8,6 @@
  */
 
 #include "ustring.h"
-#include "uhash_func.h"
 #include "ustrbuf.h"
 #include "uutils.h"
 

@@ -12,7 +12,7 @@
 #ifndef UHASH_BUILTIN_H
 #define UHASH_BUILTIN_H
 
-#include "uhash.h"
+#include "uhash.h" // IWYU pragma: export
 #include "ustring.h"
 
 ULIB_BEGIN_DECLS

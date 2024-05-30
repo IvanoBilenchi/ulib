@@ -12,6 +12,8 @@
 #ifndef USTD_H
 #define USTD_H
 
+// IWYU pragma: begin_exports
+
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -25,28 +27,6 @@
 #include "unumber.h"
 #include "uutils.h"
 
-/// Pointer type.
-typedef void *ulib_ptr;
-
-/**
- * @defgroup ulib_ptr Pointer types API
- * @{
- */
-
-/**
- * Alignment of pointers returned by memory allocation functions.
- *
- * On most platforms this is equal to the strictest alignment of any scalar type (e.g. long double).
- */
-#ifndef ULIB_MALLOC_ALIGN
-#include <stdalign.h>
-#if defined(_WIN32)
-#define ULIB_MALLOC_ALIGN alignof(long double)
-#else
-#define ULIB_MALLOC_ALIGN alignof(max_align_t)
-#endif
-#endif
-
-/// @}
+// IWYU pragma: end_exports
 
 #endif // USTD_H

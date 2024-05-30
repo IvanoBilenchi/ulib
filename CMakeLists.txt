@@ -54,6 +54,10 @@ set(ULIB_HEADERS_OUT_DIR "${ULIB_OUTPUT_DIR}/include")
 
 set(ULIB_COMPILE_FEATURES c_std_11)
 
+if(CMAKE_C_COMPILER_ID MATCHES "Clang")
+    find_program(ULIB_CLANG_TIDY NAMES clang-tidy DOC "Path to clang-tidy executable")
+endif()
+
 if(ULIB_LEAKS)
     set(ULIB_MALLOC p_utest_leak_malloc)
     set(ULIB_CALLOC p_utest_leak_calloc)
@@ -141,6 +145,10 @@ endif()
 
 if(ULIB_LTO_ENABLED)
     set_property(TARGET ulib PROPERTY INTERPROCEDURAL_OPTIMIZATION ON)
+endif()
+
+if(ULIB_CLANG_TIDY)
+    set_property(TARGET ulib PROPERTY C_CLANG_TIDY "${ULIB_CLANG_TIDY}")
 endif()
 
 install(TARGETS ulib)

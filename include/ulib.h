@@ -12,6 +12,8 @@
 #ifndef ULIB_H
 #define ULIB_H
 
+// IWYU pragma: begin_exports
+
 #include "ualloc.h"
 #include "uattrs.h"
 #include "ubit.h"
@@ -33,5 +35,7 @@
 #include "uvec.h"
 #include "uvec_builtin.h"
 #include "uversion.h"
+
+// IWYU pragma: end_exports
 
 #endif // ULIB_H

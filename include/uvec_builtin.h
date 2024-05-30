@@ -13,7 +13,7 @@
 #define UVEC_BUILTIN_H
 
 #include "ustring.h"
-#include "uvec.h"
+#include "uvec.h" // IWYU pragma: export
 
 ULIB_BEGIN_DECLS
 
