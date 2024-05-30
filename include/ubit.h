@@ -267,7 +267,7 @@
  *
  * @alias unsigned ubit_count_unset(bitsize N, unsigned mask);
  */
-#define ubit_count_unset(N, mask) ((N)-ubit_count_set(N, mask))
+#define ubit_count_unset(N, mask) ((N) - ubit_count_set(N, mask))
 
 /**
  * Returns the index of the first set bit.
