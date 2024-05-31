@@ -9,6 +9,7 @@
 
 #include "ubit.h"
 #include "utest.h"
+#include <stdint.h>
 
 #define ubit_test_impl(N)                                                                          \
     bool ubit_test_##N(void) {                                                                     \

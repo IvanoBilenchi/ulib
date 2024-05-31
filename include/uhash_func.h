@@ -12,7 +12,9 @@
 #ifndef UHASH_FUNC_H
 #define UHASH_FUNC_H
 
-#include "ustd.h"
+#include "uattrs.h"
+#include "unumber.h"
+#include <stddef.h>
 
 ULIB_BEGIN_DECLS
 

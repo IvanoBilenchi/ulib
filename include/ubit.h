@@ -12,7 +12,9 @@
 #ifndef UBIT_H
 #define UBIT_H
 
-#include "ustd.h"
+#include "uattrs.h"
+#include "unumber.h"
+#include "uutils.h"
 
 /**
  * References a specific bitmask type.

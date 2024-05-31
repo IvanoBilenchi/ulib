@@ -10,7 +10,7 @@
 #ifndef USTREAM_TESTS_H
 #define USTREAM_TESTS_H
 
-#include "ustd.h"
+#include <stdbool.h>
 
 bool uistream_path_test(void);
 bool uistream_buf_test(void);

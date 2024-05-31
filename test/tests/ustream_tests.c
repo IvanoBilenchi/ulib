@@ -8,8 +8,12 @@
  */
 
 #include "ustream_tests.h"
+#include "ualloc.h"
 #include "ustream.h"
 #include "utest.h"
+#include <stddef.h>
+#include <stdio.h>
+#include <string.h>
 
 #define USTREAM_INPUT_FILE "ustream_input.txt"
 #define USTREAM_OUTPUT_FILE "ustream_output.txt"

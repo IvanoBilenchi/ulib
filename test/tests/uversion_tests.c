@@ -9,6 +9,7 @@
 
 #include "uversion_tests.h"
 #include "umeta.h"
+#include "ustring.h"
 #include "utest.h"
 #include "uversion.h"
 

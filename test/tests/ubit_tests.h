@@ -10,7 +10,7 @@
 #ifndef UBIT_TESTS_H
 #define UBIT_TESTS_H
 
-#include "ustd.h"
+#include <stdbool.h>
 
 bool ubit_test_8(void);
 bool ubit_test_16(void);

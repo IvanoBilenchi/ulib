@@ -8,7 +8,10 @@
  */
 
 #include "uhash.h"
+#include "unumber.h"
 #include "utest.h"
+#include <stddef.h>
+#include <stdint.h>
 
 #define MAX_VAL 100
 

@@ -10,7 +10,13 @@
  */
 
 #include "utime.h"
+#include "uattrs.h"
+#include "unumber.h"
+#include "ustrbuf.h"
 #include "ustream.h"
+#include "ustring.h"
+#include "uutils.h"
+#include <stdlib.h>
 #include <time.h>
 
 #define NS_PER_NS (utime_ns)1

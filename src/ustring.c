@@ -8,8 +8,16 @@
  */
 
 #include "ustring.h"
+#include "ualloc.h"
+#include "uattrs.h"
+#include "ulib_ret.h"
+#include "unumber.h"
 #include "ustrbuf.h"
+#include "ustring_raw.h"
 #include "uutils.h"
+#include <limits.h>
+#include <stdarg.h>
+#include <string.h>
 
 UString const ustring_null = p_ustring_init_small(0);
 UString const ustring_empty = p_ustring_init_small(1);

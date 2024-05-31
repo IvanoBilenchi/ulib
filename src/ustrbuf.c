@@ -8,6 +8,18 @@
  */
 
 #include "ustrbuf.h"
+#include "ualloc.h"
+#include "uattrs.h"
+#include "unumber.h"
+#include "ustring.h"
+#include "ustring_raw.h"
+#include "uutils.h"
+#include "uvec_builtin.h"
+#include <stdarg.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
 
 uvec_ret ustrbuf_append_format(UStrBuf *buf, char const *format, ...) {
     va_list args;

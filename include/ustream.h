@@ -12,9 +12,9 @@
 #ifndef USTREAM_H
 #define USTREAM_H
 
-#include "ustd.h"
 #include "ustrbuf.h"
 #include "utime.h"
+#include <stdio.h>
 
 ULIB_BEGIN_DECLS
 

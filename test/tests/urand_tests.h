@@ -10,7 +10,7 @@
 #ifndef URAND_TESTS_H
 #define URAND_TESTS_H
 
-#include "ustd.h"
+#include <stdbool.h>
 
 bool urand_int_test(void);
 bool urand_float_test(void);

@@ -12,8 +12,12 @@
 #ifndef UTEST_H
 #define UTEST_H
 
-#include "ustd.h"
+#include "uattrs.h"
 #include "uutils.h"
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 ULIB_BEGIN_DECLS
 

@@ -8,7 +8,10 @@
  */
 
 #include "uversion.h"
+#include "ustrbuf.h"
 #include "ustream.h"
+#include "ustring.h"
+#include <stddef.h>
 
 int uversion_compare(UVersion lhs, UVersion rhs) {
     if (lhs.major < rhs.major) return -1;

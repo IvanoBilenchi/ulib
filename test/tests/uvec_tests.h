@@ -10,7 +10,7 @@
 #ifndef UVEC_TESTS_H
 #define UVEC_TESTS_H
 
-#include "ustd.h"
+#include <stdbool.h>
 
 bool uvec_test_base(void);
 bool uvec_test_range(void);

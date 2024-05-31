@@ -8,6 +8,8 @@
  */
 
 #include "uhash_builtin.h"
+#include "unumber.h" // IWYU pragma: keep, required for ulib_equals
+#include "ustring.h"
 
 UHASH_IMPL(ulib_int, ulib_hash_int, ulib_equals)
 UHASH_IMPL(ulib_uint, ulib_hash_int, ulib_equals)

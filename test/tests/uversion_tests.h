@@ -10,7 +10,7 @@
 #ifndef UVERSION_TESTS_H
 #define UVERSION_TESTS_H
 
-#include "ustd.h"
+#include <stdbool.h>
 
 bool uversion_test(void);
 

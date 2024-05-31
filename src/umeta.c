@@ -8,6 +8,7 @@
  */
 
 #include "umeta.h"
+#include "uversion.h"
 
 #ifndef ULIB_VERSION_MAJOR
 #define ULIB_VERSION_MAJOR 0

@@ -8,6 +8,9 @@
  */
 
 #include "uvec_builtin.h"
+#include "ualloc.h"
+#include "unumber.h"
+#include "ustring.h"
 
 UVEC_IMPL_IDENTIFIABLE(char)
 UVEC_IMPL_IDENTIFIABLE(ulib_byte)

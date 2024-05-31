@@ -10,7 +10,7 @@
 #ifndef USTRING_TESTS_H
 #define USTRING_TESTS_H
 
-#include "ustd.h"
+#include <stdbool.h>
 
 bool ustring_utils_test(void);
 bool ustrbuf_test(void);

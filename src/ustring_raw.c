@@ -8,6 +8,11 @@
  */
 
 #include "ustring_raw.h"
+#include "ualloc.h"
+#include <stdarg.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <string.h>
 
 char *ulib_str_dup(char const *string, size_t length) {
     char *buf = ulib_malloc(length + 1);

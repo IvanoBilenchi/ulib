@@ -12,7 +12,11 @@
 #ifndef USTRING_RAW_H
 #define USTRING_RAW_H
 
-#include "ustd.h"
+#include "uattrs.h"
+#include "unumber.h"
+#include <stdarg.h>
+#include <stdlib.h>
+#include <string.h>
 
 ULIB_BEGIN_DECLS
 

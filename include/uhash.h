@@ -14,8 +14,12 @@
 #ifndef UHASH_H
 #define UHASH_H
 
-#include "uhash_func.h"
-#include "ustd.h"
+#include "ualloc.h"
+#include "uhash_func.h" // IWYU pragma: export
+#include "unumber.h"
+#include "uutils.h"
+#include <stdint.h>
+#include <string.h>
 
 // Types
 

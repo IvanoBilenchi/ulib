@@ -8,9 +8,13 @@
  */
 
 #include "urand_tests.h"
+#include "unumber.h"
 #include "urand.h"
+#include "ustring.h"
 #include "utest.h"
 #include "uvec_builtin.h"
+#include <stddef.h>
+#include <string.h>
 
 bool urand_int_test(void) {
     urand_set_seed(12345);

@@ -8,8 +8,10 @@
  */
 
 #include "utime_tests.h"
+#include "ustring.h"
 #include "utest.h"
 #include "utime.h"
+#include "uutils.h"
 #include <time.h>
 
 struct utime_test_s {

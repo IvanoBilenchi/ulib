@@ -2,10 +2,9 @@
 Checks: >
   -*,
   clang-analyzer-*,
+  -clang-analyzer-cplusplus-*,
   -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,
-  modernize-*,
-  -modernize-macro-to-enum,
-  -modernize-redundant-void-arg,
-  -modernize-use-trailing-return-type,
+  misc-header-include-cycle,
+  misc-include-cleaner,
   performance-*,
   portability-*

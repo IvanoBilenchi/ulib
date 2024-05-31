@@ -8,9 +8,19 @@
  */
 
 #include "ustream.h"
+#include "ualloc.h"
+#include "uattrs.h"
+#include "unumber.h"
+#include "ustrbuf.h"
 #include "ustring.h"
+#include "ustring_raw.h"
+#include "utime.h"
+#include "uvec_builtin.h"
 #include "uversion.h"
 #include <stdarg.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <string.h>
 
 typedef struct UStreamBuf {
     size_t size;

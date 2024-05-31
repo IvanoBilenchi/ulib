@@ -13,6 +13,7 @@
 #define UHASH_BUILTIN_H
 
 #include "uhash.h" // IWYU pragma: export
+#include "unumber.h"
 #include "ustring.h"
 
 ULIB_BEGIN_DECLS

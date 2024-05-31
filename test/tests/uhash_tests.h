@@ -10,7 +10,7 @@
 #ifndef UHASH_TESTS_H
 #define UHASH_TESTS_H
 
-#include "ustd.h"
+#include <stdbool.h>
 
 bool uhash_test_memory(void);
 bool uhash_test_base(void);

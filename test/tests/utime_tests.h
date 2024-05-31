@@ -10,7 +10,7 @@
 #ifndef UTIME_TESTS_H
 #define UTIME_TESTS_H
 
-#include "ustd.h"
+#include <stdbool.h>
 
 bool utime_test_ns(void);
 bool utime_test_date(void);
