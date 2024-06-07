@@ -7,8 +7,7 @@
  * @file
  */
 
-#include "ubit.h"
-#include "utest.h"
+#include "ulib.h"
 #include <stdint.h>
 
 #define ubit_test_impl(N)                                                                          \

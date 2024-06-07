@@ -27,3 +27,5 @@ TypenameMacros:
   - UVec
 WhitespaceSensitiveMacros:
   - ULIB_DEPRECATED
+  - ULIB_SUPPRESS
+  - ULIB_SUPPRESS_ONE

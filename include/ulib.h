@@ -34,6 +34,7 @@
 #include "uvec.h"
 #include "uvec_builtin.h"
 #include "uversion.h"
+#include "uwarning.h"
 
 // IWYU pragma: end_exports
 

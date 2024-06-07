@@ -15,11 +15,14 @@
 #define UHASH_H
 
 #include "ualloc.h"
-#include "uhash_func.h" // IWYU pragma: export
+#include "uattrs.h"
 #include "unumber.h"
 #include "uutils.h"
+#include "uwarning.h"
 #include <stdint.h>
 #include <string.h>
+
+ULIB_BEGIN_DECLS
 
 // Types
 
@@ -1464,5 +1467,7 @@ typedef enum uhash_ret {
 #define uhset_get_any(T, h, m) uhset_get_any_##T(h, m)
 
 /// @}
+
+ULIB_END_DECLS
 
 #endif // UHASH_H

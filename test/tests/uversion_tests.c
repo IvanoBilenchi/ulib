@@ -7,11 +7,7 @@
  * @file
  */
 
-#include "uversion_tests.h"
-#include "umeta.h"
-#include "ustring.h"
-#include "utest.h"
-#include "uversion.h"
+#include "ulib.h"
 
 bool uversion_test(void) {
     UVersion a = ulib_get_version(), b = uversion(0, 0, 0);

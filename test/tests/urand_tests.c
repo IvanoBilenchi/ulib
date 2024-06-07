@@ -7,12 +7,7 @@
  * @file
  */
 
-#include "urand_tests.h"
-#include "unumber.h"
-#include "urand.h"
-#include "ustring.h"
-#include "utest.h"
-#include "uvec_builtin.h"
+#include "ulib.h"
 #include <stddef.h>
 #include <string.h>
 

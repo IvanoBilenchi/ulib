@@ -7,9 +7,7 @@
  * @file
  */
 
-#include "uhash.h"
-#include "unumber.h"
-#include "utest.h"
+#include "ulib.h"
 #include <stddef.h>
 #include <stdint.h>
 

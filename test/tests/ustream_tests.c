@@ -7,10 +7,7 @@
  * @file
  */
 
-#include "ustream_tests.h"
-#include "ualloc.h"
-#include "ustream.h"
-#include "utest.h"
+#include "ulib.h"
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>

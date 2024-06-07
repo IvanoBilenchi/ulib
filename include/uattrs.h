@@ -12,6 +12,8 @@
 #ifndef UATTRS_H
 #define UATTRS_H
 
+#include "uutils.h"
+
 /**
  * @defgroup attributes API attributes
  * @{
@@ -120,7 +122,6 @@
 #ifndef ULIB_NO_DEPRECATED
 #if defined(__GNUC__) || defined(__clang__)
     #define ULIB_DEPRECATED(msg) __attribute__((__deprecated__(#msg)))
-    #define P_ULIB_PRAGMA(msg) _Pragma(#msg)
     #define ULIB_DEPRECATED_MACRO                                                                  \
         P_ULIB_PRAGMA(GCC warning "Deprecated. See the docstring for a possible replacement.")
 #elif defined(_MSC_VER)
@@ -134,15 +135,6 @@
 #else
     #define ULIB_DEPRECATED(msg)
     #define ULIB_DEPRECATED_MACRO
-#endif
-
-/// Suppresses unused variable warnings.
-#if defined(__GNUC__) || defined(__clang__)
-    #define ulib_unused __attribute__((__unused__))
-#elif defined(_MSC_VER)
-    #define ulib_unused __pragma(warning(suppress : 4100))
-#else
-    #define ulib_unused
 #endif
 
 /// @}

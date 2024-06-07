@@ -12,6 +12,7 @@
 #ifndef UHASH_BUILTIN_H
 #define UHASH_BUILTIN_H
 
+#include "uattrs.h"
 #include "uhash.h" // IWYU pragma: export
 #include "unumber.h"
 #include "ustring.h"

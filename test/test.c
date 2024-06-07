@@ -9,10 +9,10 @@
 
 #include "ubit_tests.h"
 #include "uhash_tests.h"
+#include "ulib.h"
 #include "urand_tests.h"
 #include "ustream_tests.h"
 #include "ustring_tests.h"
-#include "utest.h"
 #include "utime_tests.h"
 #include "uvec_tests.h"
 #include "uversion_tests.h"

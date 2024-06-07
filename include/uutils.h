@@ -71,6 +71,14 @@
 #define ULIB_MACRO_CONCAT(a, b) P_ULIB_MACRO_CONCAT_INNER(a, b)
 #define P_ULIB_MACRO_CONCAT_INNER(a, b) a##b
 
+/**
+ * Pragma directive that allows macro expansion.
+ *
+ * @param msg Pragma directive.
+ */
+#define ULIB_PRAGMA(msg) P_ULIB_PRAGMA(msg)
+#define P_ULIB_PRAGMA(msg) _Pragma(#msg)
+
 /// @}
 
 #endif // UUTILS_H

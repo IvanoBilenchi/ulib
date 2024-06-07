@@ -7,12 +7,7 @@
  * @file
  */
 
-#include "ualloc.h"
-#include "unumber.h"
-#include "urand.h"
-#include "utest.h"
-#include "uutils.h"
-#include "uvec_builtin.h"
+#include "ulib.h"
 #include <stdlib.h>
 
 // Utility macros

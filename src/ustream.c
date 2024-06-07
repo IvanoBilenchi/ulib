@@ -9,7 +9,6 @@
 
 #include "ustream.h"
 #include "ualloc.h"
-#include "uattrs.h"
 #include "unumber.h"
 #include "ustrbuf.h"
 #include "ustring.h"
@@ -17,6 +16,7 @@
 #include "utime.h"
 #include "uvec_builtin.h"
 #include "uversion.h"
+#include "uwarning.h"
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdio.h>

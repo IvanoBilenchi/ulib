@@ -7,16 +7,7 @@
  * @file
  */
 
-#include "ustring_tests.h"
-#include "ualloc.h"
-#include "ulib_ret.h"
-#include "unumber.h"
-#include "ustrbuf.h"
-#include "ustring.h"
-#include "ustring_raw.h"
-#include "utest.h"
-#include "uutils.h"
-#include "uvec.h"
+#include "ulib.h"
 #include <stddef.h>
 
 #define MAX_ASCII 127

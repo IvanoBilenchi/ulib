@@ -13,9 +13,11 @@
 #define UVEC_H
 
 #include "ualloc.h"
+#include "uattrs.h"
 #include "unumber.h"
 #include "urand.h" // IWYU pragma: keep, needed for urand_range
 #include "uutils.h"
+#include "uwarning.h"
 
 ULIB_BEGIN_DECLS
 
