@@ -15,6 +15,7 @@
 #include "ustrbuf.h"
 #include "ustring_raw.h"
 #include "uutils.h"
+#include "uwarning.h"
 #include <limits.h>
 #include <stdarg.h>
 #include <string.h>
@@ -82,7 +83,9 @@ char *ustring(UString *string, size_t length) {
     } else {
         buf = ulib_malloc(length + 1);
         if (buf) {
+            ULIB_SUPPRESS_ONE(GCC, "-Wmaybe-uninitialized")
             *string = ustring_large(buf, length);
+            ULIB_SUPPRESS_END(GCC)
         } else {
             *string = ustring_null;
         }
