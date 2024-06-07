@@ -11,7 +11,6 @@
 #include "ualloc.h"
 #include "unumber.h"
 #include "ustring.h"
-#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 

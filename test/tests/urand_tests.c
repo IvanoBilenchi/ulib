@@ -8,7 +8,6 @@
  */
 
 #include "ulib.h"
-#include <stddef.h>
 #include <string.h>
 
 bool urand_int_test(void) {

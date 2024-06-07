@@ -16,8 +16,6 @@
 #include "uutils.h"
 #include "uvec_builtin.h"
 #include <stdarg.h>
-#include <stddef.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 

@@ -18,7 +18,6 @@
 #include "uversion.h"
 #include "uwarning.h"
 #include <stdarg.h>
-#include <stddef.h>
 #include <stdio.h>
 #include <string.h>
 

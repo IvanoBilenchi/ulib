@@ -10,7 +10,6 @@
 #include "ustring_raw.h"
 #include "ualloc.h"
 #include <stdarg.h>
-#include <stddef.h>
 #include <stdio.h>
 #include <string.h>
 

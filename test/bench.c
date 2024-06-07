@@ -10,7 +10,6 @@
 #include "ulib.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #define SORT_SEED 31
 #define SORT_COUNT_SMALL 16
