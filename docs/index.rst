@@ -17,6 +17,7 @@ Welcome to uLib's documentation!
    api/string
    api/collection
    api/stream
+   api/compression
    api/time
    api/rand
    api/alloc

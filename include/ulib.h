@@ -26,6 +26,7 @@
 #include "urand.h"
 #include "ustrbuf.h"
 #include "ustream.h"
+#include "ustream_varint.h"
 #include "ustring.h"
 #include "ustring_raw.h"
 #include "utest.h"
