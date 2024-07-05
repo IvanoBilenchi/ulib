@@ -5,6 +5,39 @@ All notable changes to uLib will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.6] - 2024-07-05
+### Added
+- `ustring_range`, `ustring_replacing_char`.
+- `uvec_unordered_remove_range`, `uvec_unordered_remove_at`, `uvec_unordered_remove`.
+- `utime_to_timezone`, `utime_now`, `utime_local`.
+- `ulib_uint16_floor2`, `ulib_uint32_floor2`, `ulib_uint64_floor2`.
+- `ulib_uint16_ceil2`, `ulib_uint32_ceil2`, `ulib_uint64_ceil2`.
+- `ulib_uint16_log2`, `ulib_uint32_log2`, `ulib_uint64_log2`.
+- `ubit_two_compl`, `ubit_first_set`.
+- Hash functions: `ulib_hash_int`, `ulib_hash_int8`, `ulib_hash_int16`, `ulib_hash_int32`,
+  `ulib_hash_int64`, `ulib_hash_ptr`, `ulib_hash_alloc_ptr`, `ulib_hash_str`, `ulib_hash_kr2`,
+  `ulib_hash_mem_kr2`, `ulib_hash_djb2`, `ulib_hash_djb2_mem`, `ulib_hash_combine`.
+- Ability to control the hash function used by `UString`: `ustring_hash_func`.
+- Equality functions: `ulib_equals`, `ulib_str_equals`.
+- C/C++ compatible struct initialization: `ulib_struct_init`.
+- Deprecation macros: `ULIB_DEPRECATED`, `ULIB_DEPRECATED_MACRO`.
+- Warning suppression macros: `ULIB_SUPPRESS_BEGIN`, `ULIB_SUPPRESS`,
+  `ULIB_SUPPRESS_END`, `ULIB_SUPPRESS_ONE`.
+
+### Changed
+- Deprecated `uhash_identical`, `uhash_str_equals`, `uhash_int8_hash`, `uhash_int16_hash`,
+  `uhash_int32_hash`, `uhash_int64_hash`, `uhash_ptr_hash`, `uhash_combine_hash`.
+- Renamed `uvec_*_sorted` functions to `uvec_sorted_*`.
+- Renamed `uvec_remove_all` to `uvec_clear`.
+- Renamed `utime_normalize_to_utc` to `utime_to_utc`.
+
+### Removed
+- `UVEC_INDEX_OF_THRESH`.
+
+### Fixed
+- Miscellaneous compiler and static analyzer warnings.
+
+
 ## [0.2.5] - 2024-01-26
 ### Added
 - Heap queue functionality (`uvec_max_heapq_*`, `uvec_min_heapq_*`).
@@ -201,6 +234,7 @@ uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Test utilities.
 - Miscellaneous helper macros.
 
+[0.2.6]: https://github.com/ivanobilenchi/ulib/compare/v0.2.5...v0.2.6
 [0.2.5]: https://github.com/ivanobilenchi/ulib/compare/v0.2.4...v0.2.5
 [0.2.4]: https://github.com/ivanobilenchi/ulib/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/ivanobilenchi/ulib/compare/v0.2.2...v0.2.3
