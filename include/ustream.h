@@ -236,7 +236,7 @@ typedef struct UOStream {
     /// Stream state.
     ustream_ret state;
 
-    /// Bytes written since the last `flush` call.
+    /// Bytes written since the last `reset` call.
     size_t written_bytes;
 
     /// Stream context, can be anything.
@@ -248,7 +248,7 @@ typedef struct UOStream {
      * @param ctx Stream context.
      * @param buf Buffer to read from.
      * @param count Number of bytes to write.
-     * @param[out] rcount Number of bytes actually written.
+     * @param[out] written Number of bytes actually written.
      * @return Return code.
      */
     ustream_ret (*write)(void *ctx, void const *buf, size_t count, size_t *written);
@@ -277,6 +277,16 @@ typedef struct UOStream {
     ustream_ret (*flush)(void *ctx);
 
     /**
+     * Pointer to a function that resets the stream.
+     *
+     * @param ctx Stream context.
+     * @return Return code.
+     *
+     * @note Can be NULL if the stream cannot be reset.
+     */
+    ustream_ret (*reset)(void *ctx);
+
+    /**
      * Pointer to a function that releases any resource reserved by the stream.
      * The provided function is invoked when @func{#uostream_deinit()} is called.
      *
@@ -301,6 +311,7 @@ typedef struct UOStream {
  * @param write_func `write` function pointer.
  * @param writef_func `writef` function pointer.
  * @param flush_func `flush` function pointer.
+ * @param reset_func `reset` function pointer.
  * @param free_func `free` function pointer.
  * @return Stream instance.
  *
@@ -310,8 +321,9 @@ ULIB_CONST
 ULIB_INLINE
 UOStream uostream(void *ctx, ustream_ret (*write_func)(void *, void const *, size_t, size_t *),
                   ustream_ret (*writef_func)(void *, size_t *, char const *, va_list),
-                  ustream_ret (*flush_func)(void *), ustream_ret (*free_func)(void *)) {
-    UOStream s = { USTREAM_OK, 0, ctx, write_func, writef_func, flush_func, free_func };
+                  ustream_ret (*flush_func)(void *), ustream_ret (*reset_func)(void *),
+                  ustream_ret (*free_func)(void *)) {
+    UOStream s = { USTREAM_OK, 0, ctx, write_func, writef_func, flush_func, reset_func, free_func };
     return s;
 }
 
@@ -343,6 +355,15 @@ ustream_ret uostream_deinit(UOStream *stream);
  */
 ULIB_API
 ustream_ret uostream_flush(UOStream *stream);
+
+/**
+ * Resets the stream.
+ *
+ * @param stream Output stream.
+ * @return Return code.
+ */
+ULIB_API
+ustream_ret uostream_reset(UOStream *stream);
 
 /**
  * Writes `count` bytes from `buf` into the specified output stream.

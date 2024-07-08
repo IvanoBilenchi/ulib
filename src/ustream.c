@@ -144,6 +144,11 @@ ustream_strbuf_writef(void *ctx, size_t *written, char const *format, va_list ar
     return ret == UVEC_OK ? USTREAM_OK : USTREAM_ERR_MEM;
 }
 
+static ustream_ret ustream_strbuf_reset(void *ctx) {
+    uvec_clear(char, ctx);
+    return USTREAM_OK;
+}
+
 static ustream_ret ustream_strbuf_free(void *ctx) {
     ustrbuf_deinit(ctx);
     ulib_free(ctx);
@@ -193,6 +198,17 @@ static ustream_ret ustream_multi_flush(void *ctx) {
 
     uvec_foreach (ulib_ptr, ctx, stream) {
         ustream_ret lret = uostream_flush(*stream.item);
+        if (!ret) ret = lret;
+    }
+
+    return ret;
+}
+
+static ustream_ret ustream_multi_reset(void *ctx) {
+    ustream_ret ret = USTREAM_OK;
+
+    uvec_foreach (ulib_ptr, ctx, stream) {
+        ustream_ret lret = uostream_reset(*stream.item);
         if (!ret) ret = lret;
     }
 
@@ -290,8 +306,12 @@ ustream_ret uostream_deinit(UOStream *stream) {
 }
 
 ustream_ret uostream_flush(UOStream *stream) {
-    stream->written_bytes = 0;
     return stream->state = stream->flush ? stream->flush(stream->ctx) : USTREAM_OK;
+}
+
+ustream_ret uostream_reset(UOStream *stream) {
+    stream->written_bytes = 0;
+    return stream->state = stream->reset ? stream->reset(stream->ctx) : USTREAM_OK;
 }
 
 ustream_ret uostream_write(UOStream *stream, void const *buf, size_t count, size_t *written) {
@@ -405,6 +425,7 @@ ustream_ret uostream_to_file(UOStream *stream, FILE *file) {
         stream->write = ustream_file_write;
         stream->writef = ustream_file_writef;
         stream->flush = ustream_file_flush;
+        stream->reset = ustream_file_reset;
     }
 
     return stream->state;
@@ -420,6 +441,7 @@ ustream_ret uostream_to_buf(UOStream *stream, void *buf, size_t size) {
         stream->ctx = raw_buf;
         stream->write = ustream_buf_write;
         stream->writef = ustream_buf_writef;
+        stream->reset = ustream_buf_reset;
         stream->free = ustream_buf_free;
     }
 
@@ -442,6 +464,7 @@ ustream_ret uostream_to_strbuf(UOStream *stream, UStrBuf *buf) {
         stream->ctx = buf;
         stream->write = ustream_strbuf_write;
         stream->writef = ustream_strbuf_writef;
+        stream->reset = ustream_strbuf_reset;
     }
 
     return stream->state;
@@ -458,6 +481,7 @@ ustream_ret uostream_to_multi(UOStream *stream) {
             .write = ustream_multi_write,
             .writef = ustream_multi_writef,
             .flush = ustream_multi_flush,
+            .reset = ustream_multi_reset,
             .free = ustream_multi_free,
         };
     } else {
