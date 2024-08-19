@@ -18,6 +18,8 @@
 #include "urand.h" // IWYU pragma: keep, needed for urand_range
 #include "uutils.h"
 #include "uwarning.h"
+#include <limits.h>
+#include <stddef.h>
 
 ULIB_BEGIN_DECLS
 

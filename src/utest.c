@@ -18,7 +18,6 @@
 #undef ULIB_FREE
 
 #include "uhash.h"
-#include "uhash_func.h" // IWYU pragma: keep, needed for ulib_hash_alloc_ptr
 #include "unumber.h"
 #include <inttypes.h>
 #include <stdint.h>

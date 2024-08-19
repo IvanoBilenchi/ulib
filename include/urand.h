@@ -12,6 +12,8 @@
 #ifndef URAND_H
 #define URAND_H
 
+#include "uattrs.h"
+#include "unumber.h"
 #include "ustring.h"
 
 ULIB_BEGIN_DECLS

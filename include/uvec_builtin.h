@@ -12,6 +12,9 @@
 #ifndef UVEC_BUILTIN_H
 #define UVEC_BUILTIN_H
 
+#include "ualloc.h"
+#include "uattrs.h"
+#include "unumber.h"
 #include "ustring.h"
 #include "uvec.h" // IWYU pragma: export
 

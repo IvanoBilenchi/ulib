@@ -12,6 +12,7 @@
 #ifndef UMETA_H
 #define UMETA_H
 
+#include "uattrs.h"
 #include "uversion.h"
 
 ULIB_BEGIN_DECLS

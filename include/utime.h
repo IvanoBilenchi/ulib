@@ -12,6 +12,7 @@
 #ifndef UTIME_H
 #define UTIME_H
 
+#include "uattrs.h"
 #include "ustring.h"
 
 ULIB_BEGIN_DECLS

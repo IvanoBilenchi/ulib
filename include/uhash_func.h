@@ -15,6 +15,7 @@
 #include "uattrs.h"
 #include "unumber.h"
 #include <stddef.h>
+#include <stdint.h>
 
 ULIB_BEGIN_DECLS
 

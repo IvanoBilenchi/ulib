@@ -12,14 +12,15 @@
 #ifndef USTREAM_H
 #define USTREAM_H
 
+#include "uattrs.h"
 #include "ustrbuf.h"
+#include "ustring.h"
 #include "utime.h"
 #include <stdio.h>
 
 ULIB_BEGIN_DECLS
 
 /// @cond
-typedef struct UString UString;
 typedef struct UVersion UVersion;
 /// @endcond
 

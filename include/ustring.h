@@ -12,9 +12,12 @@
 #ifndef USTRING_H
 #define USTRING_H
 
+#include "uattrs.h"
 #include "ulib_ret.h"
+#include "unumber.h"
 #include "ustring_raw.h"
 #include <limits.h>
+#include <string.h>
 
 ULIB_BEGIN_DECLS
 

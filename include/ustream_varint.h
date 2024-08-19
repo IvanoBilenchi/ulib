@@ -13,7 +13,6 @@
 #define USTREAM_VARINT_H
 
 #include "uattrs.h"
-#include "ulib_ret.h"
 #include "unumber.h"
 #include "ustream.h"
 #include <stddef.h>

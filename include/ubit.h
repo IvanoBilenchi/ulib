@@ -12,8 +12,6 @@
 #ifndef UBIT_H
 #define UBIT_H
 
-#include "uattrs.h"
-#include "unumber.h"
 #include "uutils.h"
 
 /**
@@ -296,6 +294,8 @@
 
 #else
 
+#include "uattrs.h"
+#include "unumber.h" // IWYU pragma: keep, needed for ulib_uint*_log2
 #include <limits.h>
 
 #define p_ubit_count_set_def(N)                                                                    \

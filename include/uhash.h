@@ -16,10 +16,10 @@
 
 #include "ualloc.h"
 #include "uattrs.h"
+#include "uhash_func.h" // IWYU pragma: export
 #include "unumber.h"
 #include "uutils.h"
 #include "uwarning.h"
-#include <stdint.h>
 #include <string.h>
 
 ULIB_BEGIN_DECLS

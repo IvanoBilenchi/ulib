@@ -12,6 +12,7 @@
 #ifndef USTRBUF_H
 #define USTRBUF_H
 
+#include "uattrs.h"
 #include "ustring.h"
 #include "uvec_builtin.h"
 

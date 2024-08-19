@@ -19,6 +19,7 @@
 #include <limits.h>
 #include <math.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 ULIB_BEGIN_DECLS
 
