@@ -50,7 +50,9 @@ typedef void *ulib_ptr;
  * @destructor{ulib_free}
  * @alias void *ulib_malloc(size_t size);
  */
-#ifndef ulib_malloc
+#ifdef ULIB_MALLOC
+#define ulib_malloc(size) ULIB_MALLOC(size)
+#else
 #define ulib_malloc(size) malloc(size)
 #endif
 
@@ -65,7 +67,9 @@ typedef void *ulib_ptr;
  * @destructor{ulib_free}
  * @alias void *ulib_calloc(size_t num, size_t size);
  */
-#ifndef ulib_calloc
+#ifdef ULIB_CALLOC
+#define ulib_calloc(num, size) ULIB_CALLOC(num, size)
+#else
 #define ulib_calloc(num, size) calloc(num, size)
 #endif
 
@@ -79,7 +83,9 @@ typedef void *ulib_ptr;
  * @destructor{ulib_free}
  * @alias void *ulib_realloc(void *ptr, size_t size);
  */
-#ifndef ulib_realloc
+#ifdef ULIB_REALLOC
+#define ulib_realloc(ptr, size) ULIB_REALLOC(ptr, size)
+#else
 #define ulib_realloc(ptr, size) realloc(ptr, size)
 #endif
 
@@ -89,7 +95,9 @@ typedef void *ulib_ptr;
  * @param ptr Pointer to the memory area to deallocate.
  * @alias void ulib_free(void *ptr);
  */
-#ifndef ulib_free
+#ifdef ULIB_FREE
+#define ulib_free(ptr) ULIB_FREE(ptr)
+#else
 #define ulib_free(ptr) free(ptr)
 #endif
 
@@ -102,7 +110,9 @@ typedef void *ulib_ptr;
  * @note You must not free the returned pointer.
  * @alias void *ulib_stackalloc(size_t size);
  */
-#ifndef ulib_stackalloc
+#ifdef ULIB_STACKALLOC
+#define ulib_stackalloc(size) ULIB_STACKALLOC(size)
+#else
 #if defined(__GLIBC__) || defined(__sun) || defined(__CYGWIN__)
 #include <alloca.h>
 #define ulib_stackalloc(size) alloca(size)

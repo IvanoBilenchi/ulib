@@ -7,19 +7,25 @@
  * @file
  */
 
-#undef ulib_malloc
-#undef ulib_calloc
-#undef ulib_realloc
-#undef ulib_free
-
-#define ulib_malloc malloc
-#define ulib_calloc calloc
-#define ulib_realloc realloc
-#define ulib_free free
-
-#include "ulib.h"
+#include <stdbool.h>
 
 #ifdef ULIB_LEAKS
+
+// Use default allocator functions
+#undef ULIB_MALLOC
+#undef ULIB_CALLOC
+#undef ULIB_REALLOC
+#undef ULIB_FREE
+
+#include "uhash.h"
+#include "uhash_func.h" // IWYU pragma: keep, needed for ulib_hash_alloc_ptr
+#include "unumber.h"
+#include <inttypes.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+// NOLINTBEGIN(clang-analyzer-unix.Malloc)
 
 UHASH_INIT(AllocTable, uintptr_t, char *, ulib_hash_alloc_ptr, ulib_equals)
 static UHash(AllocTable) *alloc_table = NULL;
@@ -106,6 +112,8 @@ void p_utest_leak_free_impl(void *ptr) {
     alloc_table_remove(ptr);
     free(ptr);
 }
+
+// NOLINTEND(clang-analyzer-unix.Malloc)
 
 #else
 
