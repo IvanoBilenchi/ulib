@@ -30,7 +30,8 @@
 
 // Tests
 
-#define VTYPE ulib_int
+#define VTYPE int
+UVEC_INIT_IDENTIFIABLE(VTYPE)
 
 bool uvec_test_base(void) {
     UVec(VTYPE) v = uvec(VTYPE);

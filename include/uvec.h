@@ -120,9 +120,6 @@ typedef enum uvec_ret {
 #define p_uvec_is_small(T, v) p_uvec_exp_is_small(p_uvec_exp(T, v))
 #define p_uvec_is_compact(T, v) p_uvec_exp_is_compact(p_uvec_exp(T, v))
 
-#define p_uvec_identical(a, b) ((a) == (b))
-#define p_uvec_less_than(a, b) ((a) < (b))
-
 /*
  * Defines a new vector struct.
  *
@@ -680,7 +677,7 @@ typedef enum uvec_ret {
  * @param equal_func @type{(T, T) -> bool} Equality function.
  */
 #define P_UVEC_IMPL_IDENTIFIABLE(T, ATTRS)                                                         \
-    P_UVEC_IMPL_EQUATABLE_COMMON(T, ATTRS, p_uvec_identical)                                       \
+    P_UVEC_IMPL_EQUATABLE_COMMON(T, ATTRS, ulib_eq)                                                \
     P_UVEC_IMPL_EQUATABLE_IDENTITY(T, ATTRS)
 
 /*
@@ -1052,8 +1049,8 @@ typedef enum uvec_ret {
 #define UVEC_IMPL_IDENTIFIABLE(T)                                                                  \
     P_UVEC_IMPL(T, ulib_unused)                                                                    \
     P_UVEC_IMPL_IDENTIFIABLE(T, ulib_unused)                                                       \
-    P_UVEC_IMPL_COMPARABLE(T, ulib_unused, p_uvec_identical, p_uvec_less_than)                     \
-    P_UVEC_IMPL_HEAPQ(T, ulib_unused, p_uvec_less_than)
+    P_UVEC_IMPL_COMPARABLE(T, ulib_unused, ulib_eq, ulib_lt)                                       \
+    P_UVEC_IMPL_HEAPQ(T, ulib_unused, ulib_lt)
 
 /**
  * Defines a new static vector type.
@@ -1079,7 +1076,7 @@ typedef enum uvec_ret {
     P_UVEC_DEF_INLINE(T, ulib_unused)                                                              \
     P_UVEC_DEF_INLINE_EQUATABLE(T, ulib_unused)                                                    \
     P_UVEC_IMPL(T, ULIB_INLINE ulib_unused)                                                        \
-    P_UVEC_IMPL_EQUATABLE(T, ULIB_INLINE ulib_unused, equal_func, 0)
+    P_UVEC_IMPL_EQUATABLE(T, ULIB_INLINE ulib_unused, equal_func)
 
 /**
  * Defines a new static comparable vector type.
@@ -1097,8 +1094,9 @@ typedef enum uvec_ret {
     P_UVEC_DEF_INLINE_EQUATABLE(T, ulib_unused)                                                    \
     P_UVEC_DEF_INLINE_COMPARABLE(T, ulib_unused)                                                   \
     P_UVEC_IMPL(T, ULIB_INLINE ulib_unused)                                                        \
-    P_UVEC_IMPL_EQUATABLE(T, ULIB_INLINE ulib_unused, equal_func, 0)                               \
-    P_UVEC_IMPL_COMPARABLE(T, ULIB_INLINE ulib_unused, equal_func, compare_func)
+    P_UVEC_IMPL_EQUATABLE(T, ULIB_INLINE ulib_unused, equal_func)                                  \
+    P_UVEC_IMPL_COMPARABLE(T, ULIB_INLINE ulib_unused, equal_func, compare_func)                   \
+    P_UVEC_IMPL_HEAPQ(T, ULIB_INLINE ulib_unused, compare_func)
 
 /**
  * Defines a new static comparable vector type
@@ -1114,9 +1112,10 @@ typedef enum uvec_ret {
     P_UVEC_DEF_INLINE(T, ulib_unused)                                                              \
     P_UVEC_DEF_INLINE_EQUATABLE(T, ulib_unused)                                                    \
     P_UVEC_DEF_INLINE_COMPARABLE(T, ulib_unused)                                                   \
-    P_UVEC_IMPL(T, ULIB_INLINE ulib_unused)                                                        \
-    P_UVEC_IMPL_EQUATABLE(T, ULIB_INLINE ulib_unused, p_uvec_identical, 1)                         \
-    P_UVEC_IMPL_COMPARABLE(T, ULIB_INLINE ulib_unused, p_uvec_identical, p_uvec_less_than)
+    P_UVEC_IMPL(T, ulib_unused)                                                                    \
+    P_UVEC_IMPL_IDENTIFIABLE(T, ULIB_INLINE ulib_unused)                                           \
+    P_UVEC_IMPL_COMPARABLE(T, ULIB_INLINE ulib_unused, ulib_eq, ulib_lt)                           \
+    P_UVEC_IMPL_HEAPQ(T, ULIB_INLINE ulib_unused, ulib_lt)
 
 /// @}
 
