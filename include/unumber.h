@@ -610,9 +610,10 @@ bool ulib_uint_is_pow2(ulib_uint x) {
  * @param b Second number.
  * @return a == b.
  *
+ * @deprecated Use @func{ulib_eq()} instead.
  * @alias bool ulib_equals(T a, T b);
  */
-#define ulib_equals(a, b) ulib_eq(a, b)
+#define ulib_equals(a, b) ULIB_DEPRECATED_MACRO ulib_eq(a, b)
 
 /**
  * Checks if two numbers are different.
