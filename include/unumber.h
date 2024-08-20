@@ -599,9 +599,75 @@ bool ulib_uint_is_pow2(ulib_uint x) {
  * @param b Second number.
  * @return a == b.
  *
+ * @alias bool ulib_eq(T a, T b);
+ */
+#define ulib_eq(a, b) ((a) == (b))
+
+/**
+ * Checks if two numbers are equal.
+ *
+ * @param a First number.
+ * @param b Second number.
+ * @return a == b.
+ *
  * @alias bool ulib_equals(T a, T b);
  */
-#define ulib_equals(a, b) ((a) == (b))
+#define ulib_equals(a, b) ulib_eq(a, b)
+
+/**
+ * Checks if two numbers are different.
+ *
+ * @param a First number.
+ * @param b Second number.
+ * @return a != b.
+ *
+ * @alias bool ulib_neq(T a, T b);
+ */
+#define ulib_neq(a, b) ((a) != (b))
+
+/**
+ * Checks if a is less than b.
+ *
+ * @param a First number.
+ * @param b Second number.
+ * @return a < b.
+ *
+ * @alias bool ulib_lt(T a, T b);
+ */
+#define ulib_lt(a, b) ((a) < (b))
+
+/**
+ * Checks if a is greater than b.
+ *
+ * @param a First number.
+ * @param b Second number.
+ * @return a > b.
+ *
+ * @alias bool ulib_gt(T a, T b);
+ */
+#define ulib_gt(a, b) ((a) > (b))
+
+/**
+ * Checks if a is less than or equal to b.
+ *
+ * @param a First number.
+ * @param b Second number.
+ * @return a <= b.
+ *
+ * @alias bool ulib_leq(T a, T b);
+ */
+#define ulib_leq(a, b) ((a) <= (b))
+
+/**
+ * Checks if a is greater than or equal to b.
+ *
+ * @param a First number.
+ * @param b Second number.
+ * @return a >= b.
+ *
+ * @alias bool ulib_geq(T a, T b);
+ */
+#define ulib_geq(a, b) ((a) >= (b))
 
 /**
  * Returns the minimum between two numbers.

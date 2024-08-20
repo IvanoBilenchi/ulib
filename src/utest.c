@@ -26,7 +26,7 @@
 
 // NOLINTBEGIN(clang-analyzer-unix.Malloc)
 
-UHASH_INIT(AllocTable, uintptr_t, char *, ulib_hash_alloc_ptr, ulib_equals)
+UHASH_INIT(AllocTable, uintptr_t, char *, ulib_hash_alloc_ptr, ulib_eq)
 static UHash(AllocTable) *alloc_table = NULL;
 
 #define alloc_table_add(PTR, FILE, FN, LINE)                                                       \

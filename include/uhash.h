@@ -863,10 +863,10 @@ typedef enum uhash_ret {
  * @param b RHS of the identity.
  * @return a == b
  *
- * @deprecated Use @func{ulib_equals()} instead.
+ * @deprecated Use @func{ulib_eq()} instead.
  * @alias bool uhash_identical(T a, T b);
  */
-#define uhash_identical(a, b) ULIB_DEPRECATED_MACRO ulib_equals(a, b)
+#define uhash_identical(a, b) ULIB_DEPRECATED_MACRO ulib_eq(a, b)
 
 /**
  * Equality function for strings.

@@ -13,7 +13,7 @@
 
 #define MAX_VAL 100
 
-UHASH_INIT(IntHash, uint32_t, uint32_t, ulib_hash_int32, ulib_equals)
+UHASH_INIT(IntHash, uint32_t, uint32_t, ulib_hash_int32, ulib_eq)
 UHASH_INIT_PI(IntHashPi, uint32_t, uint32_t, NULL, NULL)
 
 static ulib_uint int32_hash(uint32_t num) {
