@@ -19,16 +19,18 @@ static char const test_data[] = "0123456789";
 #define test_data_length (test_data_size - 1)
 
 static char *ustream_test_get_file_contents(char const *path, size_t *size) {
-    char *contents = NULL;
     FILE *test_file = fopen(path, "rb");
+    if (!test_file) return NULL;
+
+    char *contents = NULL;
     long test_file_size;
     size_t read;
     if (!(test_file && fseek(test_file, 0, SEEK_END) == 0)) goto end;
 
     test_file_size = ftell(test_file);
     if (test_file_size < 0) goto end;
-
     rewind(test_file);
+
     if (!(contents = (char *)ulib_malloc(test_file_size))) goto end;
     read = fread(contents, 1, test_file_size, test_file);
 

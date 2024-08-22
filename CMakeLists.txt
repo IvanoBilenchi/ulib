@@ -51,17 +51,15 @@ set(ULIB_PRIVATE_HEADERS_DIR "${ULIB_SRC_DIR}")
 set(ULIB_DOCS_DIR "${ULIB_PROJECT_DIR}/docs")
 set(ULIB_TEST_DIR "${ULIB_PROJECT_DIR}/test")
 set(ULIB_HEADERS_OUT_DIR "${ULIB_OUTPUT_DIR}/include")
+set(ULIB_UTILS_DIR "${ULIB_PROJECT_DIR}/utils")
+
+# CMake settings
+
+list(APPEND CMAKE_MODULE_PATH "${ULIB_UTILS_DIR}/cmake")
 
 # Target settings
 
 set(ULIB_COMPILE_FEATURES c_std_11)
-
-if(ULIB_CLANG_TIDY)
-    set(ULIB_CLANG_TIDY_COMMAND "clang-tidy")
-    if(CMAKE_COMPILE_WARNING_AS_ERROR)
-        list(APPEND ULIB_CLANG_TIDY_COMMAND "-warnings-as-errors=*")
-    endif()
-endif()
 
 if(ULIB_LEAKS)
     set(ULIB_MALLOC p_utest_leak_malloc)
@@ -118,9 +116,14 @@ elseif(ULIB_HUGE)
     list(APPEND ULIB_PUBLIC_DEFINES ULIB_HUGE)
 endif()
 
+if(ULIB_CLANG_TIDY)
+    find_package(ClangTidy REQUIRED)
+endif()
+
 # Header files
 
 file(GLOB ULIB_PUBLIC_HEADERS CONFIGURE_DEPENDS "${ULIB_PUBLIC_HEADERS_DIR}/*.h")
+file(GLOB ULIB_PRIVATE_HEADERS CONFIGURE_DEPENDS "${ULIB_PRIVATE_HEADERS_DIR}/*.h")
 
 # Sources
 
@@ -158,8 +161,10 @@ if(ULIB_LTO_ENABLED)
     set_property(TARGET ulib PROPERTY INTERPROCEDURAL_OPTIMIZATION ON)
 endif()
 
-if(ULIB_CLANG_TIDY_COMMAND)
-    set_property(TARGET ulib PROPERTY C_CLANG_TIDY "${ULIB_CLANG_TIDY_COMMAND}")
+if(ULIB_CLANG_TIDY)
+    clang_tidy_check(ulib
+                     HEADERS ${ULIB_PUBLIC_HEADERS} ${ULIB_PRIVATE_HEADERS}
+                     WORKING_DIRECTORY "${ULIB_PROJECT_DIR}")
 endif()
 
 install(TARGETS ulib)

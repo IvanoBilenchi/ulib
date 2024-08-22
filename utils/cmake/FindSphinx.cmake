@@ -1,9 +1,14 @@
+#
+# Copyright (c) 2024 Ivano Bilenchi <https://ivanobilenchi.com>
+# SPDX-License-Identifier: ISC
+#
+
 find_program(SPHINX_EXECUTABLE
              NAMES sphinx-build
-             DOC "Path to sphinx-build executable")
+             DOC "Path to the sphinx-build executable")
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(Sphinx "Failed to find sphinx-build" SPHINX_EXECUTABLE)
+find_package_handle_standard_args(Sphinx REQUIRED_VARS SPHINX_EXECUTABLE)
 
 function(sphinx_add_docs SPHINX_TARGET SPHINX_INPUT_DIRECTORY)
     list(LENGTH ARGN INDEX)
@@ -25,7 +30,7 @@ function(sphinx_add_docs SPHINX_TARGET SPHINX_INPUT_DIRECTORY)
                       "${SPHINX_INPUT_DIRECTORY}" "${SPHINX_HTML_OUTPUT_DIRECTORY}"
                       WORKING_DIRECTORY "${SPHINX_OUTPUT_DIRECTORY}"
                       COMMENT "${SPHINX_COMMENT}"
-                      VERBATIM)
+                      VERBATIM USES_TERMINAL)
 
     configure_file("${SPHINX_CONF_IN}" "${SPHINX_CONF_OUT}" @ONLY)
 endfunction()

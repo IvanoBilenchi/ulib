@@ -20,6 +20,7 @@
 #include "uwarning.h"
 #include <limits.h>
 #include <stddef.h>
+#include <string.h>
 
 ULIB_BEGIN_DECLS
 

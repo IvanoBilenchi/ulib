@@ -1,8 +1,6 @@
 # Files and directories
 
 set(SPHINX_INPUT_DIRECTORY "${ULIB_DOCS_DIR}")
-set(DOXYGEN_UTILS_DIRECTORY "${ULIB_DOCS_DIR}/doxygen")
-list(APPEND CMAKE_MODULE_PATH "${ULIB_DOCS_DIR}/cmake")
 
 # Doxygen configuration
 
@@ -37,12 +35,12 @@ set(DOXYGEN_ALIASES
 )
 set(DOXYGEN_VERBATIM_VARS DOXYGEN_ALIASES)
 
-find_program(PYTHON
+find_program(DOXYGEN_PYTHON
              NAMES python3 python
-             DOC "Path to the Python interpreter")
+             DOC "Path to the Python interpreter used to run Doxygen input filters")
 
-if (NOT PYTHON STREQUAL "PYTHON-NOTFOUND")
-    set(DOXYGEN_INPUT_FILTER "${PYTHON} ${DOXYGEN_UTILS_DIRECTORY}/alias.py")
+if (DOXYGEN_PYTHON)
+    set(DOXYGEN_INPUT_FILTER "${DOXYGEN_PYTHON} ${ULIB_UTILS_DIR}/doxygen/alias.py")
 endif()
 
 # Documentation targets
@@ -56,12 +54,12 @@ if(DOXYGEN_FOUND)
     if(SPHINX_FOUND)
         set(DOXYGEN_TARGET_NAME ulib-doxygen)
         sphinx_add_docs("${DOCS_TARGET_NAME}" "${SPHINX_INPUT_DIRECTORY}" ARGS -W
-                        COMMENT "Generate documentation via Sphinx")
+                        COMMENT "Generating documentation via Sphinx")
         add_dependencies("${DOCS_TARGET_NAME}" "${DOXYGEN_TARGET_NAME}")
     else()
         set(DOXYGEN_TARGET_NAME "${DOCS_TARGET_NAME}")
     endif()
 
     doxygen_add_docs("${DOXYGEN_TARGET_NAME}" ${ULIB_PUBLIC_HEADERS}
-                     COMMENT "Generate documentation via Doxygen")
+                     COMMENT "Generating documentation via Doxygen")
 endif()

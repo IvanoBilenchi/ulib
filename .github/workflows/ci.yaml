@@ -31,10 +31,12 @@ jobs:
       - name: Configure CMake
         run: >
           CC=clang cmake -B ${{env.build_dir}}
+          -DULIB_CPP_TESTS=OFF
+          -DULIB_LTO=OFF
           -DULIB_CLANG_TIDY=ON
           -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
       - name: Build
-        run: cmake --build ${{env.build_dir}}
+        run: cmake --build ${{env.build_dir}} --target ${{env.test_target}} ${{env.bench_target}}
 
   test:
     name: Test
