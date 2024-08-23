@@ -38,7 +38,8 @@ bool utime_test_ns(void) {
         ustring_deinit(&str);
     }
 
-    time_t start, end;
+    time_t start;
+    time_t end;
     t = utime_get_ns();
     time(&start);
     do {

@@ -10,7 +10,7 @@
 #include "ulib.h"
 #include <stddef.h>
 
-#define MAX_ASCII 127
+enum { MAX_ASCII = 127 };
 
 bool ustring_utils_test(void) {
     char const str[] = "12345";

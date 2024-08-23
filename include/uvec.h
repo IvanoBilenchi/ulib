@@ -121,6 +121,13 @@ typedef enum uvec_ret {
 #define p_uvec_is_small(T, v) p_uvec_exp_is_small(p_uvec_exp(T, v))
 #define p_uvec_is_compact(T, v) p_uvec_exp_is_compact(p_uvec_exp(T, v))
 
+#define p_uvec_copy_items(T, dest, src, n)                                                         \
+    memcpy((void *)(dest), (void const *)(src), (n) * sizeof(T))
+#define p_uvec_move_items(T, dest, src, n)                                                         \
+    memmove((void *)(dest), (void const *)(src), (n) * sizeof(T))
+#define p_uvec_compare_items(T, dest, src, n)                                                      \
+    memcmp((void const *)(dest), (void const *)(src), (n) * sizeof(T))
+
 /*
  * Defines a new vector struct.
  *
@@ -247,14 +254,15 @@ typedef enum uvec_ret {
                                                                                                    \
     ATTRS ULIB_INLINE void uvec_deinit_##T(UVec(T) *vec) {                                         \
         if (p_uvec_is_large(T, vec)) {                                                             \
-            ulib_free(vec->_l._data);                                                              \
+            ulib_free((void *)vec->_l._data);                                                      \
             vec->_l._data = NULL;                                                                  \
         }                                                                                          \
         p_uvec_exp_set(T, vec, 0);                                                                 \
     }                                                                                              \
                                                                                                    \
     ATTRS ULIB_INLINE UVec(T) uvec_move_##T(UVec(T) *vec) {                                        \
-        UVec(T) temp = *vec, zero = ulib_struct_init;                                              \
+        UVec(T) temp = *vec;                                                                       \
+        UVec(T) zero = ulib_struct_init;                                                           \
         *vec = zero;                                                                               \
         return temp;                                                                               \
     }                                                                                              \
@@ -409,7 +417,7 @@ typedef enum uvec_ret {
         } else {                                                                                   \
             data = (T *)ulib_alloc_array(data, size);                                              \
             if (!data) return UVEC_ERR;                                                            \
-            memcpy(data, vec->_s, exp * sizeof(T));                                                \
+            p_uvec_copy_items(T, data, vec->_s, exp);                                              \
             vec->_l._count = exp;                                                                  \
         }                                                                                          \
                                                                                                    \
@@ -431,7 +439,8 @@ typedef enum uvec_ret {
     ATTRS uvec_ret uvec_set_range_##T(UVec(T) *vec, T const *array, ulib_uint start,               \
                                       ulib_uint n) {                                               \
         if (!n) return UVEC_OK;                                                                    \
-        ulib_uint const old_c = uvec_count(T, vec), new_c = start + n;                             \
+        ulib_uint const old_c = uvec_count(T, vec);                                                \
+        ulib_uint const new_c = start + n;                                                         \
                                                                                                    \
         if (new_c > old_c) {                                                                       \
             if (uvec_reserve(T, vec, new_c)) return UVEC_ERR;                                      \
@@ -439,7 +448,7 @@ typedef enum uvec_ret {
         }                                                                                          \
                                                                                                    \
         T *data = uvec_data(T, vec);                                                               \
-        memcpy(&(data[start]), array, n * sizeof(T));                                              \
+        p_uvec_copy_items(T, data + start, array, n);                                              \
         return UVEC_OK;                                                                            \
     }                                                                                              \
                                                                                                    \
@@ -448,7 +457,7 @@ typedef enum uvec_ret {
         uvec_ret ret = uvec_reserve(T, dest, count);                                               \
                                                                                                    \
         if (!ret) {                                                                                \
-            memcpy(uvec_data(T, dest), uvec_data(T, src), count * sizeof(T));                      \
+            p_uvec_copy_items(T, uvec_data(T, dest), uvec_data(T, src), count);                    \
             p_uvec_set_count_##T(dest, count);                                                     \
         }                                                                                          \
                                                                                                    \
@@ -457,7 +466,7 @@ typedef enum uvec_ret {
                                                                                                    \
     ATTRS void uvec_copy_to_array_##T(UVec(T) const *vec, T array[]) {                             \
         ulib_uint count = uvec_count(T, vec);                                                      \
-        if (count) memcpy(array, uvec_data(T, vec), count * sizeof(T));                            \
+        if (count) p_uvec_copy_items(T, array, uvec_data(T, vec), count);                          \
     }                                                                                              \
                                                                                                    \
     ATTRS uvec_ret uvec_shrink_##T(UVec(T) *vec) {                                                 \
@@ -475,8 +484,8 @@ typedef enum uvec_ret {
             /* Store elements inline */                                                            \
             if (p_uvec_exp_is_small(exp)) return UVEC_OK;                                          \
             T *old_data = vec->_l._data;                                                           \
-            memcpy(vec->_s, old_data, count * sizeof(T));                                          \
-            ulib_free(old_data);                                                                   \
+            p_uvec_copy_items(T, vec->_s, old_data, count);                                        \
+            ulib_free((void *)old_data);                                                           \
             p_uvec_exp_set(T, vec, count);                                                         \
         } else if (!p_uvec_exp_is_compact(exp)) {                                                  \
             /* Elements are not stored inline and vector is not compact, shrink */                 \
@@ -510,7 +519,7 @@ typedef enum uvec_ret {
         ulib_uint const move_aside = uvec_count(T, vec) - (start + n);                             \
         if (move_aside) {                                                                          \
             T *const data = uvec_data(T, vec) + start;                                             \
-            memmove(data, data + n, move_aside * sizeof(T));                                       \
+            p_uvec_move_items(T, data, data + n, move_aside);                                      \
         }                                                                                          \
         p_uvec_set_count_##T(vec, move_aside + start);                                             \
     }                                                                                              \
@@ -524,11 +533,11 @@ typedef enum uvec_ret {
         if (uvec_reserve(T, vec, (count += n))) return UVEC_ERR;                                   \
                                                                                                    \
         T *const data = uvec_data(T, vec) + start;                                                 \
-        if (move_aside) memmove(data + n, data, move_aside * sizeof(T));                           \
+        if (move_aside) p_uvec_move_items(T, data + n, data, move_aside);                          \
         if (n == 1) {                                                                              \
             *data = *array;                                                                        \
         } else {                                                                                   \
-            memcpy(data, array, n * sizeof(T));                                                    \
+            p_uvec_copy_items(T, data, array, n);                                                  \
         }                                                                                          \
         p_uvec_set_count_##T(vec, count);                                                          \
                                                                                                    \
@@ -542,7 +551,7 @@ typedef enum uvec_ret {
             return;                                                                                \
         }                                                                                          \
         T *const data = uvec_data(T, vec);                                                         \
-        memcpy(data + start, data + count - n, n * sizeof(T));                                     \
+        p_uvec_copy_items(T, data + start, data + count - n, n);                                   \
         p_uvec_set_count_##T(vec, count - n);                                                      \
     }                                                                                              \
                                                                                                    \
@@ -625,7 +634,8 @@ typedef enum uvec_ret {
                                                                                                    \
     ATTRS bool uvec_equals_##T(UVec(T) const *vec, UVec(T) const *other) {                         \
         if (vec == other) return true;                                                             \
-        ulib_uint count = uvec_count(T, vec), ocount = uvec_count(T, other);                       \
+        ulib_uint const count = uvec_count(T, vec);                                                \
+        ulib_uint const ocount = uvec_count(T, other);                                             \
         if (count != ocount) return false;                                                         \
         if (!count) return true;                                                                   \
                                                                                                    \
@@ -650,12 +660,13 @@ typedef enum uvec_ret {
                                                                                                    \
     ATTRS bool uvec_equals_##T(UVec(T) const *vec, UVec(T) const *other) {                         \
         if (vec == other) return true;                                                             \
-        ulib_uint count = uvec_count(T, vec), ocount = uvec_count(T, other);                       \
+        ulib_uint const count = uvec_count(T, vec);                                                \
+        ulib_uint const ocount = uvec_count(T, other);                                             \
         if (count != ocount) return false;                                                         \
         if (!count) return true;                                                                   \
         T *data = uvec_data(T, vec);                                                               \
         T *o_data = uvec_data(T, other);                                                           \
-        return *data == *o_data && memcmp(data, o_data, count * sizeof(T)) == 0;                   \
+        return *data == *o_data && p_uvec_compare_items(T, data, o_data, count) == 0;              \
     }
 
 /*
@@ -716,7 +727,8 @@ typedef enum uvec_ret {
     }                                                                                              \
                                                                                                    \
     ULIB_INLINE T p_uvec_qsort_pivot_##T(T *a, ulib_uint len) {                                    \
-        ulib_uint const hi = len - 1, mid = hi / 2;                                                \
+        ulib_uint const hi = len - 1;                                                              \
+        ulib_uint const mid = hi / 2;                                                              \
         if (compare_func(a[mid], a[0])) {                                                          \
             ulib_swap(T, a[mid], a[0]);                                                            \
         }                                                                                          \
@@ -730,7 +742,9 @@ typedef enum uvec_ret {
     }                                                                                              \
                                                                                                    \
     ULIB_INLINE void p_uvec_qsort_##T(T *a, ulib_uint right) {                                     \
-        ulib_uint top = 0, left = 0, stack[UVEC_SORT_STACK_SIZE];                                  \
+        ulib_uint top = 0;                                                                         \
+        ulib_uint left = 0;                                                                        \
+        ulib_uint stack[UVEC_SORT_STACK_SIZE];                                                     \
                                                                                                    \
         while (true) {                                                                             \
             for (; right > left + UVEC_SORT_INSERTION_THRESH; ++right) {                           \
@@ -778,7 +792,9 @@ typedef enum uvec_ret {
                                                                                                    \
     ATTRS ulib_uint uvec_sorted_insertion_index_##T(UVec(T) const *vec, T item) {                  \
         ulib_uint len = uvec_count(T, vec);                                                        \
-        T const *const data = uvec_data(T, vec), *const last = data + len, *cur = data;            \
+        T const *const data = uvec_data(T, vec);                                                   \
+        T const *const last = data + len;                                                          \
+        T const *cur = data;                                                                       \
                                                                                                    \
         while (len > UVEC_BINARY_SEARCH_THRESH) {                                                  \
             if (compare_func(cur[(len >>= 1)], item)) {                                            \
@@ -830,7 +846,8 @@ typedef enum uvec_ret {
                                                                                                    \
     ULIB_INLINE void p_uvec_##TYPE##_heapq_down_##T(T *heap, ulib_uint len, ulib_uint i) {         \
         while (true) {                                                                             \
-            ulib_uint l = (i << 1) + 1, r = l + 1;                                                 \
+            ulib_uint l = (i << 1) + 1;                                                            \
+            ulib_uint r = l + 1;                                                                   \
             ulib_uint swap = (l < len && compare_func(heap[l], heap[i])) ? l : i;                  \
             if (r < len && compare_func(heap[r], heap[swap])) swap = r;                            \
             if (swap == i) break;                                                                  \
@@ -899,7 +916,8 @@ typedef enum uvec_ret {
     }                                                                                              \
                                                                                                    \
     ATTRS bool uvec_##TYPE##_heapq_remove_##T(UVec(T) *vec, T item) {                              \
-        ulib_uint idx = uvec_index_of(T, vec, item), count = uvec_count(T, vec);                   \
+        ulib_uint idx = uvec_index_of(T, vec, item);                                               \
+        ulib_uint count = uvec_count(T, vec);                                                      \
         if (idx >= count) return false;                                                            \
         T *heap = uvec_data(T, vec);                                                               \
         heap[idx] = heap[--count];                                                                 \

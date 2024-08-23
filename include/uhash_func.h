@@ -185,7 +185,8 @@ ulib_uint ulib_hash_kr2(char const *key) {
 ULIB_PURE
 ULIB_INLINE
 ulib_uint ulib_hash_mem_kr2(ulib_uint init, void const *buf, size_t size) {
-    ulib_byte const *s = (ulib_byte const *)buf, *e = s + size;
+    ulib_byte const *s = (ulib_byte const *)buf;
+    ulib_byte const *e = s + size;
     for (; s != e; ++s) init = (init << 5U) - init + (ulib_uint)(*s);
     return init;
 }
@@ -217,7 +218,8 @@ ulib_uint ulib_hash_djb2(char const *key) {
 ULIB_PURE
 ULIB_INLINE
 ulib_uint ulib_hash_djb2_mem(ulib_uint init, void const *buf, size_t size) {
-    ulib_byte const *s = (ulib_byte const *)buf, *e = s + size;
+    ulib_byte const *s = (ulib_byte const *)buf;
+    ulib_byte const *e = s + size;
     for (; s != e; ++s) init = (init << 5U) + init + (ulib_uint)(*s);
     return init;
 }

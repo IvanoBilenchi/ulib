@@ -11,7 +11,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define MAX_VAL 100
+enum { MAX_VAL = 100 };
 
 UHASH_INIT(IntHash, uint32_t, uint32_t, ulib_hash_int32, ulib_eq)
 UHASH_INIT_PI(IntHashPi, uint32_t, uint32_t, NULL, NULL)
@@ -46,7 +46,8 @@ bool uhash_test_memory(void) {
     utest_assert_uint(uhash_size(IntHash, &set), ==, buckets);
     utest_assert_uint(uhash_count(IntHash, &set), ==, 0);
 
-    UHash(IntHash) oset = set, nset = uhash_move(IntHash, &oset);
+    UHash(IntHash) oset = set;
+    UHash(IntHash) nset = uhash_move(IntHash, &oset);
     utest_assert(set._size == nset._size && set._occupied == nset._occupied &&
                  set._count == nset._count && set._flags == nset._flags && set._keys == nset._keys);
     utest_assert(!oset._size && !oset._occupied && !set._count && !oset._flags && !oset._keys);

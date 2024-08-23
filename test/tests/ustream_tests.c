@@ -29,7 +29,7 @@ static char *ustream_test_get_file_contents(char const *path, size_t *size) {
 
     test_file_size = ftell(test_file);
     if (test_file_size < 0) goto end;
-    rewind(test_file);
+    if (fseek(test_file, 0, SEEK_SET) != 0) goto end;
 
     if (!(contents = (char *)ulib_malloc(test_file_size))) goto end;
     read = fread(contents, 1, test_file_size, test_file);
@@ -242,10 +242,12 @@ bool uostream_multi_test(void) {
 }
 
 bool ustream_varint_test(void) {
-    ulib_uint const max_value = ulib_min(ULIB_UINT_MAX >> 1U, 1000000), increment = 999;
+    ulib_uint const max_value = ulib_min(ULIB_UINT_MAX >> 1U, 1000000);
+    ulib_uint const increment = 999;
     ulib_uint value = 0;
     ulib_byte buffer[sizeof(value) + 1];
-    size_t written = 0, read = 0;
+    size_t written = 0;
+    size_t read = 0;
 
     UIStream istream;
     uistream_from_buf(&istream, buffer, sizeof(buffer));
@@ -268,10 +270,12 @@ bool ustream_varint_test(void) {
 }
 
 bool ustream_svarint_test(void) {
-    ulib_int const max_value = ulib_min(ULIB_UINT_MAX >> 2U, 500000), increment = 999;
+    ulib_int const max_value = ulib_min(ULIB_UINT_MAX >> 2U, 500000);
+    ulib_int const increment = 999;
     ulib_int value = 0;
     ulib_byte buffer[sizeof(value) + 1];
-    size_t written = 0, read = 0;
+    size_t written = 0;
+    size_t read = 0;
 
     UIStream istream;
     uistream_from_buf(&istream, buffer, sizeof(buffer));

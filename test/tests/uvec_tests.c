@@ -348,7 +348,7 @@ bool uvec_test_comparable(void) {
     return true;
 }
 
-#define SORT_COUNT 1000
+enum { SORT_COUNT = 1000 };
 
 static int vtype_compare(void const *a, void const *b) {
     return *((VTYPE *)a) - *((VTYPE *)b);

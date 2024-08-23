@@ -11,18 +11,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define SORT_SEED 31
-#define SORT_COUNT_SMALL 16
-
+enum {
+    SORT_SEED = 31,
+    SORT_COUNT_SMALL = 16,
 #ifdef ULIB_TINY
-#define SORT_COUNT_LARGE (ULIB_UINT_MAX / 2)
+    SORT_COUNT_LARGE = ULIB_UINT_MAX / 2,
 #else
-#define SORT_COUNT_LARGE 100000
+    SORT_COUNT_LARGE = 100000,
 #endif
-
-#define INSERT_COUNT_SMALL 128
-#define INSERT_COUNT_LARGE 10000
-#define HEAP_QUEUE_COUNT 20000
+    INSERT_COUNT_SMALL = 128,
+    INSERT_COUNT_LARGE = 10000,
+    HEAP_QUEUE_COUNT = 20000
+};
 
 typedef struct Result {
     char *name;
@@ -201,7 +201,10 @@ static void sorted_insertion_large(void) {
 }
 
 static void heap_queue(void) {
-    UVec(ulib_int) items = uvec(ulib_int), heap = uvec(ulib_int), sorted = uvec(ulib_int);
+    UVec(ulib_int) items = uvec(ulib_int);
+    UVec(ulib_int) heap = uvec(ulib_int);
+    UVec(ulib_int) sorted = uvec(ulib_int);
+
     uvec_reserve(ulib_int, &items, HEAP_QUEUE_COUNT);
     uvec_reserve(ulib_int, &heap, HEAP_QUEUE_COUNT);
     uvec_reserve(ulib_int, &sorted, HEAP_QUEUE_COUNT);

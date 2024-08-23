@@ -10,7 +10,8 @@
 #include "ulib.h"
 
 bool uversion_test(void) {
-    UVersion a = ulib_get_version(), b = uversion(0, 0, 0);
+    UVersion a = ulib_get_version();
+    UVersion b = uversion(0, 0, 0);
     utest_assert_int(uversion_compare(a, b), ==, 1);
 
     a = uversion(0, 0, 1);

@@ -133,6 +133,10 @@ typedef enum uhash_ret {
 #define p_uhf_set_isboth_false(flag, i) ((flag)[(i) >> 4U] &= ~(3UL << (((i) & 0xfU) << 1U)))
 #define p_uhf_set_isdel_true(flag, i) ((flag)[(i) >> 4U] |= 1UL << (((i) & 0xfU) << 1U))
 
+// Utilities
+#define p_uhash_copy_items(T, dest, src, n)                                                        \
+    memcpy((void *)(dest), (void const *)(src), (n) * sizeof(T))
+
 /*
  * Computes the maximum number of elements that the table can contain
  * before it needs to be resized in order to keep its load factor under UHASH_MAX_LOAD.
@@ -261,7 +265,8 @@ typedef enum uhash_ret {
     }                                                                                              \
                                                                                                    \
     ATTRS ULIB_INLINE UHash_##T uhash_move_##T(UHash_##T *h) {                                     \
-        UHash_##T temp = *h, zero = ulib_struct_init;                                              \
+        UHash_##T temp = *h;                                                                       \
+        UHash_##T zero = ulib_struct_init;                                                         \
         *h = zero;                                                                                 \
         return temp;                                                                               \
     }                                                                                              \
@@ -373,7 +378,7 @@ typedef enum uhash_ret {
                                                                                                    \
             uh_val *new_vals = (uh_val *)ulib_realloc_array(dest->_vals, src->_size);              \
             if (new_vals) {                                                                        \
-                memcpy(new_vals, src->_vals, src->_size * sizeof(uh_val));                         \
+                p_uhash_copy_items(uh_val, new_vals, src->_vals, src->_size);                      \
                 dest->_vals = new_vals;                                                            \
             } else {                                                                               \
                 ret = UHASH_ERR;                                                                   \
@@ -400,8 +405,8 @@ typedef enum uhash_ret {
             return UHASH_ERR;                                                                      \
         }                                                                                          \
                                                                                                    \
-        memcpy(new_flags, src->_flags, n_flags * sizeof(uint32_t));                                \
-        memcpy(new_keys, src->_keys, src->_size * sizeof(uh_key));                                 \
+        p_uhash_copy_items(uint32_t, new_flags, src->_flags, n_flags);                             \
+        p_uhash_copy_items(uh_key, new_keys, src->_keys, src->_size);                              \
         dest->_flags = new_flags;                                                                  \
         dest->_keys = new_keys;                                                                    \
         dest->_size = src->_size;                                                                  \
@@ -517,8 +522,12 @@ typedef enum uhash_ret {
                                                                                                    \
         if (h->_size > new_size) {                                                                 \
             /* Shrink the hash table. */                                                           \
-            h->_keys = (uh_key *)ulib_realloc_array(h->_keys, new_size);                           \
-            if (h->_vals) h->_vals = (uh_val *)ulib_realloc_array(h->_vals, new_size);             \
+            uh_key *new_keys = (uh_key *)ulib_realloc_array(h->_keys, new_size);                   \
+            if (new_keys) h->_keys = new_keys;                                                     \
+            if (h->_vals) {                                                                        \
+                uh_val *new_vals = (uh_val *)ulib_realloc_array(h->_vals, new_size);               \
+                if (new_vals) h->_vals = new_vals;                                                 \
+            }                                                                                      \
         }                                                                                          \
                                                                                                    \
         /* Free the working space. */                                                              \

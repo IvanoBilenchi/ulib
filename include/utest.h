@@ -32,7 +32,7 @@ ULIB_BEGIN_DECLS
  */
 #define utest_main(CODE)                                                                           \
     int main(void) {                                                                               \
-        setbuf(stdout, NULL);                                                                      \
+        setvbuf(stdout, NULL, _IONBF, 0);                                                          \
         if (!utest_leak_start()) return EXIT_FAILURE;                                              \
         int exit_code = EXIT_SUCCESS;                                                              \
         { CODE }                                                                                   \
@@ -94,7 +94,8 @@ ULIB_BEGIN_DECLS
  */
 #define utest_assert_int(A, OP, B)                                                                 \
     do {                                                                                           \
-        long long utest_A = (long long)(A), utest_B = (long long)(B);                              \
+        long long utest_A = (long long)(A);                                                        \
+        long long utest_B = (long long)(B);                                                        \
         utest_assert_wrap(utest_A OP utest_B, ,                                                    \
                           "\"" #A "\" must be " #OP " \"%lld\", found \"%lld\".", utest_B,         \
                           utest_A);                                                                \
@@ -109,7 +110,8 @@ ULIB_BEGIN_DECLS
  */
 #define utest_assert_uint(A, OP, B)                                                                \
     do {                                                                                           \
-        unsigned long long utest_A = (unsigned long long)(A), utest_B = (unsigned long long)(B);   \
+        unsigned long long utest_A = (unsigned long long)(A);                                      \
+        unsigned long long utest_B = (unsigned long long)(B);                                      \
         utest_assert_wrap(utest_A OP utest_B, ,                                                    \
                           "\"" #A "\" must be " #OP " \"%llu\", found \"%llu\".", utest_B,         \
                           utest_A);                                                                \
@@ -124,7 +126,8 @@ ULIB_BEGIN_DECLS
  */
 #define utest_assert_float(A, OP, B)                                                               \
     do {                                                                                           \
-        double utest_A = (double)(A), utest_B = (double)(B);                                       \
+        double utest_A = (double)(A);                                                              \
+        double utest_B = (double)(B);                                                              \
         utest_assert_wrap(utest_A OP utest_B, ,                                                    \
                           "\"" #A "\" must be " #OP " \"%f\", found \"%f\".", utest_B, utest_A);   \
     } while (0)
@@ -138,7 +141,8 @@ ULIB_BEGIN_DECLS
  */
 #define utest_assert_ptr(A, OP, B)                                                                 \
     do {                                                                                           \
-        void *utest_A = (void *)(A), *utest_B = (void *)(B);                                       \
+        void *utest_A = (void *)(A);                                                               \
+        void *utest_B = (void *)(B);                                                               \
         utest_assert_wrap(utest_A OP utest_B, ,                                                    \
                           "\"" #A "\" must be " #OP " \"%p\", found \"%p\".", utest_B, utest_A);   \
     } while (0)
@@ -152,7 +156,8 @@ ULIB_BEGIN_DECLS
  */
 #define utest_assert_string(A, OP, B)                                                              \
     do {                                                                                           \
-        char const *utest_A = (A), *utest_B = (B);                                                 \
+        char const *utest_A = (A);                                                                 \
+        char const *utest_B = (B);                                                                 \
         utest_assert_wrap(strcmp(utest_A, utest_B) OP 0, ,                                         \
                           "\"" #A "\" must be " #OP " \"%s\", found \"%s\".", utest_B, utest_A);   \
     } while (0)
@@ -178,7 +183,8 @@ ULIB_BEGIN_DECLS
  */
 #define utest_assert_ustring(A, OP, B)                                                             \
     do {                                                                                           \
-        UString utest_A = (A), utest_B = (B);                                                      \
+        UString utest_A = (A);                                                                     \
+        UString utest_B = (B);                                                                     \
         utest_assert_wrap(ustring_compare(utest_A, utest_B) OP 0, ,                                \
                           "\"" #A "\" must be " #OP " \"%s\", found \"%s\".",                      \
                           ustring_data(utest_B), ustring_data(utest_A));                           \

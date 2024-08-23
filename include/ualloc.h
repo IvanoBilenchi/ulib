@@ -170,7 +170,7 @@ typedef void *ulib_ptr;
  * @destructor{ulib_free}
  * @alias void *ulib_realloc_array(T *ptr, size_t size);
  */
-#define ulib_realloc_array(ptr, size) ulib_realloc(ptr, sizeof(*(ptr)) * (size))
+#define ulib_realloc_array(ptr, size) ulib_realloc((void *)ptr, sizeof(*(ptr)) * (size))
 
 /// @}
 

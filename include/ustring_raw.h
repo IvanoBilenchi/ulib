@@ -58,7 +58,7 @@ bool ulib_char_is_lower(char c) {
 ULIB_CONST
 ULIB_INLINE
 char ulib_char_to_upper(char c) {
-    return ulib_char_is_lower(c) ? c ^ 0x20 : c;
+    return (char)(ulib_char_is_lower(c) ? c ^ 0x20 : c);
 }
 
 /**
@@ -70,7 +70,7 @@ char ulib_char_to_upper(char c) {
 ULIB_CONST
 ULIB_INLINE
 char ulib_char_to_lower(char c) {
-    return ulib_char_is_upper(c) ? c ^ 0x20 : c;
+    return (char)(ulib_char_is_upper(c) ? c ^ 0x20 : c);
 }
 
 /**

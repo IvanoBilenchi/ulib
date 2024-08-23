@@ -54,8 +54,7 @@ ustream_file_writef(void *file, size_t *written, char const *format, va_list arg
 }
 
 static ustream_ret ustream_file_reset(void *file) {
-    rewind(file);
-    return USTREAM_OK;
+    return fseek(file, 0, SEEK_SET) == 0 ? USTREAM_OK : USTREAM_ERR_IO;
 }
 
 static ustream_ret ustream_file_flush(void *file) {

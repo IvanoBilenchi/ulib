@@ -28,14 +28,17 @@
 #define NS_PER_D (utime_ns)(NS_PER_H * 24)
 #define NS_MAX (utime_ns)(-1)
 
-#define MILLIS_PER_SECOND 1000
-#define MICROS_PER_SECOND 1000000
-#define NANOS_PER_SECOND 1000000000
-#define SECONDS_PER_MINUTE 60
-#define MINUTES_PER_HOUR 60
-#define HOURS_PER_DAY 24
-#define DAYS_PER_YEAR 365
-#define MONTHS_PER_YEAR 12
+enum {
+    MILLIS_PER_SECOND = 1000,
+    MICROS_PER_SECOND = 1000000,
+    NANOS_PER_SECOND = 1000000000,
+    SECONDS_PER_MINUTE = 60,
+    MINUTES_PER_HOUR = 60,
+    HOURS_PER_DAY = 24,
+    DAYS_PER_YEAR = 365,
+    MONTHS_PER_YEAR = 12,
+};
+
 #define SECONDS_PER_HOUR (SECONDS_PER_MINUTE * MINUTES_PER_HOUR)
 #define SECONDS_PER_DAY (SECONDS_PER_HOUR * HOURS_PER_DAY)
 
@@ -112,7 +115,8 @@ UTime utime_from_timestamp(utime_stamp ts) {
     time.hour = tmp;
 
     long long year;
-    unsigned month, day;
+    unsigned month;
+    unsigned day;
     utime_days_to_ymd(ts, &year, &month, &day);
 
     time.year = year;
@@ -197,7 +201,8 @@ UString utime_to_string(UTime const *time) {
 }
 
 bool utime_from_string(UTime *time, UString const *string) {
-    char *ptr = (char *)ustring_data(*string), *newptr;
+    char *ptr = (char *)ustring_data(*string);
+    char *newptr;
     char const *const endptr = ptr + ustring_length(*string);
 
     // Parse year
@@ -256,7 +261,7 @@ bool utime_from_string(UTime *time, UString const *string) {
     return true;
 }
 
-#define FMT_FDIGITS 2
+#define FMT_FDIGITS 2 // NOLINT(modernize-macro-to-enum)
 #define UNIT_DIV (utime_ns)(ULIB_MACRO_CONCAT(2e, FMT_FDIGITS))
 
 static utime_ns unit_ns[] = { NS_PER_NS, NS_PER_US, NS_PER_MS, NS_PER_S,
@@ -270,7 +275,8 @@ utime_unit utime_interval_unit_auto(utime_ns t) {
 
 double utime_interval_convert(utime_ns t, utime_unit unit) {
     // Note: using >= or ulib_clamp causes a warning on platforms with unsigned enum types.
-    return (unit > UTIME_NANOSECONDS && unit <= UTIME_DAYS) ? (double)t / unit_ns[unit] : (double)t;
+    double dt = (double)t;
+    return (unit > UTIME_NANOSECONDS && unit <= UTIME_DAYS) ? dt / (double)unit_ns[unit] : dt;
 }
 
 UString utime_interval_to_string(utime_ns t, utime_unit unit) {
