@@ -39,7 +39,7 @@ find_program(DOXYGEN_PYTHON
              NAMES python3 python
              DOC "Path to the Python interpreter used to run Doxygen input filters")
 
-if (DOXYGEN_PYTHON)
+if(DOXYGEN_PYTHON)
     set(DOXYGEN_INPUT_FILTER "${DOXYGEN_PYTHON} ${ULIB_UTILS_DIR}/doxygen/alias.py")
 endif()
 
