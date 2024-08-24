@@ -134,10 +134,19 @@ list(APPEND ULIB_SOURCES ${ULIB_USER_SOURCES})
 # Targets #
 ###########
 
-add_library(ulib ${ULIB_LIBRARY_TYPE} ${ULIB_SOURCES})
+add_library(ulib ${ULIB_LIBRARY_TYPE})
+target_sources(ulib
+               PRIVATE ${ULIB_SOURCES}
+               PRIVATE FILE_SET private_headers
+                       TYPE HEADERS
+                       BASE_DIRS "${ULIB_PRIVATE_HEADERS_DIR}"
+                       FILES ${ULIB_PRIVATE_HEADERS}
+               PUBLIC FILE_SET public_headers
+                      TYPE HEADERS
+                      BASE_DIRS "${ULIB_PUBLIC_HEADERS_DIR}"
+                      FILES ${ULIB_PUBLIC_HEADERS})
 set_target_properties(ulib PROPERTIES
                       PREFIX ""
-                      PUBLIC_HEADER "${ULIB_PUBLIC_HEADERS}"
                       C_VISIBILITY_PRESET hidden
                       VISIBILITY_INLINES_HIDDEN ON)
 target_compile_features(ulib PRIVATE ${ULIB_COMPILE_FEATURES})
@@ -148,9 +157,6 @@ target_link_options(ulib PUBLIC ${ULIB_SANITIZER_OPTIONS})
 target_compile_definitions(ulib
                            PUBLIC ${ULIB_PUBLIC_DEFINES}
                            PRIVATE ${ULIB_PRIVATE_DEFINES})
-target_include_directories(ulib
-                           PUBLIC "${ULIB_PUBLIC_HEADERS_DIR}"
-                           PRIVATE "${ULIB_PRIVATE_HEADERS_DIR}")
 target_precompile_headers(ulib PUBLIC ${ULIB_USER_HEADERS})
 
 if(ULIB_LIBRARY_TYPE STREQUAL "SHARED")
@@ -162,12 +168,10 @@ if(ULIB_LTO_ENABLED)
 endif()
 
 if(ULIB_CLANG_TIDY)
-    clang_tidy_check(ulib
-                     HEADERS ${ULIB_PUBLIC_HEADERS} ${ULIB_PRIVATE_HEADERS}
-                     WORKING_DIRECTORY "${ULIB_PROJECT_DIR}")
+    clang_tidy_check(ulib)
 endif()
 
-install(TARGETS ulib)
+install(TARGETS ulib FILE_SET public_headers)
 
 # Subprojects
 

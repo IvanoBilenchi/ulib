@@ -12,50 +12,138 @@ find_program(CLANG_TIDY_EXECUTABLE
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(ClangTidy REQUIRED_VARS CLANG_TIDY_EXECUTABLE)
 
-function(clang_tidy_check CLANG_TIDY_TARGET)
+function(_header_language_flag LANG_FLAG TARGET FILE)
+    set(C_LANG_FLAG "c-header")
+    set(CXX_LANG_FLAG "c++-header")
+    set(LANG_FLAG "${C_LANG_FLAG}")
+
+    # Check for user preference
+    get_source_file_property(LANG "${FILE}" LANGUAGE)
+
+    if(LANG STREQUAL "CXX")
+        set(LANG_FLAG "${CXX_LANG_FLAG}" PARENT_SCOPE)
+        return(PROPAGATE LANG_FLAG)
+    endif()
+
+    if(LANG STREQUAL "C")
+        return(PROPAGATE LANG_FLAG)
+    endif()
+
+    # Target has C++ sources
+    get_target_property(SRC "${TARGET}" SOURCES)
+    list(FILTER SRC INCLUDE REGEX "\.[ch]pp$")
+    if(SRC)
+        set(LANG_FLAG "${CXX_LANG_FLAG}")
+        return(PROPAGATE LANG_FLAG)
+    endif()
+
+    # Target has C sources
+    get_target_property(SRC "${TARGET}" SOURCES)
+    list(FILTER SRC INCLUDE REGEX "\.c$")
+    if(SRC)
+        return(PROPAGATE LANG_FLAG)
+    endif()
+
+    # C++ is enabled
+    get_property(LANGUAGES GLOBAL PROPERTY ENABLED_LANGUAGES)
+    if("CXX" IN_LIST LANGUAGES)
+        set(LANG_FLAG "${CXX_LANG_FLAG}" PARENT_SCOPE)
+        return(PROPAGATE LANG_FLAG)
+    endif()
+
+    # Default to C
+    return(PROPAGATE LANG_FLAG)
+endfunction()
+
+function(clang_tidy_check TARGET)
     # Parse function arguments
     list(LENGTH ARGN INDEX)
     math(EXPR INDEX "${ARGC} - ${INDEX}")
+    set(OPTIONS SKIP_HEADERS)
     set(ONE_VALUE_ARGS WORKING_DIRECTORY)
-    set(MULTI_VALUE_ARGS HEADERS ADDITIONAL_ARGS)
-    cmake_parse_arguments(PARSE_ARGV ${INDEX} CLANG_TIDY "" "${ONE_VALUE_ARGS}" "${MULTI_VALUE_ARGS}")
+    set(MULTI_VALUE_ARGS CHECKS)
+    cmake_parse_arguments(PARSE_ARGV "${INDEX}" TIDY
+                          "${OPTIONS}" "${ONE_VALUE_ARGS}" "${MULTI_VALUE_ARGS}")
+
+    if(NOT TIDY_WORKING_DIRECTORY)
+        set(TIDY_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+    endif()
 
     # Compute clang-tidy command
-    set(CLANG_TIDY_COMMAND "${CLANG_TIDY_EXECUTABLE}" "--quiet")
+    set(TIDY_COMMAND "${CLANG_TIDY_EXECUTABLE}" "--quiet")
     if(CMAKE_COMPILE_WARNING_AS_ERROR)
-        list(APPEND CLANG_TIDY_COMMAND "--warnings-as-errors=*")
+        list(APPEND TIDY_COMMAND "--warnings-as-errors=*")
     endif()
-    list(APPEND CLANG_TIDY_COMMAND ${CLANG_TIDY_ADDITIONAL_ARGS})
 
-    set_target_properties("${CLANG_TIDY_TARGET}" PROPERTIES
-                          C_CLANG_TIDY "${CLANG_TIDY_COMMAND}"
-                          CXX_CLANG_TIDY "${CLANG_TIDY_COMMAND}")
+    set(TIDY_SOURCES_COMMAND ${TIDY_COMMAND})
+    if(TIDY_CHECKS)
+        list(JOIN TIDY_CHECKS "," TIDY_CHECKS_ARG)
+        list(APPEND TIDY_SOURCES_COMMAND "--checks=${TIDY_CHECKS_ARG}")
+    endif()
 
-    if(NOT CLANG_TIDY_HEADERS)
+    set_target_properties("${TARGET}" PROPERTIES
+                          C_CLANG_TIDY "${TIDY_SOURCES_COMMAND}"
+                          CXX_CLANG_TIDY "${TIDY_SOURCES_COMMAND}")
+
+    if(TIDY_SKIP_HEADERS)
         return()
     endif()
 
-    # Resolve globs in headers
-    set(TEMP_LIST ${CLANG_TIDY_HEADERS})
-    unset(CLANG_TIDY_HEADERS)
+    # Compute list of headers
+    get_target_property(HEADER_FILES "${TARGET}" SOURCES)
+    list(FILTER HEADER_FILES INCLUDE REGEX "\.h(pp)?$")
 
-    foreach(LOOP_VAR ${TEMP_LIST})
-        file(GLOB LOOP_VAR CONFIGURE_DEPENDS "${LOOP_VAR}")
-        list(APPEND CLANG_TIDY_HEADERS "${LOOP_VAR}")
+    get_target_property(HEADER_SETS "${TARGET}" HEADER_SETS)
+    foreach(LOOP_VAR ${HEADER_SETS})
+        get_target_property(TEMP_LIST "${TARGET}" "HEADER_SET_${LOOP_VAR}")
+        list(APPEND HEADER_FILES ${TEMP_LIST})
     endforeach()
 
-    # Compute clang-tidy arguments
-    list(APPEND CLANG_TIDY_ARGS ${CLANG_TIDY_HEADERS})
-    list(APPEND CLANG_TIDY_ARGS "--")
-    list(APPEND CLANG_TIDY_ARGS "$<LIST:TRANSFORM,$<TARGET_PROPERTY:${CLANG_TIDY_TARGET},INCLUDE_DIRECTORIES>,PREPEND,-I>")
-    list(APPEND CLANG_TIDY_ARGS "$<TARGET_PROPERTY:${CLANG_TIDY_TARGET},COMPILE_DEFINITIONS>")
+    list(REMOVE_DUPLICATES HEADER_FILES)
 
-    # Create clang-tidy target to check headers
-    set(CUSTOM_TARGET "clang-tidy-headers-${CLANG_TIDY_TARGET}")
-    add_custom_target("${CUSTOM_TARGET}"
-                      COMMAND "${CLANG_TIDY_COMMAND}" "${CLANG_TIDY_ARGS}"
-                      WORKING_DIRECTORY "${CLANG_TIDY_WORKING_DIRECTORY}"
-                      COMMENT "Running clang-tidy on ${CLANG_TIDY_TARGET} headers"
-                      COMMAND_EXPAND_LISTS VERBATIM USES_TERMINAL)
-    add_dependencies("${CLANG_TIDY_TARGET}" "${CUSTOM_TARGET}")
+    if(NOT HEADER_FILES)
+        return()
+    endif()
+
+    # Compute clang-tidy arguments
+    list(APPEND TIDY_CHECKS "$<$<BOOL:$<TARGET_PROPERTY:${TARGET},PRECOMPILE_HEADERS>>:-misc-header-include-cycle>")
+    list(JOIN TIDY_CHECKS "," TIDY_CHECKS_ARG)
+    list(APPEND TIDY_COMMAND "--checks=${TIDY_CHECKS_ARG}")
+    list(APPEND CLANG_ARGS "--" "-fno-caret-diagnostics")
+    list(APPEND CLANG_ARGS "$<LIST:TRANSFORM,$<TARGET_PROPERTY:${TARGET},INCLUDE_DIRECTORIES>,PREPEND,-I>")
+    list(APPEND CLANG_ARGS "$<LIST:TRANSFORM,$<TARGET_PROPERTY:${TARGET},PRECOMPILE_HEADERS>,PREPEND,--include=>")
+    list(APPEND CLANG_ARGS "$<LIST:TRANSFORM,$<TARGET_PROPERTY:${TARGET},COMPILE_DEFINITIONS>,PREPEND,-D>")
+
+    # Create clang-tidy commands and target to check headers
+    set(CACHE_DIR "${CMAKE_CURRENT_BINARY_DIR}/.cache/clang-tidy")
+
+    foreach(HEADER_FILE ${HEADER_FILES})
+        get_source_file_property(SKIP_LINTING "${HEADER_FILE}" SKIP_LINTING)
+        if(SKIP_LINTING)
+            continue()
+        endif()
+
+        cmake_path(RELATIVE_PATH HEADER_FILE OUTPUT_VARIABLE HEADER_REL_PATH)
+        set(STAMP_FILE "${CACHE_DIR}/${HEADER_REL_PATH}.stamp")
+        list(APPEND STAMP_FILES "${STAMP_FILE}")
+        cmake_path(GET STAMP_FILE PARENT_PATH STAMP_FILE_DIR)
+
+        _header_language_flag(LANG_FLAG "${TARGET}" "${HEADER_FILE}")
+        set(FILE_ARGS "-x" "${LANG_FLAG}")
+
+        add_custom_command(OUTPUT "${STAMP_FILE}"
+                           COMMAND "${TIDY_COMMAND}" "${HEADER_FILE}" "${CLANG_ARGS}" "${FILE_ARGS}"
+                           COMMAND "${CMAKE_COMMAND}" -E make_directory "${STAMP_FILE_DIR}"
+                           COMMAND "${CMAKE_COMMAND}" -E touch "${STAMP_FILE}"
+                           WORKING_DIRECTORY "${TIDY_WORKING_DIRECTORY}"
+                           DEPENDS "${HEADER_FILE}"
+                           COMMENT "Running clang-tidy on ${HEADER_REL_PATH}"
+                           COMMAND_EXPAND_LISTS VERBATIM)
+    endforeach()
+
+    if(HEADER_FILES)
+        set(TIDY_TARGET "${TARGET}-clang-tidy-check-headers")
+        add_custom_target("${TIDY_TARGET}" DEPENDS ${STAMP_FILES})
+        add_dependencies("${TARGET}" "${TIDY_TARGET}")
+    endif()
 endfunction()
