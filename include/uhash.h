@@ -229,6 +229,7 @@ typedef enum uhash_ret {
     ATTRS ULIB_PURE bool uhset_is_superset_##T(UHash_##T const *h1, UHash_##T const *h2);          \
     ATTRS uhash_ret uhset_union_##T(UHash_##T *h1, UHash_##T const *h2);                           \
     ATTRS void uhset_intersect_##T(UHash_##T *h1, UHash_##T const *h2);                            \
+    ATTRS void uhset_diff_##T(UHash_##T *h1, UHash_##T const *h2);                                 \
     ATTRS ULIB_PURE ulib_uint uhset_hash_##T(UHash_##T const *h);                                  \
     ATTRS ULIB_PURE uh_key uhset_get_any_##T(UHash_##T const *h, uh_key if_empty);                 \
     /** @endcond */
@@ -274,6 +275,10 @@ typedef enum uhash_ret {
     ATTRS ULIB_PURE ULIB_INLINE ulib_uint uhash_next_##T(UHash_##T const *h, ulib_uint i) {        \
         for (; i < h->_size && !uhash_exists(T, h, i); ++i) {}                                     \
         return i;                                                                                  \
+    }                                                                                              \
+                                                                                                   \
+    ATTRS ULIB_INLINE uhash_ret uhash_shrink_##T(UHash_##T *h) {                                   \
+        return uhash_resize_##T(h, h->_count);                                                     \
     }                                                                                              \
                                                                                                    \
     ATTRS ULIB_PURE ULIB_INLINE bool uhset_equals_##T(UHash_##T const *h1, UHash_##T const *h2) {  \
@@ -718,6 +723,8 @@ typedef enum uhash_ret {
     }                                                                                              \
                                                                                                    \
     ATTRS uhash_ret uhset_union_##T(UHash_##T *h1, UHash_##T const *h2) {                          \
+        /* TODO: if h2 is much smaller than h1, this can likely be optimized */                    \
+        /*       by starting from a copy of h2. */                                                 \
         for (ulib_uint i = 0; i != h2->_size; ++i) {                                               \
             if (uhash_exists(T, h2, i) && uhset_insert_##T(h1, h2->_keys[i], NULL) == UHASH_ERR) { \
                 return UHASH_ERR;                                                                  \
@@ -727,11 +734,38 @@ typedef enum uhash_ret {
     }                                                                                              \
                                                                                                    \
     ATTRS void uhset_intersect_##T(UHash_##T *h1, UHash_##T const *h2) {                           \
+        /* TODO: if h2 is much smaller than h1, this can likely be optimized */                    \
+        /*       by starting from a copy of h2. In that case, return uhash_ret. */                 \
         for (ulib_uint i = 0; i != h1->_size; ++i) {                                               \
             if (uhash_exists(T, h1, i) &&                                                          \
                 uhash_get_##T(h2, h1->_keys[i]) == UHASH_INDEX_MISSING) {                          \
                 uhash_delete_##T(h1, i);                                                           \
             }                                                                                      \
+        }                                                                                          \
+    }                                                                                              \
+                                                                                                   \
+    ULIB_INLINE void p_uhset_diff_h1_##T(UHash_##T *h1, UHash_##T const *h2) {                     \
+        for (ulib_uint i = 0; i != h1->_size; ++i) {                                               \
+            if (uhash_exists(T, h1, i) &&                                                          \
+                uhash_get_##T(h2, h1->_keys[i]) != UHASH_INDEX_MISSING) {                          \
+                uhash_delete_##T(h1, i);                                                           \
+            }                                                                                      \
+        }                                                                                          \
+    }                                                                                              \
+                                                                                                   \
+    ULIB_INLINE void p_uhset_diff_h2_##T(UHash_##T *h1, UHash_##T const *h2) {                     \
+        for (ulib_uint i = 0; i != h2->_size; ++i) {                                               \
+            if (uhash_exists(T, h2, i)) {                                                          \
+                uhset_remove_##T(h1, h2->_keys[i], NULL);                                          \
+            }                                                                                      \
+        }                                                                                          \
+    }                                                                                              \
+                                                                                                   \
+    ATTRS void uhset_diff_##T(UHash_##T *h1, UHash_##T const *h2) {                                \
+        if (h2->_count < h1->_count) {                                                             \
+            p_uhset_diff_h2_##T(h1, h2);                                                           \
+        } else {                                                                                   \
+            p_uhset_diff_h1_##T(h1, h2);                                                           \
         }                                                                                          \
     }                                                                                              \
                                                                                                    \
@@ -1013,6 +1047,18 @@ typedef enum uhash_ret {
  * @alias uhash_ret uhash_resize(symbol T, UHash(T) *h, ulib_uint s);
  */
 #define uhash_resize(T, h, s) uhash_resize_##T(h, s)
+
+/**
+ * Shrinks the specified hash table so that its allocated size
+ * is just large enough to hold the elements it currently contains.
+ *
+ * @param T Hash table type.
+ * @param h Hash table to shrink.
+ * @return @val{#UHASH_OK} if the operation succeeded, @val{#UHASH_ERR} on error.
+ *
+ * @alias uhash_ret uhash_shrink(symbol T, UHash(T) *h);
+ */
+#define uhash_shrink(T, h) uhash_shrink_##T(h)
 
 /**
  * Checks whether the hash table is a map.
@@ -1438,6 +1484,17 @@ typedef enum uhash_ret {
  * @alias void uhset_intersect(symbol T, UHash(T) *h1, UHash(T) const *h2);
  */
 #define uhset_intersect(T, h1, h2) uhset_intersect_##T(h1, h2)
+
+/**
+ * Performs the difference between two sets, mutating the first.
+ *
+ * @param T Hash table type.
+ * @param h1 Set to mutate.
+ * @param h2 Other set.
+ *
+ * @alias void uhset_diff(symbol T, UHash(T) *h1, UHash(T) const *h2);
+ */
+#define uhset_diff(T, h1, h2) uhset_diff_##T(h1, h2)
 
 /**
  * Checks whether the set is equal to another set.

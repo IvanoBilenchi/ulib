@@ -42,6 +42,11 @@ bool uhash_test_memory(void) {
     utest_assert_uint(uhash_size(IntHash, &set), <, buckets);
 
     buckets = uhash_size(IntHash, &set);
+    ret = uhash_shrink(IntHash, &set);
+    utest_assert(ret == UHASH_OK);
+    utest_assert_uint(uhash_size(IntHash, &set), <, buckets);
+
+    buckets = uhash_size(IntHash, &set);
     uhash_clear(IntHash, &set);
     utest_assert_uint(uhash_size(IntHash, &set), ==, buckets);
     utest_assert_uint(uhash_count(IntHash, &set), ==, 0);
@@ -184,11 +189,17 @@ bool uhash_test_set(void) {
     utest_assert(uhset_is_superset(IntHash, &other_set, &set));
     utest_assert_false(uhset_is_superset(IntHash, &set, &other_set));
 
+    uhset_diff(IntHash, &other_set, &set);
+    utest_assert(uhash_count(IntHash, &other_set) == 1);
+    uint32_t element = uhset_get_any(IntHash, &other_set, 0);
+    utest_assert_uint(element, ==, MAX_VAL);
+
+    uhset_union(IntHash, &other_set, &set);
     uhset_intersect(IntHash, &other_set, &set);
     utest_assert(uhset_equals(IntHash, &other_set, &set));
     uhash_deinit(IntHash, &other_set);
 
-    uint32_t element = uhset_get_any(IntHash, &set, MAX_VAL);
+    element = uhset_get_any(IntHash, &set, MAX_VAL);
     utest_assert_uint(element, !=, MAX_VAL);
 
     uint32_t replaced;
