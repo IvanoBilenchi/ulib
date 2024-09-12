@@ -31,7 +31,6 @@ jobs:
       - name: Configure CMake
         run: >
           CC=clang cmake -B ${{env.build_dir}}
-          -DULIB_CPP_TESTS=OFF
           -DULIB_LTO=OFF
           -DULIB_CLANG_TIDY=ON
           -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
@@ -64,6 +63,7 @@ jobs:
           -DULIB_HUGE=${{matrix.types == 'huge' && 'ON' || 'OFF'}}
           -DULIB_LEAKS=ON
           -DULIB_SANITIZERS=ON
+          -DULIB_CPP_TESTS=ON
           -DCMAKE_SYSTEM_VERSION=''
           -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
           -DCMAKE_BUILD_TYPE=${{env.build_config}}

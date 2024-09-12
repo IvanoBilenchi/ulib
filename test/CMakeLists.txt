@@ -1,6 +1,6 @@
 # Cache variables
 
-option(ULIB_CPP_TESTS "Enable C++ tests" ON)
+option(ULIB_CPP_TESTS "Enable C++ tests" OFF)
 
 # Sources
 
