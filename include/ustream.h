@@ -229,6 +229,23 @@ ustream_ret uistream_from_string(UIStream *stream, char const *string);
 ULIB_API
 ustream_ret uistream_from_ustring(UIStream *stream, UString const *string);
 
+/**
+ * Initializes a buffered stream that reads from the specified stream.
+ *
+ * @param stream Input stream.
+ * @param[out] raw_stream Raw stream.
+ * @param buffer_size Buffer size.
+ * @return Return code.
+ *
+ * @destructor{uistream_deinit}
+ * @note You must only initialize the returned raw stream, which is then managed
+ *       by the buffered stream. Using the raw stream directly will result in the buffer
+ *       becoming out of sync, leading to undefined behavior.
+ * @note The raw stream is automatically deinitialized when the buffered stream is deinitialized.
+ */
+ULIB_API
+ustream_ret uistream_buffered(UIStream *stream, UIStream **raw_stream, size_t buffer_size);
+
 /// @}
 
 /// Models an output stream.
@@ -557,6 +574,24 @@ ustream_ret uostream_to_multi(UOStream *stream);
  */
 ULIB_API
 ustream_ret uostream_add_substream(UOStream *stream, UOStream const *other);
+
+/**
+ * Initializes a buffered stream that writes to the specified stream.
+ *
+ * @param stream Output stream.
+ * @param[out] raw_stream Raw stream.
+ * @param buffer_size Buffer size.
+ * @return Return code.
+ *
+ * @destructor{uostream_deinit}
+ *
+ * @note You must only initialize the returned raw stream, which is then managed
+ *       by the buffered stream. Using the raw stream directly will result in the buffer
+ *       becoming out of sync, leading to undefined behavior.
+ * @note The raw stream is automatically deinitialized when the buffered stream is deinitialized.
+ */
+ULIB_API
+ustream_ret uostream_buffered(UOStream *stream, UOStream **raw_stream, size_t buffer_size);
 
 /// @}
 

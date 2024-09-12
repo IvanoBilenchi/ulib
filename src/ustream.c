@@ -27,6 +27,21 @@ typedef struct UStreamBuf {
     char *cur;
 } UStreamBuf;
 
+typedef struct UIStreamBuffered {
+    UIStream raw_stream;
+    size_t size;
+    size_t available;
+    char *cur;
+    char buf[];
+} UIStreamBuffered;
+
+typedef struct UOStreamBuffered {
+    UOStream raw_stream;
+    size_t size;
+    char *cur;
+    char buf[];
+} UOStreamBuffered;
+
 static ustream_ret ustream_file_read(void *file, void *buf, size_t count, size_t *read) {
     *read = fread(buf, 1, count, file);
     return count != *read && ferror((FILE *)file) ? USTREAM_ERR_IO : USTREAM_OK;
@@ -228,6 +243,127 @@ static ustream_ret ustream_multi_free(void *ctx) {
     return ret;
 }
 
+static ustream_ret uistream_buffered_read(void *ctx, void *buf, size_t count, size_t *read) {
+    UIStreamBuffered *bs = ctx;
+    ulib_byte *bbuf = buf;
+    ustream_ret ret = USTREAM_OK;
+
+    if (count > bs->available) {
+        // Available data not enough to serve request.
+        if (bs->available) {
+            // Serve buffered data.
+            memcpy(bbuf, bs->cur, bs->available);
+            bbuf += bs->available;
+            count -= bs->available;
+            bs->cur = bs->buf;
+            bs->available = 0;
+        }
+        if (count >= bs->size) {
+            // Requested read overruns buffer, read directly.
+            ret = uistream_read(&bs->raw_stream, bbuf, count, &bs->available);
+            bbuf += bs->available;
+            bs->available = count = 0;
+        } else {
+            // Fill buffer.
+            ret = uistream_read(&bs->raw_stream, bs->buf, bs->size, &bs->available);
+            bs->cur = bs->buf;
+            if (count > bs->available) count = bs->available;
+        }
+    }
+
+    // Serve remaining data from buffer.
+    memcpy(bbuf, bs->cur, count);
+    bbuf += count;
+    bs->cur += count;
+    bs->available -= count;
+
+    if (read) *read = (bbuf - (ulib_byte *)buf);
+    return ret;
+}
+
+static ustream_ret uistream_buffered_reset(void *ctx) {
+    UIStreamBuffered *bs = ctx;
+    bs->available = 0;
+    bs->cur = bs->buf;
+    return uistream_reset(&bs->raw_stream);
+}
+
+static ustream_ret uistream_buffered_free(void *ctx) {
+    UIStreamBuffered *bs = ctx;
+    ustream_ret ret = uistream_deinit(&bs->raw_stream);
+    ulib_free(bs);
+    return ret;
+}
+
+static ustream_ret uostream_buffered_flush_impl(void *ctx) {
+    UOStreamBuffered *bs = ctx;
+    size_t unflushed = bs->cur - bs->buf;
+    if (!unflushed) return USTREAM_OK;
+
+    size_t flushed;
+    ustream_ret ret = uostream_write(&bs->raw_stream, bs->buf, unflushed, &flushed);
+    bs->cur = bs->buf;
+    unflushed -= flushed;
+
+    if (unflushed) {
+        memmove(bs->buf, bs->buf + flushed, unflushed);
+        bs->cur += unflushed;
+    }
+
+    return ret;
+}
+
+static ustream_ret
+uostream_buffered_write(void *ctx, void const *buf, size_t count, size_t *written) {
+    UOStreamBuffered *bs = ctx;
+    ustream_ret ret = USTREAM_OK;
+    size_t const unflushed = bs->cur - bs->buf;
+
+    if (unflushed + count >= bs->size) {
+        // Requested write overruns buffer, flush first.
+        ret = uostream_buffered_flush_impl(ctx);
+
+        if (bs->cur != bs->buf) {
+            // Stream not fully flushed, don't write any data.
+            count = 0;
+            goto end;
+        }
+
+        if (count >= bs->size) {
+            // Data too large to fit in buffer, write directly.
+            ret = uostream_write(&bs->raw_stream, buf, count, &count);
+            goto end;
+        }
+    }
+
+    memcpy(bs->cur, buf, count);
+    bs->cur += count;
+
+end:
+    if (written) *written = count;
+    return ret;
+}
+
+static ustream_ret uostream_buffered_flush(void *ctx) {
+    ustream_ret write_ret = uostream_buffered_flush_impl(ctx);
+    ustream_ret flush_ret = uostream_flush(&((UOStreamBuffered *)ctx)->raw_stream);
+    return flush_ret ? flush_ret : write_ret;
+}
+
+static ustream_ret uostream_buffered_reset(void *ctx) {
+    UOStreamBuffered *bs = ctx;
+    bs->cur = bs->buf;
+    return uostream_reset(&bs->raw_stream);
+}
+
+static ustream_ret uostream_buffered_free(void *ctx) {
+    UOStreamBuffered *bs = ctx;
+    ustream_ret flush_ret = uostream_buffered_flush(ctx);
+    ustream_ret deinit_ret = uostream_deinit(&bs->raw_stream);
+    ulib_free(bs);
+    return deinit_ret ? deinit_ret : flush_ret;
+}
+
 ustream_ret uistream_deinit(UIStream *stream) {
     return stream->state = stream->free ? stream->free(stream->ctx) : USTREAM_OK;
 }
@@ -298,6 +434,24 @@ ustream_ret uistream_from_string(UIStream *stream, char const *string) {
 
 ustream_ret uistream_from_ustring(UIStream *stream, UString const *string) {
     return uistream_from_buf(stream, ustring_data(*string), ustring_length(*string));
+}
+
+ustream_ret uistream_buffered(UIStream *stream, UIStream **raw_stream, size_t buffer_size) {
+    if (!buffer_size) return USTREAM_ERR_BOUNDS;
+
+    UIStreamBuffered *bs = ulib_malloc(sizeof(*bs) + buffer_size);
+    *stream = (UIStream){ .state = bs ? USTREAM_OK : USTREAM_ERR_MEM };
+    if (!stream->state) {
+        bs->cur = bs->buf;
+        bs->available = 0;
+        bs->size = buffer_size;
+        stream->ctx = bs;
+        stream->read = uistream_buffered_read;
+        stream->reset = uistream_buffered_reset;
+        stream->free = uistream_buffered_free;
+    }
+    *raw_stream = stream->state ? NULL : &bs->raw_stream;
+    return stream->state;
 }
 
 ustream_ret uostream_deinit(UOStream *stream) {
@@ -492,5 +646,23 @@ ustream_ret uostream_to_multi(UOStream *stream) {
 
 ustream_ret uostream_add_substream(UOStream *stream, UOStream const *other) {
     if (uvec_push(ulib_ptr, stream->ctx, (void *)other)) stream->state = USTREAM_ERR_MEM;
+    return stream->state;
+}
+
+ustream_ret uostream_buffered(UOStream *stream, UOStream **raw_stream, size_t buffer_size) {
+    if (!buffer_size) return USTREAM_ERR_BOUNDS;
+
+    UOStreamBuffered *bs = ulib_malloc(sizeof(*bs) + buffer_size);
+    *stream = (UOStream){ .state = bs ? USTREAM_OK : USTREAM_ERR_MEM };
+    if (!stream->state) {
+        bs->cur = bs->buf;
+        bs->size = buffer_size;
+        stream->ctx = bs;
+        stream->write = uostream_buffered_write;
+        stream->flush = uostream_buffered_flush;
+        stream->reset = uostream_buffered_reset;
+        stream->free = uostream_buffered_free;
+    }
+    *raw_stream = stream->state ? NULL : &bs->raw_stream;
     return stream->state;
 }
