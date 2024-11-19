@@ -145,7 +145,7 @@ typedef enum uhash_ret {
  * @return Upper bound.
  * @alias ulib_uint p_uhash_upper_bound(ulib_uint buckets);
  */
-#define p_uhash_upper_bound(buckets) ((ulib_uint)((buckets) * UHASH_MAX_LOAD + 0.5))
+#define p_uhash_upper_bound(buckets) ((ulib_uint)(((buckets) * UHASH_MAX_LOAD) + 0.5))
 
 #define P_UHASH_DEF_TYPE_HEAD(T, uh_key, uh_val)                                                   \
     typedef struct UHash_##T {                                                                     \

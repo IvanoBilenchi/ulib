@@ -18,6 +18,6 @@ Checks: >
   -readability-identifier-length,
   -readability-magic-numbers
 CheckOptions:
-  misc-include-cleaner.IgnoreHeaders: sys/_types/_size_t\.h
+  misc-include-cleaner.IgnoreHeaders: /_[^/]+\.h$;^_[^/]+\.h$
   readability-braces-around-statements.ShortStatementLines: 2
   readability-function-cognitive-complexity.IgnoreMacros: true

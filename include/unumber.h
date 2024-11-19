@@ -278,19 +278,19 @@ uint64_t ulib_uint64_ceil2(uint64_t x) {
 ULIB_CONST
 ULIB_INLINE
 unsigned ulib_uint16_log2(uint16_t x) {
-    return sizeof(unsigned) * CHAR_BIT - __builtin_clz(x) - 1;
+    return (sizeof(unsigned) * CHAR_BIT) - __builtin_clz(x) - 1;
 }
 
 ULIB_CONST
 ULIB_INLINE
 unsigned ulib_uint32_log2(uint32_t x) {
-    return sizeof(unsigned long) * CHAR_BIT - __builtin_clzl(x) - 1;
+    return (sizeof(unsigned long) * CHAR_BIT) - __builtin_clzl(x) - 1;
 }
 
 ULIB_CONST
 ULIB_INLINE
 unsigned ulib_uint64_log2(uint64_t x) {
-    return sizeof(unsigned long long) * CHAR_BIT - __builtin_clzll(x) - 1;
+    return (sizeof(unsigned long long) * CHAR_BIT) - __builtin_clzll(x) - 1;
 }
 
 #else

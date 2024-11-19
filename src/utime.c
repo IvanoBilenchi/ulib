@@ -52,10 +52,10 @@ ULIB_INLINE
 long long utime_ymd_to_days(long long y, unsigned m, unsigned d) {
     y -= m <= 2;
     long long const era = (y >= 0 ? y : y - 399) / 400;
-    unsigned const yoe = (unsigned)(y - era * 400);
-    unsigned const doy = (153 * (m > 2 ? m - 3 : m + 9) + 2) / 5 + d - 1;
-    unsigned const doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
-    return era * 146097 + (long long)doe - 719468;
+    unsigned const yoe = (unsigned)(y - (era * 400));
+    unsigned const doy = (((153 * (m > 2 ? m - 3 : m + 9)) + 2) / 5) + d - 1;
+    unsigned const doe = (yoe * 365) + (yoe / 4) - (yoe / 100) + doy;
+    return (era * 146097) + (long long)doe - 719468;
 }
 
 utime_stamp utime_to_timestamp(UTime const *time) {
@@ -70,9 +70,9 @@ ULIB_INLINE
 void utime_days_to_ymd(long long days, long long *oy, unsigned *om, unsigned *od) {
     days += 719468;
     long long const era = (long long)((days >= 0 ? days : days - 146096) / 146097);
-    unsigned const doe = (unsigned)(days - era * 146097);
+    unsigned const doe = (unsigned)(days - (era * 146097));
     unsigned const yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
-    long long const y = (long long)(yoe) + era * 400;
+    long long const y = (long long)(yoe) + (era * 400);
     unsigned const doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
     unsigned const mp = (5 * doy + 2) / 153;
     *od = doy - (153 * mp + 2) / 5 + 1;
@@ -170,7 +170,7 @@ void utime_to_timezone(UTime *time, int tz_hour, unsigned tz_minute) {
 
 long long utime_diff(UTime const *a, UTime const *b, utime_unit unit) {
     if (unit == UTIME_MONTHS || unit == UTIME_YEARS) {
-        long long months = (long long)a->month - b->month + (a->year - b->year) * MONTHS_PER_YEAR;
+        long long months = (long long)a->month - b->month + ((a->year - b->year) * MONTHS_PER_YEAR);
         return unit == UTIME_MONTHS ? months : months / MONTHS_PER_YEAR;
     }
 
@@ -341,6 +341,6 @@ utime_stamp utime_get_timestamp(void) {
     utime_ns utime_get_ns(void) {
         utimespec ts;
         utime_get_timespec(&ts);
-        return (utime_ns)ts.tv_sec * NS_PER_S + (utime_ns)ts.tv_nsec;
+        return ((utime_ns)ts.tv_sec * NS_PER_S) + (utime_ns)ts.tv_nsec;
     }
 #endif

@@ -61,7 +61,7 @@ typedef enum uvec_ret {
     UVEC_OK = 0,
 
     /// The operation could not be completed.
-    UVEC_NO
+    UVEC_NO = 1
 
 } uvec_ret;
 
