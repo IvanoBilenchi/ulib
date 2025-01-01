@@ -405,7 +405,9 @@ typedef enum uvec_ret {
  */
 #define P_UVEC_IMPL(T, ATTRS)                                                                      \
                                                                                                    \
-    ULIB_INLINE uvec_ret uvec_resize_##T(UVec(T) *vec, ulib_uint size) {                           \
+    ATTRS uvec_ret uvec_reserve_##T(UVec(T) *vec, ulib_uint size) {                                \
+        if (size <= uvec_size(T, vec)) return UVEC_OK;                                             \
+                                                                                                   \
         T *data;                                                                                   \
         size = ulib_uint_ceil2(size);                                                              \
         ulib_byte exp = p_uvec_exp(T, vec);                                                        \
@@ -425,15 +427,6 @@ typedef enum uvec_ret {
         vec->_l._data = data;                                                                      \
                                                                                                    \
         return UVEC_OK;                                                                            \
-    }                                                                                              \
-                                                                                                   \
-    ULIB_INLINE uvec_ret uvec_expand_if_required_##T(UVec(T) *vec) {                               \
-        ulib_uint count = uvec_count(T, vec);                                                      \
-        return uvec_size(T, vec) > count ? UVEC_OK : uvec_resize_##T(vec, count + 1);              \
-    }                                                                                              \
-                                                                                                   \
-    ATTRS uvec_ret uvec_reserve_##T(UVec(T) *vec, ulib_uint size) {                                \
-        return size <= uvec_size(T, vec) ? UVEC_OK : uvec_resize_##T(vec, size);                   \
     }                                                                                              \
                                                                                                    \
     ATTRS uvec_ret uvec_set_range_##T(UVec(T) *vec, T const *array, ulib_uint start,               \
@@ -499,8 +492,8 @@ typedef enum uvec_ret {
     }                                                                                              \
                                                                                                    \
     ATTRS uvec_ret uvec_push_##T(UVec(T) *vec, T item) {                                           \
-        if (uvec_expand_if_required_##T(vec)) return UVEC_ERR;                                     \
         ulib_uint count = uvec_count(T, vec);                                                      \
+        if (count == uvec_size(T, vec) && uvec_reserve_##T(vec, count + 1)) return UVEC_ERR;       \
         uvec_data(T, vec)[count] = item;                                                           \
         p_uvec_set_count_##T(vec, count + 1);                                                      \
         return UVEC_OK;                                                                            \
