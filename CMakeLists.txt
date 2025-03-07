@@ -35,11 +35,14 @@ option(ULIB_SANITIZERS "Enable sanitizers (keep OFF in production builds)" OFF)
 set(ULIB_LIBRARY_TYPE "STATIC" CACHE STRING "Type of library to build.")
 set(ULIB_USER_HEADERS "" CACHE STRING "User-specified header files")
 set(ULIB_USER_SOURCES "" CACHE STRING "User-specified source files")
-set(ULIB_MALLOC "" CACHE STRING "ulib_malloc override")
-set(ULIB_CALLOC "" CACHE STRING "ulib_calloc override")
-set(ULIB_REALLOC "" CACHE STRING "ulib_realloc override")
-set(ULIB_STACKALLOC "" CACHE STRING "ulib_stackalloc override")
-set(ULIB_FREE "" CACHE STRING "ulib_free override")
+
+set(ULIB_MACRO_OVERRIDES
+    ULIB_MALLOC ULIB_CALLOC ULIB_REALLOC ULIB_FREE ULIB_STACKALLOC ULIB_STACKFREE)
+
+foreach(ULIB_MACRO ${ULIB_MACRO_OVERRIDES})
+    string(TOLOWER ${ULIB_MACRO} ULIB_MACRO_LOWER)
+    set(${ULIB_MACRO} "" CACHE STRING "${ULIB_MACRO_LOWER} override")
+endforeach()
 
 # Directories
 
@@ -70,25 +73,11 @@ if(ULIB_LEAKS)
     list(APPEND ULIB_USER_HEADERS "${ULIB_PUBLIC_HEADERS_DIR}/utest.h")
 endif()
 
-if(ULIB_MALLOC)
-    list(APPEND ULIB_PUBLIC_DEFINES ULIB_MALLOC=${ULIB_MALLOC})
-endif()
-
-if(ULIB_CALLOC)
-    list(APPEND ULIB_PUBLIC_DEFINES ULIB_CALLOC=${ULIB_CALLOC})
-endif()
-
-if(ULIB_REALLOC)
-    list(APPEND ULIB_PUBLIC_DEFINES ULIB_REALLOC=${ULIB_REALLOC})
-endif()
-
-if(ULIB_STACKALLOC)
-    list(APPEND ULIB_PUBLIC_DEFINES ULIB_STACKALLOC=${ULIB_STACKALLOC})
-endif()
-
-if(ULIB_FREE)
-    list(APPEND ULIB_PUBLIC_DEFINES ULIB_FREE=${ULIB_FREE})
-endif()
+foreach(ULIB_MACRO ${ULIB_MACRO_OVERRIDES})
+    if(${ULIB_MACRO})
+        list(APPEND ULIB_PUBLIC_DEFINES ${ULIB_MACRO}=${${ULIB_MACRO}})
+    endif()
+endforeach()
 
 list(APPEND ULIB_PRIVATE_DEFINES
      ULIB_BUILDING

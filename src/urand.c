@@ -92,6 +92,7 @@ void urand_shuffle(void *array, size_t element_size, ulib_uint length) {
         memcpy(cur, swap, element_size);
         memcpy(swap, temp, element_size);
     }
+    ulib_stackfree(temp);
 }
 
 // NOLINTEND(clang-analyzer-security.insecureAPI.rand)

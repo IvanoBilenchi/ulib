@@ -107,22 +107,48 @@ typedef void *ulib_ptr;
  * @param size Number of bytes to allocate.
  * @return Pointer to the beginning of the allocated memory.
  *
- * @note You must not free the returned pointer.
+ * @note This function is a portable alternative to the non-standard `alloca()`. Users
+ *       are expected to pair it with a call to @func{#ulib_stackfree()} within the same caller,
+ *       supporting a fallback to heap allocation if stack allocation is not available.
+ * @destructor{ulib_stackfree}
  * @alias void *ulib_stackalloc(size_t size);
  */
 #ifdef ULIB_STACKALLOC
 #define ulib_stackalloc(size) ULIB_STACKALLOC(size)
-#else
-#if defined(__GLIBC__) || defined(__sun) || defined(__CYGWIN__)
+#elif defined(__GLIBC__) || defined(__sun) || defined(__CYGWIN__)
 #include <alloca.h>
-#define ulib_stackalloc(size) alloca(size)
+#define P_ULIB_FOUND_ALLOCA alloca
 #elif defined(_WIN32)
 #include <malloc.h>
-#define ulib_stackalloc(size) _alloca(size)
+#define P_ULIB_FOUND_ALLOCA _alloca
 #else
 #include <stdlib.h> // IWYU pragma: keep, required for alloca on some platforms
-#define ulib_stackalloc(size) alloca(size)
+#if defined(alloca)
+#define P_ULIB_FOUND_ALLOCA alloca
 #endif
+#endif
+
+#if defined(P_ULIB_FOUND_ALLOCA)
+#define ulib_stackalloc(size) P_ULIB_FOUND_ALLOCA(size)
+#else
+#define ulib_stackalloc(size) ulib_malloc(size)
+#endif
+
+/**
+ * Deallocates the given memory area returned by @func{#ulib_stackalloc()}.
+ *
+ * @param ptr Pointer to the memory area to deallocate.
+ *
+ * @note This function is a no-op if stack allocation is available,
+ *       otherwise it calls @func{#ulib_free()}.
+ * @alias void ulib_stackfree(void *ptr);
+ */
+#ifdef ULIB_STACKFREE
+#define ulib_stackfree(ptr) ULIB_STACKFREE(ptr)
+#elif defined(P_ULIB_FOUND_ALLOCA)
+#define ulib_stackfree(ptr) ((void)0)
+#else
+#define ulib_stackfree(ptr) ulib_free(ptr)
 #endif
 
 /**
