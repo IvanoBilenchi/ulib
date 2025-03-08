@@ -124,7 +124,7 @@ function(clang_tidy_check TARGET)
         endif()
 
         cmake_path(RELATIVE_PATH HEADER_FILE OUTPUT_VARIABLE HEADER_REL_PATH)
-        set(STAMP_FILE "${CACHE_DIR}/${HEADER_REL_PATH}.stamp")
+        set(STAMP_FILE "${CACHE_DIR}/${TARGET}/${HEADER_REL_PATH}.stamp")
         list(APPEND STAMP_FILES "${STAMP_FILE}")
         cmake_path(GET STAMP_FILE PARENT_PATH STAMP_FILE_DIR)
 

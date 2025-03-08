@@ -1217,7 +1217,7 @@ typedef enum uhash_ret {
  * @param enum_name @type{symbol} Name of the variable holding the current index, key and value.
  */
 // clang-format off
-#define uhash_foreach(T, ht, enum_name)                                                            \
+#define uhash_foreach(T, ht, enum_name) /* NOLINTNEXTLINE(misc-const-correctness) */               \
     for (UHash_Loop_##T p_h_##enum_name = { (ht), NULL, NULL, 0 },                                 \
          enum_name = { p_h_##enum_name.h, NULL, NULL, uhash_next(T, p_h_##enum_name.h, 0) };       \
          enum_name.i != enum_name.h->_size &&                                                      \
