@@ -437,10 +437,15 @@ ustream_ret uistream_from_ustring(UIStream *stream, UString const *string) {
 }
 
 ustream_ret uistream_buffered(UIStream *stream, UIStream **raw_stream, size_t buffer_size) {
-    if (!buffer_size) return USTREAM_ERR_BOUNDS;
+    UIStreamBuffered *bs = NULL;
+    *stream = (UIStream){ .state = USTREAM_OK };
 
-    UIStreamBuffered *bs = ulib_malloc(sizeof(*bs) + buffer_size);
-    *stream = (UIStream){ .state = bs ? USTREAM_OK : USTREAM_ERR_MEM };
+    if (buffer_size) {
+        if (!(bs = ulib_malloc(sizeof(*bs) + buffer_size))) stream->state = USTREAM_ERR_MEM;
+    } else {
+        stream->state = USTREAM_ERR_BOUNDS;
+    }
+
     if (!stream->state) {
         bs->cur = bs->buf;
         bs->available = 0;
@@ -450,6 +455,7 @@ ustream_ret uistream_buffered(UIStream *stream, UIStream **raw_stream, size_t bu
         stream->reset = uistream_buffered_reset;
         stream->free = uistream_buffered_free;
     }
+
     *raw_stream = stream->state ? NULL : &bs->raw_stream;
     return stream->state;
 }
@@ -650,10 +656,15 @@ ustream_ret uostream_add_substream(UOStream *stream, UOStream const *other) {
 }
 
 ustream_ret uostream_buffered(UOStream *stream, UOStream **raw_stream, size_t buffer_size) {
-    if (!buffer_size) return USTREAM_ERR_BOUNDS;
+    UOStreamBuffered *bs = NULL;
+    *stream = (UOStream){ .state = USTREAM_OK };
 
-    UOStreamBuffered *bs = ulib_malloc(sizeof(*bs) + buffer_size);
-    *stream = (UOStream){ .state = bs ? USTREAM_OK : USTREAM_ERR_MEM };
+    if (buffer_size) {
+        if (!(bs = ulib_malloc(sizeof(*bs) + buffer_size))) stream->state = USTREAM_ERR_MEM;
+    } else {
+        stream->state = USTREAM_ERR_BOUNDS;
+    }
+
     if (!stream->state) {
         bs->cur = bs->buf;
         bs->size = buffer_size;
@@ -663,6 +674,7 @@ ustream_ret uostream_buffered(UOStream *stream, UOStream **raw_stream, size_t bu
         stream->reset = uostream_buffered_reset;
         stream->free = uostream_buffered_free;
     }
+
     *raw_stream = stream->state ? NULL : &bs->raw_stream;
     return stream->state;
 }
