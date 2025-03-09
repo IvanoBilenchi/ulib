@@ -68,8 +68,16 @@
  * @param a @type{token} First token.
  * @param b @type{token} Second token.
  */
-#define ULIB_MACRO_CONCAT(a, b) P_ULIB_MACRO_CONCAT_INNER(a, b)
-#define P_ULIB_MACRO_CONCAT_INNER(a, b) a##b
+#define ULIB_MACRO_CONCAT(a, b) P_ULIB_MACRO_CONCAT(a, b)
+#define P_ULIB_MACRO_CONCAT(a, b) a##b
+
+/**
+ * Stringizes the argument, allowing it to be macro-expanded.
+ *
+ * @param a @type{macro} Macro to be stringized.
+ */
+#define ULIB_MACRO_STRINGIZE(a) P_ULIB_MACRO_STRINGIZE(a)
+#define P_ULIB_MACRO_STRINGIZE(a) #a
 
 /**
  * Pragma directive that allows macro expansion.
