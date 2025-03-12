@@ -14,6 +14,7 @@
 
 #include "ualloc.h"
 #include "uattrs.h"
+#include "udebug.h"
 #include "unumber.h"
 #include "urand.h" // IWYU pragma: keep, needed for urand_range
 #include "uutils.h"

@@ -16,6 +16,7 @@
 
 #include "ualloc.h"
 #include "uattrs.h"
+#include "udebug.h"
 #include "uhash_func.h" // IWYU pragma: export
 #include "unumber.h"
 #include "uutils.h"

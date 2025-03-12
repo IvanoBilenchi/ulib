@@ -10,10 +10,10 @@
 #include "ustrbuf.h"
 #include "ualloc.h"
 #include "uattrs.h"
+#include "udebug.h"
 #include "unumber.h"
 #include "ustring.h"
 #include "ustring_raw.h"
-#include "uutils.h"
 #include "uvec_builtin.h"
 #include <stdarg.h>
 #include <stdio.h>

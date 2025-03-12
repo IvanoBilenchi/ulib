@@ -100,6 +100,15 @@
     #define ULIB_CONST
 #endif
 
+/// Marks functions that do not return.
+#if defined(__GNUC__) || defined(__clang__)
+    #define ULIB_NORETURN __attribute__((__noreturn__))
+#elif defined(_MSC_VER)
+    #define ULIB_NORETURN __declspec(noreturn)
+#else
+    #define ULIB_NORETURN
+#endif
+
 /**
  * Marks deprecated APIs.
  *

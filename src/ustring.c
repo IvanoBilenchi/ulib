@@ -10,11 +10,11 @@
 #include "ustring.h"
 #include "ualloc.h"
 #include "uattrs.h"
+#include "udebug.h"
 #include "ulib_ret.h"
 #include "unumber.h"
 #include "ustrbuf.h"
 #include "ustring_raw.h"
-#include "uutils.h"
 #include "uwarning.h"
 #include <limits.h>
 #include <stdarg.h>

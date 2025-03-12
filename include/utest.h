@@ -210,7 +210,7 @@ ULIB_BEGIN_DECLS
 #define utest_assert_wrap(EXP, CODE, ...)                                                          \
     do {                                                                                           \
         if (!(EXP)) {                                                                              \
-            printf("Test failed: %s, %s, line %d\nReason: ", __FILE__, __func__, __LINE__);        \
+            printf("Test failed: %s, %s, line %d\nReason: ", ULIB_FILE_NAME, __func__, __LINE__);  \
             printf(__VA_ARGS__);                                                                   \
             CODE;                                                                                  \
             printf("\n");                                                                          \
@@ -250,11 +250,11 @@ void *p_utest_leak_realloc_impl(void *ptr, size_t size, char const *file, char c
 ULIB_API
 void p_utest_leak_free_impl(void *ptr);
 
-#define p_utest_leak_malloc(size) p_utest_leak_malloc_impl(size, __FILE__, __func__, __LINE__)
+#define p_utest_leak_malloc(size) p_utest_leak_malloc_impl(size, ULIB_FILE_NAME, __func__, __LINE__)
 #define p_utest_leak_calloc(num, size)                                                             \
-    p_utest_leak_calloc_impl(num, size, __FILE__, __func__, __LINE__)
+    p_utest_leak_calloc_impl(num, size, ULIB_FILE_NAME, __func__, __LINE__)
 #define p_utest_leak_realloc(ptr, size)                                                            \
-    p_utest_leak_realloc_impl(ptr, size, __FILE__, __func__, __LINE__)
+    p_utest_leak_realloc_impl(ptr, size, ULIB_FILE_NAME, __func__, __LINE__)
 #define p_utest_leak_free(ptr) p_utest_leak_free_impl(ptr)
 
 ULIB_END_DECLS

@@ -17,6 +17,7 @@
 #include "ualloc.h"
 #include "uattrs.h"
 #include "ubit.h"
+#include "udebug.h"
 #include "uhash.h"
 #include "uhash_builtin.h"
 #include "uhash_func.h"

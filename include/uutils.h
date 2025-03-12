@@ -49,20 +49,6 @@
 // clang-format on
 
 /**
- * Give hints to static analyzers, asserting that `exp` is true.
- *
- * @param exp @type{boolean expression} Boolean expression.
- */
-#if __clang_analyzer__
-#define ulib_analyzer_assert(exp)                                                                  \
-    do {                                                                                           \
-        if (!(exp)) exit(1);                                                                       \
-    } while (0)
-#else
-#define ulib_analyzer_assert(exp) ((void)0)
-#endif
-
-/**
  * Concatenates the `a` and `b` tokens, allowing `a` and `b` to be macro-expanded.
  *
  * @param a @type{token} First token.
@@ -86,6 +72,37 @@
  */
 #define ULIB_PRAGMA(msg) P_ULIB_PRAGMA(msg)
 #define P_ULIB_PRAGMA(msg) _Pragma(#msg)
+
+/// Expands to the name of the current file, if available, otherwise to its full path.
+#ifndef ULIB_FILE_NAME
+#ifdef __FILE_NAME__
+#define ULIB_FILE_NAME __FILE_NAME__
+#else
+#define ULIB_FILE_NAME __FILE__
+#endif
+#endif
+
+/**
+ * Hint the branch predictor that `exp` is likely true.
+ *
+ * @param exp @type{boolean expression} Boolean expression.
+ */
+#if defined(__GNUC__) || defined(__clang__)
+#define ulib_likely(exp) __builtin_expect(!!(exp), 1)
+#else
+#define ulib_likely(exp) (exp)
+#endif
+
+/**
+ * Hint the branch predictor that `exp` is likely false.
+ *
+ * @param exp @type{boolean expression} Boolean expression.
+ */
+#if defined(__GNUC__) || defined(__clang__)
+#define ulib_unlikely(exp) __builtin_expect(!!(exp), 0)
+#else
+#define ulib_unlikely(exp) (exp)
+#endif
 
 /// @}
 
