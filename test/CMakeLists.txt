@@ -10,10 +10,20 @@ file(GLOB ULIB_TEST_HEADERS CONFIGURE_DEPENDS "${ULIB_TEST_HEADERS_DIR}/*.h")
 file(GLOB ULIB_TEST_SOURCES "${ULIB_TEST_DIR}/tests/*.c")
 list(APPEND ULIB_TEST_SOURCES "${ULIB_TEST_DIR}/test.c")
 
+set(ULIB_BENCH_HEADERS_DIR "${ULIB_TEST_DIR}/benchmarks")
+file(GLOB ULIB_BENCH_HEADERS CONFIGURE_DEPENDS "${ULIB_BENCH_HEADERS_DIR}/*.h")
+
+file(GLOB ULIB_BENCH_SOURCES "${ULIB_TEST_DIR}/benchmarks/*.c")
+list(APPEND ULIB_BENCH_SOURCES "${ULIB_TEST_DIR}/bench.c")
+
 # Benchmark target
 
 add_executable(ulib-bench EXCLUDE_FROM_ALL)
-target_sources(ulib-bench PRIVATE "${ULIB_TEST_DIR}/bench.c")
+target_sources(ulib-bench
+               PRIVATE ${ULIB_BENCH_SOURCES}
+               PRIVATE FILE_SET HEADERS
+                       BASE_DIRS "${ULIB_BENCH_HEADERS_DIR}"
+                       FILES ${ULIB_BENCH_HEADERS})
 target_link_libraries(ulib-bench PRIVATE ulib)
 
 if(ULIB_CLANG_TIDY)
