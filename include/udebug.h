@@ -31,15 +31,15 @@ ULIB_BEGIN_DECLS
 #endif
 
 /**
- * Asserts that `exp` is true.
+ * Asserts that `exp` is true. If the assertion fails, execution is aborted.
  *
  * @param exp @type{boolean expression} Boolean expression.
  *
- * @note uLib assertions are enabled only if `ULIB_DEBUG` is defined.
+ * @note uLib assertions are enabled only for analyzers, or if `ULIB_DEBUG` is defined.
  */
-#ifdef ULIB_DEBUG
+#if defined(ULIB_DEBUG) || defined(__clang_analyzer__)
 #define ulib_assert(exp)                                                                           \
-    (ulib_unlikely(!(exp)) ? p_ulib_assert(#exp, ULIB_FILE_NAME, __func__, __LINE__) : (void)0)
+    (ulib_likely(exp) ? (void)0 : p_ulib_assert(#exp, ULIB_FILE_NAME, __func__, __LINE__))
 #else
 #define ulib_assert(exp) ((void)0)
 #endif
@@ -49,9 +49,9 @@ ULIB_BEGIN_DECLS
  *
  * @param exp @type{boolean expression} Boolean expression.
  */
-#if __clang_analyzer__
+#ifdef __clang_analyzer__
 #define ulib_analyzer_assert(exp)                                                                  \
-    (ulib_unlikely(!(exp)) ? p_ulib_assert(#exp, ULIB_FILE_NAME, __func__, __LINE__) : (void)0)
+    ((exp) ? (void)0 : p_ulib_assert(#exp, ULIB_FILE_NAME, __func__, __LINE__))
 #else
 #define ulib_analyzer_assert(exp) ((void)0)
 #endif

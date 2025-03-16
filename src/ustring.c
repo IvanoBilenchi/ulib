@@ -85,6 +85,7 @@ char *ustring(UString *string, size_t length) {
         if (buf) {
             ULIB_SUPPRESS_ONE(GCC, "-Wmaybe-uninitialized")
             *string = ustring_large(buf, length);
+            ulib_assert(string->_l._data == buf);
             ULIB_SUPPRESS_END(GCC)
         } else {
             *string = ustring_null;
@@ -92,7 +93,6 @@ char *ustring(UString *string, size_t length) {
     }
 
     if (buf) buf[length] = '\0';
-    ulib_assert(buf == (char *)string->_s || buf == string->_l._data);
     return buf;
 }
 

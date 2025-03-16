@@ -197,6 +197,8 @@ typedef enum uvec_ret {
  */
 #define P_UVEC_DEF_INLINE(T, ATTRS)                                                                \
     /** @cond */                                                                                   \
+    /* NOLINTBEGIN(clang-analyzer-unix.Malloc) */                                                  \
+                                                                                                   \
     ATTRS ULIB_CONST ULIB_INLINE UVec(T) uvec_##T(void) {                                          \
         UVec(T) vec = ulib_struct_init;                                                            \
         return vec;                                                                                \
@@ -305,6 +307,7 @@ typedef enum uvec_ret {
         UVec_Loop_##T loop = { uvec_data(T, vec) + count, count, count };                          \
         return loop;                                                                               \
     }                                                                                              \
+    /* NOLINTEND(clang-analyzer-unix.Malloc) */                                                    \
     /** @endcond */
 
 /*
@@ -405,6 +408,7 @@ typedef enum uvec_ret {
  * @param ATTRS @type{attributes} Attributes of the definitions.
  */
 #define P_UVEC_IMPL(T, ATTRS)                                                                      \
+    /* NOLINTBEGIN(clang-analyzer-unix.Malloc) */                                                  \
                                                                                                    \
     ATTRS uvec_ret uvec_reserve_##T(UVec(T) *vec, ulib_uint size) {                                \
         if (size <= uvec_size(T, vec)) return UVEC_OK;                                             \
@@ -565,7 +569,8 @@ typedef enum uvec_ret {
             ulib_uint swap_idx = (ulib_uint)urand_range(0, count);                                 \
             ulib_swap(T, data[i], data[swap_idx]);                                                 \
         }                                                                                          \
-    }
+    }                                                                                              \
+    /* NOLINTEND(clang-analyzer-unix.Malloc) */
 
 /*
  * Generates common function definitions for the specified equatable vector type.

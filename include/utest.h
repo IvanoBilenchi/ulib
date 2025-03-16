@@ -200,6 +200,12 @@ ULIB_BEGIN_DECLS
     utest_assert_wrap(EXP, exit(EXIT_FAILURE),                                                     \
                       "\"" #EXP "\" must be true.\nThis is a critical error, aborting...")
 
+#ifdef __clang_analyzer__
+#define p_utest_assert_return() abort()
+#else
+#define p_utest_assert_return() return false
+#endif
+
 /**
  * Utility macro for test assertions.
  *
@@ -214,7 +220,7 @@ ULIB_BEGIN_DECLS
             printf(__VA_ARGS__);                                                                   \
             CODE;                                                                                  \
             printf("\n");                                                                          \
-            return false;                                                                          \
+            p_utest_assert_return();                                                               \
         }                                                                                          \
     } while (0)
 

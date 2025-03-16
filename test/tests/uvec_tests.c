@@ -30,8 +30,6 @@
 
 // Tests
 
-// NOLINTBEGIN(clang-analyzer-unix.Malloc)
-
 #define VTYPE int
 UVEC_INIT_IDENTIFIABLE(VTYPE)
 
@@ -199,6 +197,7 @@ bool uvec_test_storage(void) {
 
     utest_assert(uvec_reserve(VTYPE, &vec, 1000) == UVEC_OK);
     utest_assert(uvec_shrink(VTYPE, &vec) == UVEC_OK);
+    utest_assert(uvec_data(VTYPE, &vec) == s_array);
 
     VTYPE *d_array = (VTYPE *)ulib_calloc_array(d_array, 4);
     vec = uvec_assign(VTYPE, d_array, 4);
@@ -510,5 +509,3 @@ bool uvec_test_min_heapq(void) {
     uvec_deinit(VTYPE, &heap);
     return true;
 }
-
-// NOLINTEND(clang-analyzer-unix.Malloc)
