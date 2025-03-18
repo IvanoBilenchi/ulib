@@ -117,15 +117,25 @@ typedef enum uhash_ret {
  */
 #define UHASH_VAL_IGNORE char
 
-/// Hash table maximum load factor.
-#ifndef UHASH_MAX_LOAD
-#define UHASH_MAX_LOAD 0.77
+/**
+ * Computes the maximum number of elements that the table can contain
+ * before it needs to be resized in order to enforce its load factor.
+ *
+ * @param buckets Number of buckets.
+ * @return Upper bound.
+ *
+ * @note The default load factor is 0.75.
+ * @alias ulib_uint uhash_upper_bound(ulib_uint buckets);
+ */
+#ifndef uhash_upper_bound
+#define uhash_upper_bound(buckets) p_uhash_upper_bound_default(buckets)
 #endif
 
 /// @}
 
 // Flags manipulation macros.
 #define p_uhf_size(m) ((m) < 16 ? 1 : (m) >> 4U)
+#define p_uhf_size_from_exp(e) ((e) < 4 ? 1 : ulib_uint_pow2((e) - 4))
 #define p_uhf_isempty(flag, i) (((flag)[(i) >> 4U] >> (((i) & 0xfU) << 1U)) & 2U)
 #define p_uhf_isdel(flag, i) (((flag)[(i) >> 4U] >> (((i) & 0xfU) << 1U)) & 1U)
 #define p_uhf_iseither(flag, i) (((flag)[(i) >> 4U] >> (((i) & 0xfU) << 1U)) & 3U)
@@ -138,20 +148,15 @@ typedef enum uhash_ret {
 #define p_uhash_copy_items(T, dest, src, n)                                                        \
     memcpy((void *)(dest), (void const *)(src), (n) * sizeof(T))
 
-/*
- * Computes the maximum number of elements that the table can contain
- * before it needs to be resized in order to keep its load factor under UHASH_MAX_LOAD.
- *
- * @param buckets Number of buckets.
- * @return Upper bound.
- * @alias ulib_uint p_uhash_upper_bound(ulib_uint buckets);
- */
-#define p_uhash_upper_bound(buckets) ((ulib_uint)(((buckets) * UHASH_MAX_LOAD) + 0.5))
+ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) {
+    return (buckets >> 1U) + (buckets >> 2U); // 0.75 * buckets
+}
 
 #define P_UHASH_DEF_TYPE_HEAD(T, uh_key, uh_val)                                                   \
     typedef struct UHash_##T {                                                                     \
         /** @cond */                                                                               \
-        ulib_uint _size;                                                                           \
+        ulib_byte _is_map;                                                                         \
+        ulib_byte _exp;                                                                            \
         ulib_uint _occupied;                                                                       \
         ulib_uint _count;                                                                          \
         uint32_t *_flags;                                                                          \
@@ -261,9 +266,8 @@ typedef enum uhash_ret {
  */
 #define P_UHASH_DEF_INLINE(T, ATTRS)                                                               \
     /** @cond */                                                                                   \
-    ATTRS ULIB_PURE ULIB_INLINE bool uhash_is_map_##T(UHash_##T const *h) {                        \
-        /* _occupied = 1 and _size = 0 is a marker for empty tables that are maps. */              \
-        return h->_vals || h->_occupied > h->_size;                                                \
+    ATTRS ULIB_PURE ULIB_INLINE ulib_uint uhash_size_##T(UHash_##T const *h) {                     \
+        return h->_exp ? ulib_uint_pow2(h->_exp) : 0;                                              \
     }                                                                                              \
                                                                                                    \
     ATTRS ULIB_INLINE UHash_##T uhash_move_##T(UHash_##T *h) {                                     \
@@ -274,7 +278,8 @@ typedef enum uhash_ret {
     }                                                                                              \
                                                                                                    \
     ATTRS ULIB_PURE ULIB_INLINE ulib_uint uhash_next_##T(UHash_##T const *h, ulib_uint i) {        \
-        for (; i < h->_size && !uhash_exists(T, h, i); ++i) {}                                     \
+        ulib_uint size = uhash_size_##T(h);                                                        \
+        for (; i < size && !uhash_exists(T, h, i); ++i) {}                                         \
         return i;                                                                                  \
     }                                                                                              \
                                                                                                    \
@@ -284,10 +289,6 @@ typedef enum uhash_ret {
                                                                                                    \
     ATTRS ULIB_PURE ULIB_INLINE bool uhset_equals_##T(UHash_##T const *h1, UHash_##T const *h2) {  \
         return h1->_count == h2->_count && uhset_is_superset_##T(h1, h2);                          \
-    }                                                                                              \
-                                                                                                   \
-    ATTRS ULIB_PURE ULIB_INLINE ulib_uint p_uhash_occupied_##T(UHash_##T const *h) {               \
-        return h->_occupied > h->_size ? 0 : h->_occupied;                                         \
     }                                                                                              \
     /** @endcond */
 
@@ -301,7 +302,7 @@ typedef enum uhash_ret {
                                                                                                    \
     ATTRS UHash_##T uhmap_##T(void) {                                                              \
         UHash_##T h = uhset_##T();                                                                 \
-        h._occupied = 1;                                                                           \
+        h._is_map = 1;                                                                             \
         return h;                                                                                  \
     }                                                                                              \
                                                                                                    \
@@ -324,7 +325,7 @@ typedef enum uhash_ret {
                                                                                                    \
     ATTRS UHash_##T uhmap_##T(void) {                                                              \
         UHash_##T h = uhset_##T();                                                                 \
-        h._occupied = 1;                                                                           \
+        h._is_map = 1;                                                                             \
         return h;                                                                                  \
     }                                                                                              \
                                                                                                    \
@@ -367,24 +368,24 @@ typedef enum uhash_ret {
         ulib_free((void *)h->_keys);                                                               \
         ulib_free((void *)h->_vals);                                                               \
         ulib_free(h->_flags);                                                                      \
-        h->_keys = NULL;                                                                           \
-        h->_vals = NULL;                                                                           \
-        h->_flags = NULL;                                                                          \
-        h->_size = h->_occupied = h->_count = 0;                                                   \
+        UHash_##T zero = ulib_struct_init;                                                         \
+        *h = zero;                                                                                 \
     }                                                                                              \
                                                                                                    \
     ATTRS uhash_ret uhash_copy_##T(UHash_##T const *src, UHash_##T *dest) {                        \
         uhash_ret ret = uhash_copy_as_set_##T(src, dest);                                          \
                                                                                                    \
-        if (ret == UHASH_OK && uhash_is_map_##T(src)) {                                            \
-            if (!src->_size) {                                                                     \
+        if (ret == UHASH_OK && src->_is_map) {                                                     \
+            if (!src->_exp) {                                                                      \
                 *dest = uhmap(T);                                                                  \
                 return UHASH_OK;                                                                   \
             }                                                                                      \
                                                                                                    \
-            uh_val *new_vals = (uh_val *)ulib_realloc_array(dest->_vals, src->_size);              \
+            dest->_is_map = 1;                                                                     \
+            ulib_uint const size = uhash_size_##T(src);                                            \
+            uh_val *new_vals = (uh_val *)ulib_realloc_array(dest->_vals, size);                    \
             if (new_vals) {                                                                        \
-                p_uhash_copy_items(uh_val, new_vals, src->_vals, src->_size);                      \
+                p_uhash_copy_items(uh_val, new_vals, src->_vals, size);                            \
                 dest->_vals = new_vals;                                                            \
             } else {                                                                               \
                 ret = UHASH_ERR;                                                                   \
@@ -395,27 +396,29 @@ typedef enum uhash_ret {
     }                                                                                              \
                                                                                                    \
     ATTRS uhash_ret uhash_copy_as_set_##T(UHash_##T const *src, UHash_##T *dest) {                 \
-        if (!src->_size) {                                                                         \
+        if (!src->_exp) {                                                                          \
             uhash_deinit(T, dest);                                                                 \
             *dest = uhset(T);                                                                      \
             return UHASH_OK;                                                                       \
         }                                                                                          \
                                                                                                    \
-        ulib_uint n_flags = p_uhf_size(src->_size);                                                \
+        ulib_uint const size = uhash_size_##T(src);                                                \
+        ulib_uint const n_flags = p_uhf_size(size);                                                \
         uint32_t *new_flags = (uint32_t *)ulib_realloc_array(dest->_flags, n_flags);               \
         if (!new_flags) return UHASH_ERR;                                                          \
                                                                                                    \
-        uh_key *new_keys = (uh_key *)ulib_realloc_array(dest->_keys, src->_size);                  \
+        uh_key *new_keys = (uh_key *)ulib_realloc_array(dest->_keys, size);                        \
         if (!new_keys) {                                                                           \
             ulib_free(new_flags);                                                                  \
             return UHASH_ERR;                                                                      \
         }                                                                                          \
                                                                                                    \
         p_uhash_copy_items(uint32_t, new_flags, src->_flags, n_flags);                             \
-        p_uhash_copy_items(uh_key, new_keys, src->_keys, src->_size);                              \
+        p_uhash_copy_items(uh_key, new_keys, src->_keys, size);                                    \
         dest->_flags = new_flags;                                                                  \
         dest->_keys = new_keys;                                                                    \
-        dest->_size = src->_size;                                                                  \
+        dest->_exp = src->_exp;                                                                    \
+        dest->_is_map = 0;                                                                         \
         dest->_occupied = src->_occupied;                                                          \
         dest->_count = src->_count;                                                                \
                                                                                                    \
@@ -423,18 +426,18 @@ typedef enum uhash_ret {
     }                                                                                              \
                                                                                                    \
     ATTRS void uhash_clear_##T(UHash_##T *h) {                                                     \
-        if (!p_uhash_occupied_##T(h)) return;                                                      \
-        memset(h->_flags, 0xaa, p_uhf_size(h->_size) * sizeof(uint32_t));                          \
+        if (!h->_occupied) return;                                                                 \
+        memset(h->_flags, 0xaa, p_uhf_size_from_exp(h->_exp) * sizeof(uint32_t));                  \
         h->_count = h->_occupied = 0;                                                              \
     }                                                                                              \
                                                                                                    \
     ATTRS ulib_uint uhash_get_##T(UHash_##T const *h, uh_key key) {                                \
-        if (!h->_size) return UHASH_INDEX_MISSING;                                                 \
+        if (!h->_exp) return UHASH_INDEX_MISSING;                                                  \
                                                                                                    \
-        ulib_uint mask = h->_size - 1;                                                             \
+        ulib_uint const mask = uhash_size_##T(h) - 1;                                              \
         ulib_uint i = (ulib_uint)(hash_func(key)) & mask;                                          \
-        ulib_uint step = 0;                                                                        \
         ulib_uint const last = i;                                                                  \
+        ulib_uint step = 0;                                                                        \
                                                                                                    \
         while (!p_uhf_isempty(h->_flags, i) &&                                                     \
                (p_uhf_isdel(h->_flags, i) || !equal_func(h->_keys[i], key))) {                     \
@@ -445,76 +448,46 @@ typedef enum uhash_ret {
         return p_uhf_iseither(h->_flags, i) ? UHASH_INDEX_MISSING : i;                             \
     }                                                                                              \
                                                                                                    \
-    /* The kick-out process is bound to access uninitialized data. */                              \
-    /* NOLINTBEGIN(clang-analyzer-core.uninitialized.Assign) */                                    \
-    ATTRS uhash_ret uhash_resize_##T(UHash_##T *h, ulib_uint new_size) {                           \
-        /* Uses (0.25*size) bytes instead of [sizeof(uh_key+uh_val)+.25]*size. */                  \
-        new_size = new_size > 4 ? ulib_uint_ceil2(new_size) : 4;                                   \
+    static uhash_ret p_uhash_resize_kv_##T(UHash_##T *h, ulib_uint new_size) {                     \
+        void *temp = ulib_realloc_array(h->_keys, new_size);                                       \
+        if (!temp) return UHASH_ERR;                                                               \
+        h->_keys = (uh_key *)temp;                                                                 \
+        if (!h->_is_map) return UHASH_OK;                                                          \
+        temp = ulib_realloc_array(h->_vals, new_size);                                             \
+        if (!temp) return UHASH_ERR;                                                               \
+        h->_vals = (uh_val *)temp;                                                                 \
+        return UHASH_OK;                                                                           \
+    }                                                                                              \
                                                                                                    \
-        if (h->_count >= p_uhash_upper_bound(new_size)) {                                          \
-            /* Requested size is too small. */                                                     \
-            return UHASH_OK;                                                                       \
-        }                                                                                          \
-                                                                                                   \
-        /* Hash table size needs to be changed (shrink or expand): rehash. */                      \
-        uint32_t *new_flags = (uint32_t *)ulib_alloc_array(new_flags, p_uhf_size(new_size));       \
+    static uhash_ret p_uhash_rehash_##T(UHash_##T *h, ulib_uint new_size) {                        \
+        size_t const new_flags_size = p_uhf_size(new_size);                                        \
+        uint32_t *new_flags = (uint32_t *)ulib_alloc_array(new_flags, new_flags_size);             \
         if (!new_flags) return UHASH_ERR;                                                          \
+        memset(new_flags, 0xaa, new_flags_size * sizeof(*new_flags));                              \
+        ulib_uint const mask = new_size - 1;                                                       \
+        ulib_uint const cur_size = uhash_size_##T(h);                                              \
                                                                                                    \
-        memset(new_flags, 0xaa, p_uhf_size(new_size) * sizeof(uint32_t));                          \
-                                                                                                   \
-        if (h->_size < new_size) {                                                                 \
-            /* Expand. */                                                                          \
-            uh_key *new_keys = (uh_key *)ulib_realloc_array(h->_keys, new_size);                   \
-                                                                                                   \
-            if (!new_keys) {                                                                       \
-                ulib_free(new_flags);                                                              \
-                return UHASH_ERR;                                                                  \
-            }                                                                                      \
-                                                                                                   \
-            h->_keys = new_keys;                                                                   \
-                                                                                                   \
-            if (uhash_is_map_##T(h)) {                                                             \
-                uh_val *nvals = (uh_val *)ulib_realloc_array(h->_vals, new_size);                  \
-                                                                                                   \
-                if (!nvals) {                                                                      \
-                    ulib_free(new_flags);                                                          \
-                    return UHASH_ERR;                                                              \
-                }                                                                                  \
-                                                                                                   \
-                h->_vals = nvals;                                                                  \
-            }                                                                                      \
-        } /* Otherwise shrink. */                                                                  \
-                                                                                                   \
-        /* Rehashing is needed. */                                                                 \
-        for (ulib_uint j = 0; j != h->_size; ++j) {                                                \
+        for (ulib_uint j = 0; j < cur_size; ++j) {                                                 \
             if (p_uhf_iseither(h->_flags, j)) continue;                                            \
                                                                                                    \
-            ulib_uint const new_mask = new_size - 1;                                               \
             uh_key key = h->_keys[j];                                                              \
             uh_val val = { 0 };                                                                    \
             if (h->_vals) val = h->_vals[j];                                                       \
             p_uhf_set_isdel_true(h->_flags, j);                                                    \
                                                                                                    \
+            /* Kick-out process. It is bound to access uninitialized data. */                      \
+            /* NOLINTBEGIN(clang-analyzer-core.uninitialized.Assign) */                            \
             while (true) {                                                                         \
-                /* Kick-out process; sort of like in Cuckoo hashing. */                            \
-                ulib_uint i = (ulib_uint)(hash_func(key)) & new_mask;                              \
+                ulib_uint i = (ulib_uint)(hash_func(key)) & mask;                                  \
                 ulib_uint step = 0;                                                                \
                                                                                                    \
-                while (!p_uhf_isempty(new_flags, i)) i = (i + (++step)) & new_mask;                \
+                while (!p_uhf_isempty(new_flags, i)) i = (i + (++step)) & mask;                    \
                 p_uhf_set_isempty_false(new_flags, i);                                             \
                                                                                                    \
-                if (i < h->_size && !p_uhf_iseither(h->_flags, i)) {                               \
+                if (i < cur_size && !p_uhf_iseither(h->_flags, i)) {                               \
                     /* Kick out the existing element. */                                           \
-                    {                                                                              \
-                        uh_key tmp = h->_keys[i];                                                  \
-                        h->_keys[i] = key;                                                         \
-                        key = tmp;                                                                 \
-                    }                                                                              \
-                    if (h->_vals) {                                                                \
-                        uh_val tmp = h->_vals[i];                                                  \
-                        h->_vals[i] = val;                                                         \
-                        val = tmp;                                                                 \
-                    }                                                                              \
+                    ulib_swap(uh_key, key, h->_keys[i]);                                           \
+                    if (h->_vals) ulib_swap(uh_val, val, h->_vals[i]);                             \
                     /* Mark it as deleted in the old hash table. */                                \
                     p_uhf_set_isdel_true(h->_flags, i);                                            \
                 } else {                                                                           \
@@ -524,75 +497,73 @@ typedef enum uhash_ret {
                     break;                                                                         \
                 }                                                                                  \
             }                                                                                      \
+            /* NOLINTEND(clang-analyzer-core.uninitialized.Assign) */                              \
         }                                                                                          \
                                                                                                    \
-        if (h->_size > new_size) {                                                                 \
-            /* Shrink the hash table. */                                                           \
-            uh_key *new_keys = (uh_key *)ulib_realloc_array(h->_keys, new_size);                   \
-            if (new_keys) h->_keys = new_keys;                                                     \
-            if (h->_vals) {                                                                        \
-                uh_val *new_vals = (uh_val *)ulib_realloc_array(h->_vals, new_size);               \
-                if (new_vals) h->_vals = new_vals;                                                 \
-            }                                                                                      \
-        }                                                                                          \
-                                                                                                   \
-        /* Free the working space. */                                                              \
         ulib_free(h->_flags);                                                                      \
         h->_flags = new_flags;                                                                     \
-        h->_size = new_size;                                                                       \
+        return UHASH_OK;                                                                           \
+    }                                                                                              \
+                                                                                                   \
+    ATTRS uhash_ret uhash_resize_##T(UHash_##T *h, ulib_uint new_size) {                           \
+        if (new_size < 4) new_size = 4;                                                            \
+        ulib_byte const new_exp = (ulib_byte)ulib_uint_ceil_log2(new_size);                        \
+        new_size = ulib_uint_pow2(new_exp);                                                        \
+        if (h->_exp == new_exp || h->_count >= uhash_upper_bound(new_size)) return UHASH_OK;       \
+                                                                                                   \
+        bool expand = new_exp > h->_exp;                                                           \
+        if (expand && p_uhash_resize_kv_##T(h, new_size)) return UHASH_ERR;                        \
+        if (p_uhash_rehash_##T(h, new_size)) return UHASH_ERR;                                     \
+        if (!expand) p_uhash_resize_kv_##T(h, new_size);                                           \
+                                                                                                   \
+        h->_exp = new_exp;                                                                         \
         h->_occupied = h->_count;                                                                  \
                                                                                                    \
         return UHASH_OK;                                                                           \
     }                                                                                              \
-    /* NOLINTEND(clang-analyzer-core.uninitialized.Assign) */                                      \
+                                                                                                   \
+    ULIB_INLINE uhash_ret p_uhash_bookkeeping_##T(UHash_##T *h) {                                  \
+        ulib_uint const size = uhash_size_##T(h);                                                  \
+        ulib_uint const upper_bound = uhash_upper_bound(size);                                     \
+        if (h->_occupied < upper_bound) return UHASH_OK;                                           \
+        if (upper_bound > (h->_count << 1U)) return p_uhash_rehash_##T(h, size);                   \
+        return uhash_resize_##T(h, size + 1);                                                      \
+    }                                                                                              \
+                                                                                                   \
+    ULIB_INLINE ulib_uint p_uhash_put_index_##T(UHash_##T *h, uh_key key) {                        \
+        ulib_uint const size = uhash_size_##T(h);                                                  \
+        ulib_uint const mask = size - 1;                                                           \
+        ulib_uint i = (ulib_uint)(hash_func(key)) & mask;                                          \
+        if (p_uhf_isempty(h->_flags, i)) return i;                                                 \
+                                                                                                   \
+        ulib_uint const last = i;                                                                  \
+        ulib_uint step = 0;                                                                        \
+        ulib_uint site = size;                                                                     \
+        ulib_uint x = site;                                                                        \
+                                                                                                   \
+        while (!p_uhf_isempty(h->_flags, i) &&                                                     \
+               (p_uhf_isdel(h->_flags, i) || !equal_func(h->_keys[i], key))) {                     \
+            if (p_uhf_isdel(h->_flags, i)) site = i;                                               \
+            i = (i + (++step)) & mask;                                                             \
+            if (i == last) {                                                                       \
+                x = site;                                                                          \
+                break;                                                                             \
+            }                                                                                      \
+        }                                                                                          \
+                                                                                                   \
+        if (x != size) return x;                                                                   \
+        return (p_uhf_isempty(h->_flags, i) && site != size) ? site : i;                           \
+    }                                                                                              \
                                                                                                    \
     ATTRS uhash_ret uhash_put_##T(UHash_##T *h, uh_key key, ulib_uint *idx) {                      \
         ulib_analyzer_assert(h->_flags);                                                           \
-        ulib_uint x;                                                                               \
-        if (p_uhash_occupied_##T(h) >= p_uhash_upper_bound(h->_size)) {                            \
-            /* Update the hash table. */                                                           \
-            if (h->_size > (h->_count << 1U)) {                                                    \
-                if (uhash_resize_##T(h, h->_size - 1)) {                                           \
-                    /* Clear "deleted" elements. */                                                \
-                    if (idx) *idx = UHASH_INDEX_MISSING;                                           \
-                    return UHASH_ERR;                                                              \
-                }                                                                                  \
-            } else if (uhash_resize_##T(h, h->_size + 1)) {                                        \
-                /* Expand the hash table. */                                                       \
-                if (idx) *idx = UHASH_INDEX_MISSING;                                               \
-                return UHASH_ERR;                                                                  \
-            }                                                                                      \
-        }                                                                                          \
-        /* TODO: implement automatic shrinking; resize() already supports shrinking. */            \
-        {                                                                                          \
-            ulib_uint const mask = h->_size - 1;                                                   \
-            ulib_uint i = (ulib_uint)(hash_func(key)) & mask;                                      \
-            ulib_uint step = 0;                                                                    \
-            ulib_uint site = h->_size;                                                             \
-            x = site;                                                                              \
                                                                                                    \
-            if (p_uhf_isempty(h->_flags, i)) {                                                     \
-                /* Speed up. */                                                                    \
-                x = i;                                                                             \
-            } else {                                                                               \
-                ulib_uint const last = i;                                                          \
-                                                                                                   \
-                while (!p_uhf_isempty(h->_flags, i) &&                                             \
-                       (p_uhf_isdel(h->_flags, i) || !equal_func(h->_keys[i], key))) {             \
-                    if (p_uhf_isdel(h->_flags, i)) site = i;                                       \
-                    i = (i + (++step)) & mask;                                                     \
-                    if (i == last) {                                                               \
-                        x = site;                                                                  \
-                        break;                                                                     \
-                    }                                                                              \
-                }                                                                                  \
-                                                                                                   \
-                if (x == h->_size) {                                                               \
-                    x = (p_uhf_isempty(h->_flags, i) && site != h->_size) ? site : i;              \
-                }                                                                                  \
-            }                                                                                      \
+        if (p_uhash_bookkeeping_##T(h) == UHASH_ERR) {                                             \
+            if (idx) *idx = UHASH_INDEX_MISSING;                                                   \
+            return UHASH_ERR;                                                                      \
         }                                                                                          \
                                                                                                    \
+        ulib_uint const x = p_uhash_put_index_##T(h, key);                                         \
         uhash_ret ret;                                                                             \
                                                                                                    \
         if (p_uhf_isempty(h->_flags, x)) {                                                         \
@@ -613,7 +584,7 @@ typedef enum uhash_ret {
             ret = UHASH_PRESENT;                                                                   \
         }                                                                                          \
                                                                                                    \
-        if (idx) *idx = (x == h->_size ? UHASH_INDEX_MISSING : x);                                 \
+        if (idx) *idx = (x == uhash_size_##T(h) ? UHASH_INDEX_MISSING : x);                        \
         return ret;                                                                                \
     }                                                                                              \
                                                                                                    \
@@ -714,7 +685,8 @@ typedef enum uhash_ret {
     }                                                                                              \
                                                                                                    \
     ATTRS bool uhset_is_superset_##T(UHash_##T const *h1, UHash_##T const *h2) {                   \
-        for (ulib_uint i = 0; i != h2->_size; ++i) {                                               \
+        ulib_uint const h2_size = uhash_size_##T(h2);                                              \
+        for (ulib_uint i = 0; i != h2_size; ++i) {                                                 \
             if (uhash_exists(T, h2, i) &&                                                          \
                 uhash_get_##T(h1, h2->_keys[i]) == UHASH_INDEX_MISSING) {                          \
                 return false;                                                                      \
@@ -724,9 +696,8 @@ typedef enum uhash_ret {
     }                                                                                              \
                                                                                                    \
     ATTRS uhash_ret uhset_union_##T(UHash_##T *h1, UHash_##T const *h2) {                          \
-        /* TODO: if h2 is much smaller than h1, this can likely be optimized */                    \
-        /*       by starting from a copy of h2. */                                                 \
-        for (ulib_uint i = 0; i != h2->_size; ++i) {                                               \
+        ulib_uint const h2_size = uhash_size_##T(h2);                                              \
+        for (ulib_uint i = 0; i != h2_size; ++i) {                                                 \
             if (uhash_exists(T, h2, i) && uhset_insert_##T(h1, h2->_keys[i], NULL) == UHASH_ERR) { \
                 return UHASH_ERR;                                                                  \
             }                                                                                      \
@@ -735,9 +706,8 @@ typedef enum uhash_ret {
     }                                                                                              \
                                                                                                    \
     ATTRS void uhset_intersect_##T(UHash_##T *h1, UHash_##T const *h2) {                           \
-        /* TODO: if h2 is much smaller than h1, this can likely be optimized */                    \
-        /*       by starting from a copy of h2. In that case, return uhash_ret. */                 \
-        for (ulib_uint i = 0; i != h1->_size; ++i) {                                               \
+        ulib_uint const h1_size = uhash_size_##T(h1);                                              \
+        for (ulib_uint i = 0; i != h1_size; ++i) {                                                 \
             if (uhash_exists(T, h1, i) &&                                                          \
                 uhash_get_##T(h2, h1->_keys[i]) == UHASH_INDEX_MISSING) {                          \
                 uhash_delete_##T(h1, i);                                                           \
@@ -746,7 +716,8 @@ typedef enum uhash_ret {
     }                                                                                              \
                                                                                                    \
     ULIB_INLINE void p_uhset_diff_h1_##T(UHash_##T *h1, UHash_##T const *h2) {                     \
-        for (ulib_uint i = 0; i != h1->_size; ++i) {                                               \
+        ulib_uint const h1_size = uhash_size_##T(h1);                                              \
+        for (ulib_uint i = 0; i != h1_size; ++i) {                                                 \
             if (uhash_exists(T, h1, i) &&                                                          \
                 uhash_get_##T(h2, h1->_keys[i]) != UHASH_INDEX_MISSING) {                          \
                 uhash_delete_##T(h1, i);                                                           \
@@ -755,7 +726,8 @@ typedef enum uhash_ret {
     }                                                                                              \
                                                                                                    \
     ULIB_INLINE void p_uhset_diff_h2_##T(UHash_##T *h1, UHash_##T const *h2) {                     \
-        for (ulib_uint i = 0; i != h2->_size; ++i) {                                               \
+        ulib_uint const h2_size = uhash_size_##T(h2);                                              \
+        for (ulib_uint i = 0; i != h2_size; ++i) {                                                 \
             if (uhash_exists(T, h2, i)) {                                                          \
                 uhset_remove_##T(h1, h2->_keys[i], NULL);                                          \
             }                                                                                      \
@@ -772,7 +744,8 @@ typedef enum uhash_ret {
                                                                                                    \
     ATTRS ulib_uint uhset_hash_##T(UHash_##T const *h) {                                           \
         ulib_uint hash = 0;                                                                        \
-        for (ulib_uint i = 0; i != h->_size; ++i) {                                                \
+        ulib_uint const size = uhash_size_##T(h);                                                  \
+        for (ulib_uint i = 0; i < size; ++i) {                                                     \
             if (uhash_exists(T, h, i)) hash ^= hash_func(h->_keys[i]);                             \
         }                                                                                          \
         return hash;                                                                               \
@@ -780,7 +753,7 @@ typedef enum uhash_ret {
                                                                                                    \
     ATTRS uh_key uhset_get_any_##T(UHash_##T const *h, uh_key if_empty) {                          \
         ulib_uint i = uhash_next_##T(h, 0);                                                        \
-        return i == h->_size ? if_empty : h->_keys[i];                                             \
+        return i == uhash_size_##T(h) ? if_empty : h->_keys[i];                                    \
     }
 
 /**
@@ -1070,7 +1043,7 @@ typedef enum uhash_ret {
  *
  * @alias bool uhash_is_map(symbol T, UHash(T) const *h);
  */
-#define uhash_is_map(T, h) uhash_is_map_##T(h)
+#define uhash_is_map(T, h) (((UHash(T) *)(h))->_is_map)
 
 /**
  * Inserts a key into the specified hash table.
@@ -1166,7 +1139,7 @@ typedef enum uhash_ret {
  *
  * @alias ulib_uint uhash_size(symbol T, UHash(T) const *h);
  */
-#define uhash_size(T, h) (((UHash(T) *)(h))->_size)
+#define uhash_size(T, h) uhash_size_##T(h)
 
 /**
  * Returns the number of elements in the hash table.
@@ -1219,9 +1192,9 @@ typedef enum uhash_ret {
  */
 // clang-format off
 #define uhash_foreach(T, ht, enum_name) /* NOLINTNEXTLINE(misc-const-correctness) */               \
-    for (UHash_Loop_##T p_h_##enum_name = { (ht), NULL, NULL, 0 },                                 \
+    for (UHash_Loop_##T p_h_##enum_name = { (ht), NULL, NULL, uhash_size(T, ht) },                 \
          enum_name = { p_h_##enum_name.h, NULL, NULL, uhash_next(T, p_h_##enum_name.h, 0) };       \
-         enum_name.i != enum_name.h->_size &&                                                      \
+         enum_name.i != p_h_##enum_name.i &&                                                       \
          (enum_name.key = enum_name.h->_keys + enum_name.i) != NULL &&                             \
          (!uhash_is_map(T, enum_name.h) ||                                                         \
           (enum_name.val = enum_name.h->_vals + enum_name.i) != NULL);                             \

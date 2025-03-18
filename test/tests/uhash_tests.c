@@ -53,9 +53,11 @@ bool uhash_test_memory(void) {
 
     UHash(IntHash) oset = set;
     UHash(IntHash) nset = uhash_move(IntHash, &oset);
-    utest_assert(set._size == nset._size && set._occupied == nset._occupied &&
-                 set._count == nset._count && set._flags == nset._flags && set._keys == nset._keys);
-    utest_assert(!oset._size && !oset._occupied && !set._count && !oset._flags && !oset._keys);
+    utest_assert(set._exp == nset._exp && set._is_map == nset._is_map &&
+                 set._occupied == nset._occupied && set._count == nset._count &&
+                 set._flags == nset._flags && set._keys == nset._keys);
+    utest_assert(!oset._exp && !oset._is_map && !oset._occupied && !set._count && !oset._flags &&
+                 !oset._keys);
 
     uhash_deinit(IntHash, &set);
     return true;
