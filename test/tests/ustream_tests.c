@@ -65,14 +65,17 @@ static char *get_file_contents(char const *path, size_t *size) {
     if (!test_file) return NULL;
 
     char *contents = NULL;
-    long test_file_size;
+    long ftell_ret;
+    size_t test_file_size;
     size_t read;
+
     if (!(test_file && fseek(test_file, 0, SEEK_END) == 0)) goto end;
 
-    test_file_size = ftell(test_file);
-    if (test_file_size < 0) goto end;
+    ftell_ret = ftell(test_file);
+    if (ftell_ret < 0) goto end;
     if (fseek(test_file, 0, SEEK_SET) != 0) goto end;
 
+    test_file_size = (size_t)ftell_ret;
     if (!(contents = (char *)ulib_malloc(test_file_size))) goto end;
     read = fread(contents, 1, test_file_size, test_file);
 
@@ -119,9 +122,9 @@ bool uistream_buffered_test(void) {
     ret = uistream_from_buf(raw_stream, test_data, TEST_DATA_SIZE);
     utest_assert(ret == USTREAM_OK);
 
-    for (ulib_uint i = 0; i < TEST_DATA_SIZE;) {
+    for (size_t i = 0; i < TEST_DATA_SIZE;) {
         size_t to_read = urand_range(1, 7);
-        to_read = ulib_min(to_read, TEST_DATA_SIZE - i);
+        to_read = ulib_min(to_read, (size_t)(TEST_DATA_SIZE - i));
 
         size_t read;
         ret = uistream_read(&stream, buf + i, to_read, &read);
@@ -281,7 +284,7 @@ bool uostream_buffered_test(void) {
     ret = uostream_to_path(raw_stream, test_output_file);
     utest_assert(ret == USTREAM_OK);
 
-    for (ulib_uint i = 0; i < TEST_DATA_SIZE;) {
+    for (size_t i = 0; i < TEST_DATA_SIZE;) {
         size_t to_write = urand_range(1, 7);
         to_write = ulib_min(to_write, TEST_DATA_SIZE - i);
 
@@ -312,7 +315,7 @@ bool ustream_varint_test(void) {
     ulib_uint const max_value = ulib_min(ULIB_UINT_MAX >> 1U, 1000000);
     ulib_uint const increment = 999;
     ulib_uint value = 0;
-    ulib_byte buffer[sizeof(value) + 1];
+    ulib_byte buffer[sizeof(value) + 1] = {};
     size_t written = 0;
     size_t read = 0;
 
@@ -340,7 +343,7 @@ bool ustream_svarint_test(void) {
     ulib_int const max_value = ulib_min(ULIB_UINT_MAX >> 2U, 500000);
     ulib_int const increment = 999;
     ulib_int value = 0;
-    ulib_byte buffer[sizeof(value) + 1];
+    ulib_byte buffer[sizeof(value) + 1] = {};
     size_t written = 0;
     size_t read = 0;
 

@@ -24,7 +24,13 @@ target_sources(ulib-bench
                PRIVATE FILE_SET HEADERS
                        BASE_DIRS "${ULIB_BENCH_HEADERS_DIR}"
                        FILES ${ULIB_BENCH_HEADERS})
+target_compile_features(ulib-bench PRIVATE ${ULIB_COMPILE_FEATURES})
+target_compile_options(ulib-bench PRIVATE ${ULIB_WARNING_OPTIONS} ${ULIB_OPTIMIZER_OPTIONS})
 target_link_libraries(ulib-bench PRIVATE ulib)
+
+if(ULIB_LTO_ENABLED)
+    set_property(TARGET ulib-bench PROPERTY INTERPROCEDURAL_OPTIMIZATION ON)
+endif()
 
 if(ULIB_CLANG_TIDY)
     clang_tidy_check(ulib-bench)
@@ -38,7 +44,13 @@ target_sources(ulib-test
                PRIVATE FILE_SET HEADERS
                        BASE_DIRS "${ULIB_TEST_HEADERS_DIR}"
                        FILES ${ULIB_TEST_HEADERS})
+target_compile_features(ulib-test PRIVATE ${ULIB_COMPILE_FEATURES})
+target_compile_options(ulib-test PRIVATE ${ULIB_WARNING_OPTIONS} ${ULIB_OPTIMIZER_OPTIONS})
 target_link_libraries(ulib-test PRIVATE ulib)
+
+if(ULIB_LTO_ENABLED)
+    set_property(TARGET ulib-test PROPERTY INTERPROCEDURAL_OPTIMIZATION ON)
+endif()
 
 if(ULIB_CLANG_TIDY)
     clang_tidy_check(ulib-test)

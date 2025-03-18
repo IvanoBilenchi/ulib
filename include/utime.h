@@ -66,7 +66,7 @@ typedef enum utime_unit {
 typedef struct UTime {
 
     /// Year.
-    long long year : 38;
+    signed long long year : 38;
 
     /// Month.
     unsigned month : 4;

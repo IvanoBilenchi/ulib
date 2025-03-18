@@ -29,6 +29,7 @@ project(uLib
 option(ULIB_TINY "Use small types" OFF)
 option(ULIB_HUGE "Use large types" OFF)
 option(ULIB_LTO "Enable link-time optimization, if available" ON)
+option(ULIB_OPTIMIZE_FOR_HOST "Enable optimizations for the host CPU (keep OFF for distribution)" OFF)
 option(ULIB_CLANG_TIDY "Enable clang-tidy, if available" OFF)
 option(ULIB_LEAKS "Enable debugging of memory leaks (keep OFF in production builds)" OFF)
 option(ULIB_SANITIZERS "Enable sanitizers (keep OFF in production builds)" OFF)
@@ -92,6 +93,9 @@ else()
     if(ULIB_SANITIZERS)
         set(ULIB_SANITIZER_OPTIONS "-fsanitize=address,undefined")
     endif()
+    if(ULIB_OPTIMIZE_FOR_HOST)
+        set(ULIB_OPTIMIZER_OPTIONS "-march=native")
+    endif()
 endif()
 
 if(ULIB_LTO)
@@ -139,7 +143,7 @@ set_target_properties(ulib PROPERTIES
 target_compile_features(ulib PRIVATE ${ULIB_COMPILE_FEATURES})
 target_compile_options(ulib
                        PUBLIC ${ULIB_SANITIZER_OPTIONS}
-                       PRIVATE ${ULIB_WARNING_OPTIONS})
+                       PRIVATE ${ULIB_WARNING_OPTIONS} ${ULIB_OPTIMIZER_OPTIONS})
 target_link_options(ulib PUBLIC ${ULIB_SANITIZER_OPTIONS})
 target_compile_definitions(ulib
                            PUBLIC ${ULIB_PUBLIC_DEFINES}

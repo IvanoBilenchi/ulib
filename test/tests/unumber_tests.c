@@ -10,12 +10,12 @@
 #include "ulib.h"
 
 bool unumber_test_pow2(void) {
-    ulib_uint const max_exp = 8;
+    ulib_byte const max_exp = 8;
 
-    for (ulib_uint e = 0; e < max_exp; ++e) {
-        ulib_uint const next_e = e + 1;
-        ulib_uint const start_val = (1 << e);
-        ulib_uint const end_val = (1 << next_e);
+    for (ulib_byte e = 0; e < max_exp; ++e) {
+        ulib_byte const next_e = e + 1;
+        ulib_uint const start_val = ulib_uint_pow2(e);
+        ulib_uint const end_val = ulib_uint_pow2(next_e);
 
         utest_assert(ulib_uint_is_pow2(start_val));
         utest_assert_uint(ulib_uint_log2(start_val), ==, e);

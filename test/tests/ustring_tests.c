@@ -90,8 +90,8 @@ bool ustrbuf_test(void) {
     uvec_ret ret;
 
     char const str[] = "12345";
-    size_t const str_len = sizeof(str) - 1;
-    size_t cur_len;
+    ulib_uint const str_len = sizeof(str) - 1;
+    ulib_uint cur_len;
 
     ret = ustrbuf_append_literal(&buf, str);
     utest_assert(ret == UVEC_OK);
@@ -136,7 +136,7 @@ bool ustring_test_base(void) {
     utest_assert(ustring_is_null(ustring_null));
 
     char const str[] = "123ab456ab789";
-    size_t const str_len = sizeof(str) - 1;
+    ulib_uint const str_len = sizeof(str) - 1;
 
     UString a = ustring_copy_literal(str);
 

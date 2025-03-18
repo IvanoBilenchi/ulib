@@ -170,7 +170,8 @@ void utime_to_timezone(UTime *time, int tz_hour, unsigned tz_minute) {
 
 long long utime_diff(UTime const *a, UTime const *b, utime_unit unit) {
     if (unit == UTIME_MONTHS || unit == UTIME_YEARS) {
-        long long months = (long long)a->month - b->month + ((a->year - b->year) * MONTHS_PER_YEAR);
+        long long months = (long long)a->month - (long long)b->month;
+        months += ((long long)a->year - (long long)b->year) * MONTHS_PER_YEAR;
         return unit == UTIME_MONTHS ? months : months / MONTHS_PER_YEAR;
     }
 

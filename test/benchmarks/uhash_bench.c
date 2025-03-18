@@ -13,8 +13,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define klib_hash_int(x) ((khint_t)(x))
 UHASH_INIT(uint, ulib_uint, UHASH_VAL_IGNORE, ulib_hash_int, ulib_eq)
-KHASHL_SET_INIT(KH_LOCAL, kh_uint_t, kh_uint, ulib_uint, ulib_hash_int, ulib_eq)
+KHASHL_SET_INIT(KH_LOCAL, kh_uint_t, kh_uint, ulib_uint, klib_hash_int, ulib_eq)
 
 enum {
     SEED = 31,
@@ -117,34 +118,37 @@ static HashTable hash_table_khashl(void) {
 
 static void bench_hash(HashTable *table, ulib_uint size) {
     void *h = table->init();
-    ulib_uint count = 0;
     urand_set_seed(SEED);
 
     UOStream *stream = uostream_std();
     uostream_writef(stream, NULL, "%s (size %" ULIB_UINT_FMT ") - ", table->name, size);
 
-    ubench_block("insert", stream, ", ") {
+    ulib_uint count = 0;
+    ubench_block("insert", stream, " ") {
         for (ulib_uint i = 0; i < size; ++i) {
             ulib_uint key = urand_range(0, size >> 1);
             if (table->insert(h, key)) count++;
         }
     }
+    uostream_writef(stream, NULL, "(%" ULIB_UINT_FMT " inserted), ", count);
 
     count = 0;
-    ubench_block("get", stream, ", ") {
+    ubench_block("get", stream, " ") {
         for (ulib_uint i = 0; i < size; ++i) {
             ulib_uint key = urand_range(0, size >> 1);
             if (table->contains(h, key)) count++;
         }
     }
+    uostream_writef(stream, NULL, "(%" ULIB_UINT_FMT " found), ", count);
 
     count = 0;
-    ubench_block("remove", stream, "\n") {
+    ubench_block("remove", stream, " ") {
         for (ulib_uint i = 0; i < size; ++i) {
             ulib_uint key = urand_range(0, size >> 1);
             if (table->remove(h, key)) count++;
         }
     }
+    uostream_writef(stream, NULL, "(%" ULIB_UINT_FMT " removed)\n", count);
 
     table->deinit(h);
 }

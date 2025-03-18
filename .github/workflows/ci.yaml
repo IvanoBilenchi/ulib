@@ -2,15 +2,14 @@ name: CI pipeline
 
 on:
   push:
-    branches: [dev]
+    branches:
+      - dev
+      - 'dev-*'
 
 env:
   build_dir: build
-  build_config: Release
-  test_target: ulib-test
-  cpp_test_target: ulib-cpp-test
-  bench_target: ulib-bench
-  docs_target: ulib-docs
+  test_config: Release
+  bench_config: Release
 
 jobs:
   analyze:
@@ -37,7 +36,7 @@ jobs:
           -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
 
       - name: Build
-        run: cmake --build ${{env.build_dir}} --target ${{env.test_target}} ${{env.bench_target}}
+        run: cmake --build ${{env.build_dir}} --target ulib-test ulib-bench
 
   test:
     name: Test
@@ -66,35 +65,69 @@ jobs:
           -DULIB_CPP_TESTS=ON
           -DCMAKE_SYSTEM_VERSION=''
           -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
-          -DCMAKE_BUILD_TYPE=${{env.build_config}}
+          -DCMAKE_BUILD_TYPE=${{env.test_config}}
 
       - name: Build
         run: >
           cmake --build ${{env.build_dir}}
-          --config ${{env.build_config}}
-          --target ${{env.test_target}} ${{env.cpp_test_target}} ${{env.bench_target}}
+          --config ${{env.test_config}}
+          --target ulib-test ulib-cpp-test ulib-bench
 
       - name: Configure tests (Windows)
         working-directory: ${{env.build_dir}}/test
         if: runner.os == 'Windows'
         run: |
-          mv ${{env.build_config}}/*.exe ./
+          mv ${{env.test_config}}/*.exe ./
           if [ ${{matrix.lib_type}} == 'SHARED' ]; then
-            mv ../${{env.build_config}}/*.dll ./
+            mv ../${{env.test_config}}/*.dll ./
           fi
         shell: bash
 
       - name: Run tests
         working-directory: ${{env.build_dir}}/test
-        run: ./${{env.test_target}}
+        run: ./ulib-test
 
       - name: Run tests (C++)
         working-directory: ${{env.build_dir}}/test
-        run: ./${{env.cpp_test_target}}
+        run: ./ulib-cpp-test
 
       - name: Run benchmark
         working-directory: ${{env.build_dir}}/test
-        run: ./${{env.bench_target}}
+        run: ./ulib-bench
+
+  bench:
+    name: Benchmark
+    runs-on: ${{matrix.os}}
+    strategy:
+      matrix:
+        os:
+          - ${{vars.ubuntu_runner || 'ubuntu-latest'}}
+          - ${{vars.windows_runner || 'windows-latest'}}
+          - ${{vars.macos_runner || 'macos-latest'}}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure CMake
+        run: >
+          cmake -B ${{env.build_dir}}
+          -DULIB_LTO=ON
+          -DULIB_OPTIMIZE_FOR_HOST=ON
+          -DCMAKE_SYSTEM_VERSION=''
+          -DCMAKE_BUILD_TYPE=${{env.bench_config}}
+
+      - name: Build
+        run: cmake --build ${{env.build_dir}} --config ${{env.bench_config}} --target ulib-bench
+
+      - name: Configure (Windows)
+        working-directory: ${{env.build_dir}}/test
+        if: runner.os == 'Windows'
+        run: mv ${{env.bench_config}}/*.exe ./
+        shell: bash
+
+      - name: Run
+        working-directory: ${{env.build_dir}}/test
+        run: ./ulib-bench
 
   docs:
     name: Generate the documentation
@@ -110,4 +143,4 @@ jobs:
           source .venv/bin/activate
           pip install Sphinx sphinx-rtd-theme breathe
           cmake -B ${{env.build_dir}}
-          cmake --build ${{env.build_dir}} --target ${{env.docs_target}}
+          cmake --build ${{env.build_dir}} --target ulib-docs

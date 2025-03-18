@@ -334,7 +334,7 @@ bool uvec_test_comparable(void) {
 
     // uvec_insertion_index_sorted with binary search
     uvec_clear(VTYPE, &v);
-    ulib_uint const last = UVEC_BINARY_SEARCH_THRESH * 2;
+    VTYPE const last = UVEC_BINARY_SEARCH_THRESH * 2;
     for (VTYPE i = 0; i < last; ++i) {
         uvec_push(VTYPE, &v, i);
     }
@@ -359,7 +359,7 @@ bool uvec_test_sort(void) {
 
     // Mostly unique elements
     for (ulib_uint i = 0; i < SORT_COUNT; ++i) {
-        array[i] = urand();
+        array[i] = (VTYPE)urand();
     }
 
     uvec_append_array(VTYPE, &v, array, SORT_COUNT);
@@ -373,7 +373,7 @@ bool uvec_test_sort(void) {
 
     // Repeated elements
     for (ulib_uint i = 0; i < SORT_COUNT; ++i) {
-        array[i] = urand() % 10;
+        array[i] = (VTYPE)(urand() % 10);
     }
 
     uvec_clear(VTYPE, &v);
