@@ -413,9 +413,10 @@ typedef enum uvec_ret {
     ATTRS uvec_ret uvec_reserve_##T(UVec(T) *vec, ulib_uint size) {                                \
         if (size <= uvec_size(T, vec)) return UVEC_OK;                                             \
                                                                                                    \
+        ulib_byte const exp = p_uvec_exp(T, vec);                                                  \
+        ulib_byte const new_exp = (ulib_byte)ulib_uint_ceil_log2(size);                            \
+        size = ulib_uint_pow2(new_exp);                                                            \
         T *data;                                                                                   \
-        size = ulib_uint_ceil2(size);                                                              \
-        ulib_byte exp = p_uvec_exp(T, vec);                                                        \
                                                                                                    \
         if (p_uvec_exp_is_large(exp)) {                                                            \
             if (p_uvec_exp_is_wrapped(exp)) return UVEC_OK;                                        \
@@ -428,7 +429,7 @@ typedef enum uvec_ret {
             vec->_l._count = exp;                                                                  \
         }                                                                                          \
                                                                                                    \
-        p_uvec_exp_set(T, vec, ulib_uint_log2(size) | P_UVEC_FLAG_LARGE);                          \
+        p_uvec_exp_set(T, vec, new_exp | P_UVEC_FLAG_LARGE);                                       \
         vec->_l._data = data;                                                                      \
                                                                                                    \
         return UVEC_OK;                                                                            \

@@ -24,6 +24,8 @@
 
 ULIB_BEGIN_DECLS
 
+#define p_ulib_is_pow2_0(x) (!((x) & ((x) - 1)))
+
 /// Byte type.
 typedef uint8_t ulib_byte;
 
@@ -154,6 +156,7 @@ typedef uint8_t ulib_byte;
  * @return Integer base 2 logarithm.
  *
  * @warning Undefined for zero.
+ * @note For non-power of 2 values, the result is the floor of the logarithm.
  *
  * @fn unsigned ulib_uint_log2(ulib_uint x)
  */
@@ -171,6 +174,33 @@ typedef uint8_t ulib_byte;
 /**
  * @copydoc ulib_uint_log2()
  * @fn unsigned ulib_uint64_log2(uint64_t x)
+ */
+
+/**
+ * Returns the integer base 2 logarithm of `x`.
+ *
+ * @param x Positive unsigned integer.
+ * @return Integer base 2 logarithm.
+ *
+ * @warning Undefined for zero.
+ * @note For non-power of 2 values, the result is the ceiling of the logarithm.
+ *
+ * @fn unsigned ulib_uint_ceil_log2(ulib_uint x)
+ */
+
+/**
+ * @copydoc ulib_uint_ceil_log2()
+ * @fn unsigned ulib_uint16_ceil_log2(uint16_t x)
+ */
+
+/**
+ * @copydoc ulib_uint_ceil_log2()
+ * @fn unsigned ulib_uint32_ceil_log2(uint32_t x)
+ */
+
+/**
+ * @copydoc ulib_uint_ceil_log2()
+ * @fn unsigned ulib_uint64_ceil_log2(uint64_t x)
  */
 
 /// @}
@@ -258,21 +288,21 @@ uint64_t ulib_uint64_floor2(uint64_t x) {
 ULIB_CONST
 ULIB_INLINE
 uint16_t ulib_uint16_ceil2(uint16_t x) {
-    return (uint16_t)1 << (sizeof(unsigned) * CHAR_BIT - __builtin_clz(x) - 1 * !(x & (x - 1)));
+    return (uint16_t)1 << (sizeof(unsigned) * CHAR_BIT - __builtin_clz(x) - p_ulib_is_pow2_0(x));
 }
 
 ULIB_CONST
 ULIB_INLINE
 uint32_t ulib_uint32_ceil2(uint32_t x) {
     return (uint32_t)1 << (sizeof(unsigned long) * CHAR_BIT - __builtin_clzl(x) -
-                           1 * !(x & (x - 1)));
+                           p_ulib_is_pow2_0(x));
 }
 
 ULIB_CONST
 ULIB_INLINE
 uint64_t ulib_uint64_ceil2(uint64_t x) {
     return (uint64_t)1 << (sizeof(unsigned long long) * CHAR_BIT - __builtin_clzll(x) -
-                           1 * !(x & (x - 1)));
+                           p_ulib_is_pow2_0(x));
 }
 
 ULIB_CONST
@@ -291,6 +321,24 @@ ULIB_CONST
 ULIB_INLINE
 unsigned ulib_uint64_log2(uint64_t x) {
     return (sizeof(unsigned long long) * CHAR_BIT) - __builtin_clzll(x) - 1;
+}
+
+ULIB_CONST
+ULIB_INLINE
+unsigned ulib_uint16_ceil_log2(uint16_t x) {
+    return (sizeof(unsigned) * CHAR_BIT) - __builtin_clz(x) - p_ulib_is_pow2_0(x);
+}
+
+ULIB_CONST
+ULIB_INLINE
+unsigned ulib_uint32_ceil_log2(uint32_t x) {
+    return (sizeof(unsigned long) * CHAR_BIT) - __builtin_clzl(x) - p_ulib_is_pow2_0(x);
+}
+
+ULIB_CONST
+ULIB_INLINE
+unsigned ulib_uint64_ceil_log2(uint64_t x) {
+    return (sizeof(unsigned long long) * CHAR_BIT) - __builtin_clzll(x) - p_ulib_is_pow2_0(x);
 }
 
 #else
@@ -399,6 +447,24 @@ unsigned ulib_uint64_log2(uint64_t x) {
     return tab[(uint64_t)(ulib_uint64_floor2(x) * 0x07EDD5E59A4E28C2) >> 58];
 }
 
+ULIB_CONST
+ULIB_INLINE
+unsigned ulib_uint16_ceil_log2(uint16_t x) {
+    return ulib_uint16_log2(x) + !p_ulib_is_pow2_0(x);
+}
+
+ULIB_CONST
+ULIB_INLINE
+unsigned ulib_uint32_ceil_log2(uint32_t x) {
+    return ulib_uint32_log2(x) + !p_ulib_is_pow2_0(x);
+}
+
+ULIB_CONST
+ULIB_INLINE
+unsigned ulib_uint64_ceil_log2(uint64_t x) {
+    return ulib_uint64_log2(x) + !p_ulib_is_pow2_0(x);
+}
+
 /// @}
 
 #endif
@@ -425,6 +491,12 @@ ULIB_CONST
 ULIB_INLINE
 unsigned ulib_uint_log2(ulib_uint x) {
     return ulib_uint16_log2(x);
+}
+
+ULIB_CONST
+ULIB_INLINE
+unsigned ulib_uint_ceil_log2(ulib_uint x) {
+    return ulib_uint16_ceil_log2(x);
 }
 
 typedef int16_t ulib_int;
@@ -471,6 +543,12 @@ ULIB_CONST
 ULIB_INLINE
 unsigned ulib_uint_log2(ulib_uint x) {
     return ulib_uint64_log2(x);
+}
+
+ULIB_CONST
+ULIB_INLINE
+unsigned ulib_uint_ceil_log2(ulib_uint x) {
+    return ulib_uint64_ceil_log2(x);
 }
 
 typedef int64_t ulib_int;
@@ -522,6 +600,12 @@ ULIB_CONST
 ULIB_INLINE
 unsigned ulib_uint_log2(ulib_uint x) {
     return ulib_uint32_log2(x);
+}
+
+ULIB_CONST
+ULIB_INLINE
+unsigned ulib_uint_ceil_log2(ulib_uint x) {
+    return ulib_uint32_ceil_log2(x);
 }
 
 /// @}
@@ -583,7 +667,19 @@ ulib_uint ulib_uint_pow2(ulib_byte x) {
 ULIB_CONST
 ULIB_INLINE
 bool ulib_uint_is_pow2(ulib_uint x) {
-    return !(x & (x - 1));
+    return x && p_ulib_is_pow2_0(x);
+}
+
+/**
+ * Checks whether `x` is a power of two or zero.
+ *
+ * @param x Unsigned integer.
+ * @return True if `x` is a power of two or zero, false otherwise.
+ */
+ULIB_CONST
+ULIB_INLINE
+bool ulib_uint_is_pow2_or_zero(ulib_uint x) {
+    return p_ulib_is_pow2_0(x);
 }
 
 /// @}
