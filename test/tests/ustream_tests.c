@@ -8,6 +8,7 @@
  */
 
 #include "ulib.h"
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -340,8 +341,8 @@ bool ustream_varint_test(void) {
 }
 
 bool ustream_svarint_test(void) {
-    ulib_int const max_value = ulib_min(ULIB_UINT_MAX >> 2U, 500000);
-    ulib_int const increment = 999;
+    int32_t const max_value = ulib_min(ULIB_UINT_MAX >> 2U, 500000);
+    int32_t const increment = 999;
     ulib_int value = 0;
     ulib_byte buffer[sizeof(value) + 1] = {};
     size_t written = 0;
@@ -352,8 +353,8 @@ bool ustream_svarint_test(void) {
     UOStream ostream;
     uostream_to_buf(&ostream, buffer, sizeof(buffer));
 
-    for (ulib_int i = -max_value; i < max_value; i += increment) {
-        utest_assert(uostream_write_svarint(&ostream, i, &written) == USTREAM_OK);
+    for (int32_t i = -max_value; i < max_value; i += increment) {
+        utest_assert(uostream_write_svarint(&ostream, (ulib_int)i, &written) == USTREAM_OK);
         utest_assert(uistream_read_svarint(&istream, &value, &read) == USTREAM_OK);
         utest_assert_int(value, ==, i);
         utest_assert_uint(written, ==, read);

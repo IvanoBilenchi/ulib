@@ -55,7 +55,9 @@ ustream_ret uostream_write_varint(UOStream *stream, ulib_uint value, size_t *wri
 ustream_ret uistream_read_svarint(UIStream *stream, ulib_int *value, size_t *read) {
     ulib_uint zig_zagged;
     ustream_ret ret = uistream_read_varint(stream, &zig_zagged, read);
-    if (ret == USTREAM_OK) *value = (ulib_int)(zig_zagged >> 1U) ^ -(ulib_int)(zig_zagged & 1U);
+    if (ret == USTREAM_OK) {
+        *value = (ulib_int)((zig_zagged >> 1U) ^ -(ulib_int)(zig_zagged & 1U));
+    }
     return ret;
 }
 

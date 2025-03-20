@@ -46,7 +46,7 @@ ulib_int urand(void) {
 
 ulib_int urand_range(ulib_int start, ulib_uint len) {
     if (!len) return start;
-    return start + (ulib_int)(ULIB_RAND() % len);
+    return (ulib_int)(start + ((ulib_uint)ULIB_RAND() % len));
 }
 
 ulib_float urand_float(void) {

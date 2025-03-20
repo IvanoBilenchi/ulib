@@ -40,8 +40,8 @@ static void bench_uvec_sort_small(void) {
 
     urand_set_seed(SEED);
     ubench_block("qsort", stream, ", ") {
-        for (ulib_uint i = 0; i < SORT_COUNT_LARGE; ++i) {
-            for (ulib_uint j = 0; j < SORT_COUNT_SMALL; ++j) {
+        for (unsigned i = 0; i < SORT_COUNT_LARGE; ++i) {
+            for (unsigned j = 0; j < SORT_COUNT_SMALL; ++j) {
                 array[j] = urand();
             }
             qsort(array, SORT_COUNT_SMALL, sizeof(*array), int_compare);
@@ -50,8 +50,8 @@ static void bench_uvec_sort_small(void) {
 
     urand_set_seed(SEED);
     ubench_block("uvec_sort", stream, "\n") {
-        for (ulib_uint i = 0; i < SORT_COUNT_LARGE; ++i) {
-            for (ulib_uint j = 0; j < SORT_COUNT_SMALL; ++j) {
+        for (unsigned i = 0; i < SORT_COUNT_LARGE; ++i) {
+            for (unsigned j = 0; j < SORT_COUNT_SMALL; ++j) {
                 uvec_push(ulib_int, &v, urand());
             }
             uvec_sort(ulib_int, &v);
@@ -67,7 +67,7 @@ static void bench_uvec_sort_large(void) {
     UVec(ulib_int) v = uvec(ulib_int);
 
     // Large array with mostly unique elements
-    for (ulib_uint i = 0; i < SORT_COUNT_LARGE; ++i) {
+    for (unsigned i = 0; i < SORT_COUNT_LARGE; ++i) {
         array[i] = urand();
     }
 
@@ -103,8 +103,8 @@ static void bench_uvec_sort_large_repeated(void) {
     UVec(ulib_int) v = uvec(ulib_int);
 
     // Large array with repeated elements
-    for (ulib_uint i = 0; i < SORT_COUNT_LARGE; ++i) {
-        array[i] = urand() % 100;
+    for (unsigned i = 0; i < SORT_COUNT_LARGE; ++i) {
+        array[i] = (ulib_int)(urand() % 100);
     }
 
     uvec_clear(ulib_int, &v);
@@ -143,8 +143,8 @@ static void bench_uvec_sorted_insertion(void) {
     uostream_write_literal(stream, "Sorted insertion - ", NULL);
 
     ubench_block("small", stream, ", ") {
-        for (ulib_uint i = 0; i < (INSERT_COUNT_LARGE / INSERT_COUNT_SMALL); ++i) {
-            for (ulib_uint j = 0; j < INSERT_COUNT_SMALL; ++j) {
+        for (unsigned i = 0; i < (INSERT_COUNT_LARGE / INSERT_COUNT_SMALL); ++i) {
+            for (unsigned j = 0; j < INSERT_COUNT_SMALL; ++j) {
                 uvec_sorted_insert(ulib_int, &v, urand(), NULL);
             }
             uvec_clear(ulib_int, &v);
@@ -155,7 +155,7 @@ static void bench_uvec_sorted_insertion(void) {
     uvec_reserve(ulib_int, &v, INSERT_COUNT_LARGE);
 
     ubench_block("large", stream, "\n") {
-        for (ulib_uint i = 0; i < INSERT_COUNT_LARGE; ++i) {
+        for (unsigned i = 0; i < INSERT_COUNT_LARGE; ++i) {
             uvec_sorted_insert(ulib_int, &v, urand(), NULL);
         }
     }
@@ -172,7 +172,7 @@ static void bench_uvec_heap_queue(void) {
     uvec_reserve(ulib_int, &heap, HEAP_QUEUE_COUNT);
     uvec_reserve(ulib_int, &sorted, HEAP_QUEUE_COUNT);
 
-    for (ulib_uint i = 0; i < HEAP_QUEUE_COUNT; ++i) {
+    for (unsigned i = 0; i < HEAP_QUEUE_COUNT; ++i) {
         uvec_push(ulib_int, &items, (ulib_int)i);
     }
     uvec_shuffle(ulib_int, &items);
@@ -187,7 +187,7 @@ static void bench_uvec_heap_queue(void) {
     }
 
     ubench_block("pop", stream, "\n") {
-        for (ulib_uint i = 0; i < HEAP_QUEUE_COUNT; ++i) {
+        for (unsigned i = 0; i < HEAP_QUEUE_COUNT; ++i) {
             uvec_min_heapq_pop(ulib_int, &heap, NULL);
         }
     }
@@ -201,7 +201,7 @@ static void bench_uvec_heap_queue(void) {
     }
 
     ubench_block("pop", stream, "\n") {
-        for (ulib_uint i = 0; i < HEAP_QUEUE_COUNT; ++i) {
+        for (unsigned i = 0; i < HEAP_QUEUE_COUNT; ++i) {
             uvec_pop(ulib_int, &sorted, NULL);
         }
     }

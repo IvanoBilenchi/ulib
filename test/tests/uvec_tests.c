@@ -358,7 +358,7 @@ bool uvec_test_sort(void) {
     UVec(VTYPE) v = uvec(VTYPE);
 
     // Mostly unique elements
-    for (ulib_uint i = 0; i < SORT_COUNT; ++i) {
+    for (unsigned i = 0; i < SORT_COUNT; ++i) {
         array[i] = (VTYPE)urand();
     }
 
@@ -372,7 +372,7 @@ bool uvec_test_sort(void) {
     uvec_assert_elements_array(VTYPE, &v, array);
 
     // Repeated elements
-    for (ulib_uint i = 0; i < SORT_COUNT; ++i) {
+    for (unsigned i = 0; i < SORT_COUNT; ++i) {
         array[i] = (VTYPE)(urand() % 10);
     }
 
@@ -399,14 +399,14 @@ bool uvec_test_max_heapq(void) {
     VTYPE item;
     uvec_ret ret;
 
-    for (ulib_uint i = 0; i < ulib_array_count(arr); ++i) {
+    for (unsigned i = 0; i < ulib_array_count(arr); ++i) {
         ret = uvec_max_heapq_push(VTYPE, &heap, arr[i]);
         utest_assert(ret == UVEC_OK);
         utest_assert_uint(uvec_count(VTYPE, &heap), ==, i + 1);
         utest_assert_int(uvec_first(VTYPE, &heap), ==, max[i]);
     }
 
-    for (ulib_uint i = 0; i < ulib_array_count(arr); ++i) {
+    for (unsigned i = 0; i < ulib_array_count(arr); ++i) {
         utest_assert(uvec_max_heapq_pop(VTYPE, &heap, &item));
         utest_assert_int(item, ==, sorted[i]);
         utest_assert_uint(uvec_count(VTYPE, &heap), ==, ulib_array_count(arr) - i - 1);
@@ -419,7 +419,7 @@ bool uvec_test_max_heapq(void) {
     uvec_append_array(VTYPE, &heap, arr, ulib_array_count(arr));
     uvec_max_heapq_make(VTYPE, &heap);
 
-    for (ulib_uint i = 0; i < ulib_array_count(arr); ++i) {
+    for (unsigned i = 0; i < ulib_array_count(arr); ++i) {
         utest_assert(uvec_max_heapq_pop(VTYPE, &heap, &item));
         utest_assert_int(item, ==, sorted[i]);
         utest_assert_uint(uvec_count(VTYPE, &heap), ==, ulib_array_count(arr) - i - 1);
@@ -459,14 +459,14 @@ bool uvec_test_min_heapq(void) {
     VTYPE item;
     uvec_ret ret;
 
-    for (ulib_uint i = 0; i < ulib_array_count(arr); ++i) {
+    for (unsigned i = 0; i < ulib_array_count(arr); ++i) {
         ret = uvec_min_heapq_push(VTYPE, &heap, arr[i]);
         utest_assert(ret == UVEC_OK);
         utest_assert_uint(uvec_count(VTYPE, &heap), ==, i + 1);
         utest_assert_int(uvec_first(VTYPE, &heap), ==, min[i]);
     }
 
-    for (ulib_uint i = 0; i < ulib_array_count(arr); ++i) {
+    for (unsigned i = 0; i < ulib_array_count(arr); ++i) {
         utest_assert(uvec_min_heapq_pop(VTYPE, &heap, &item));
         utest_assert_int(item, ==, sorted[i]);
         utest_assert_uint(uvec_count(VTYPE, &heap), ==, ulib_array_count(arr) - i - 1);
@@ -479,7 +479,7 @@ bool uvec_test_min_heapq(void) {
     uvec_append_array(VTYPE, &heap, arr, ulib_array_count(arr));
     uvec_min_heapq_make(VTYPE, &heap);
 
-    for (ulib_uint i = 0; i < ulib_array_count(arr); ++i) {
+    for (unsigned i = 0; i < ulib_array_count(arr); ++i) {
         utest_assert(uvec_min_heapq_pop(VTYPE, &heap, &item));
         utest_assert_int(item, ==, sorted[i]);
         utest_assert_uint(uvec_count(VTYPE, &heap), ==, ulib_array_count(arr) - i - 1);

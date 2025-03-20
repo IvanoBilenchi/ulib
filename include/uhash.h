@@ -158,7 +158,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
 #if defined(ULIB_TINY)
 ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
     ulib_assert(bits);
-    return (ulib_uint)(hash * (ulib_uint)40503U) >> (16U - bits);
+    return (ulib_uint)((unsigned)hash * 40503U) >> (16U - bits);
 }
 #elif defined(ULIB_HUGE)
 ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
@@ -530,8 +530,8 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
                                                                                                    \
         uhash_ret ret = UHASH_ERR;                                                                 \
         ulib_uint i = UHASH_INDEX_MISSING;                                                         \
-                                                                                                   \
         ulib_uint size = uhash_size_##T(h);                                                        \
+                                                                                                   \
         if ((h->_count >= uhash_upper_bound(size)) && uhash_resize_##T(h, size + 1)) goto end;     \
         size = p_uhash_size_gt0(h) - 1;                                                            \
                                                                                                    \
@@ -561,7 +561,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
                                                                                                    \
         while (true) {                                                                             \
             j = (j + 1U) & mask;                                                                   \
-            if (p_uhf_is_empty(h->_flags, j)) break;                                               \
+            if (i == j || p_uhf_is_empty(h->_flags, j)) break;                                     \
             ulib_uint const k = p_uhash_fib((ulib_uint)(hash_func(h->_keys[j])), h->_exp);         \
             if ((j > i && (k <= i || k > j)) || (j < i && (k <= i && k > j))) {                    \
                 h->_keys[i] = h->_keys[j];                                                         \

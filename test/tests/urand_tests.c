@@ -36,9 +36,9 @@ bool urand_float_test(void) {
     }
 
     for (unsigned i = 0; i < 100; ++i) {
-        val = urand_float_range(-10.0, 20.0);
-        utest_assert_float(val, >=, -10.0);
-        utest_assert_float(val, <, 10.0);
+        val = urand_float_range(-10.0F, 20.0F);
+        utest_assert_float(val, >=, -10.0F);
+        utest_assert_float(val, <, 10.0F);
     }
 
     return true;

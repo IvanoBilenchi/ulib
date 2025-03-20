@@ -37,7 +37,7 @@ bool ustring_utils_test(void) {
     char chars_lower[MAX_ASCII + 1];
     chars_upper[MAX_ASCII] = chars_lower[MAX_ASCII] = '\0';
 
-    for (ulib_uint i = 0; i < MAX_ASCII; ++i) {
+    for (unsigned i = 0; i < MAX_ASCII; ++i) {
         chars_upper[i] = chars_lower[i] = (char)(i + 1);
     }
 
@@ -47,7 +47,7 @@ bool ustring_utils_test(void) {
     utest_assert(ulib_str_is_upper(chars_upper, MAX_ASCII));
     utest_assert(ulib_str_is_lower(chars_lower, MAX_ASCII));
 
-    for (ulib_uint i = 0; i < MAX_ASCII; ++i) {
+    for (unsigned i = 0; i < MAX_ASCII; ++i) {
         char orig = (char)(i + 1);
         char cur_lower = chars_lower[i];
         char cur_upper = chars_upper[i];

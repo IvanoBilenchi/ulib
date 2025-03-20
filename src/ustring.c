@@ -296,6 +296,7 @@ UString ustring_repeating(UString string, ulib_uint times) {
     UString ret;
     char *buf = ustring(&ret, len * times);
     if (ustring_is_empty(ret)) return ret;
+    ulib_assert(buf);
 
     for (ulib_uint i = 0; i < times; ++i, buf += len) {
         memcpy(buf, data, len);
