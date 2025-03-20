@@ -68,7 +68,7 @@ bool utest_leak_end(void) {
         unsigned i = 0;
         printf("Detected %" ULIB_UINT_FMT " leaked objects.\n", leaks);
         uhash_foreach (AllocTable, alloc_table, alloc) {
-            printf("Leak %u: 0x%" PRIxPTR "(%s)\n", ++i, *alloc.key, *alloc.val);
+            printf("Leak %u: 0x%" PRIxPTR " (%s)\n", ++i, *alloc.key, *alloc.val);
             free(*alloc.val);
         }
     } else {

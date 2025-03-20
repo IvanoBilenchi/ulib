@@ -54,10 +54,8 @@ bool uhash_test_memory(void) {
     UHash(IntHash) oset = set;
     UHash(IntHash) nset = uhash_move(IntHash, &oset);
     utest_assert(set._exp == nset._exp && set._is_map == nset._is_map &&
-                 set._occupied == nset._occupied && set._count == nset._count &&
-                 set._flags == nset._flags && set._keys == nset._keys);
-    utest_assert(!oset._exp && !oset._is_map && !oset._occupied && !set._count && !oset._flags &&
-                 !oset._keys);
+                 set._count == nset._count && set._flags == nset._flags && set._keys == nset._keys);
+    utest_assert(!oset._exp && !oset._is_map && !set._count && !oset._flags && !oset._keys);
 
     uhash_deinit(IntHash, &set);
     return true;
@@ -86,7 +84,6 @@ bool uhash_test_base(void) {
     for (uint32_t i = 0; i < MAX_VAL; ++i) {
         ulib_uint idx = uhash_get(IntHash, &set, i);
         uhash_delete(IntHash, &set, idx);
-        utest_assert_false(uhash_exists(IntHash, &set, idx));
         utest_assert(uhash_get(IntHash, &set, i) == UHASH_INDEX_MISSING);
     }
 
