@@ -8,8 +8,7 @@ on:
 
 env:
   build_dir: build
-  test_config: Release
-  bench_config: Release
+  build_config: Release
 
 jobs:
   analyze:
@@ -35,6 +34,8 @@ jobs:
       - name: Configure CMake
         run: >
           CC=clang cmake -B ${{env.build_dir}}
+          -DULIB_TESTS=ON
+          -DULIB_BENCHMARKS=ON
           -DULIB_TINY=${{matrix.types == 'tiny' && 'ON' || 'OFF'}}
           -DULIB_HUGE=${{matrix.types == 'huge' && 'ON' || 'OFF'}}
           -DULIB_LTO=OFF
@@ -42,7 +43,7 @@ jobs:
           -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
 
       - name: Build
-        run: cmake --build ${{env.build_dir}} --target ulib-test ulib-bench
+        run: cmake --build ${{env.build_dir}}
 
   test:
     name: Test
@@ -63,43 +64,35 @@ jobs:
       - name: Configure CMake
         run: >
           cmake -B ${{env.build_dir}}
+          -DULIB_TESTS=ON
+          -DULIB_CPP_TESTS=ON
+          -DULIB_BENCHMARKS=ON
           -DULIB_LIBRARY_TYPE=${{matrix.lib_type}}
           -DULIB_TINY=${{matrix.types == 'tiny' && 'ON' || 'OFF'}}
           -DULIB_HUGE=${{matrix.types == 'huge' && 'ON' || 'OFF'}}
           -DULIB_LEAKS=ON
           -DULIB_SANITIZERS=ON
-          -DULIB_CPP_TESTS=ON
           -DCMAKE_SYSTEM_VERSION=''
           -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
-          -DCMAKE_BUILD_TYPE=${{env.test_config}}
+          -DCMAKE_BUILD_TYPE=${{env.build_config}}
 
       - name: Build
         run: >
-          cmake --build ${{env.build_dir}}
-          --config ${{env.test_config}}
-          --target ulib-test ulib-cpp-test ulib-bench
+          cmake --build ${{env.build_dir}} --config ${{env.build_config}}
 
       - name: Configure tests (Windows)
-        working-directory: ${{env.build_dir}}/test
+        working-directory: ${{env.build_dir}}
         if: runner.os == 'Windows'
         run: |
-          mv ${{env.test_config}}/*.exe ./
           if [ ${{matrix.lib_type}} == 'SHARED' ]; then
-            mv ../${{env.test_config}}/*.dll ./
+            cp ${{env.build_config}}/*.dll ./test/${{env.build_config}}
+            cp ${{env.build_config}}/*.dll ./bench/${{env.build_config}}
           fi
         shell: bash
 
       - name: Run tests
-        working-directory: ${{env.build_dir}}/test
-        run: ./ulib-test
-
-      - name: Run tests (C++)
-        working-directory: ${{env.build_dir}}/test
-        run: ./ulib-cpp-test
-
-      - name: Run benchmark
-        working-directory: ${{env.build_dir}}/test
-        run: ./ulib-bench
+        working-directory: ${{env.build_dir}}
+        run: ctest --build-config ${{env.build_config}} --output-on-failure
 
   bench:
     name: Benchmark
@@ -117,22 +110,23 @@ jobs:
       - name: Configure CMake
         run: >
           cmake -B ${{env.build_dir}}
+          -DULIB_BENCHMARKS=ON
           -DULIB_LTO=ON
           -DULIB_OPTIMIZE_FOR_HOST=ON
           -DCMAKE_SYSTEM_VERSION=''
-          -DCMAKE_BUILD_TYPE=${{env.bench_config}}
+          -DCMAKE_BUILD_TYPE=${{env.build_config}}
 
       - name: Build
-        run: cmake --build ${{env.build_dir}} --config ${{env.bench_config}} --target ulib-bench
+        run: cmake --build ${{env.build_dir}} --config ${{env.build_config}} --target ulib-bench
 
       - name: Configure (Windows)
-        working-directory: ${{env.build_dir}}/test
+        working-directory: ${{env.build_dir}}/bench
         if: runner.os == 'Windows'
-        run: mv ${{env.bench_config}}/*.exe ./
+        run: mv ${{env.build_config}}/*.exe ./
         shell: bash
 
       - name: Run
-        working-directory: ${{env.build_dir}}/test
+        working-directory: ${{env.build_dir}}/bench
         run: ./ulib-bench
 
   docs:
@@ -148,5 +142,5 @@ jobs:
           python -m venv .venv
           source .venv/bin/activate
           pip install Sphinx sphinx-rtd-theme breathe
-          cmake -B ${{env.build_dir}}
+          cmake -B ${{env.build_dir}} -DULIB_DOCS=ON
           cmake --build ${{env.build_dir}} --target ulib-docs

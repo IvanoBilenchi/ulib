@@ -7,9 +7,9 @@
  * @file
  */
 
+#include "khashl.h"
 #include "ubench.h"
 #include "ulib.h"
-#include "vendor/khashl.h"
 #include <stdio.h>
 #include <stdlib.h>
 

@@ -26,10 +26,14 @@ project(uLib
 
 # Cache variables
 
+option(ULIB_DOCS "Enable the documentation targets" OFF)
+option(ULIB_TESTS "Enable the test targets" OFF)
+option(ULIB_CPP_TESTS "Enable the C++ test targets" OFF)
+option(ULIB_BENCHMARKS "Enable the benchmark targets" OFF)
 option(ULIB_TINY "Use small types" OFF)
 option(ULIB_HUGE "Use large types" OFF)
 option(ULIB_LTO "Enable link-time optimization, if available" ON)
-option(ULIB_OPTIMIZE_FOR_HOST "Enable optimizations for the host CPU (keep OFF for distribution)" OFF)
+option(ULIB_OPTIMIZE_FOR_HOST "Enable host CPU optimizations (keep OFF for distribution)" OFF)
 option(ULIB_CLANG_TIDY "Enable clang-tidy, if available" OFF)
 option(ULIB_LEAKS "Enable debugging of memory leaks (keep OFF in production builds)" OFF)
 option(ULIB_SANITIZERS "Enable sanitizers (keep OFF in production builds)" OFF)
@@ -54,6 +58,7 @@ set(ULIB_SRC_DIR "${ULIB_PROJECT_DIR}/src")
 set(ULIB_PRIVATE_HEADERS_DIR "${ULIB_SRC_DIR}")
 set(ULIB_DOCS_DIR "${ULIB_PROJECT_DIR}/docs")
 set(ULIB_TEST_DIR "${ULIB_PROJECT_DIR}/test")
+set(ULIB_BENCH_DIR "${ULIB_PROJECT_DIR}/bench")
 set(ULIB_HEADERS_OUT_DIR "${ULIB_OUTPUT_DIR}/include")
 set(ULIB_UTILS_DIR "${ULIB_PROJECT_DIR}/utils")
 
@@ -166,5 +171,15 @@ install(TARGETS ulib FILE_SET public_headers)
 
 # Subprojects
 
-add_subdirectory("${ULIB_TEST_DIR}")
-add_subdirectory("${ULIB_DOCS_DIR}")
+if(ULIB_DOCS)
+    add_subdirectory("${ULIB_DOCS_DIR}")
+endif()
+
+if(ULIB_TESTS)
+    enable_testing()
+    add_subdirectory("${ULIB_TEST_DIR}")
+endif()
+
+if(ULIB_BENCHMARKS)
+    add_subdirectory("${ULIB_BENCH_DIR}")
+endif()

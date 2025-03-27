@@ -34,31 +34,24 @@ set(DOXYGEN_ALIASES
 )
 set(DOXYGEN_VERBATIM_VARS DOXYGEN_ALIASES)
 
-find_program(DOXYGEN_PYTHON
-             NAMES python3 python
-             DOC "Path to the Python interpreter used to run Doxygen input filters")
-
-if(DOXYGEN_PYTHON)
-    set(DOXYGEN_INPUT_FILTER "${DOXYGEN_PYTHON} ${ULIB_UTILS_DIR}/doxygen/alias.py")
-endif()
+find_package(Python3 REQUIRED)
+set(DOXYGEN_INPUT_FILTER "${Python3_EXECUTABLE} ${ULIB_UTILS_DIR}/doxygen/alias.py")
 
 # Documentation targets
 
-find_package(Doxygen)
+find_package(Doxygen REQUIRED)
+find_package(Sphinx)
 
-if(DOXYGEN_FOUND)
-    find_package(Sphinx)
-    set(DOCS_TARGET_NAME ulib-docs)
+set(DOCS_TARGET_NAME ulib-docs)
 
-    if(SPHINX_FOUND)
-        set(DOXYGEN_TARGET_NAME ulib-doxygen)
-        sphinx_add_docs("${DOCS_TARGET_NAME}" "${SPHINX_INPUT_DIRECTORY}" ARGS -W
-                        COMMENT "Generating documentation via Sphinx")
-        add_dependencies("${DOCS_TARGET_NAME}" "${DOXYGEN_TARGET_NAME}")
-    else()
-        set(DOXYGEN_TARGET_NAME "${DOCS_TARGET_NAME}")
-    endif()
-
-    doxygen_add_docs("${DOXYGEN_TARGET_NAME}" ${ULIB_PUBLIC_HEADERS}
-                     COMMENT "Generating documentation via Doxygen")
+if(SPHINX_FOUND)
+    set(DOXYGEN_TARGET_NAME ulib-doxygen)
+    sphinx_add_docs("${DOCS_TARGET_NAME}" "${SPHINX_INPUT_DIRECTORY}" ARGS -W
+                    COMMENT "Generating documentation via Sphinx")
+    add_dependencies("${DOCS_TARGET_NAME}" "${DOXYGEN_TARGET_NAME}")
+else()
+    set(DOXYGEN_TARGET_NAME "${DOCS_TARGET_NAME}")
 endif()
+
+doxygen_add_docs("${DOXYGEN_TARGET_NAME}" ${ULIB_PUBLIC_HEADERS}
+                 COMMENT "Generating documentation via Doxygen")

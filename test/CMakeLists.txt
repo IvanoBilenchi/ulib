@@ -1,48 +1,16 @@
-# Cache variables
-
-option(ULIB_CPP_TESTS "Enable C++ tests" OFF)
-
 # Sources
 
-set(ULIB_TEST_HEADERS_DIR "${ULIB_TEST_DIR}/tests")
-file(GLOB ULIB_TEST_HEADERS CONFIGURE_DEPENDS "${ULIB_TEST_HEADERS_DIR}/*.h")
-
-file(GLOB ULIB_TEST_SOURCES "${ULIB_TEST_DIR}/tests/*.c")
-list(APPEND ULIB_TEST_SOURCES "${ULIB_TEST_DIR}/test.c")
-
-set(ULIB_BENCH_HEADERS_DIR "${ULIB_TEST_DIR}/benchmarks")
-file(GLOB ULIB_BENCH_HEADERS CONFIGURE_DEPENDS "${ULIB_BENCH_HEADERS_DIR}/*.h")
-
-file(GLOB ULIB_BENCH_SOURCES "${ULIB_TEST_DIR}/benchmarks/*.c")
-list(APPEND ULIB_BENCH_SOURCES "${ULIB_TEST_DIR}/bench.c")
-
-# Benchmark target
-
-add_executable(ulib-bench EXCLUDE_FROM_ALL)
-target_sources(ulib-bench
-               PRIVATE ${ULIB_BENCH_SOURCES}
-               PRIVATE FILE_SET HEADERS
-                       BASE_DIRS "${ULIB_BENCH_HEADERS_DIR}"
-                       FILES ${ULIB_BENCH_HEADERS})
-target_compile_features(ulib-bench PRIVATE ${ULIB_COMPILE_FEATURES})
-target_compile_options(ulib-bench PRIVATE ${ULIB_WARNING_OPTIONS} ${ULIB_OPTIMIZER_OPTIONS})
-target_link_libraries(ulib-bench PRIVATE ulib)
-
-if(ULIB_LTO_ENABLED)
-    set_property(TARGET ulib-bench PROPERTY INTERPROCEDURAL_OPTIMIZATION ON)
-endif()
-
-if(ULIB_CLANG_TIDY)
-    clang_tidy_check(ulib-bench)
-endif()
+set(ULIB_TEST_SRC_DIR "${ULIB_TEST_DIR}/src")
+file(GLOB ULIB_TEST_HEADERS CONFIGURE_DEPENDS "${ULIB_TEST_SRC_DIR}/*.h")
+file(GLOB ULIB_TEST_SOURCES CONFIGURE_DEPENDS "${ULIB_TEST_SRC_DIR}/*.c")
 
 # Test target
 
-add_executable(ulib-test EXCLUDE_FROM_ALL)
+add_executable(ulib-test)
 target_sources(ulib-test
                PRIVATE ${ULIB_TEST_SOURCES}
                PRIVATE FILE_SET HEADERS
-                       BASE_DIRS "${ULIB_TEST_HEADERS_DIR}"
+                       BASE_DIRS "${ULIB_TEST_SRC_DIR}"
                        FILES ${ULIB_TEST_HEADERS})
 target_compile_features(ulib-test PRIVATE ${ULIB_COMPILE_FEATURES})
 target_compile_options(ulib-test PRIVATE ${ULIB_WARNING_OPTIONS} ${ULIB_OPTIMIZER_OPTIONS})
@@ -55,6 +23,8 @@ endif()
 if(ULIB_CLANG_TIDY)
     clang_tidy_check(ulib-test)
 endif()
+
+add_test(NAME "Test" COMMAND ulib-test)
 
 # C++ test target
 
@@ -72,12 +42,14 @@ if(ULIB_CPP_TESTS)
 
     # Add target
     enable_language(CXX)
-    add_executable(ulib-cpp-test EXCLUDE_FROM_ALL)
+    add_executable(ulib-cpp-test)
     target_sources(ulib-cpp-test
                    PRIVATE ${ULIB_CPP_TEST_SOURCES}
                    PRIVATE FILE_SET HEADERS
-                           BASE_DIRS "${ULIB_TEST_HEADERS_DIR}"
+                           BASE_DIRS "${ULIB_TEST_SRC_DIR}"
                            FILES ${ULIB_TEST_HEADERS})
     target_link_libraries(ulib-cpp-test PRIVATE ulib)
     set_target_properties(ulib-cpp-test PROPERTIES EXPORT_COMPILE_COMMANDS OFF)
+
+    add_test(NAME "Test (C++)" COMMAND ulib-cpp-test)
 endif()
