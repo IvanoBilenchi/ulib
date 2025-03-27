@@ -15,7 +15,7 @@ set(ULIB_VERSION "${ULIB_VERSION_MAJOR}.${ULIB_VERSION_MINOR}.${ULIB_VERSION_PAT
 
 set(ULIB_AUTHOR "Ivano Bilenchi")
 set(ULIB_AUTHOR_URL "https://ivanobilenchi.com")
-set(ULIB_COPYRIGHT_YEAR "2018-2024")
+set(ULIB_COPYRIGHT_YEAR "2018-2025")
 set(ULIB_GIT_URL "https://github.com/IvanoBilenchi/ulib")
 
 project(uLib
