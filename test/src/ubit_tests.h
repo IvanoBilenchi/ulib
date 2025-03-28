@@ -12,10 +12,10 @@
 
 #include <stdbool.h>
 
-bool ubit_test_8(void);
-bool ubit_test_16(void);
-bool ubit_test_32(void);
-bool ubit_test_64(void);
+void ubit_test_8(void);
+void ubit_test_16(void);
+void ubit_test_32(void);
+void ubit_test_64(void);
 
 #define UBIT_TESTS ubit_test_8, ubit_test_16, ubit_test_32, ubit_test_64
 

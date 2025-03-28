@@ -12,7 +12,7 @@
 
 #include <stdbool.h>
 
-bool unumber_test_pow2(void);
+void unumber_test_pow2(void);
 
 #define UNUMBER_TESTS unumber_test_pow2
 

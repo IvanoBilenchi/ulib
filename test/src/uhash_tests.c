@@ -24,7 +24,7 @@ static bool int32_eq(uint32_t lhs, uint32_t rhs) {
     return lhs == rhs;
 }
 
-bool uhash_test_memory(void) {
+void uhash_test_memory(void) {
     UHash(IntHash) set = uhset(IntHash);
 
     uhash_ret ret = uhash_put(IntHash, &set, 0, NULL);
@@ -58,10 +58,9 @@ bool uhash_test_memory(void) {
     utest_assert(!oset._exp && !oset._is_map && !set._count && !oset._flags && !oset._keys);
 
     uhash_deinit(IntHash, &set);
-    return true;
 }
 
-bool uhash_test_base(void) {
+void uhash_test_base(void) {
     UHash(IntHash) set = uhset(IntHash);
 
     utest_assert(uhash_get(IntHash, &set, 0) == UHASH_INDEX_MISSING);
@@ -90,10 +89,9 @@ bool uhash_test_base(void) {
     utest_assert_uint(uhash_count(IntHash, &set), ==, 0);
 
     uhash_deinit(IntHash, &set);
-    return true;
 }
 
-bool uhash_test_map(void) {
+void uhash_test_map(void) {
     UHash(IntHash) map = uhmap(IntHash);
 
     for (uint32_t i = 0; i < MAX_VAL; ++i) {
@@ -127,10 +125,9 @@ bool uhash_test_map(void) {
     }
 
     uhash_deinit(IntHash, &map);
-    return true;
 }
 
-bool uhash_test_set(void) {
+void uhash_test_set(void) {
     UHash(IntHash) set = uhset(IntHash);
 
     for (uint32_t i = 0; i < MAX_VAL; ++i) {
@@ -210,10 +207,9 @@ bool uhash_test_set(void) {
     utest_assert_uint(element, ==, MAX_VAL);
 
     uhash_deinit(IntHash, &set);
-    return true;
 }
 
-bool uhash_test_per_instance(void) {
+void uhash_test_per_instance(void) {
     UHash(IntHashPi) map = uhmap_pi(IntHashPi, int32_hash, int32_eq);
 
     for (uint32_t i = 0; i < MAX_VAL; ++i) {
@@ -242,5 +238,4 @@ bool uhash_test_per_instance(void) {
     }
 
     uhash_deinit(IntHashPi, &map);
-    return true;
 }

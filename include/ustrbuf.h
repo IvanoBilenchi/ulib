@@ -142,11 +142,11 @@ UString ustrbuf_to_ustring(UStrBuf *buf);
  * @param buf String buffer.
  * @param string String to append.
  * @return @val{#UVEC_OK} on success, otherwise @val{#UVEC_ERR}.
- *
- * @alias uvec_ret ustrbuf_append_ustring(UStrBuf *buf, UString string);
  */
-#define ustrbuf_append_ustring(buf, string)                                                        \
-    uvec_append_array(char, buf, ustring_data(string), ustring_length(string))
+ULIB_INLINE
+uvec_ret ustrbuf_append_ustring(UStrBuf *buf, UString string) {
+    return uvec_append_array(char, buf, ustring_data(string), ustring_length(string));
+}
 
 /// @}
 

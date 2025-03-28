@@ -16,7 +16,7 @@ struct utime_test_s {
     char const *str;
 };
 
-bool utime_test_ns(void) {
+void utime_test_ns(void) {
     utime_ns t = utime_get_ns();
     utest_assert_uint(t, <=, utime_get_ns());
 
@@ -49,11 +49,9 @@ bool utime_test_ns(void) {
 
     utest_assert_uint(t, >, 1000000000);
     utest_assert_uint(t, <, 10000000000);
-
-    return true;
 }
 
-bool utime_test_date(void) {
+void utime_test_date(void) {
     unsigned days_in_month[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
     for (unsigned m = 1; m <= 12; ++m) {
         utest_assert_uint(days_in_month[m - 1], ==, utime_days_in_month(1, m));
@@ -112,6 +110,4 @@ bool utime_test_date(void) {
     a = utime_now();
     b = utime_local();
     utest_assert_int(utime_diff(&a, &b, UTIME_HOURS), <, 48);
-
-    return true;
 }

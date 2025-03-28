@@ -10,7 +10,7 @@
 #include "ulib.h"
 #include <string.h>
 
-bool urand_int_test(void) {
+void urand_int_test(void) {
     urand_set_seed(12345);
 
     ulib_int val = urand();
@@ -23,11 +23,9 @@ bool urand_int_test(void) {
         utest_assert_int(val, >=, -10);
         utest_assert_int(val, <, 10);
     }
-
-    return true;
 }
 
-bool urand_float_test(void) {
+void urand_float_test(void) {
     urand_set_seed(12345);
 
     ulib_float val = urand_float();
@@ -40,11 +38,9 @@ bool urand_float_test(void) {
         utest_assert_float(val, >=, -10.0F);
         utest_assert_float(val, <, 10.0F);
     }
-
-    return true;
 }
 
-bool urand_string_test(void) {
+void urand_string_test(void) {
     urand_set_seed(12345);
 
     ulib_uint const len = 32;
@@ -72,12 +68,9 @@ bool urand_string_test(void) {
     }
 
     ustring_deinit(&s);
-    ustring_deinit(&charset);
-
-    return true;
 }
 
-bool urand_misc_test(void) {
+void urand_misc_test(void) {
     UVec(ulib_uint) v = uvec(ulib_uint);
     ulib_uint const max = 100;
 
@@ -92,5 +85,4 @@ bool urand_misc_test(void) {
     }
 
     uvec_deinit(ulib_uint, &v);
-    return true;
 }

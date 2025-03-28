@@ -365,7 +365,10 @@ static ustream_ret uostream_buffered_free(void *ctx) {
 }
 
 ustream_ret uistream_deinit(UIStream *stream) {
-    return stream->state = stream->free ? stream->free(stream->ctx) : USTREAM_OK;
+    if (!(stream->free && stream->ctx)) return USTREAM_OK;
+    stream->state = stream->free(stream->ctx);
+    stream->ctx = NULL;
+    return stream->state;
 }
 
 ustream_ret uistream_reset(UIStream *stream) {
@@ -461,7 +464,10 @@ ustream_ret uistream_buffered(UIStream *stream, UIStream **raw_stream, size_t bu
 }
 
 ustream_ret uostream_deinit(UOStream *stream) {
-    return stream->state = stream->free ? stream->free(stream->ctx) : USTREAM_OK;
+    if (!(stream->free && stream->ctx)) return USTREAM_OK;
+    stream->state = stream->free(stream->ctx);
+    stream->ctx = NULL;
+    return stream->state;
 }
 
 ustream_ret uostream_flush(UOStream *stream) {

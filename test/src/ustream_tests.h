@@ -12,17 +12,17 @@
 
 #include <stdbool.h>
 
-bool ustream_init_test(void);
-bool uistream_path_test(void);
-bool uistream_buf_test(void);
-bool uistream_buffered_test(void);
-bool uostream_null_test(void);
-bool uostream_path_test(void);
-bool uostream_buf_test(void);
-bool uostream_multi_test(void);
-bool uostream_buffered_test(void);
-bool ustream_varint_test(void);
-bool ustream_svarint_test(void);
+void ustream_init_test(void);
+void uistream_path_test(void);
+void uistream_buf_test(void);
+void uistream_buffered_test(void);
+void uostream_null_test(void);
+void uostream_path_test(void);
+void uostream_buf_test(void);
+void uostream_multi_test(void);
+void uostream_buffered_test(void);
+void ustream_varint_test(void);
+void ustream_svarint_test(void);
 
 #define USTREAM_TESTS                                                                              \
     ustream_init_test, uistream_path_test, uistream_buf_test, uistream_buffered_test,              \

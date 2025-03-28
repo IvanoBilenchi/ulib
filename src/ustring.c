@@ -97,7 +97,9 @@ char *ustring(UString *string, size_t length) {
 }
 
 void ustring_deinit(UString *string) {
-    if (p_ustring_is_large(*string)) ulib_free((void *)(string)->_l._data);
+    if (!p_ustring_is_large(*string)) return;
+    ulib_free((void *)string->_l._data);
+    string->_l._data = NULL;
 }
 
 char *ustring_deinit_return_data(UString *string) {
@@ -291,13 +293,13 @@ UString ustring_concat(UString const *strings, ulib_uint count) {
 
 UString ustring_repeating(UString string, ulib_uint times) {
     ulib_uint len = ustring_length(string);
-    char const *data = ustring_data(string);
+    if (!(len && times)) return ustring_empty;
 
     UString ret;
     char *buf = ustring(&ret, len * times);
-    if (ustring_is_empty(ret)) return ret;
     ulib_assert(buf);
 
+    char const *data = ustring_data(string);
     for (ulib_uint i = 0; i < times; ++i, buf += len) {
         memcpy(buf, data, len);
     }

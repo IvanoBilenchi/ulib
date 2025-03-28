@@ -11,7 +11,7 @@
 #include <stdint.h>
 
 #define ubit_test_impl(N)                                                                          \
-    bool ubit_test_##N(void) {                                                                     \
+    void ubit_test_##N(void) {                                                                     \
         UBit(N) mask = ubit_none(N);                                                               \
         utest_assert_uint(mask, ==, 0);                                                            \
         utest_assert_uint(ubit_count_set(N, mask), ==, 0);                                         \
@@ -83,8 +83,6 @@
         mask = ubit_overwrite(N, 0x55, 0x20, 0x70);                                                \
         utest_assert_uint(mask, ==, 0x25);                                                         \
         utest_assert_uint(ubit_first_set(N, mask), ==, 0);                                         \
-                                                                                                   \
-        return true;                                                                               \
     }
 
 // clang-format off

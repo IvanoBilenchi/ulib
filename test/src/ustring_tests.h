@@ -12,11 +12,11 @@
 
 #include <stdbool.h>
 
-bool ustring_utils_test(void);
-bool ustrbuf_test(void);
-bool ustring_test_base(void);
-bool ustring_test_convert(void);
-bool ustring_test_sso(void);
+void ustring_utils_test(void);
+void ustrbuf_test(void);
+void ustring_test_base(void);
+void ustring_test_convert(void);
+void ustring_test_sso(void);
 
 #define USTRING_TESTS                                                                              \
     ustring_utils_test, ustrbuf_test, ustring_test_base, ustring_test_convert, ustring_test_sso

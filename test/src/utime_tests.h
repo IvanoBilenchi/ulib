@@ -12,8 +12,8 @@
 
 #include <stdbool.h>
 
-bool utime_test_ns(void);
-bool utime_test_date(void);
+void utime_test_ns(void);
+void utime_test_date(void);
 
 #define UTIME_TESTS utime_test_ns, utime_test_date
 

@@ -7,7 +7,28 @@
  * @file
  */
 
+#include "utest.h"
 #include <stdbool.h>
+
+static bool test_status = true;
+static bool test_run_status = true;
+
+bool p_utest_status(void) {
+    return test_status;
+}
+
+bool p_utest_run_status(void) {
+    return test_run_status;
+}
+
+void p_utest_set_fail_status(void) {
+    test_status = false;
+    test_run_status = false;
+}
+
+void p_utest_reset_run_status(void) {
+    test_run_status = true;
+}
 
 #ifdef ULIB_LEAKS
 
@@ -57,28 +78,42 @@ bool utest_leak_start(void) {
     }
 
     *alloc_table = uhmap(AllocTable);
-    printf("Starting detection of memory leaks...\n");
+    puts("Starting detection of memory leaks.");
     return true;
 }
 
-bool utest_leak_end(void) {
+static bool detect_and_print_leaks(void) {
     ulib_uint leaks = uhash_count(AllocTable, alloc_table);
 
-    if (leaks) {
-        unsigned i = 0;
-        printf("Detected %" ULIB_UINT_FMT " leaked objects.\n", leaks);
-        uhash_foreach (AllocTable, alloc_table, alloc) {
-            printf("Leak %u: 0x%" PRIxPTR " (%s)\n", ++i, *alloc.key, *alloc.val);
-            free(*alloc.val);
-        }
-    } else {
-        printf("No leaks detected.\n");
+    if (!leaks) {
+        puts("No leaks detected.");
+        return true;
     }
 
+    printf("Detected %" ULIB_UINT_FMT " leaked objects.\n", leaks);
+
+    if (test_status) {
+        unsigned i = 0;
+        uhash_foreach (AllocTable, alloc_table, alloc) {
+            printf("Leak %u: 0x%" PRIxPTR " (%s)\n", ++i, *alloc.key, *alloc.val);
+        }
+    } else {
+        puts("Some tests failed, leaks may be due to aborted tests.");
+    }
+
+    return false;
+}
+
+bool utest_leak_end(void) {
+    bool no_leaks = detect_and_print_leaks();
+
+    uhash_foreach (AllocTable, alloc_table, alloc) {
+        free(*alloc.val);
+    }
     uhash_deinit(AllocTable, alloc_table);
     free(alloc_table);
 
-    return leaks == 0;
+    return no_leaks;
 }
 
 void *p_utest_leak_malloc_impl(size_t size, char const *file, char const *fn, int line) {

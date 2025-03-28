@@ -9,7 +9,7 @@
 
 #include "ulib.h"
 
-bool uversion_test(void) {
+void uversion_test(void) {
     UVersion a = ulib_get_version();
     UVersion b = uversion(0, 0, 0);
     utest_assert_int(uversion_compare(a, b), ==, 1);
@@ -44,6 +44,4 @@ bool uversion_test(void) {
     UString str = uversion_to_string(&a);
     utest_assert_ustring(str, ==, ustring_literal("2.0.0"));
     ustring_deinit(&str);
-
-    return true;
 }

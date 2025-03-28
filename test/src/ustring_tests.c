@@ -12,7 +12,7 @@
 
 enum { MAX_ASCII = 127 };
 
-bool ustring_utils_test(void) {
+void ustring_utils_test(void) {
     char const str[] = "12345";
     size_t const str_len = sizeof(str) - 1;
 
@@ -81,11 +81,9 @@ bool ustring_utils_test(void) {
     utest_assert(ulib_mem_mem_last(h, h_len, "ab", sizeof("ab") - 1) == h + 8);
     utest_assert(ulib_mem_mem_last(h, h_len, "89", sizeof("89") - 1) == h + 11);
     utest_assert(ulib_mem_mem_last(h, h_len, "cd", sizeof("cd") - 1) == NULL);
-
-    return true;
 }
 
-bool ustrbuf_test(void) {
+void ustrbuf_test(void) {
     UStrBuf buf = ustrbuf();
     uvec_ret ret;
 
@@ -126,11 +124,9 @@ bool ustrbuf_test(void) {
 
     ulib_free(raw_buf);
     ustring_deinit(&string);
-
-    return true;
 }
 
-bool ustring_test_base(void) {
+void ustring_test_base(void) {
     utest_assert(ustring_is_empty(ustring_empty));
     utest_assert(ustring_data(ustring_empty)[0] == '\0');
     utest_assert(ustring_is_null(ustring_null));
@@ -209,10 +205,9 @@ bool ustring_test_base(void) {
     utest_assert_ustring(a, ==, ustring_literal("123"));
 
     ustring_deinit(&a);
-    return true;
 }
 
-bool ustring_test_convert(void) {
+void ustring_test_convert(void) {
     ulib_int int_out;
     ulib_uint uint_out;
     ulib_float float_out;
@@ -252,11 +247,9 @@ bool ustring_test_convert(void) {
 
     ret = ustring_to_float(a, &float_out);
     utest_assert(ret == ULIB_ERR);
-
-    return true;
 }
 
-bool ustring_test_sso(void) {
+void ustring_test_sso(void) {
     utest_assert_uint(sizeof(UString), ==, 2 * sizeof(char *));
 
     // Upper limit for SSO.
@@ -275,6 +268,4 @@ bool ustring_test_sso(void) {
     a = ustring_repeating(ustring_literal("1234567890"), n);
     utest_assert_uint(ustring_length(a), ==, n * 10);
     ustring_deinit(&a);
-
-    return true;
 }

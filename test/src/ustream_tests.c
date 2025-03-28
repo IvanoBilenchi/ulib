@@ -42,7 +42,7 @@ static bool istream_check_test_data(UIStream *stream) {
     return true;
 }
 
-static bool istream_test(UIStream *stream) {
+static void istream_test(UIStream *stream) {
     utest_assert(istream_check_test_data(stream));
 
     ustream_ret ret = uistream_reset(stream);
@@ -51,14 +51,11 @@ static bool istream_test(UIStream *stream) {
 
     ret = uistream_deinit(stream);
     utest_assert(ret == USTREAM_OK);
-
-    return true;
 }
 
-bool ustream_init_test(void) {
+void ustream_init_test(void) {
     generate_test_data_buf();
     generate_test_data_file();
-    return true;
 }
 
 static char *get_file_contents(char const *path, size_t *size) {
@@ -92,30 +89,28 @@ end:
     return contents;
 }
 
-bool uistream_path_test(void) {
+void uistream_path_test(void) {
     UIStream stream;
     ustream_ret ret = uistream_from_path(&stream, test_data_file);
     utest_assert(ret == USTREAM_OK);
-    utest_assert(istream_test(&stream));
-    return true;
+    istream_test(&stream);
 }
 
-bool uistream_buf_test(void) {
+void uistream_buf_test(void) {
     UIStream stream;
     ustream_ret ret = uistream_from_buf(&stream, test_data, TEST_DATA_SIZE);
     utest_assert(ret == USTREAM_OK);
-    utest_assert(istream_test(&stream));
-    return true;
+    istream_test(&stream);
 }
 
-bool uistream_buffered_test(void) {
+void uistream_buffered_test(void) {
     UIStream stream;
     UIStream *raw_stream;
     ustream_ret ret = uistream_buffered(&stream, &raw_stream, 4);
     utest_assert(ret == USTREAM_OK);
     ret = uistream_from_path(raw_stream, test_data_file);
     utest_assert(ret == USTREAM_OK);
-    utest_assert(istream_test(&stream));
+    istream_test(&stream);
 
     char buf[TEST_DATA_SIZE];
     ret = uistream_buffered(&stream, &raw_stream, 4);
@@ -137,11 +132,9 @@ bool uistream_buffered_test(void) {
     utest_assert_buf(buf, ==, test_data, TEST_DATA_SIZE);
     ret = uistream_deinit(&stream);
     utest_assert(ret == USTREAM_OK);
-
-    return true;
 }
 
-bool uostream_null_test(void) {
+void uostream_null_test(void) {
     UOStream *stream = uostream_null();
     size_t written;
 
@@ -156,11 +149,9 @@ bool uostream_null_test(void) {
 
     ret = uostream_flush(stream);
     utest_assert(ret == USTREAM_OK);
-
-    return true;
 }
 
-bool uostream_path_test(void) {
+void uostream_path_test(void) {
     UOStream stream;
     ustream_ret ret = uostream_to_path(&stream, test_output_file);
     utest_assert(ret == USTREAM_OK);
@@ -196,11 +187,9 @@ bool uostream_path_test(void) {
     utest_assert_uint(written, ==, TEST_DATA_SIZE);
     utest_assert_buf(buf, ==, test_data, TEST_DATA_SIZE);
     ulib_free(buf);
-
-    return true;
 }
 
-bool uostream_buf_test(void) {
+void uostream_buf_test(void) {
     char buf[TEST_DATA_SIZE * 2];
     size_t buf_size = sizeof(buf);
 
@@ -231,11 +220,9 @@ bool uostream_buf_test(void) {
 
     ret = uostream_deinit(&stream);
     utest_assert(ret == USTREAM_OK);
-
-    return true;
 }
 
-bool uostream_multi_test(void) {
+void uostream_multi_test(void) {
     char buf[TEST_DATA_SIZE];
     size_t const buf_size = sizeof(buf);
 
@@ -272,11 +259,9 @@ bool uostream_multi_test(void) {
     utest_assert_uint(size, ==, TEST_DATA_SIZE);
     utest_assert_buf(contents, ==, test_data, TEST_DATA_SIZE);
     ulib_free(contents);
-
-    return true;
 }
 
-bool uostream_buffered_test(void) {
+void uostream_buffered_test(void) {
     UOStream *raw_stream;
     UOStream stream;
     ustream_ret ret = uostream_buffered(&stream, &raw_stream, 4);
@@ -308,11 +293,9 @@ bool uostream_buffered_test(void) {
 
     ret = uostream_deinit(&stream);
     utest_assert(ret == USTREAM_OK);
-
-    return true;
 }
 
-bool ustream_varint_test(void) {
+void ustream_varint_test(void) {
     ulib_uint const max_value = ulib_min(ULIB_UINT_MAX >> 1U, 1000000);
     ulib_uint const increment = 999;
     ulib_uint value = 0;
@@ -336,11 +319,9 @@ bool ustream_varint_test(void) {
 
     uistream_deinit(&istream);
     uostream_deinit(&ostream);
-
-    return true;
 }
 
-bool ustream_svarint_test(void) {
+void ustream_svarint_test(void) {
     int32_t const max_value = ulib_min(ULIB_UINT_MAX >> 2U, 500000);
     int32_t const increment = 999;
     ulib_int value = 0;
@@ -364,6 +345,4 @@ bool ustream_svarint_test(void) {
 
     uistream_deinit(&istream);
     uostream_deinit(&ostream);
-
-    return true;
 }

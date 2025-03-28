@@ -9,7 +9,7 @@
 
 #include "ulib.h"
 
-bool unumber_test_pow2(void) {
+void unumber_test_pow2(void) {
     ulib_byte const max_exp = 8;
 
     for (ulib_byte e = 0; e < max_exp; ++e) {
@@ -34,6 +34,4 @@ bool unumber_test_pow2(void) {
 
     utest_assert_false(ulib_uint_is_pow2(0));
     utest_assert(ulib_uint_is_pow2_or_zero(0));
-
-    return true;
 }

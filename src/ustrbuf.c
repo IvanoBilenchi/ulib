@@ -63,6 +63,7 @@ UString ustrbuf_to_ustring_reuse(UStrBuf *buf, ulib_uint length) {
     nbuf[length] = '\0';
     UString ret = ustring_wrap(nbuf, length);
     ulib_assert(ret._l._data == nbuf);
+    buf->_l = (struct p_uvec_large_char){ 0 };
     return ret;
 }
 

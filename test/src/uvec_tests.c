@@ -33,7 +33,7 @@
 #define VTYPE int
 UVEC_INIT_IDENTIFIABLE(VTYPE)
 
-bool uvec_test_base(void) {
+void uvec_test_base(void) {
     UVec(VTYPE) v = uvec(VTYPE);
     utest_assert_uint(uvec_count(VTYPE, &v), ==, 0);
     utest_assert_false(uvec_pop(VTYPE, &v, NULL));
@@ -93,10 +93,9 @@ bool uvec_test_base(void) {
     utest_assert_uint(uvec_count(VTYPE, &v), ==, 0);
 
     uvec_deinit(VTYPE, &v);
-    return true;
 }
 
-bool uvec_test_range(void) {
+void uvec_test_range(void) {
     UVec(VTYPE) v = uvec(VTYPE);
     uvec_append_items(VTYPE, &v, 1, 2, 3, 4, 5);
     VTYPE items[] = { 6, 7 };
@@ -132,10 +131,9 @@ bool uvec_test_range(void) {
     utest_assert_uint(uvec_count(VTYPE, &v), ==, 0);
 
     uvec_deinit(VTYPE, &v);
-    return true;
 }
 
-bool uvec_test_capacity(void) {
+void uvec_test_capacity(void) {
     UVec(VTYPE) v = uvec(VTYPE);
     uvec_ret ret;
 
@@ -181,10 +179,9 @@ bool uvec_test_capacity(void) {
     utest_assert(p_uvec_is_small(VTYPE, &v));
 
     uvec_deinit(VTYPE, &v);
-    return true;
 }
 
-bool uvec_test_storage(void) {
+void uvec_test_storage(void) {
     VTYPE s_array[32] = { 1, 2, 3 };
     UVec(VTYPE) vec = uvec_wrap(VTYPE, s_array, 3);
     utest_assert_uint(uvec_count(VTYPE, &vec), ==, 3);
@@ -210,10 +207,9 @@ bool uvec_test_storage(void) {
     utest_assert_uint(uvec_size(VTYPE, &vec), ==, 8);
 
     uvec_deinit(VTYPE, &vec);
-    return true;
 }
 
-bool uvec_test_equality(void) {
+void uvec_test_equality(void) {
     UVec(VTYPE) v1 = uvec(VTYPE);
     uvec_append_items(VTYPE, &v1, 3, 2, 4, 1);
 
@@ -236,10 +232,9 @@ bool uvec_test_equality(void) {
 
     uvec_deinit(VTYPE, &v1);
     uvec_deinit(VTYPE, &v2);
-    return true;
 }
 
-bool uvec_test_contains(void) {
+void uvec_test_contains(void) {
     UVec(VTYPE) v1 = uvec(VTYPE);
     uvec_append_items(VTYPE, &v1, 3, 2, 5, 4, 5, 1);
 
@@ -269,10 +264,9 @@ bool uvec_test_contains(void) {
 
     uvec_deinit(VTYPE, &v1);
     uvec_deinit(VTYPE, &v2);
-    return true;
 }
 
-bool uvec_test_comparable(void) {
+void uvec_test_comparable(void) {
     UVec(VTYPE) v = uvec(VTYPE);
     utest_assert_uint(uvec_sorted_insertion_index(VTYPE, &v, 0), ==, 0);
 
@@ -344,7 +338,6 @@ bool uvec_test_comparable(void) {
 
     uvec_deinit(VTYPE, &v);
     uvec_deinit(VTYPE, &values);
-    return true;
 }
 
 enum { SORT_COUNT = 1000 };
@@ -353,7 +346,7 @@ static int vtype_compare(void const *a, void const *b) {
     return *((VTYPE *)a) - *((VTYPE *)b);
 }
 
-bool uvec_test_sort(void) {
+void uvec_test_sort(void) {
     VTYPE array[SORT_COUNT];
     UVec(VTYPE) v = uvec(VTYPE);
 
@@ -387,10 +380,9 @@ bool uvec_test_sort(void) {
     uvec_assert_elements_array(VTYPE, &v, array);
 
     uvec_deinit(VTYPE, &v);
-    return true;
 }
 
-bool uvec_test_max_heapq(void) {
+void uvec_test_max_heapq(void) {
     VTYPE const arr[] = { 5, 6, 2, 2, 3, 7, 9, 8, 9, 4, 1 };
     VTYPE const max[] = { 5, 6, 6, 6, 6, 7, 9, 9, 9, 9, 9 };
     VTYPE const sorted[] = { 9, 9, 8, 7, 6, 5, 4, 3, 2, 2, 1 };
@@ -447,10 +439,9 @@ bool uvec_test_max_heapq(void) {
     utest_assert_int(item, ==, 9);
 
     uvec_deinit(VTYPE, &heap);
-    return true;
 }
 
-bool uvec_test_min_heapq(void) {
+void uvec_test_min_heapq(void) {
     VTYPE const arr[] = { 5, 6, 2, 2, 3, 7, 9, 8, 9, 4, 1 };
     VTYPE const min[] = { 5, 5, 2, 2, 2, 2, 2, 2, 2, 2, 1 };
     VTYPE const sorted[] = { 1, 2, 2, 3, 4, 5, 6, 7, 8, 9, 9 };
@@ -507,5 +498,4 @@ bool uvec_test_min_heapq(void) {
     utest_assert_int(item, ==, 1);
 
     uvec_deinit(VTYPE, &heap);
-    return true;
 }

@@ -12,10 +12,10 @@
 
 #include <stdbool.h>
 
-bool urand_int_test(void);
-bool urand_float_test(void);
-bool urand_string_test(void);
-bool urand_misc_test(void);
+void urand_int_test(void);
+void urand_float_test(void);
+void urand_string_test(void);
+void urand_misc_test(void);
 
 #define URAND_TESTS urand_int_test, urand_float_test, urand_string_test, urand_misc_test
 

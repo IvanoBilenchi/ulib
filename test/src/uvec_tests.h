@@ -12,16 +12,16 @@
 
 #include <stdbool.h>
 
-bool uvec_test_base(void);
-bool uvec_test_range(void);
-bool uvec_test_capacity(void);
-bool uvec_test_storage(void);
-bool uvec_test_equality(void);
-bool uvec_test_contains(void);
-bool uvec_test_comparable(void);
-bool uvec_test_sort(void);
-bool uvec_test_max_heapq(void);
-bool uvec_test_min_heapq(void);
+void uvec_test_base(void);
+void uvec_test_range(void);
+void uvec_test_capacity(void);
+void uvec_test_storage(void);
+void uvec_test_equality(void);
+void uvec_test_contains(void);
+void uvec_test_comparable(void);
+void uvec_test_sort(void);
+void uvec_test_max_heapq(void);
+void uvec_test_min_heapq(void);
 
 #define UVEC_TESTS                                                                                 \
     uvec_test_base, uvec_test_range, uvec_test_capacity, uvec_test_storage, uvec_test_equality,    \

@@ -256,11 +256,13 @@ typedef enum uvec_ret {
     }                                                                                              \
                                                                                                    \
     ATTRS ULIB_INLINE void uvec_deinit_##T(UVec(T) *vec) {                                         \
-        if (p_uvec_is_large(T, vec)) {                                                             \
-            ulib_free((void *)vec->_l._data);                                                      \
-            vec->_l._data = NULL;                                                                  \
+        if (p_uvec_is_small(T, vec)) {                                                             \
+            p_uvec_exp_set(T, vec, 0);                                                             \
+            return;                                                                                \
         }                                                                                          \
-        p_uvec_exp_set(T, vec, 0);                                                                 \
+        ulib_free((void *)vec->_l._data);                                                          \
+        struct p_uvec_large_##T zero = ulib_struct_init;                                           \
+        vec->_l = zero;                                                                            \
     }                                                                                              \
                                                                                                    \
     ATTRS ULIB_INLINE UVec(T) uvec_move_##T(UVec(T) *vec) {                                        \

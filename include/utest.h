@@ -34,56 +34,92 @@ ULIB_BEGIN_DECLS
     int main(void) {                                                                               \
         setvbuf(stdout, NULL, _IONBF, 0);                                                          \
         if (!utest_leak_start()) return EXIT_FAILURE;                                              \
-        int exit_code = EXIT_SUCCESS;                                                              \
         { CODE }                                                                                   \
-        if (!utest_leak_end()) exit_code = EXIT_FAILURE;                                           \
-        return exit_code;                                                                          \
+        if (!utest_leak_end()) return EXIT_FAILURE;                                                \
+        return p_utest_status() ? EXIT_SUCCESS : EXIT_FAILURE;                                     \
     }
 
 /**
  * Runs a test batch.
  *
  * @param NAME @type{string literal} Name of the test batch.
- * @param ... Comma separated list of \type{(void) -> bool} test functions.
+ * @param ... Comma separated list of (void) -> void test functions.
  */
 #define utest_run(NAME, ...)                                                                       \
     do {                                                                                           \
-        int run_exit_code = EXIT_SUCCESS;                                                          \
+        p_utest_reset_run_status();                                                                \
         printf("Starting \"" NAME "\" tests.\n");                                                  \
                                                                                                    \
-        bool (*tests_to_run[])(void) = { __VA_ARGS__ };                                            \
+        void (*tests_to_run[])(void) = { __VA_ARGS__ };                                            \
         for (size_t test_i = 0; test_i < ulib_array_count(tests_to_run); ++test_i) {               \
-            if (!tests_to_run[test_i]()) run_exit_code = EXIT_FAILURE;                             \
+            tests_to_run[test_i]();                                                                \
         }                                                                                          \
                                                                                                    \
-        if (run_exit_code == EXIT_SUCCESS) {                                                       \
+        if (p_utest_run_status()) {                                                                \
             printf("All \"" NAME "\" tests passed.\n");                                            \
         } else {                                                                                   \
-            exit_code = EXIT_FAILURE;                                                              \
             printf("Some \"" NAME "\" tests failed.\n");                                           \
         }                                                                                          \
     } while (0)
 
 /**
- * Assert that the specified expression must be true.
+ * Prints a test failure message.
  *
- * @param EXP Boolean expression.
+ * @param ... Failure reason as printf arguments.
  */
-#define utest_assert(EXP) utest_assert_wrap(EXP, , "\"" #EXP "\" must be true.")
+#define utest_print_failure_reason(...)                                                            \
+    do {                                                                                           \
+        printf("Test failed: %s, %s, line %d\nReason: ", ULIB_FILE_NAME, __func__, __LINE__);      \
+        printf(__VA_ARGS__);                                                                       \
+        puts("");                                                                                  \
+    } while (0)
+
+/// Causes the test function to fail.
+#ifdef __clang_analyzer__
+#define utest_fail() abort()
+#else
+#define utest_fail()                                                                               \
+    do {                                                                                           \
+        p_utest_set_fail_status();                                                                 \
+        return;                                                                                    \
+    } while (0)
+#endif
 
 /**
- * Assert that the specified expression must be false.
+ * Asserts that the specified expression is true.
+ * If it is not, prints a failure message and aborts the test.
+ *
+ * @param EXP Expression.
+ * @param ... Failure reason as printf arguments.
+ */
+#define utest_assert_msg(EXP, ...)                                                                 \
+    do {                                                                                           \
+        if (!(EXP)) {                                                                              \
+            utest_print_failure_reason(__VA_ARGS__);                                               \
+            utest_fail();                                                                          \
+        }                                                                                          \
+    } while (0)
+
+/**
+ * Asserts that the specified expression is true.
  *
  * @param EXP Boolean expression.
  */
-#define utest_assert_false(EXP) utest_assert_wrap(!(EXP), , "\"" #EXP "\" must be false.")
+#define utest_assert(EXP) utest_assert_msg(EXP, "\"" #EXP "\" must be true.")
+
+/**
+ * Asserts that the specified expression is false.
+ *
+ * @param EXP Boolean expression.
+ */
+#define utest_assert_false(EXP) utest_assert_msg(!(EXP), "\"" #EXP "\" must be false.")
 
 /**
  * Assert that the specified expression must not be NULL.
  *
  * @param EXP Expression returning any pointer.
  */
-#define utest_assert_not_null(EXP) utest_assert_wrap(EXP, , "\"" #EXP "\" must not be NULL.")
+#define utest_assert_not_null(EXP) utest_assert_msg(EXP, "\"" #EXP "\" must not be NULL.")
 
 /**
  * Assert that `A OP B` must be true, where `A` and `B` are integers.
@@ -96,9 +132,9 @@ ULIB_BEGIN_DECLS
     do {                                                                                           \
         long long utest_A = (long long)(A);                                                        \
         long long utest_B = (long long)(B);                                                        \
-        utest_assert_wrap(utest_A OP utest_B, ,                                                    \
-                          "\"" #A "\" must be " #OP " \"%lld\", found \"%lld\".", utest_B,         \
-                          utest_A);                                                                \
+        utest_assert_msg(utest_A OP utest_B,                                                       \
+                         "\"" #A "\" must be " #OP " \"%lld\", found \"%lld\".", utest_B,          \
+                         utest_A);                                                                 \
     } while (0)
 
 /**
@@ -112,9 +148,9 @@ ULIB_BEGIN_DECLS
     do {                                                                                           \
         unsigned long long utest_A = (unsigned long long)(A);                                      \
         unsigned long long utest_B = (unsigned long long)(B);                                      \
-        utest_assert_wrap(utest_A OP utest_B, ,                                                    \
-                          "\"" #A "\" must be " #OP " \"%llu\", found \"%llu\".", utest_B,         \
-                          utest_A);                                                                \
+        utest_assert_msg(utest_A OP utest_B,                                                       \
+                         "\"" #A "\" must be " #OP " \"%llu\", found \"%llu\".", utest_B,          \
+                         utest_A);                                                                 \
     } while (0)
 
 /**
@@ -128,8 +164,8 @@ ULIB_BEGIN_DECLS
     do {                                                                                           \
         double utest_A = (double)(A);                                                              \
         double utest_B = (double)(B);                                                              \
-        utest_assert_wrap(utest_A OP utest_B, ,                                                    \
-                          "\"" #A "\" must be " #OP " \"%f\", found \"%f\".", utest_B, utest_A);   \
+        utest_assert_msg(utest_A OP utest_B, "\"" #A "\" must be " #OP " \"%f\", found \"%f\".",   \
+                         utest_B, utest_A);                                                        \
     } while (0)
 
 /**
@@ -143,8 +179,8 @@ ULIB_BEGIN_DECLS
     do {                                                                                           \
         void *utest_A = (void *)(A);                                                               \
         void *utest_B = (void *)(B);                                                               \
-        utest_assert_wrap(utest_A OP utest_B, ,                                                    \
-                          "\"" #A "\" must be " #OP " \"%p\", found \"%p\".", utest_B, utest_A);   \
+        utest_assert_msg(utest_A OP utest_B, "\"" #A "\" must be " #OP " \"%p\", found \"%p\".",   \
+                         utest_B, utest_A);                                                        \
     } while (0)
 
 /**
@@ -158,8 +194,8 @@ ULIB_BEGIN_DECLS
     do {                                                                                           \
         char const *utest_A = (A);                                                                 \
         char const *utest_B = (B);                                                                 \
-        utest_assert_wrap(strcmp(utest_A, utest_B) OP 0, ,                                         \
-                          "\"" #A "\" must be " #OP " \"%s\", found \"%s\".", utest_B, utest_A);   \
+        utest_assert_msg(strcmp(utest_A, utest_B) OP 0,                                            \
+                         "\"" #A "\" must be " #OP " \"%s\", found \"%s\".", utest_B, utest_A);    \
     } while (0)
 
 /**
@@ -171,8 +207,8 @@ ULIB_BEGIN_DECLS
  * @param SIZE @type{size_t} Buffer size.
  */
 #define utest_assert_buf(A, OP, B, SIZE)                                                           \
-    utest_assert_wrap(memcmp(A, B, SIZE) OP 0, ,                                                   \
-                      "Contents of \"" #A "\" must be " #OP " to those of \"" #B "\".")
+    utest_assert_msg(memcmp(A, B, SIZE) OP 0,                                                      \
+                     "Contents of \"" #A "\" must be " #OP " to those of \"" #B "\".")
 
 /**
  * Assert that `ustring_compare(A, B) OP 0` must be true.
@@ -185,9 +221,9 @@ ULIB_BEGIN_DECLS
     do {                                                                                           \
         UString utest_A = (A);                                                                     \
         UString utest_B = (B);                                                                     \
-        utest_assert_wrap(ustring_compare(utest_A, utest_B) OP 0, ,                                \
-                          "\"" #A "\" must be " #OP " \"%s\", found \"%s\".",                      \
-                          ustring_data(utest_B), ustring_data(utest_A));                           \
+        utest_assert_msg(ustring_compare(utest_A, utest_B) OP 0,                                   \
+                         "\"" #A "\" must be " #OP " \"%s\", found \"%s\".",                       \
+                         ustring_data(utest_B), ustring_data(utest_A));                            \
     } while (0)
 
 /**
@@ -197,35 +233,16 @@ ULIB_BEGIN_DECLS
  * @param EXP Boolean expression.
  */
 #define utest_assert_critical(EXP)                                                                 \
-    utest_assert_wrap(EXP, exit(EXIT_FAILURE),                                                     \
-                      "\"" #EXP "\" must be true.\nThis is a critical error, aborting...")
-
-#ifdef __clang_analyzer__
-#define p_utest_assert_return() abort()
-#else
-#define p_utest_assert_return() return false
-#endif
-
-/**
- * Utility macro for test assertions.
- *
- * @param EXP Expression.
- * @param CODE Any custom code to run after printing the failure reason.
- * @param ... Failure reason as printf arguments.
- */
-#define utest_assert_wrap(EXP, CODE, ...)                                                          \
     do {                                                                                           \
         if (!(EXP)) {                                                                              \
-            printf("Test failed: %s, %s, line %d\nReason: ", ULIB_FILE_NAME, __func__, __LINE__);  \
-            printf(__VA_ARGS__);                                                                   \
-            CODE;                                                                                  \
-            printf("\n");                                                                          \
-            p_utest_assert_return();                                                               \
+            utest_print_failure_reason("\"" #EXP "\" must be true.\n"                              \
+                                       "This is a critical error, aborting...");                   \
+            abort();                                                                               \
         }                                                                                          \
     } while (0)
 
 /**
- * Start detection of memory leaks.
+ * Starts detection of memory leaks.
  *
  * @return True if detection started successfully, false otherwise.
  */
@@ -243,6 +260,18 @@ bool utest_leak_end(void);
 /// @}
 
 // Private API
+
+ULIB_API
+bool p_utest_status(void);
+
+ULIB_API
+bool p_utest_run_status(void);
+
+ULIB_API
+void p_utest_set_fail_status(void);
+
+ULIB_API
+void p_utest_reset_run_status(void);
 
 ULIB_API
 void *p_utest_leak_malloc_impl(size_t size, char const *file, char const *fn, int line);

@@ -12,7 +12,7 @@
 
 #include <stdbool.h>
 
-bool uversion_test(void);
+void uversion_test(void);
 
 #define UVERSION_TESTS uversion_test
 
