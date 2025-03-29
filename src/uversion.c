@@ -3,8 +3,6 @@
  *
  * @copyright Copyright (c) 2021 Ivano Bilenchi <https://ivanobilenchi.com>
  * @copyright SPDX-License-Identifier: ISC
- *
- * @file
  */
 
 #include "uversion.h"

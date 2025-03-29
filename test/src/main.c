@@ -3,8 +3,6 @@
  *
  * @copyright Copyright (c) 2023 Ivano Bilenchi <https://ivanobilenchi.com>
  * @copyright SPDX-License-Identifier: ISC
- *
- * @file
  */
 
 #include "ubit_tests.h"

@@ -3,8 +3,6 @@
  *
  * @copyright Copyright (c) 2022 Ivano Bilenchi <https://ivanobilenchi.com>
  * @copyright SPDX-License-Identifier: ISC
- *
- * @file
  */
 
 #ifndef UHASH_TESTS_H
