@@ -133,19 +133,18 @@ void uistream_buffered_test(void) {
 }
 
 void uostream_null_test(void) {
-    UOStream *stream = uostream_null();
     size_t written;
 
-    ustream_ret ret = uostream_write(stream, test_data, TEST_DATA_SIZE, &written);
+    ustream_ret ret = uostream_write(&uostream_null, test_data, TEST_DATA_SIZE, &written);
     utest_assert(ret == USTREAM_OK);
     utest_assert_uint(written, ==, TEST_DATA_SIZE);
 
     char const fmt_str[] = "12345";
-    ret = uostream_writef(stream, &written, fmt_str);
+    ret = uostream_writef(&uostream_null, &written, fmt_str);
     utest_assert(ret == USTREAM_OK);
     utest_assert_uint(written, ==, sizeof(fmt_str) - 1);
 
-    ret = uostream_flush(stream);
+    ret = uostream_flush(&uostream_null);
     utest_assert(ret == USTREAM_OK);
 }
 
@@ -205,6 +204,13 @@ void uostream_buf_test(void) {
     utest_assert(ret == USTREAM_OK);
     utest_assert_uint(written, ==, TEST_DATA_SIZE);
     utest_assert_buf(buf + TEST_DATA_SIZE, ==, test_data, TEST_DATA_SIZE);
+
+    ret = uostream_reset(&stream);
+    utest_assert(ret == USTREAM_OK);
+    ret = uostream_write_buf(&stream, test_data, &written);
+    utest_assert(ret == USTREAM_OK);
+    utest_assert_uint(written, ==, TEST_DATA_SIZE);
+    utest_assert_buf(buf, ==, test_data, TEST_DATA_SIZE);
 
     ret = uostream_deinit(&stream);
     utest_assert(ret == USTREAM_OK);

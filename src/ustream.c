@@ -78,6 +78,59 @@ static ustream_ret ustream_file_close(void *file) {
     return fclose(file) == 0 ? USTREAM_OK : USTREAM_ERR_IO;
 }
 
+static ustream_ret
+ustream_stdin_read(ulib_unused void *file, void *buf, size_t count, size_t *read) {
+    return ustream_file_read(stdin, buf, count, read);
+}
+
+static ustream_ret ustream_stdin_reset(ulib_unused void *file) {
+    return ustream_file_reset(stdin);
+}
+
+static ustream_ret
+ustream_stdout_write(ulib_unused void *file, void const *buf, size_t count, size_t *written) {
+    return ustream_file_write(stdout, buf, count, written);
+}
+
+static ustream_ret
+ustream_stdout_writef(ulib_unused void *file, size_t *written, char const *format, va_list args) {
+    return ustream_file_writef(stdout, written, format, args);
+}
+
+static ustream_ret ustream_stdout_reset(ulib_unused void *file) {
+    return ustream_file_reset(stdout);
+}
+
+static ustream_ret ustream_stdout_flush(ulib_unused void *file) {
+    return ustream_file_flush(stdout);
+}
+
+static ustream_ret ustream_stdout_close(ulib_unused void *file) {
+    return ustream_file_close(stdout);
+}
+
+static ustream_ret
+ustream_stderr_write(ulib_unused void *file, void const *buf, size_t count, size_t *written) {
+    return ustream_file_write(stderr, buf, count, written);
+}
+
+static ustream_ret
+ustream_stderr_writef(ulib_unused void *file, size_t *written, char const *format, va_list args) {
+    return ustream_file_writef(stderr, written, format, args);
+}
+
+static ustream_ret ustream_stderr_reset(ulib_unused void *file) {
+    return ustream_file_reset(stderr);
+}
+
+static ustream_ret ustream_stderr_flush(ulib_unused void *file) {
+    return ustream_file_flush(stderr);
+}
+
+static ustream_ret ustream_stderr_close(ulib_unused void *file) {
+    return ustream_file_close(stderr);
+}
+
 static ustream_ret ustream_buf_read(void *ctx, void *buf, size_t count, size_t *read) {
     UStreamBuf *ibuf = ctx;
     *read = count < ibuf->size ? count : ibuf->size;
@@ -170,6 +223,12 @@ static ustream_ret ustream_strbuf_free(void *ctx) {
 static ustream_ret ustream_null_write(ulib_unused void *ctx, ulib_unused void const *buf,
                                       ulib_unused size_t count, size_t *written) {
     *written = count;
+    return USTREAM_OK;
+}
+
+static ustream_ret
+ustream_null_writef(ulib_unused void *ctx, size_t *written, char const *format, va_list args) {
+    *written = ulib_str_flength_list(format, args);
     return USTREAM_OK;
 }
 
@@ -362,6 +421,11 @@ static ustream_ret uostream_buffered_free(void *ctx) {
     return deinit_ret ? deinit_ret : flush_ret;
 }
 
+UIStream uistream_std = {
+    .read = ustream_stdin_read,
+    .reset = ustream_stdin_reset,
+};
+
 ustream_ret uistream_deinit(UIStream *stream) {
     if (!(stream->free && stream->ctx)) return USTREAM_OK;
     stream->state = stream->free(stream->ctx);
@@ -384,12 +448,6 @@ ustream_ret uistream_read(UIStream *stream, void *buf, size_t count, size_t *rea
 
     if (read) *read = read_bytes;
     return stream->state;
-}
-
-UIStream *uistream_std(void) {
-    static UIStream std_in = { 0 };
-    if (!std_in.ctx) uistream_from_file(&std_in, stdin);
-    return &std_in;
 }
 
 ustream_ret uistream_from_path(UIStream *stream, char const *path) {
@@ -460,6 +518,27 @@ ustream_ret uistream_buffered(UIStream *stream, UIStream **raw_stream, size_t bu
     *raw_stream = stream->state ? NULL : &bs->raw_stream;
     return stream->state;
 }
+
+UOStream uostream_std = {
+    .write = ustream_stdout_write,
+    .writef = ustream_stdout_writef,
+    .flush = ustream_stdout_flush,
+    .reset = ustream_stdout_reset,
+    .free = ustream_stdout_close,
+};
+
+UOStream uostream_stderr = {
+    .write = ustream_stderr_write,
+    .writef = ustream_stderr_writef,
+    .flush = ustream_stderr_flush,
+    .reset = ustream_stderr_reset,
+    .free = ustream_stderr_close,
+};
+
+UOStream uostream_null = {
+    .write = ustream_null_write,
+    .writef = ustream_null_writef,
+};
 
 ustream_ret uostream_deinit(UOStream *stream) {
     if (!(stream->free && stream->ctx)) return USTREAM_OK;
@@ -532,6 +611,10 @@ uostream_writef_list(UOStream *stream, size_t *written, char const *format, va_l
     return stream->state;
 }
 
+ustream_ret uostream_write_buf(UOStream *stream, char const *buf, size_t *written) {
+    return uostream_write(stream, buf, strlen(buf), written);
+}
+
 ustream_ret uostream_write_string(UOStream *stream, UString const *string, size_t *written) {
     return uostream_write(stream, ustring_data(*string), ustring_length(*string), written);
 }
@@ -539,6 +622,15 @@ ustream_ret uostream_write_string(UOStream *stream, UString const *string, size_
 ustream_ret uostream_write_time(UOStream *stream, UTime const *time, size_t *written) {
     return uostream_writef(stream, written, "%lld/%02u/%02u-%02u:%02u:%02u", time->year,
                            time->month, time->day, time->hour, time->minute, time->second);
+}
+
+ustream_ret uostream_write_date(UOStream *stream, UTime const *time, size_t *written) {
+    return uostream_writef(stream, written, "%lld/%02u/%02u", time->year, time->month, time->day);
+}
+
+ustream_ret uostream_write_time_of_day(UOStream *stream, UTime const *time, size_t *written) {
+    return uostream_writef(stream, written, "%02u:%02u:%02u", time->hour, time->minute,
+                           time->second);
 }
 
 ustream_ret uostream_write_time_interval(UOStream *stream, utime_ns interval, utime_unit unit,
@@ -553,24 +645,6 @@ ustream_ret uostream_write_time_interval(UOStream *stream, utime_ns interval, ut
 ustream_ret uostream_write_version(UOStream *stream, UVersion const *version, size_t *written) {
     return uostream_writef(stream, written, "%u.%u.%u", version->major, version->minor,
                            version->patch);
-}
-
-UOStream *uostream_std(void) {
-    static UOStream std_out = { 0 };
-    if (!std_out.ctx) uostream_to_file(&std_out, stdout);
-    return &std_out;
-}
-
-UOStream *uostream_stderr(void) {
-    static UOStream std_err = { 0 };
-    if (!std_err.ctx) uostream_to_file(&std_err, stderr);
-    return &std_err;
-}
-
-UOStream *uostream_null(void) {
-    static UOStream null_out = { 0 };
-    if (!null_out.write) null_out.write = ustream_null_write;
-    return &null_out;
 }
 
 ustream_ret uostream_to_path(UOStream *stream, char const *path) {

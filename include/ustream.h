@@ -99,6 +99,10 @@ typedef struct UIStream {
  * @{
  */
 
+/// Standard input stream.
+ULIB_API
+extern UIStream uistream_std;
+
 /**
  * Initializes an input stream.
  *
@@ -147,14 +151,6 @@ ustream_ret uistream_reset(UIStream *stream);
  */
 ULIB_API
 ustream_ret uistream_read(UIStream *stream, void *buf, size_t count, size_t *read);
-
-/**
- * Returns a stream that reads from the standard input.
- *
- * @return Standard input stream.
- */
-ULIB_API
-UIStream *uistream_std(void);
 
 /**
  * Initializes a stream that reads from the file at the specified path.
@@ -322,6 +318,18 @@ typedef struct UOStream {
  * @{
  */
 
+/// Standard output stream.
+ULIB_API
+extern UOStream uostream_std;
+
+/// Standard error stream.
+ULIB_API
+extern UOStream uostream_stderr;
+
+/// Null output stream, discards all data written to it.
+ULIB_API
+extern UOStream uostream_null;
+
 /**
  * Initializes an output stream.
  *
@@ -421,6 +429,17 @@ ustream_ret
 uostream_writef_list(UOStream *stream, size_t *written, char const *format, va_list args);
 
 /**
+ * Writes a NULL-terminated string into the stream.
+ *
+ * @param stream Output stream.
+ * @param buf NULL-terminated string.
+ * @param[out] written Number of bytes written.
+ * @return Return code.
+ */
+ULIB_API
+ustream_ret uostream_write_buf(UOStream *stream, char const *buf, size_t *written);
+
+/**
  * Writes a string into the stream.
  *
  * @param stream Output stream.
@@ -441,6 +460,28 @@ ustream_ret uostream_write_string(UOStream *stream, UString const *string, size_
  */
 ULIB_API
 ustream_ret uostream_write_time(UOStream *stream, UTime const *time, size_t *written);
+
+/**
+ * Writes the date component of the specified date and time into the stream.
+ *
+ * @param stream Output stream.
+ * @param time Date and time.
+ * @param[out] written Number of bytes written.
+ * @return Return code.
+ */
+ULIB_API
+ustream_ret uostream_write_date(UOStream *stream, UTime const *time, size_t *written);
+
+/**
+ * Writes the time component of the specified date and time into the stream.
+ *
+ * @param stream Output stream.
+ * @param time Date and time.
+ * @param[out] written Number of bytes written.
+ * @return Return code.
+ */
+ULIB_API
+ustream_ret uostream_write_time_of_day(UOStream *stream, UTime const *time, size_t *written);
 
 /**
  * Writes the specified time interval into the stream.
@@ -466,30 +507,6 @@ ustream_ret uostream_write_time_interval(UOStream *stream, utime_ns interval, ut
  */
 ULIB_API
 ustream_ret uostream_write_version(UOStream *stream, UVersion const *version, size_t *written);
-
-/**
- * Returns a stream that writes to the standard output.
- *
- * @return Standard output stream.
- */
-ULIB_API
-UOStream *uostream_std(void);
-
-/**
- * Returns a stream that writes to the standard error.
- *
- * @return Standard error stream.
- */
-ULIB_API
-UOStream *uostream_stderr(void);
-
-/**
- * Returns a stream that discards its output.
- *
- * @return Null output stream.
- */
-ULIB_API
-UOStream *uostream_null(void);
 
 /**
  * Initializes a stream that writes to the file at the specified path.

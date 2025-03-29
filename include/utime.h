@@ -211,7 +211,7 @@ UString utime_to_string(UTime const *time);
  * @return True if the string was parsed without errors, false otherwise.
  *
  * @note The string must be in `Y_M_D_H_M_S` format, where each component is separated by any
- *       non-digit character. An optional timezone specifier can also be specified, in which case
+ *       non-digit character. An optional timezone specifier can also be appended, in which case
  *       the date is automatically normalized to UTC. Examples of equivalent dates:
  *       - 1990/02/14 13:30:00
  *       - 1990-02-14T13:30:00Z
