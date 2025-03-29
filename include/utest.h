@@ -1,5 +1,5 @@
 /**
- * Essential test utilities.
+ * Essential testing framework.
  *
  * @author Ivano Bilenchi
  *
@@ -13,6 +13,7 @@
 #define UTEST_H
 
 #include "uattrs.h"
+#include "uleak.h" // IWYU pragma: keep, needed for uleak_detect_start/end
 #include "uutils.h"
 #include <stdbool.h>
 #include <stdio.h>
@@ -33,10 +34,10 @@ ULIB_BEGIN_DECLS
 #define utest_main(CODE)                                                                           \
     int main(void) {                                                                               \
         setvbuf(stdout, NULL, _IONBF, 0);                                                          \
-        if (!utest_leak_start()) return EXIT_FAILURE;                                              \
+        if (!uleak_detect_start()) return EXIT_FAILURE;                                            \
         { CODE }                                                                                   \
-        if (!utest_leak_end()) return EXIT_FAILURE;                                                \
-        return p_utest_status() ? EXIT_SUCCESS : EXIT_FAILURE;                                     \
+        if (!uleak_detect_end()) return EXIT_FAILURE;                                              \
+        return p_utest_status ? EXIT_SUCCESS : EXIT_FAILURE;                                       \
     }
 
 /**
@@ -47,7 +48,7 @@ ULIB_BEGIN_DECLS
  */
 #define utest_run(NAME, ...)                                                                       \
     do {                                                                                           \
-        p_utest_reset_run_status();                                                                \
+        p_utest_run_status = true;                                                                 \
         printf("Starting \"" NAME "\" tests.\n");                                                  \
                                                                                                    \
         void (*tests_to_run[])(void) = { __VA_ARGS__ };                                            \
@@ -55,7 +56,7 @@ ULIB_BEGIN_DECLS
             tests_to_run[test_i]();                                                                \
         }                                                                                          \
                                                                                                    \
-        if (p_utest_run_status()) {                                                                \
+        if (p_utest_run_status) {                                                                  \
             printf("All \"" NAME "\" tests passed.\n");                                            \
         } else {                                                                                   \
             printf("Some \"" NAME "\" tests failed.\n");                                           \
@@ -80,7 +81,7 @@ ULIB_BEGIN_DECLS
 #else
 #define utest_fail()                                                                               \
     do {                                                                                           \
-        p_utest_set_fail_status();                                                                 \
+        p_utest_status = p_utest_run_status = false;                                               \
         return;                                                                                    \
     } while (0)
 #endif
@@ -241,56 +242,15 @@ ULIB_BEGIN_DECLS
         }                                                                                          \
     } while (0)
 
-/**
- * Starts detection of memory leaks.
- *
- * @return True if detection started successfully, false otherwise.
- */
-ULIB_API
-bool utest_leak_start(void);
-
-/**
- * Ends detection of memory leaks and prints detected leaks to the console.
- *
- * @return True if no leaks were detected, false otherwise.
- */
-ULIB_API
-bool utest_leak_end(void);
-
 /// @}
 
 // Private API
 
 ULIB_API
-bool p_utest_status(void);
+extern bool p_utest_status;
 
 ULIB_API
-bool p_utest_run_status(void);
-
-ULIB_API
-void p_utest_set_fail_status(void);
-
-ULIB_API
-void p_utest_reset_run_status(void);
-
-ULIB_API
-void *p_utest_leak_malloc_impl(size_t size, char const *file, char const *fn, int line);
-
-ULIB_API
-void *p_utest_leak_calloc_impl(size_t num, size_t size, char const *file, char const *fn, int line);
-
-ULIB_API
-void *p_utest_leak_realloc_impl(void *ptr, size_t size, char const *file, char const *fn, int line);
-
-ULIB_API
-void p_utest_leak_free_impl(void *ptr);
-
-#define p_utest_leak_malloc(size) p_utest_leak_malloc_impl(size, ULIB_FILE_NAME, __func__, __LINE__)
-#define p_utest_leak_calloc(num, size)                                                             \
-    p_utest_leak_calloc_impl(num, size, ULIB_FILE_NAME, __func__, __LINE__)
-#define p_utest_leak_realloc(ptr, size)                                                            \
-    p_utest_leak_realloc_impl(ptr, size, ULIB_FILE_NAME, __func__, __LINE__)
-#define p_utest_leak_free(ptr) p_utest_leak_free_impl(ptr)
+extern bool p_utest_run_status;
 
 ULIB_END_DECLS
 
