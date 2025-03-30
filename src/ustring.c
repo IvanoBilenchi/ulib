@@ -18,8 +18,8 @@
 #include <stdarg.h>
 #include <string.h>
 
-UString const ustring_null = p_ustring_init_small(0);
-UString const ustring_empty = p_ustring_init_small(1);
+UString const ustring_null = ustring_init_null;
+UString const ustring_empty = ustring_init_empty;
 
 ULIB_INLINE
 UString ustring_small(char const *buf, size_t length) {

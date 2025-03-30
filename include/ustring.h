@@ -113,6 +113,12 @@ extern UString const ustring_null;
 ULIB_API
 extern UString const ustring_empty;
 
+/// NULL string initializer.
+#define ustring_init_null p_ustring_init_small(0)
+
+/// Empty string initializer.
+#define ustring_init_empty p_ustring_init_small(1)
+
 /**
  * Returns the size of the string.
  *
