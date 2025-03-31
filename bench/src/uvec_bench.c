@@ -11,6 +11,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define TAG_COLOR UCOLOR_BCYN
+
 enum {
     SEED = 31,
     SORT_COUNT_SMALL = 16,
@@ -32,11 +34,10 @@ static void bench_uvec_sort_small(void) {
     static ulib_int array[SORT_COUNT_SMALL];
     UVec(ulib_int) v = uvec(ulib_int);
     uvec_reserve(ulib_int, &v, SORT_COUNT_SMALL);
-
-    uostream_write_literal(&uostream_std, "Small array sort - ", NULL);
+    UBenchGroup group = ubench_group(ustring_copy_literal("Sort: small"));
 
     urand_set_seed(SEED);
-    ubench_block("qsort", &uostream_std, ", ") {
+    ubench_block(&group, "qsort") {
         for (unsigned i = 0; i < SORT_COUNT_LARGE; ++i) {
             for (unsigned j = 0; j < SORT_COUNT_SMALL; ++j) {
                 array[j] = urand();
@@ -46,7 +47,7 @@ static void bench_uvec_sort_small(void) {
     }
 
     urand_set_seed(SEED);
-    ubench_block("uvec_sort", &uostream_std, "\n") {
+    ubench_block(&group, "uvec_sort") {
         for (unsigned i = 0; i < SORT_COUNT_LARGE; ++i) {
             for (unsigned j = 0; j < SORT_COUNT_SMALL; ++j) {
                 uvec_push(ulib_int, &v, urand());
@@ -56,6 +57,8 @@ static void bench_uvec_sort_small(void) {
         }
     }
 
+    ulog(ulog_main, ULOG_INFO, &group, NULL);
+    ubench_group_deinit(&group);
     uvec_deinit(ulib_int, &v);
 }
 
@@ -67,30 +70,30 @@ static void bench_uvec_sort_large(void) {
     for (unsigned i = 0; i < SORT_COUNT_LARGE; ++i) {
         array[i] = urand();
     }
-
     uvec_append_array(ulib_int, &v, array, SORT_COUNT_LARGE);
 
-    uostream_write_literal(&uostream_std, "Large array sort (unique, unsorted) - ", NULL);
-
-    ubench_block("qsort", &uostream_std, ", ") {
+    UBenchGroup group = ubench_group(ustring_copy_literal("Sort: unique, unsorted"));
+    ubench_block(&group, "qsort") {
         qsort(array, SORT_COUNT_LARGE, sizeof(*array), int_compare);
     }
-
-    ubench_block("uvec_sort", &uostream_std, "\n") {
+    ubench_block(&group, "uvec_sort") {
         uvec_sort(ulib_int, &v);
     }
+
+    ulog(ulog_main, ULOG_INFO, &group, NULL);
+    ubench_group_deinit(&group);
 
     // Large array with mostly unique elements, already sorted
-    uostream_write_literal(&uostream_std, "Large array sort (unique, sorted) - ", NULL);
-
-    ubench_block("qsort", &uostream_std, ", ") {
+    group = ubench_group(ustring_copy_literal("Sort: unique, sorted"));
+    ubench_block(&group, "qsort") {
         qsort(array, SORT_COUNT_LARGE, sizeof(*array), int_compare);
     }
-
-    ubench_block("uvec_sort", &uostream_std, "\n") {
+    ubench_block(&group, "uvec_sort") {
         uvec_sort(ulib_int, &v);
     }
 
+    ulog(ulog_main, ULOG_INFO, &group, NULL);
+    ubench_group_deinit(&group);
     uvec_deinit(ulib_int, &v);
 }
 
@@ -102,31 +105,30 @@ static void bench_uvec_sort_large_repeated(void) {
     for (unsigned i = 0; i < SORT_COUNT_LARGE; ++i) {
         array[i] = (ulib_int)(urand() % 100);
     }
-
-    uvec_clear(ulib_int, &v);
     uvec_append_array(ulib_int, &v, array, SORT_COUNT_LARGE);
 
-    uostream_write_literal(&uostream_std, "Large array sort (repeated, unsorted) - ", NULL);
-
-    ubench_block("qsort", &uostream_std, ", ") {
+    UBenchGroup group = ubench_group(ustring_copy_literal("Sort: repeated, unsorted"));
+    ubench_block(&group, "qsort") {
         qsort(array, SORT_COUNT_LARGE, sizeof(*array), int_compare);
     }
-
-    ubench_block("uvec_sort", &uostream_std, "\n") {
+    ubench_block(&group, "uvec_sort") {
         uvec_sort(ulib_int, &v);
     }
+
+    ulog(ulog_main, ULOG_INFO, &group, NULL);
+    ubench_group_deinit(&group);
 
     // Large array with repeated elements, already sorted
-    uostream_write_literal(&uostream_std, "Large array sort (repeated, sorted) - ", NULL);
-
-    ubench_block("qsort", &uostream_std, ", ") {
+    group = ubench_group(ustring_copy_literal("Sort: repeated, sorted"));
+    ubench_block(&group, "qsort") {
         qsort(array, SORT_COUNT_LARGE, sizeof(*array), int_compare);
     }
-
-    ubench_block("uvec_sort", &uostream_std, "\n") {
+    ubench_block(&group, "uvec_sort") {
         uvec_sort(ulib_int, &v);
     }
 
+    ulog(ulog_main, ULOG_INFO, &group, NULL);
+    ubench_group_deinit(&group);
     uvec_deinit(ulib_int, &v);
 }
 
@@ -134,9 +136,9 @@ static void bench_uvec_sorted_insertion(void) {
     UVec(ulib_int) v = uvec(ulib_int);
     uvec_reserve(ulib_int, &v, INSERT_COUNT_SMALL);
 
-    uostream_write_literal(&uostream_std, "Sorted insertion - ", NULL);
+    UBenchGroup group = ubench_group(ustring_copy_literal("Sorted insertion"));
 
-    ubench_block("small", &uostream_std, ", ") {
+    ubench_block(&group, "small") {
         for (unsigned i = 0; i < (INSERT_COUNT_LARGE / INSERT_COUNT_SMALL); ++i) {
             for (unsigned j = 0; j < INSERT_COUNT_SMALL; ++j) {
                 uvec_sorted_insert(ulib_int, &v, urand(), NULL);
@@ -148,12 +150,14 @@ static void bench_uvec_sorted_insertion(void) {
     uvec_clear(ulib_int, &v);
     uvec_reserve(ulib_int, &v, INSERT_COUNT_LARGE);
 
-    ubench_block("large", &uostream_std, "\n") {
+    ubench_block(&group, "large") {
         for (unsigned i = 0; i < INSERT_COUNT_LARGE; ++i) {
             uvec_sorted_insert(ulib_int, &v, urand(), NULL);
         }
     }
 
+    ulog(ulog_main, ULOG_INFO, &group, NULL);
+    ubench_group_deinit(&group);
     uvec_deinit(ulib_int, &v);
 }
 
@@ -171,34 +175,35 @@ static void bench_uvec_heap_queue(void) {
     }
     uvec_shuffle(ulib_int, &items);
 
-    uostream_write_literal(&uostream_std, "Heap queue - ", NULL);
-
-    ubench_block("push", &uostream_std, ", ") {
+    UBenchGroup group = ubench_group(ustring_copy_literal("Heap queue"));
+    ubench_block(&group, "push") {
         uvec_foreach (ulib_int, &items, e) {
             uvec_min_heapq_push(ulib_int, &heap, *e.item);
         }
     }
-
-    ubench_block("pop", &uostream_std, "\n") {
+    ubench_block(&group, "pop") {
         for (unsigned i = 0; i < HEAP_QUEUE_COUNT; ++i) {
             uvec_min_heapq_pop(ulib_int, &heap, NULL);
         }
     }
 
-    uostream_write_literal(&uostream_std, "Sorted vector - ", NULL);
+    ulog(ulog_main, ULOG_INFO, &group, NULL);
+    ubench_group_deinit(&group);
 
-    ubench_block("push", &uostream_std, ", ") {
+    group = ubench_group(ustring_copy_literal("Sorted vector"));
+    ubench_block(&group, "push") {
         uvec_foreach (ulib_int, &items, e) {
             uvec_sorted_insert(ulib_int, &sorted, *e.item, NULL);
         }
     }
-
-    ubench_block("pop", &uostream_std, "\n") {
+    ubench_block(&group, "pop") {
         for (unsigned i = 0; i < HEAP_QUEUE_COUNT; ++i) {
             uvec_pop(ulib_int, &sorted, NULL);
         }
     }
 
+    ulog(ulog_main, ULOG_INFO, &group, NULL);
+    ubench_group_deinit(&group);
     uvec_deinit(ulib_int, &items);
     uvec_deinit(ulib_int, &heap);
     uvec_deinit(ulib_int, &sorted);

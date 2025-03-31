@@ -134,7 +134,7 @@ ulib_uint p_ulib_hash_int64(uint64_t key) {
  * Hash function for pointers to allocated memory.
  *
  * This hash function accounts for the alignment of pointers to allocated memory returned by
- * e.g. @func{malloc()} and @func{realloc()} by dividing them by @val{ULIB_MALLOC_ALIGN}.
+ * e.g. @func{malloc()} and @func{realloc()} by dividing them by @val{#ULIB_MALLOC_ALIGN}.
  * This is important because pointers to allocated memory are generally a multiple of some power
  * of two, due to alignment requirements, making them very bad choices as hashes for hash tables
  * whose size is a power of two (such as @func{#UHash(T)}).

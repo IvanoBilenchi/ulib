@@ -115,39 +115,43 @@ static HashTable hash_table_khashl(void) {
 // Benchmarks
 
 static void bench_hash(HashTable *table, ulib_uint size) {
+    ulog_debug("Hash table: %s", table->name);
+
+    UBenchGroup group = ubench_group(ustring_with_format("%s: size %zu", table->name, size));
+
     void *h = table->init();
     urand_set_seed(SEED);
 
-    uostream_writef(&uostream_std, NULL, "%s (size %" ULIB_UINT_FMT ") - ", table->name, size);
-
     ulib_uint count = 0;
-    ubench_block("insert", &uostream_std, " ") {
+    ubench_block(&group, "insert") {
         for (ulib_uint i = 0; i < size; ++i) {
             ulib_uint key = urand_range(0, size >> 1);
             if (table->insert(h, key)) count++;
         }
     }
-    uostream_writef(&uostream_std, NULL, "(%" ULIB_UINT_FMT " inserted), ", count);
+    ulog_debug("Inserted: %" ULIB_UINT_FMT, count);
 
     count = 0;
-    ubench_block("get", &uostream_std, " ") {
+    ubench_block(&group, "get") {
         for (ulib_uint i = 0; i < size; ++i) {
             ulib_uint key = urand_range(0, size >> 1);
             if (table->contains(h, key)) count++;
         }
     }
-    uostream_writef(&uostream_std, NULL, "(%" ULIB_UINT_FMT " found), ", count);
+    ulog_debug("Found: %" ULIB_UINT_FMT, count);
 
     count = 0;
-    ubench_block("remove", &uostream_std, " ") {
+    ubench_block(&group, "remove") {
         for (ulib_uint i = 0; i < size; ++i) {
             ulib_uint key = urand_range(0, size >> 1);
             if (table->remove(h, key)) count++;
         }
     }
-    uostream_writef(&uostream_std, NULL, "(%" ULIB_UINT_FMT " removed)\n", count);
+    ulog_debug("Removed: %" ULIB_UINT_FMT, count);
 
     table->deinit(h);
+    ulog(ulog_main, ULOG_INFO, &group, NULL);
+    ubench_group_deinit(&group);
 }
 
 void bench_uhash(void) {

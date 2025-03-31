@@ -17,6 +17,7 @@
 #undef ULIB_FREE
 
 #include "uhash.h"
+#include "ulog.h"
 #include "unumber.h"
 #include "utest.h"
 #include <inttypes.h>
@@ -52,39 +53,39 @@ bool uleak_detect_start(void) {
     alloc_table = malloc(sizeof(*alloc_table));
 
     if (!alloc_table) {
-        fprintf(stderr, "Could not allocate the allocation table.\n");
+        ulog_error("Could not allocate the allocation table.");
         return false;
     }
 
     *alloc_table = uhmap(AllocTable);
-    puts("Starting detection of memory leaks.");
+    ulog_debug("Begin: leak detection");
     return true;
 }
 
-static bool detect_and_print_leaks(void) {
+static bool log_leaks(void) {
     ulib_uint leaks = uhash_count(AllocTable, alloc_table);
 
     if (!leaks) {
-        puts("No leaks detected.");
+        ulog_debug("Leaks: none");
         return true;
     }
 
-    printf("Detected %" ULIB_UINT_FMT " leaked objects.\n", leaks);
+    ulog_warn("Leaks: %" ULIB_UINT_FMT, leaks);
 
-    if (p_utest_status) {
+    if (p_utest_status()) {
         unsigned i = 0;
         uhash_foreach (AllocTable, alloc_table, alloc) {
-            printf("Leak %u: 0x%" PRIxPTR " (%s)\n", ++i, *alloc.key, *alloc.val);
+            ulog_warn("Leak %u: 0x%" PRIxPTR " (%s)", ++i, *alloc.key, *alloc.val);
         }
     } else {
-        puts("Some tests failed, leaks may be due to aborted tests.");
+        ulog_warn("Some tests failed, leaks may be due to aborted tests.");
     }
 
     return false;
 }
 
 bool uleak_detect_end(void) {
-    bool no_leaks = detect_and_print_leaks();
+    bool no_leaks = log_leaks();
 
     uhash_foreach (AllocTable, alloc_table, alloc) {
         free(*alloc.val);

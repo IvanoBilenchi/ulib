@@ -29,6 +29,7 @@ set(DOXYGEN_ALIASES
     [[destructor{1}="@note The returned object must be destroyed by calling <tt>#\1()</tt>."]]
     [[func{1}="<tt>\1</tt>"]]
     [[type{1}="<tt>\1</tt>"]]
+    [[var{1}="<tt>\1</tt>"]]
     [[val{1}="<tt>\1</tt>"]]
     [[alias=@noop]]
 )

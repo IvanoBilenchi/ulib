@@ -90,6 +90,48 @@ typedef struct UTime {
  * @{
  */
 
+/// Date format string.
+#ifndef UTIME_DATE_FMT
+#define UTIME_DATE_FMT "%lld/%02u/%02u"
+#endif
+
+/**
+ * Date format arguments.
+ *
+ * @param time Date and time.
+ */
+#ifndef utime_date_fmt_args
+#define utime_date_fmt_args(time) (time).year, (time).month, (time).day
+#endif
+
+/// Time of day format string.
+#ifndef UTIME_TIME_FMT
+#define UTIME_TIME_FMT "%02u:%02u:%02u"
+#endif
+
+/**
+ * Time of day format arguments.
+ *
+ * @param time Date and time.
+ */
+#ifndef utime_time_fmt_args
+#define utime_time_fmt_args(time) (time).hour, (time).minute, (time).second
+#endif
+
+/// Date and time format string.
+#ifndef UTIME_FMT
+#define UTIME_FMT UTIME_DATE_FMT "-" UTIME_TIME_FMT
+#endif
+
+/**
+ * Date and time format arguments.
+ *
+ * @param time Date and time.
+ */
+#ifndef utime_fmt_args
+#define utime_fmt_args(time) utime_date_fmt_args(time), utime_time_fmt_args(time)
+#endif
+
 /**
  * Checks whether the specified dates and times are equal.
  *

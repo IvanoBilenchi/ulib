@@ -22,6 +22,23 @@ ULIB_BEGIN_DECLS
  * @{
  */
 
+/// Source code location.
+typedef struct USrcLoc {
+
+    /// File name.
+    char const *file;
+
+    /// Function name.
+    char const *func;
+
+    /// Line number.
+    int line;
+
+} USrcLoc;
+
+/// Initializer for the current source code location.
+#define usrc_loc_init { ULIB_FILE_NAME, __func__, __LINE__ }
+
 /**
  * Signals that the code is compiled in debug mode.
  * @def ULIB_DEBUG

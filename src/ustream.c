@@ -441,7 +441,7 @@ ustream_ret uistream_reset(UIStream *stream) {
 ustream_ret uistream_read(UIStream *stream, void *buf, size_t count, size_t *read) {
     size_t read_bytes = 0;
 
-    if (!stream->state) {
+    if (!(count && stream->state)) {
         stream->state = stream->read(stream->ctx, buf, count, &read_bytes);
         stream->read_bytes += read_bytes;
     }
@@ -559,7 +559,7 @@ ustream_ret uostream_reset(UOStream *stream) {
 ustream_ret uostream_write(UOStream *stream, void const *buf, size_t count, size_t *written) {
     size_t written_bytes = 0;
 
-    if (!stream->state) {
+    if (!(count && stream->state)) {
         stream->state = stream->write(stream->ctx, buf, count, &written_bytes);
         stream->written_bytes += written_bytes;
     }
@@ -620,17 +620,15 @@ ustream_ret uostream_write_string(UOStream *stream, UString const *string, size_
 }
 
 ustream_ret uostream_write_time(UOStream *stream, UTime const *time, size_t *written) {
-    return uostream_writef(stream, written, "%lld/%02u/%02u-%02u:%02u:%02u", time->year,
-                           time->month, time->day, time->hour, time->minute, time->second);
+    return uostream_writef(stream, written, UTIME_FMT, utime_fmt_args(*time));
 }
 
 ustream_ret uostream_write_date(UOStream *stream, UTime const *time, size_t *written) {
-    return uostream_writef(stream, written, "%lld/%02u/%02u", time->year, time->month, time->day);
+    return uostream_writef(stream, written, UTIME_DATE_FMT, utime_date_fmt_args(*time));
 }
 
 ustream_ret uostream_write_time_of_day(UOStream *stream, UTime const *time, size_t *written) {
-    return uostream_writef(stream, written, "%02u:%02u:%02u", time->hour, time->minute,
-                           time->second);
+    return uostream_writef(stream, written, UTIME_TIME_FMT, utime_time_fmt_args(*time));
 }
 
 ustream_ret uostream_write_time_interval(UOStream *stream, utime_ns interval, utime_unit unit,

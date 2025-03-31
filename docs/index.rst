@@ -22,5 +22,6 @@ Welcome to uLib's documentation!
    api/rand
    api/alloc
    api/macros
+   api/logging
    api/test
    api/version

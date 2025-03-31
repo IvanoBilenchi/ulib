@@ -13,13 +13,21 @@
 #define UTEST_H
 
 #include "uattrs.h"
-#include "uleak.h" // IWYU pragma: keep, needed for uleak_detect_start/end
+#include "ubit.h"
+#include "uleak.h" // IWYU pragma: keep
+#include "ulib_ret.h"
+#include "ulog.h" // IWYU pragma: keep
+#include "ustring.h"
 #include "uutils.h"
 #include <stdbool.h>
-#include <stdio.h>
 #include <stdlib.h>
 
 ULIB_BEGIN_DECLS
+
+/// @cond
+#define P_UTEST_FAIL_FLAG ubit_bit(8, 0)
+#define P_UTEST_LOC_FLAG ubit_bit(8, 1)
+/// @endcond
 
 /**
  * @defgroup test Test utilities
@@ -33,11 +41,11 @@ ULIB_BEGIN_DECLS
  */
 #define utest_main(CODE)                                                                           \
     int main(void) {                                                                               \
-        setvbuf(stdout, NULL, _IONBF, 0);                                                          \
+        ulog_main->handler = p_utest_event_handler;                                                \
         if (!uleak_detect_start()) return EXIT_FAILURE;                                            \
         { CODE }                                                                                   \
         if (!uleak_detect_end()) return EXIT_FAILURE;                                              \
-        return p_utest_status ? EXIT_SUCCESS : EXIT_FAILURE;                                       \
+        return p_utest_status() ? EXIT_SUCCESS : EXIT_FAILURE;                                     \
     }
 
 /**
@@ -48,31 +56,28 @@ ULIB_BEGIN_DECLS
  */
 #define utest_run(NAME, ...)                                                                       \
     do {                                                                                           \
-        p_utest_run_status = true;                                                                 \
-        printf("Starting \"" NAME "\" tests.\n");                                                  \
+        p_utest_begin_test_run(NAME);                                                              \
                                                                                                    \
         void (*tests_to_run[])(void) = { __VA_ARGS__ };                                            \
-        for (size_t test_i = 0; test_i < ulib_array_count(tests_to_run); ++test_i) {               \
-            tests_to_run[test_i]();                                                                \
+        size_t const test_count = ulib_array_count(tests_to_run);                                  \
+        size_t pass_count = 0;                                                                     \
+                                                                                                   \
+        for (size_t test_i = 0; test_i < test_count; ++test_i) {                                   \
+            if (p_utest_run_test(tests_to_run[test_i])) ++pass_count;                              \
         }                                                                                          \
                                                                                                    \
-        if (p_utest_run_status) {                                                                  \
-            printf("All \"" NAME "\" tests passed.\n");                                            \
-        } else {                                                                                   \
-            printf("Some \"" NAME "\" tests failed.\n");                                           \
-        }                                                                                          \
+        p_utest_end_test_run(NAME, test_count, pass_count);                                        \
     } while (0)
 
 /**
- * Prints a test failure message.
+ * Logs a test failure message.
  *
  * @param ... Failure reason as printf arguments.
  */
-#define utest_print_failure_reason(...)                                                            \
+#define utest_log_failure_reason(...)                                                              \
     do {                                                                                           \
-        printf("Test failed: %s, %s, line %d\nReason: ", ULIB_FILE_NAME, __func__, __LINE__);      \
-        printf(__VA_ARGS__);                                                                       \
-        puts("");                                                                                  \
+        UBit(8) flags = P_UTEST_FAIL_FLAG | P_UTEST_LOC_FLAG;                                      \
+        ulog(ulog_main, ULOG_INFO, &flags, __VA_ARGS__);                                           \
     } while (0)
 
 /// Causes the test function to fail.
@@ -81,14 +86,14 @@ ULIB_BEGIN_DECLS
 #else
 #define utest_fail()                                                                               \
     do {                                                                                           \
-        p_utest_status = p_utest_run_status = false;                                               \
+        p_utest_fail_test();                                                                       \
         return;                                                                                    \
     } while (0)
 #endif
 
 /**
  * Asserts that the specified expression is true.
- * If it is not, prints a failure message and aborts the test.
+ * If it is not, logs a failure message and aborts the test.
  *
  * @param EXP Expression.
  * @param ... Failure reason as printf arguments.
@@ -96,7 +101,7 @@ ULIB_BEGIN_DECLS
 #define utest_assert_msg(EXP, ...)                                                                 \
     do {                                                                                           \
         if (!(EXP)) {                                                                              \
-            utest_print_failure_reason(__VA_ARGS__);                                               \
+            utest_log_failure_reason(__VA_ARGS__);                                                 \
             utest_fail();                                                                          \
         }                                                                                          \
     } while (0)
@@ -236,8 +241,8 @@ ULIB_BEGIN_DECLS
 #define utest_assert_critical(EXP)                                                                 \
     do {                                                                                           \
         if (!(EXP)) {                                                                              \
-            utest_print_failure_reason("\"" #EXP "\" must be true.\n"                              \
-                                       "This is a critical error, aborting...");                   \
+            utest_log_failure_reason("\"" #EXP "\" must be true.\n"                                \
+                                     "This is a critical error, aborting...");                     \
             abort();                                                                               \
         }                                                                                          \
     } while (0)
@@ -247,10 +252,23 @@ ULIB_BEGIN_DECLS
 // Private API
 
 ULIB_API
-extern bool p_utest_status;
+ULIB_PURE
+bool p_utest_status(void);
 
 ULIB_API
-extern bool p_utest_run_status;
+void p_utest_begin_test_run(char const *name);
+
+ULIB_API
+bool p_utest_run_test(void (*test)(void));
+
+ULIB_API
+void p_utest_fail_test(void);
+
+ULIB_API
+void p_utest_end_test_run(char const *name, size_t tests, size_t passed);
+
+ULIB_API
+ulib_ret p_utest_event_handler(ULog *log, ULogEvent const *event);
 
 ULIB_END_DECLS
 
