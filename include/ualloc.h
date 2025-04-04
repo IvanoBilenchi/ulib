@@ -51,9 +51,9 @@ typedef void *ulib_ptr;
  * @alias void *ulib_malloc(size_t size);
  */
 #ifdef ULIB_MALLOC
-#define ulib_malloc(size) ULIB_MALLOC(size)
+#define ulib_malloc ULIB_MALLOC
 #else
-#define ulib_malloc(size) malloc(size)
+#define ulib_malloc malloc
 #endif
 
 /**
@@ -68,9 +68,9 @@ typedef void *ulib_ptr;
  * @alias void *ulib_calloc(size_t num, size_t size);
  */
 #ifdef ULIB_CALLOC
-#define ulib_calloc(num, size) ULIB_CALLOC(num, size)
+#define ulib_calloc ULIB_CALLOC
 #else
-#define ulib_calloc(num, size) calloc(num, size)
+#define ulib_calloc calloc
 #endif
 
 /**
@@ -84,9 +84,9 @@ typedef void *ulib_ptr;
  * @alias void *ulib_realloc(void *ptr, size_t size);
  */
 #ifdef ULIB_REALLOC
-#define ulib_realloc(ptr, size) ULIB_REALLOC(ptr, size)
+#define ulib_realloc ULIB_REALLOC
 #else
-#define ulib_realloc(ptr, size) realloc(ptr, size)
+#define ulib_realloc realloc
 #endif
 
 /**
@@ -96,9 +96,9 @@ typedef void *ulib_ptr;
  * @alias void ulib_free(void *ptr);
  */
 #ifdef ULIB_FREE
-#define ulib_free(ptr) ULIB_FREE(ptr)
+#define ulib_free ULIB_FREE
 #else
-#define ulib_free(ptr) free(ptr)
+#define ulib_free free
 #endif
 
 /**
