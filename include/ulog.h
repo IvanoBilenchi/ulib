@@ -105,7 +105,7 @@ typedef struct ULogEvent {
     ULogMsg msg;
 
     /// Event data.
-    void *data;
+    void const *data;
 
 } ULogEvent;
 
@@ -358,6 +358,24 @@ ustream_ret ulog_loc(ULog *log, USrcLoc loc);
 ULIB_API
 ustream_ret ulog_color(ULog *log, char const *color, char const *fmt, ...);
 
+/**
+ * Logs a space to the logger's output stream.
+ *
+ * @param log Logger object.
+ * @return Return code.
+ */
+ULIB_API
+ustream_ret ulog_space(ULog *log);
+
+/**
+ * Logs a newline to the logger's output stream.
+ *
+ * @param log Logger object.
+ * @return Return code.
+ */
+ULIB_API
+ustream_ret ulog_newline(ULog *log);
+
 /// @}
 
 // Private API
@@ -367,8 +385,8 @@ ulib_ret p_ulog(ULog *log, ULogEvent event, char const *fmt, ...);
 
 ULIB_CONST
 ULIB_INLINE
-ULogEvent
-p_ulog_event_f(ULogLevel level, void *data, char const *file_name, char const *func, int line) {
+ULogEvent p_ulog_event_f(ULogLevel level, void const *data, char const *file_name, char const *func,
+                         int line) {
     ULogEvent event = ulib_struct_init;
     event.data = data;
     event.level = level;

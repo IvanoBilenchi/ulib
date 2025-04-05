@@ -11,16 +11,15 @@
 #include "uvec_bench.h"
 #include <stdlib.h>
 
-#define TAG_COLOR UCOLOR_BCYN
-
-ulib_ret event_handler(ULog *log, ULogEvent const *event) {
+static ulib_ret event_handler(ULog *log, ULogEvent const *event) {
     ulog_header(log, event);
 
     if (event->data) {
         UBenchGroup const *group = event->data;
-        ulog_tag(log, (ULogTag){ ustring_data(group->name), TAG_COLOR });
+        ulog_tag(log, (ULogTag){ ustring_data(group->name), UCOLOR_BCYN });
+        ulog_space(log);
         uostream_write_bench_vec(log->stream, &group->benchmarks);
-        uostream_write_literal(log->stream, " ", NULL);
+        ulog_space(log);
     }
 
     ulog_footer(log, event);

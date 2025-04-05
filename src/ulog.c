@@ -35,8 +35,7 @@ ULIB_INLINE ustream_ret end_color(ULog *log) {
 }
 
 ulib_ret ulog_default_handler(ULog *log, ULogEvent const *event) {
-    // TODO: return the value directly if we ever migrate all return codes to ulib_ret.
-    return ulog_event(log, event) ? ULIB_ERR : ULIB_OK;
+    return ulog_event(log, event) == USTREAM_OK ? ULIB_OK : ULIB_ERR;
 }
 
 ustream_ret ulog_event(ULog *log, ULogEvent const *event) {
@@ -46,13 +45,18 @@ ustream_ret ulog_event(ULog *log, ULogEvent const *event) {
 
 ustream_ret ulog_header(ULog *log, ULogEvent const *event) {
     ulog_date(log);
-    return ulog_level(log, event->level);
+    ulog_space(log);
+    ulog_level(log, event->level);
+    return ulog_space(log);
 }
 
 ustream_ret ulog_footer(ULog *log, ULogEvent const *event) {
-    if (event->level <= ULOG_DEBUG) ulog_loc(log, event->loc);
+    if (event->level <= ULOG_DEBUG) {
+        ulog_loc(log, event->loc);
+        ulog_space(log);
+    }
     ulog_msg(log, event->msg);
-    return uostream_write_literal(log->stream, "\n", NULL);
+    return ulog_newline(log);
 }
 
 ustream_ret ulog_msg(ULog *log, ULogMsg msg) {
@@ -61,8 +65,7 @@ ustream_ret ulog_msg(ULog *log, ULogMsg msg) {
 
 ustream_ret ulog_date(ULog *log) {
     UTime now = utime_now();
-    ulog_color(log, UCOLOR_DIM, "[" UTIME_FMT "]", utime_fmt_args(now));
-    return uostream_write_literal(log->stream, " ", NULL);
+    return ulog_color(log, UCOLOR_DIM, "[" UTIME_FMT "]", utime_fmt_args(now));
 }
 
 ustream_ret ulog_level(ULog *log, ULogLevel level) {
@@ -73,12 +76,11 @@ ustream_ret ulog_level(ULog *log, ULogLevel level) {
 
 ustream_ret ulog_tag(ULog *log, ULogTag tag) {
     if (!tag.string) return USTREAM_OK;
-    ulog_color(log, tag.color, "[%s]", tag.string);
-    return uostream_write_literal(log->stream, " ", NULL);
+    return ulog_color(log, tag.color, "[%s]", tag.string);
 }
 
 ustream_ret ulog_loc(ULog *log, USrcLoc loc) {
-    return ulog_color(log, UCOLOR_DIM, "[%s:%d] ", loc.file, loc.line);
+    return ulog_color(log, UCOLOR_DIM, "[%s:%d]", loc.file, loc.line);
 }
 
 ustream_ret ulog_color(ULog *log, char const *color, char const *fmt, ...) {
@@ -88,6 +90,14 @@ ustream_ret ulog_color(ULog *log, char const *color, char const *fmt, ...) {
     uostream_writef_list(log->stream, NULL, fmt, args);
     va_end(args);
     return end_color(log);
+}
+
+ustream_ret ulog_space(ULog *log) {
+    return uostream_write_literal(log->stream, " ", NULL);
+}
+
+ustream_ret ulog_newline(ULog *log) {
+    return uostream_write_literal(log->stream, "\n", NULL);
 }
 
 ulib_ret p_ulog(ULog *log, ULogEvent event, char const *fmt, ...) {

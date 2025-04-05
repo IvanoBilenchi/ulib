@@ -13,10 +13,7 @@
 #define UTEST_H
 
 #include "uattrs.h"
-#include "ubit.h"
-#include "uleak.h" // IWYU pragma: keep
-#include "ulib_ret.h"
-#include "ulog.h" // IWYU pragma: keep
+#include "ulog.h"
 #include "ustring.h"
 #include "uutils.h"
 #include <stdbool.h>
@@ -25,8 +22,18 @@
 ULIB_BEGIN_DECLS
 
 /// @cond
-#define P_UTEST_FAIL_FLAG ubit_bit(8, 0)
-#define P_UTEST_LOC_FLAG ubit_bit(8, 1)
+typedef enum UTestEventType {
+    UTEST_EVENT_PASS,
+    UTEST_EVENT_FAIL,
+    UTEST_EVENT_ASSERT,
+    UTEST_EVENT_FATAL,
+} UTestEventType;
+
+typedef struct UTestEvent {
+    UTestEventType type;
+    size_t passed;
+    size_t total;
+} UTestEvent;
 /// @endcond
 
 /**
@@ -41,11 +48,9 @@ ULIB_BEGIN_DECLS
  */
 #define utest_main(CODE)                                                                           \
     int main(void) {                                                                               \
-        ulog_main->handler = p_utest_event_handler;                                                \
-        if (!uleak_detect_start()) return EXIT_FAILURE;                                            \
+        if (!p_utest_begin()) return EXIT_FAILURE;                                                 \
         { CODE }                                                                                   \
-        if (!uleak_detect_end()) return EXIT_FAILURE;                                              \
-        return p_utest_status() ? EXIT_SUCCESS : EXIT_FAILURE;                                     \
+        return p_utest_end() ? EXIT_SUCCESS : EXIT_FAILURE;                                        \
     }
 
 /**
@@ -66,7 +71,7 @@ ULIB_BEGIN_DECLS
             if (p_utest_run_test(tests_to_run[test_i])) ++pass_count;                              \
         }                                                                                          \
                                                                                                    \
-        p_utest_end_test_run(NAME, test_count, pass_count);                                        \
+        p_utest_end_test_run(NAME, pass_count, test_count);                                        \
     } while (0)
 
 /**
@@ -74,11 +79,7 @@ ULIB_BEGIN_DECLS
  *
  * @param ... Failure reason as printf arguments.
  */
-#define utest_log_failure_reason(...)                                                              \
-    do {                                                                                           \
-        UBit(8) flags = P_UTEST_FAIL_FLAG | P_UTEST_LOC_FLAG;                                      \
-        ulog(ulog_main, ULOG_INFO, &flags, __VA_ARGS__);                                           \
-    } while (0)
+#define utest_log_failure_reason(...) ulog(ulog_main, ULOG_INFO, &p_utest_event_assert, __VA_ARGS__)
 
 /// Causes the test function to fail.
 #ifdef __clang_analyzer__
@@ -111,21 +112,21 @@ ULIB_BEGIN_DECLS
  *
  * @param EXP Boolean expression.
  */
-#define utest_assert(EXP) utest_assert_msg(EXP, "\"" #EXP "\" must be true.")
+#define utest_assert(EXP) utest_assert_msg(EXP, "\"" #EXP "\" must be true")
 
 /**
  * Asserts that the specified expression is false.
  *
  * @param EXP Boolean expression.
  */
-#define utest_assert_false(EXP) utest_assert_msg(!(EXP), "\"" #EXP "\" must be false.")
+#define utest_assert_false(EXP) utest_assert_msg(!(EXP), "\"" #EXP "\" must be false")
 
 /**
  * Assert that the specified expression must not be NULL.
  *
  * @param EXP Expression returning any pointer.
  */
-#define utest_assert_not_null(EXP) utest_assert_msg(EXP, "\"" #EXP "\" must not be NULL.")
+#define utest_assert_not_null(EXP) utest_assert_msg(EXP, "\"" #EXP "\" must not be NULL")
 
 /**
  * Assert that `A OP B` must be true, where `A` and `B` are integers.
@@ -139,8 +140,7 @@ ULIB_BEGIN_DECLS
         long long utest_A = (long long)(A);                                                        \
         long long utest_B = (long long)(B);                                                        \
         utest_assert_msg(utest_A OP utest_B,                                                       \
-                         "\"" #A "\" must be " #OP " \"%lld\", found \"%lld\".", utest_B,          \
-                         utest_A);                                                                 \
+                         "\"" #A "\" must be " #OP " \"%lld\", found \"%lld\"", utest_B, utest_A); \
     } while (0)
 
 /**
@@ -155,8 +155,7 @@ ULIB_BEGIN_DECLS
         unsigned long long utest_A = (unsigned long long)(A);                                      \
         unsigned long long utest_B = (unsigned long long)(B);                                      \
         utest_assert_msg(utest_A OP utest_B,                                                       \
-                         "\"" #A "\" must be " #OP " \"%llu\", found \"%llu\".", utest_B,          \
-                         utest_A);                                                                 \
+                         "\"" #A "\" must be " #OP " \"%llu\", found \"%llu\"", utest_B, utest_A); \
     } while (0)
 
 /**
@@ -170,7 +169,7 @@ ULIB_BEGIN_DECLS
     do {                                                                                           \
         double utest_A = (double)(A);                                                              \
         double utest_B = (double)(B);                                                              \
-        utest_assert_msg(utest_A OP utest_B, "\"" #A "\" must be " #OP " \"%f\", found \"%f\".",   \
+        utest_assert_msg(utest_A OP utest_B, "\"" #A "\" must be " #OP " \"%f\", found \"%f\"",    \
                          utest_B, utest_A);                                                        \
     } while (0)
 
@@ -185,7 +184,7 @@ ULIB_BEGIN_DECLS
     do {                                                                                           \
         void *utest_A = (void *)(A);                                                               \
         void *utest_B = (void *)(B);                                                               \
-        utest_assert_msg(utest_A OP utest_B, "\"" #A "\" must be " #OP " \"%p\", found \"%p\".",   \
+        utest_assert_msg(utest_A OP utest_B, "\"" #A "\" must be " #OP " \"%p\", found \"%p\"",    \
                          utest_B, utest_A);                                                        \
     } while (0)
 
@@ -201,7 +200,7 @@ ULIB_BEGIN_DECLS
         char const *utest_A = (A);                                                                 \
         char const *utest_B = (B);                                                                 \
         utest_assert_msg(strcmp(utest_A, utest_B) OP 0,                                            \
-                         "\"" #A "\" must be " #OP " \"%s\", found \"%s\".", utest_B, utest_A);    \
+                         "\"" #A "\" must be " #OP " \"%s\", found \"%s\"", utest_B, utest_A);     \
     } while (0)
 
 /**
@@ -214,7 +213,7 @@ ULIB_BEGIN_DECLS
  */
 #define utest_assert_buf(A, OP, B, SIZE)                                                           \
     utest_assert_msg(memcmp(A, B, SIZE) OP 0,                                                      \
-                     "Contents of \"" #A "\" must be " #OP " to those of \"" #B "\".")
+                     "Contents of \"" #A "\" must be " #OP " to those of \"" #B "\"")
 
 /**
  * Assert that `ustring_compare(A, B) OP 0` must be true.
@@ -228,8 +227,8 @@ ULIB_BEGIN_DECLS
         UString utest_A = (A);                                                                     \
         UString utest_B = (B);                                                                     \
         utest_assert_msg(ustring_compare(utest_A, utest_B) OP 0,                                   \
-                         "\"" #A "\" must be " #OP " \"%s\", found \"%s\".",                       \
-                         ustring_data(utest_B), ustring_data(utest_A));                            \
+                         "\"" #A "\" must be " #OP " \"%s\", found \"%s\"", ustring_data(utest_B), \
+                         ustring_data(utest_A));                                                   \
     } while (0)
 
 /**
@@ -238,18 +237,33 @@ ULIB_BEGIN_DECLS
  *
  * @param EXP Boolean expression.
  */
-#define utest_assert_critical(EXP)                                                                 \
+#define utest_assert_fatal(EXP)                                                                    \
     do {                                                                                           \
         if (!(EXP)) {                                                                              \
-            utest_log_failure_reason("\"" #EXP "\" must be true.\n"                                \
-                                     "This is a critical error, aborting...");                     \
+            ulog(ulog_main, ULOG_INFO, &p_utest_event_fatal, "\"" #EXP "\" must be true");         \
             abort();                                                                               \
         }                                                                                          \
     } while (0)
 
+/**
+ * Assert that the specified expression must be true.
+ * Abort the tests if it is false.
+ *
+ * @param EXP Boolean expression.
+ *
+ * @deprecated Use @func{utest_assert_fatal()} instead.
+ */
+#define utest_assert_critical(EXP) ULIB_DEPRECATED_MACRO utest_assert_fatal(EXP)
+
 /// @}
 
 // Private API
+
+ULIB_API
+extern UTestEvent const p_utest_event_assert;
+
+ULIB_API
+extern UTestEvent const p_utest_event_fatal;
 
 ULIB_API
 ULIB_PURE
@@ -265,10 +279,13 @@ ULIB_API
 void p_utest_fail_test(void);
 
 ULIB_API
-void p_utest_end_test_run(char const *name, size_t tests, size_t passed);
+void p_utest_end_test_run(char const *name, size_t passed, size_t total);
 
 ULIB_API
-ulib_ret p_utest_event_handler(ULog *log, ULogEvent const *event);
+bool p_utest_begin(void);
+
+ULIB_API
+bool p_utest_end(void);
 
 ULIB_END_DECLS
 

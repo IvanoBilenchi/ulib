@@ -53,7 +53,7 @@ bool uleak_detect_start(void) {
     alloc_table = malloc(sizeof(*alloc_table));
 
     if (!alloc_table) {
-        ulog_error("Could not allocate the allocation table.");
+        ulog_error("Could not allocate the allocation table");
         return false;
     }
 
@@ -78,7 +78,7 @@ static bool log_leaks(void) {
             ulog_warn("Leak %u: 0x%" PRIxPTR " (%s)", ++i, *alloc.key, *alloc.val);
         }
     } else {
-        ulog_warn("Some tests failed, leaks may be due to aborted tests.");
+        ulog_warn("Leaks may be due to aborted tests");
     }
 
     return false;
