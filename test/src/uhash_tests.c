@@ -183,15 +183,19 @@ void uhash_test_set(void) {
     utest_assert(uhset_is_superset(IntHash, &other_set, &set));
     utest_assert_false(uhset_is_superset(IntHash, &set, &other_set));
 
-    uhset_diff(IntHash, &other_set, &set);
+    UHash(IntHash) intersect = uhset(IntHash);
+    utest_assert(uhset_diff_intersect(IntHash, &other_set, &intersect, &set) == UHASH_OK);
     utest_assert(uhash_count(IntHash, &other_set) == 1);
+    utest_assert(uhash_count(IntHash, &intersect) == MAX_VAL);
     uint32_t element = uhset_get_any(IntHash, &other_set, 0);
     utest_assert_uint(element, ==, MAX_VAL);
 
+    uhash_clear(IntHash, &intersect);
     uhset_union(IntHash, &other_set, &set);
-    uhset_intersect(IntHash, &other_set, &set);
-    utest_assert(uhset_equals(IntHash, &other_set, &set));
+    uhset_diff_intersect(IntHash, &other_set, &intersect, &set);
+    utest_assert(uhset_equals(IntHash, &intersect, &set));
     uhash_deinit(IntHash, &other_set);
+    uhash_deinit(IntHash, &intersect);
 
     element = uhset_get_any(IntHash, &set, MAX_VAL);
     utest_assert_uint(element, !=, MAX_VAL);
