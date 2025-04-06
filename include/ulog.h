@@ -165,7 +165,7 @@ bool ulog_enabled(ULog *log, ULogLevel level) {
  *
  * @param log Logger object.
  *
- * @note Set the log level to anything other than @val{#ULOG_DISABLED} to re-enable event handling.
+ * @note Set the log level to anything other than @val{ULOG_DISABLED} to re-enable event handling.
  */
 ULIB_INLINE
 void ulog_disable(ULog *log) {
@@ -188,7 +188,7 @@ void ulog_disable(ULog *log) {
     (ulog_enabled(log, level) ? p_ulog(log, p_ulog_event(level, data), __VA_ARGS__) : ULIB_OK)
 
 /**
- * Same as @func{#ulog}(@var{#ulog_main}, @val{#ULOG_TRACE}, `NULL`, `fmt`, `...`).
+ * Same as @func{ulog}(@var{ulog_main}, @val{ULOG_TRACE}, @cval{NULL}, `fmt`, `...`).
  *
  * @param fmt Message format string.
  * @param ... Message format arguments.
@@ -199,7 +199,7 @@ void ulog_disable(ULog *log) {
 #define ulog_trace(...) ulog(ulog_main, ULOG_TRACE, NULL, __VA_ARGS__)
 
 /**
- * Same as @func{#ulog}(@var{#ulog_main}, @val{#ULOG_DEBUG}, `NULL`, `fmt`, `...`).
+ * Same as @func{ulog}(@var{ulog_main}, @val{ULOG_DEBUG}, @cval{NULL}, `fmt`, `...`).
  *
  * @param fmt Message format string.
  * @param ... Message format arguments.
@@ -210,7 +210,7 @@ void ulog_disable(ULog *log) {
 #define ulog_debug(...) ulog(ulog_main, ULOG_DEBUG, NULL, __VA_ARGS__)
 
 /**
- * Same as @func{#ulog}(@var{#ulog_main}, @val{#ULOG_INFO}, `NULL`, `fmt`, `...`).
+ * Same as @func{ulog}(@var{ulog_main}, @val{ULOG_INFO}, @cval{NULL}, `fmt`, `...`).
  *
  * @param fmt Message format string.
  * @param ... Message format arguments.
@@ -221,7 +221,7 @@ void ulog_disable(ULog *log) {
 #define ulog_info(...) ulog(ulog_main, ULOG_INFO, NULL, __VA_ARGS__)
 
 /**
- * Same as @func{#ulog}(@var{#ulog_main}, @val{#ULOG_WARN}, `NULL`, `fmt`, `...`).
+ * Same as @func{ulog}(@var{ulog_main}, @val{ULOG_WARN}, @cval{NULL}, `fmt`, `...`).
  *
  * @param fmt Message format string.
  * @param ... Message format arguments.
@@ -232,7 +232,7 @@ void ulog_disable(ULog *log) {
 #define ulog_warn(...) ulog(ulog_main, ULOG_WARN, NULL, __VA_ARGS__)
 
 /**
- * Same as @func{#ulog}(@var{#ulog_main}, @val{#ULOG_ERROR}, `NULL`, `fmt`, `...`).
+ * Same as @func{ulog}(@var{ulog_main}, @val{ULOG_ERROR}, @cval{NULL}, `fmt`, `...`).
  *
  * @param fmt Message format string.
  * @param ... Message format arguments.
@@ -243,7 +243,7 @@ void ulog_disable(ULog *log) {
 #define ulog_error(...) ulog(ulog_main, ULOG_ERROR, NULL, __VA_ARGS__)
 
 /**
- * Same as @func{#ulog}(@var{#ulog_main}, @val{#ULOG_FATAL}, `NULL`, `fmt`, `...`).
+ * Same as @func{ulog}(@var{ulog_main}, @val{ULOG_FATAL}, @cval{NULL}, `fmt`, `...`).
  *
  * @param fmt Message format string.
  * @param ... Message format arguments.

@@ -39,7 +39,7 @@ typedef enum ustream_ret {
     /**
      * Input/output error, usually returned when a file or stream operation fails.
      *
-     * @note When this happens, `errno` is sometimes set to a more meaningful value.
+     * @note When this happens, @cval{errno} is sometimes set to a more meaningful value.
      */
     USTREAM_ERR_IO,
 
@@ -83,7 +83,7 @@ typedef struct UIStream {
 
     /**
      * Pointer to a function that releases any resource reserved by the stream.
-     * The provided function is invoked when @func{#uistream_deinit()} is called.
+     * The provided function is invoked when @func{uistream_deinit} is called.
      *
      * @param ctx Stream context.
      * @return Return code.
@@ -302,7 +302,7 @@ typedef struct UOStream {
 
     /**
      * Pointer to a function that releases any resource reserved by the stream.
-     * The provided function is invoked when @func{#uostream_deinit()} is called.
+     * The provided function is invoked when @func{uostream_deinit} is called.
      *
      * @param ctx Stream context.
      * @return Return code.
@@ -356,9 +356,9 @@ UOStream uostream(void *ctx, ustream_ret (*write_func)(void *, void const *, siz
 /**
  * Writes the specified string literal into the stream.
  *
- * @param stream @type{#UOStream *} Output stream.
- * @param literal @type{char const []} String literal.
- * @param[out] written @type{size_t *} Number of bytes written.
+ * @param stream @ctype{#UOStream *} Output stream.
+ * @param literal @ctype{char const []} String literal.
+ * @param[out] written @ctype{size_t *} Number of bytes written.
  * @return Return code.
  */
 #define uostream_write_literal(stream, literal, written)                                           \
@@ -556,7 +556,7 @@ ustream_ret uostream_to_buf(UOStream *stream, void *buf, size_t size);
  * @destructor{uostream_deinit}
  * @note If `buf` is NULL, the stream will allocate a new string buffer and set it as its context.
  *       In this case, the string buffer will be deinitialized when calling
- *       @func{#uostream_deinit()}.
+ *       @func{uostream_deinit}.
  */
 ULIB_API
 ustream_ret uostream_to_strbuf(UOStream *stream, UStrBuf *buf);
@@ -574,7 +574,7 @@ ustream_ret uostream_to_strbuf(UOStream *stream, UStrBuf *buf);
  *         substream if that is important for your use case.
  *       - The reported written bytes are the maximum bytes written by any of the underlying
  *         substreams.
- *       - Calling @func{#uostream_deinit()} deinitializes all substreams.
+ *       - Calling @func{uostream_deinit} deinitializes all substreams.
  */
 ULIB_API
 ustream_ret uostream_to_multi(UOStream *stream);
@@ -587,7 +587,7 @@ ustream_ret uostream_to_multi(UOStream *stream);
  * @return Return code.
  *
  * @note Both streams must have been initialized beforehand, and `stream`
- *       must have been initialized via @func{#uostream_to_multi()}.
+ *       must have been initialized via @func{uostream_to_multi}.
  */
 ULIB_API
 ustream_ret uostream_add_substream(UOStream *stream, UOStream const *other);

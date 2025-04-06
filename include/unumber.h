@@ -35,11 +35,11 @@ typedef uint8_t ulib_byte;
  * The size of this type can be controlled through the **ULIB_TINY** and **ULIB_HUGE**
  * preprocessor definitions:
  *
- * - **No definitions** (*default*): 4 bytes @type{uint32_t}
+ * - **No definitions** (*default*): 4 bytes @ctype{uint32_t}
  *
- * - **ULIB_TINY**: 2 bytes @type{uint16_t}
+ * - **ULIB_TINY**: 2 bytes @ctype{uint16_t}
  *
- * - **ULIB_HUGE**: 8 bytes @type{uint64_t}
+ * - **ULIB_HUGE**: 8 bytes @ctype{uint64_t}
  *
  * @typedef ulib_uint
  */
@@ -50,11 +50,11 @@ typedef uint8_t ulib_byte;
  * The size of this type can be controlled through the **ULIB_TINY** and **ULIB_HUGE**
  * preprocessor definitions:
  *
- * - **No definitions** (*default*): 4 bytes @type{int32_t}
+ * - **No definitions** (*default*): 4 bytes @ctype{int32_t}
  *
- * - **ULIB_TINY**: 2 bytes @type{int16_t}
+ * - **ULIB_TINY**: 2 bytes @ctype{int16_t}
  *
- * - **ULIB_HUGE**: 8 bytes @type{int64_t}
+ * - **ULIB_HUGE**: 8 bytes @ctype{int64_t}
  *
  * @typedef ulib_int
  */
@@ -65,34 +65,34 @@ typedef uint8_t ulib_byte;
  */
 
 /**
- * Minimum value of a @type{#ulib_int} variable.
+ * Minimum value of a @type{ulib_int} variable.
  *
  * @def ULIB_INT_MIN
  */
 
 /**
- * Maximum value of a @type{#ulib_int} variable.
+ * Maximum value of a @type{ulib_int} variable.
  *
  * @def ULIB_INT_MAX
  */
 
 /**
- * Format string for @type{#ulib_int} variables.
+ * Format string for @type{ulib_int} variables.
  *
  * @def ULIB_INT_FMT
  */
 
-/// Minimum value of a @type{#ulib_uint} variable.
+/// Minimum value of a @type{ulib_uint} variable.
 #define ULIB_UINT_MIN 0u
 
 /**
- * Maximum value of a @type{#ulib_uint} variable.
+ * Maximum value of a @type{ulib_uint} variable.
  *
  * @def ULIB_UINT_MAX
  */
 
 /**
- * Format string for @type{#ulib_uint} variables.
+ * Format string for @type{ulib_uint} variables.
  *
  * @def ULIB_UINT_FMT
  */
@@ -211,9 +211,9 @@ typedef uint8_t ulib_byte;
  * The size of this type can be controlled through the **ULIB_TINY** and **ULIB_HUGE**
  * preprocessor definitions:
  *
- * - **No definitions** or **ULIB_HUGE** (*default*): @type{double}
+ * - **No definitions** or **ULIB_HUGE** (*default*): @ctype{double}
  *
- * - **ULIB_TINY**: @type{float}
+ * - **ULIB_TINY**: @ctype{float}
  *
  * @typedef ulib_float
  */
@@ -224,23 +224,23 @@ typedef uint8_t ulib_byte;
  */
 
 /**
- * Minimum positive value of a @type{#ulib_float} variable.
+ * Minimum positive value of a @type{ulib_float} variable.
  *
  * @def ULIB_FLOAT_MIN
  */
 
 /**
- * Maximum value of a @type{#ulib_float} variable.
+ * Maximum value of a @type{ulib_float} variable.
  *
  * @def ULIB_FLOAT_MAX
  */
 
-/// Format string for @type{#ulib_float} variables.
+/// Format string for @type{ulib_float} variables.
 #define ULIB_FLOAT_FMT "f"
 
 /**
  * Difference between 1 and the least value greater than 1 that is representable
- * by a @type{#ulib_float} variable.
+ * by a @type{ulib_float} variable.
  *
  * @def ULIB_FLOAT_EPSILON
  */
@@ -707,7 +707,7 @@ bool ulib_uint_is_pow2_or_zero(ulib_uint x) {
  * @param b Second number.
  * @return a == b.
  *
- * @deprecated Use @func{ulib_eq()} instead.
+ * @deprecated Use @func{ulib_eq} instead.
  * @alias bool ulib_equals(T a, T b);
  */
 #define ulib_equals(a, b) ULIB_DEPRECATED_MACRO ulib_eq(a, b)

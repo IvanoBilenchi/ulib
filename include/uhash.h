@@ -40,7 +40,7 @@ ULIB_BEGIN_DECLS
  * Generic hash table type.
  *
  * @note This is a placeholder for documentation purposes. You should use the
- *       @func{#UHash(T)} macro to reference a specific hash table type.
+ *       @func{UHash(T)} macro to reference a specific hash table type.
  * @alias typedef struct UHash(T) UHash(T);
  */
 
@@ -49,7 +49,7 @@ ULIB_BEGIN_DECLS
  *
  * @param T Hash table type.
  *
- * @note While you can use this macro to reference the key type of a @func{#UHash(T)},
+ * @note While you can use this macro to reference the key type of a @func{UHash(T)},
  *       it is usually better to directly use the type specified when defining the hash table type.
  */
 #define UHashKey(T) uhash_##T##_key
@@ -66,7 +66,7 @@ ULIB_BEGIN_DECLS
  *
  * @param T Hash table type.
  *
- * @note While you can use this macro to reference the value type of a @func{#UHash(T)},
+ * @note While you can use this macro to reference the value type of a @func{UHash(T)},
  *       it is usually better to directly use the type specified when defining the hash table type.
  */
 #define UHashVal(T) uhash_##T##_val
@@ -81,7 +81,7 @@ ULIB_BEGIN_DECLS
 /**
  * Hash table type forward declaration.
  *
- * @param T @type{symbol} Hash table type.
+ * @param T @ctype{symbol} Hash table type.
  */
 #define uhash_decl(T) typedef struct UHash(T) UHash(T)
 
@@ -201,9 +201,9 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
 /*
  * Defines a new hash table type.
  *
- * @param T @type{symbol} Hash table type.
- * @param uh_key @type{type} Hash table key type.
- * @param uh_val @type{type} Hash table value type.
+ * @param T @ctype{symbol} Hash table type.
+ * @param uh_key @ctype{type} Hash table key type.
+ * @param uh_val @ctype{type} Hash table value type.
  */
 #define P_UHASH_DEF_TYPE(T, uh_key, uh_val)                                                        \
     P_UHASH_DEF_TYPE_HEAD(T, uh_key, uh_val)                                                       \
@@ -212,9 +212,9 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
 /*
  * Defines a new hash table type with per-instance hash and equality functions.
  *
- * @param T @type{symbol} Hash table type.
- * @param uh_key @type{type} Hash table key type.
- * @param uh_val @type{type} Hash table value type.
+ * @param T @ctype{symbol} Hash table type.
+ * @param uh_key @ctype{type} Hash table key type.
+ * @param uh_val @ctype{type} Hash table value type.
  */
 #define P_UHASH_DEF_TYPE_PI(T, uh_key, uh_val)                                                     \
     P_UHASH_DEF_TYPE_HEAD(T, uh_key, uh_val)                                                       \
@@ -225,10 +225,10 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
 /*
  * Generates function declarations for the specified hash table type.
  *
- * @param T @type{symbol} Hash table type.
- * @param ATTRS @type{attributes} Attributes of the declarations.
- * @param uh_key @type{type} Hash table key type.
- * @param uh_val @type{type} Hash table value type.
+ * @param T @ctype{symbol} Hash table type.
+ * @param ATTRS @ctype{attributes} Attributes of the declarations.
+ * @param uh_key @ctype{type} Hash table key type.
+ * @param uh_val @ctype{type} Hash table value type.
  */
 #define P_UHASH_DECL(T, ATTRS, uh_key, uh_val)                                                     \
     /** @cond */                                                                                   \
@@ -262,10 +262,10 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
  * Generates function declarations for the specified hash table type
  * with per-instance hash and equality functions.
  *
- * @param T @type{symbol} Hash table type.
- * @param ATTRS @type{attributes} Attributes of the declarations.
- * @param uh_key @type{type} Hash table key type.
- * @param uh_val @type{type} Hash table value type.
+ * @param T @ctype{symbol} Hash table type.
+ * @param ATTRS @ctype{attributes} Attributes of the declarations.
+ * @param uh_key @ctype{type} Hash table key type.
+ * @param uh_val @ctype{type} Hash table value type.
  */
 #define P_UHASH_DECL_PI(T, ATTRS, uh_key, uh_val)                                                  \
     P_UHASH_DECL(T, ATTRS, uh_key, uh_val)                                                         \
@@ -279,8 +279,8 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
 /*
  * Generates inline function definitions for the specified hash table type.
  *
- * @param T @type{symbol} Hash table type.
- * @param ATTRS @type{attributes} Attributes of the definitions.
+ * @param T @ctype{symbol} Hash table type.
+ * @param ATTRS @ctype{attributes} Attributes of the definitions.
  */
 #define P_UHASH_DEF_INLINE(T, ATTRS)                                                               \
     /** @cond */                                                                                   \
@@ -313,8 +313,8 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
 /*
  * Generates init function definitions for the specified hash table type.
  *
- * @param T @type{symbol} Hash table type.
- * @param ATTRS @type{attributes} Attributes of the definitions.
+ * @param T @ctype{symbol} Hash table type.
+ * @param ATTRS @ctype{attributes} Attributes of the definitions.
  */
 #define P_UHASH_IMPL_INIT(T, ATTRS)                                                                \
                                                                                                    \
@@ -333,11 +333,11 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
  * Generates init function definitions for the specified hash table type
  * with per-instance hash and equality functions.
  *
- * @param T @type{symbol} Hash table type.
- * @param ATTRS @type{attributes} Attributes of the definitions.
- * @param uh_key @type{type} Hash table key type.
- * @param default_hfunc @type{(uh_key) -> #ulib_uint} Hash function.
- * @param default_efunc @type{(uh_key, uh_key) -> bool} Equality function.
+ * @param T @ctype{symbol} Hash table type.
+ * @param ATTRS @ctype{attributes} Attributes of the definitions.
+ * @param uh_key @ctype{type} Hash table key type.
+ * @param default_hfunc @ctype{(uh_key) -> #ulib_uint} Hash function.
+ * @param default_efunc @ctype{(uh_key, uh_key) -> bool} Equality function.
  */
 #define P_UHASH_IMPL_INIT_PI(T, ATTRS, uh_key, default_hfunc, default_efunc)                       \
                                                                                                    \
@@ -372,12 +372,12 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
 /*
  * Generates common function definitions for the specified hash table type.
  *
- * @param T @type{symbol} Hash table type.
- * @param ATTRS @type{attributes} Attributes of the definitions.
- * @param uh_key @type{type} Hash table key type.
- * @param uh_val @type{type} Hash table value type.
- * @param hash_func @type{(uh_key) -> #ulib_uint} Hash function.
- * @param equal_func @type{(uh_key, uh_key) -> bool} Equality function.
+ * @param T @ctype{symbol} Hash table type.
+ * @param ATTRS @ctype{attributes} Attributes of the definitions.
+ * @param uh_key @ctype{type} Hash table key type.
+ * @param uh_val @ctype{type} Hash table value type.
+ * @param hash_func @ctype{(uh_key) -> #ulib_uint} Hash function.
+ * @param equal_func @ctype{(uh_key, uh_key) -> bool} Equality function.
  */
 #define P_UHASH_IMPL_COMMON(T, ATTRS, uh_key, uh_val, hash_func, equal_func)                       \
                                                                                                    \
@@ -717,9 +717,9 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
 /**
  * Declares a new hash table type.
  *
- * @param T @type{symbol} Hash table type.
- * @param uh_key @type{type} Type of the keys.
- * @param uh_val @type{type} Type of the values.
+ * @param T @ctype{symbol} Hash table type.
+ * @param uh_key @ctype{type} Type of the keys.
+ * @param uh_val @ctype{type} Type of the values.
  */
 #define UHASH_DECL(T, uh_key, uh_val)                                                              \
     P_UHASH_DEF_TYPE(T, uh_key, uh_val)                                                            \
@@ -729,10 +729,10 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
 /**
  * Declares a new hash table type, prepending a specifier to the generated declarations.
  *
- * @param T @type{symbol} Hash table type.
- * @param uh_key @type{type} Type of the keys.
- * @param uh_val @type{type} Type of the values.
- * @param SPEC @type{specifier} Specifier.
+ * @param T @ctype{symbol} Hash table type.
+ * @param uh_key @ctype{type} Type of the keys.
+ * @param uh_val @ctype{type} Type of the values.
+ * @param SPEC @ctype{specifier} Specifier.
  */
 #define UHASH_DECL_SPEC(T, uh_key, uh_val, SPEC)                                                   \
     P_UHASH_DEF_TYPE(T, uh_key, uh_val)                                                            \
@@ -742,9 +742,9 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
 /**
  * Declares a new hash table type with per-instance hash and equality functions.
  *
- * @param T @type{symbol} Hash table type.
- * @param uh_key @type{type} Type of the keys.
- * @param uh_val @type{type} Type of the values.
+ * @param T @ctype{symbol} Hash table type.
+ * @param uh_key @ctype{type} Type of the keys.
+ * @param uh_val @ctype{type} Type of the values.
  */
 #define UHASH_DECL_PI(T, uh_key, uh_val)                                                           \
     P_UHASH_DEF_TYPE_PI(T, uh_key, uh_val)                                                         \
@@ -755,10 +755,10 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
  * Declares a new hash table type with per-instance hash and equality functions,
  * prepending a specifier to the generated declarations.
  *
- * @param T @type{symbol} Hash table type.
- * @param uh_key @type{type} Type of the keys.
- * @param uh_val @type{type} Type of the values.
- * @param SPEC @type{specifier} Specifier.
+ * @param T @ctype{symbol} Hash table type.
+ * @param uh_key @ctype{type} Type of the keys.
+ * @param uh_val @ctype{type} Type of the values.
+ * @param SPEC @ctype{specifier} Specifier.
  */
 #define UHASH_DECL_PI_SPEC(T, uh_key, uh_val, SPEC)                                                \
     P_UHASH_DEF_TYPE_PI(T, uh_key, uh_val)                                                         \
@@ -768,9 +768,9 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
 /**
  * Implements a previously declared hash table type.
  *
- * @param T @type{symbol} Hash table type.
- * @param hash_func @type{(#UHashKey(T)) -> #ulib_uint} Hash function or expression.
- * @param equal_func @type{(#UHashKey(T), #UHashKey(T)) -> bool} Equality function or expression.
+ * @param T @ctype{symbol} Hash table type.
+ * @param hash_func @ctype{(#UHashKey(T)) -> #ulib_uint} Hash function or expression.
+ * @param equal_func @ctype{(#UHashKey(T), #UHashKey(T)) -> bool} Equality function or expression.
  */
 #define UHASH_IMPL(T, hash_func, equal_func)                                                       \
     P_UHASH_IMPL_INIT(T, ulib_unused)                                                              \
@@ -779,9 +779,9 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
 /**
  * Implements a previously declared hash table type with per-instance hash and equality functions.
  *
- * @param T @type{symbol} Hash table type.
- * @param default_hfunc @type{(#UHashKey(T)) -> #ulib_uint} Hash function.
- * @param default_efunc @type{(#UHashKey(T), #UHashKey(T)) -> bool} Equality function.
+ * @param T @ctype{symbol} Hash table type.
+ * @param default_hfunc @ctype{(#UHashKey(T)) -> #ulib_uint} Hash function.
+ * @param default_efunc @ctype{(#UHashKey(T), #UHashKey(T)) -> bool} Equality function.
  */
 #define UHASH_IMPL_PI(T, default_hfunc, default_efunc)                                             \
     P_UHASH_IMPL_INIT_PI(T, ulib_unused, UHashKey(T), default_hfunc, default_efunc)                \
@@ -790,11 +790,11 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
 /**
  * Defines a new static hash table type.
  *
- * @param T @type{symbol} Hash table type.
- * @param uh_key @type{type} Type of the keys.
- * @param uh_val @type{type} Type of the values.
- * @param hash_func @type{(#UHashKey(T)) -> #ulib_uint} Hash function or expression.
- * @param equal_func @type{(#UHashKey(T), #UHashKey(T)) -> bool} Equality function or expression.
+ * @param T @ctype{symbol} Hash table type.
+ * @param uh_key @ctype{type} Type of the keys.
+ * @param uh_val @ctype{type} Type of the values.
+ * @param hash_func @ctype{(#UHashKey(T)) -> #ulib_uint} Hash function or expression.
+ * @param equal_func @ctype{(#UHashKey(T), #UHashKey(T)) -> bool} Equality function or expression.
  */
 #define UHASH_INIT(T, uh_key, uh_val, hash_func, equal_func)                                       \
     P_UHASH_DEF_TYPE(T, uh_key, uh_val)                                                            \
@@ -806,11 +806,11 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
 /**
  * Defines a new static hash table type with per-instance hash and equality functions.
  *
- * @param T @type{symbol} Hash table type.
- * @param uh_key @type{type} Type of the keys.
- * @param uh_val @type{type} Type of the values.
- * @param default_hfunc @type{(#UHashKey(T)) -> #ulib_uint} Hash function.
- * @param default_efunc @type{(#UHashKey(T), #UHashKey(T)) -> bool} Equality function.
+ * @param T @ctype{symbol} Hash table type.
+ * @param uh_key @ctype{type} Type of the keys.
+ * @param uh_val @ctype{type} Type of the values.
+ * @param default_hfunc @ctype{(#UHashKey(T)) -> #ulib_uint} Hash function.
+ * @param default_efunc @ctype{(#UHashKey(T), #UHashKey(T)) -> bool} Equality function.
  */
 #define UHASH_INIT_PI(T, uh_key, uh_val, default_hfunc, default_efunc)                             \
     P_UHASH_DEF_TYPE_PI(T, uh_key, uh_val)                                                         \
@@ -833,7 +833,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
  * @param b RHS of the identity.
  * @return a == b
  *
- * @deprecated Use @func{ulib_eq()} instead.
+ * @deprecated Use @func{ulib_eq} instead.
  * @alias bool uhash_identical(T a, T b);
  */
 #define uhash_identical(a, b) ULIB_DEPRECATED_MACRO ulib_eq(a, b)
@@ -841,11 +841,11 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
 /**
  * Equality function for strings.
  *
- * @param a LHS of the equality relation (NULL terminated string).
- * @param b RHS of the equality relation (NULL terminated string).
+ * @param a LHS of the equality relation (NULL-terminated string).
+ * @param b RHS of the equality relation (NULL-terminated string).
  * @return True if a is equal to b, false otherwise.
  *
- * @deprecated Use @func{ulib_str_equals()} instead.
+ * @deprecated Use @func{ulib_str_equals} instead.
  * @alias bool uhash_str_equals(char const *a, char const *b);
  */
 #define uhash_str_equals(a, b) ULIB_DEPRECATED_MACRO ulib_str_equals(a, b)
@@ -856,7 +856,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
  * @param key The integer.
  * @return The hash value.
  *
- * @deprecated Use @func{ulib_hash_int8()} instead.
+ * @deprecated Use @func{ulib_hash_int8} instead.
  * @alias ulib_uint uhash_int8_hash(uint8_t key);
  */
 #define uhash_int8_hash(key) ULIB_DEPRECATED_MACRO ulib_hash_int8(key)
@@ -867,7 +867,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
  * @param key The integer.
  * @return The hash value.
  *
- * @deprecated Use @func{ulib_hash_int16()} instead.
+ * @deprecated Use @func{ulib_hash_int16} instead.
  * @alias ulib_uint uhash_int16_hash(uint16_t key);
  */
 #define uhash_int16_hash(key) ULIB_DEPRECATED_MACRO ulib_hash_int16(key)
@@ -878,7 +878,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
  * @param key The integer.
  * @return The hash value.
  *
- * @deprecated Use @func{ulib_hash_int32()} instead.
+ * @deprecated Use @func{ulib_hash_int32} instead.
  * @alias ulib_uint uhash_int32_hash(uint32_t key);
  */
 #define uhash_int32_hash(key) ULIB_DEPRECATED_MACRO ulib_hash_int32(key)
@@ -889,7 +889,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
  * @param key The integer.
  * @return The hash value.
  *
- * @deprecated Use @func{ulib_hash_int64()} instead.
+ * @deprecated Use @func{ulib_hash_int64} instead.
  * @alias ulib_uint uhash_int64_hash(uint64_t key);
  */
 #define uhash_int64_hash(key) ULIB_DEPRECATED_MACRO ulib_hash_int64(key)
@@ -900,7 +900,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
  * @param key The pointer.
  * @return The hash value.
  *
- * @deprecated Use @func{ulib_hash_ptr()} or @func{ulib_hash_alloc_ptr()} instead.
+ * @deprecated Use @func{ulib_hash_ptr} or @func{ulib_hash_alloc_ptr} instead.
  * @alias ulib_uint uhash_ptr_hash(T *key);
  */
 #define uhash_ptr_hash(key) ULIB_DEPRECATED_MACRO ulib_hash_ptr(key)
@@ -912,7 +912,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
  * @param hash_2 Second hash.
  * @return The hash value.
  *
- * @deprecated Use @func{ulib_hash_combine()} instead.
+ * @deprecated Use @func{ulib_hash_combine} instead.
  * @alias ulib_uint uhash_combine_hash(ulib_uint hash_1, ulib_uint hash_2);
  */
 #define uhash_combine_hash(hash_1, hash_2) ULIB_DEPRECATED_MACRO ulib_hash_combine(hash_1, hash_2)
@@ -945,7 +945,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
  * @param T Hash table type.
  * @param src Hash table to copy.
  * @param dest Hash table to copy into.
- * @return @val{#UHASH_OK} if the operation succeeded, @val{#UHASH_ERR} on error.
+ * @return @val{UHASH_OK} if the operation succeeded, @val{UHASH_ERR} on error.
  *
  * @alias uhash_ret uhash_copy(symbol T, UHash(T) const *src, UHash(T) *dest);
  */
@@ -957,7 +957,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
  * @param T Hash table type.
  * @param src Hash table to copy.
  * @param dest Hash table to copy into.
- * @return @val{#UHASH_OK} if the operation succeeded, @val{#UHASH_ERR} on error.
+ * @return @val{UHASH_OK} if the operation succeeded, @val{UHASH_ERR} on error.
  *
  * @alias uhash_ret uhash_copy_as_set(symbol T, UHash(T) const *src, UHash(T) *dest);
  */
@@ -969,7 +969,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
  * @param T Hash table type.
  * @param h Hash table to resize.
  * @param s Hash table size.
- * @return @val{#UHASH_OK} if the operation succeeded, @val{#UHASH_ERR} on error.
+ * @return @val{UHASH_OK} if the operation succeeded, @val{UHASH_ERR} on error.
  *
  * @alias uhash_ret uhash_resize(symbol T, UHash(T) *h, ulib_uint s);
  */
@@ -981,7 +981,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
  *
  * @param T Hash table type.
  * @param h Hash table to shrink.
- * @return @val{#UHASH_OK} if the operation succeeded, @val{#UHASH_ERR} on error.
+ * @return @val{UHASH_OK} if the operation succeeded, @val{UHASH_ERR} on error.
  *
  * @alias uhash_ret uhash_shrink(symbol T, UHash(T) *h);
  */
@@ -1017,7 +1017,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
  * @param T Hash table type.
  * @param h Hash table instance.
  * @param k Key whose index should be retrieved.
- * @return Index of the key, or @val{#UHASH_INDEX_MISSING} if it is absent.
+ * @return Index of the key, or @val{UHASH_INDEX_MISSING} if it is absent.
  *
  * @alias ulib_uint uhash_get(symbol T, UHash(T) const *h, UHashKey(T) k);
  */
@@ -1139,9 +1139,9 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
  * }
  * @endcode
  *
- * @param T @type{symbol} Hash table type.
- * @param ht @type{#UHash(T) *} Hash table instance.
- * @param enum_name @type{symbol} Name of the variable holding the current index, key and value.
+ * @param T @ctype{symbol} Hash table type.
+ * @param ht @ctype{#UHash(T) *} Hash table instance.
+ * @param enum_name @ctype{symbol} Name of the variable holding the current index, key and value.
  */
 // clang-format off
 #define uhash_foreach(T, ht, enum_name) /* NOLINTNEXTLINE(misc-const-correctness) */               \
@@ -1333,7 +1333,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
  * @param n Size of the array.
  * @return Return code.
  *
- * @note This function returns @val{#UHASH_INSERTED} if at least one element in the array
+ * @note This function returns @val{UHASH_INSERTED} if at least one element in the array
  *       was missing from the set.
  * @alias uhash_ret uhset_insert_all(symbol T, UHash(T) *h, UHashKey(T) *a, ulib_uint n);
  */
@@ -1395,7 +1395,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
  * @param T Hash table type.
  * @param h1 Set to mutate, will contain `h1 || h2`.
  * @param h2 Other set.
- * @return @val{#UHASH_OK} if the operation succeeded, @val{#UHASH_ERR} on error.
+ * @return @val{UHASH_OK} if the operation succeeded, @val{UHASH_ERR} on error.
  *
  * @alias uhash_ret uhset_union(symbol T, UHash(T) *h1, UHash(T) const *h2);
  */
@@ -1409,7 +1409,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
  * @param h1 Set to mutate, will contain `h1 - h2`.
  * @param h12 Set that will contain `h1 && h2`.
  * @param h2 Other set.
- * @return @val{#UHASH_OK} if the operation succeeded, @val{#UHASH_ERR} on error.
+ * @return @val{UHASH_OK} if the operation succeeded, @val{UHASH_ERR} on error.
  *
  * @alias uhash_ret uhset_diff_intersect(symbol T, UHash(T) *h1, UHash(T) *h12, UHash(T) const *h2);
  */

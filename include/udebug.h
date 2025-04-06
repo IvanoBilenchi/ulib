@@ -50,9 +50,9 @@ typedef struct USrcLoc {
 /**
  * Asserts that `exp` is true. If the assertion fails, execution is aborted.
  *
- * @param exp @type{boolean expression} Boolean expression.
+ * @param exp @ctype{boolean expression} Boolean expression.
  *
- * @note uLib assertions are enabled only for analyzers, or if `ULIB_DEBUG` is defined.
+ * @note uLib assertions are enabled only for analyzers, or if @val{ULIB_DEBUG} is defined.
  */
 #if defined(ULIB_DEBUG) || defined(__clang_analyzer__)
 #define ulib_assert(exp)                                                                           \
@@ -64,7 +64,7 @@ typedef struct USrcLoc {
 /**
  * Give hints to static analyzers, asserting that `exp` is true.
  *
- * @param exp @type{boolean expression} Boolean expression.
+ * @param exp @ctype{boolean expression} Boolean expression.
  */
 #ifdef __clang_analyzer__
 #define ulib_analyzer_assert(exp)                                                                  \

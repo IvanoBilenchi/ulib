@@ -27,7 +27,7 @@
  * Generic bitmask type.
  *
  * @note This is a placeholder for documentation purposes. You should use the
- *       @func{#UBit(N)} macro to reference a specific bitmask type.
+ *       @func{UBit(N)} macro to reference a specific bitmask type.
  * @alias typedef uintN_t UBit(N);
  */
 

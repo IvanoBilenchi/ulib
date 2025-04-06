@@ -56,7 +56,7 @@ typedef struct UTestEvent {
 /**
  * Runs a test batch.
  *
- * @param NAME @type{string literal} Name of the test batch.
+ * @param NAME @ctype{string literal} Name of the test batch.
  * @param ... Comma separated list of (void) -> void test functions.
  */
 #define utest_run(NAME, ...)                                                                       \
@@ -131,9 +131,9 @@ typedef struct UTestEvent {
 /**
  * Assert that `A OP B` must be true, where `A` and `B` are integers.
  *
- * @param A @type{long long} First integer.
+ * @param A @ctype{long long} First integer.
  * @param OP Comparison operator.
- * @param B @type{long long} Second integer.
+ * @param B @ctype{long long} Second integer.
  */
 #define utest_assert_int(A, OP, B)                                                                 \
     do {                                                                                           \
@@ -146,9 +146,9 @@ typedef struct UTestEvent {
 /**
  * Assert that `A OP B` must be true, where `A` and `B` are unsigned integers.
  *
- * @param A @type{unsigned long long} First integer.
+ * @param A @ctype{unsigned long long} First integer.
  * @param OP Comparison operator.
- * @param B @type{unsigned long long} Second integer.
+ * @param B @ctype{unsigned long long} Second integer.
  */
 #define utest_assert_uint(A, OP, B)                                                                \
     do {                                                                                           \
@@ -161,9 +161,9 @@ typedef struct UTestEvent {
 /**
  * Assert that `A OP B` must be true, where `A` and `B` are floating point numbers.
  *
- * @param A @type{double} First float.
+ * @param A @ctype{double} First float.
  * @param OP Comparison operator.
- * @param B @type{double} Second float.
+ * @param B @ctype{double} Second float.
  */
 #define utest_assert_float(A, OP, B)                                                               \
     do {                                                                                           \
@@ -176,9 +176,9 @@ typedef struct UTestEvent {
 /**
  * Assert that `A OP B` must be true, where `A` and `B` are pointers.
  *
- * @param A @type{void *} First pointer.
+ * @param A @ctype{void *} First pointer.
  * @param OP Comparison operator.
- * @param B @type{void *} Second pointer.
+ * @param B @ctype{void *} Second pointer.
  */
 #define utest_assert_ptr(A, OP, B)                                                                 \
     do {                                                                                           \
@@ -191,9 +191,9 @@ typedef struct UTestEvent {
 /**
  * Assert that `strcmp(A, B) OP 0` must be true.
  *
- * @param A @type{char const *} First string.
+ * @param A @ctype{char const *} First string.
  * @param OP Comparison operator.
- * @param B @type{char const *} Second string.
+ * @param B @ctype{char const *} Second string.
  */
 #define utest_assert_string(A, OP, B)                                                              \
     do {                                                                                           \
@@ -206,21 +206,21 @@ typedef struct UTestEvent {
 /**
  * Assert that `memcmp(A, B, SIZE) OP 0` must be true.
  *
- * @param A @type{void *} First buffer.
+ * @param A @ctype{void *} First buffer.
  * @param OP Comparison operator.
- * @param B @type{void *} Second buffer.
- * @param SIZE @type{size_t} Buffer size.
+ * @param B @ctype{void *} Second buffer.
+ * @param SIZE @ctype{size_t} Buffer size.
  */
 #define utest_assert_buf(A, OP, B, SIZE)                                                           \
     utest_assert_msg(memcmp(A, B, SIZE) OP 0,                                                      \
                      "Contents of \"" #A "\" must be " #OP " to those of \"" #B "\"")
 
 /**
- * Assert that `ustring_compare(A, B) OP 0` must be true.
+ * Assert that `#ustring_compare(A, B) OP 0` must be true.
  *
- * @param A @type{#UString} First string.
+ * @param A @type{UString} First string.
  * @param OP Comparison operator.
- * @param B @type{#UString} Second string.
+ * @param B @type{UString} Second string.
  */
 #define utest_assert_ustring(A, OP, B)                                                             \
     do {                                                                                           \
@@ -251,7 +251,7 @@ typedef struct UTestEvent {
  *
  * @param EXP Boolean expression.
  *
- * @deprecated Use @func{utest_assert_fatal()} instead.
+ * @deprecated Use @func{utest_assert_fatal} instead.
  */
 #define utest_assert_critical(EXP) ULIB_DEPRECATED_MACRO utest_assert_fatal(EXP)
 

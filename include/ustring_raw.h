@@ -188,7 +188,7 @@ void ulib_str_to_lower(char *dst, char const *src, size_t length) {
  * @param base Numeric base.
  * @return Integer.
  *
- * @note Size-appropriate wrapper for @func{strtol()} and @func{strtoll()}.
+ * @note Size-appropriate wrapper for @cfunc{strtol} and @cfunc{strtoll}.
  *       Refer to their documentation for extended information (e.g. error handling).
  */
 ULIB_INLINE
@@ -211,7 +211,7 @@ ulib_int ulib_str_to_int(char const *src, char **end, unsigned base) {
  * @param base Numeric base.
  * @return Unsigned integer.
  *
- * @note Size-appropriate wrapper for @func{strtoul()} and @func{strtoull()}.
+ * @note Size-appropriate wrapper for @cfunc{strtoul} and @cfunc{strtoull}.
  *       Refer to their documentation for extended information (e.g. error handling).
  */
 ULIB_INLINE
@@ -233,7 +233,7 @@ ulib_uint ulib_str_to_uint(char const *src, char **end, unsigned base) {
  * @param[out] end End pointer.
  * @return Float.
  *
- * @note Size-appropriate wrapper for @func{strtof()} and @func{strtod()}.
+ * @note Size-appropriate wrapper for @cfunc{strtof} and @cfunc{strtod}.
  *       Refer to their documentation for extended information (e.g. error handling).
  */
 ULIB_INLINE

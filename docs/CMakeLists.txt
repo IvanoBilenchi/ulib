@@ -2,6 +2,12 @@
 
 set(SPHINX_INPUT_DIRECTORY "${ULIB_DOCS_DIR}")
 
+# Packages
+
+find_package(Python3 REQUIRED)
+find_package(Doxygen REQUIRED)
+find_package(Sphinx)
+
 # Doxygen configuration
 
 set(DOXYGEN_FULL_PATH_NAMES NO)
@@ -26,22 +32,22 @@ set(DOXYGEN_PREDEFINED
 set(DOXYGEN_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/doxygen")
 set(DOXYGEN_XML_OUTPUT_DIRECTORY "${DOXYGEN_OUTPUT_DIRECTORY}/xml")
 set(DOXYGEN_ALIASES
-    [[destructor{1}="@note The returned object must be destroyed by calling <tt>#\1()</tt>."]]
-    [[func{1}="<tt>\1</tt>"]]
-    [[type{1}="<tt>\1</tt>"]]
-    [[var{1}="<tt>\1</tt>"]]
-    [[val{1}="<tt>\1</tt>"]]
+    [[destructor{1}="@note The returned object must be destroyed by calling <tt>#\1</tt>."]]
+    [[cdestructor{1}="@note The returned object must be destroyed by calling <tt>\1</tt>."]]
+    [[func{1}="<tt>#\1</tt>"]]
+    [[cfunc{1}="<tt>\1</tt>"]]
+    [[type{1}="<tt>#\1</tt>"]]
+    [[ctype{1}="<tt>\1</tt>"]]
+    [[var{1}="<tt>#\1</tt>"]]
+    [[cvar{1}="<tt>\1</tt>"]]
+    [[val{1}="<tt>#\1</tt>"]]
+    [[cval{1}="<tt>\1</tt>"]]
     [[alias=@noop]]
 )
 set(DOXYGEN_VERBATIM_VARS DOXYGEN_ALIASES)
-
-find_package(Python3 REQUIRED)
 set(DOXYGEN_INPUT_FILTER "${Python3_EXECUTABLE} ${ULIB_UTILS_DIR}/doxygen/alias.py")
 
 # Documentation targets
-
-find_package(Doxygen REQUIRED)
-find_package(Sphinx)
 
 set(DOCS_TARGET_NAME ulib-docs)
 

@@ -51,8 +51,8 @@
 /**
  * Concatenates the `a` and `b` tokens, allowing `a` and `b` to be macro-expanded.
  *
- * @param a @type{token} First token.
- * @param b @type{token} Second token.
+ * @param a @ctype{token} First token.
+ * @param b @ctype{token} Second token.
  */
 #define ULIB_MACRO_CONCAT(a, b) P_ULIB_MACRO_CONCAT(a, b)
 #define P_ULIB_MACRO_CONCAT(a, b) a##b
@@ -60,7 +60,7 @@
 /**
  * Stringizes the argument, allowing it to be macro-expanded.
  *
- * @param a @type{macro} Macro to be stringized.
+ * @param a @ctype{macro} Macro to be stringized.
  */
 #define ULIB_MACRO_STRINGIZE(a) P_ULIB_MACRO_STRINGIZE(a)
 #define P_ULIB_MACRO_STRINGIZE(a) #a
@@ -85,7 +85,7 @@
 /**
  * Hint the branch predictor that `exp` is likely true.
  *
- * @param exp @type{boolean expression} Boolean expression.
+ * @param exp @ctype{boolean expression} Boolean expression.
  */
 #if defined(__GNUC__) || defined(__clang__)
 #define ulib_likely(exp) __builtin_expect(!!(exp), 1)
@@ -96,7 +96,7 @@
 /**
  * Hint the branch predictor that `exp` is likely false.
  *
- * @param exp @type{boolean expression} Boolean expression.
+ * @param exp @ctype{boolean expression} Boolean expression.
  */
 #if defined(__GNUC__) || defined(__clang__)
 #define ulib_unlikely(exp) __builtin_expect(!!(exp), 0)

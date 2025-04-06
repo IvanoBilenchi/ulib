@@ -107,8 +107,8 @@ typedef void *ulib_ptr;
  * @param size Number of bytes to allocate.
  * @return Pointer to the beginning of the allocated memory.
  *
- * @note This function is a portable alternative to the non-standard `alloca()`. Users
- *       are expected to pair it with a call to @func{#ulib_stackfree()} within the same caller,
+ * @note This function is a portable alternative to the non-standard @cfunc{alloca}. Users
+ *       are expected to pair it with a call to @func{ulib_stackfree} within the same caller,
  *       supporting a fallback to heap allocation if stack allocation is not available.
  * @destructor{ulib_stackfree}
  * @alias void *ulib_stackalloc(size_t size);
@@ -135,12 +135,12 @@ typedef void *ulib_ptr;
 #endif
 
 /**
- * Deallocates the given memory area returned by @func{#ulib_stackalloc()}.
+ * Deallocates the given memory area returned by @func{ulib_stackalloc}.
  *
  * @param ptr Pointer to the memory area to deallocate.
  *
  * @note This function is a no-op if stack allocation is available,
- *       otherwise it calls @func{#ulib_free()}.
+ *       otherwise it calls @func{ulib_free}.
  * @alias void ulib_stackfree(void *ptr);
  */
 #ifdef ULIB_STACKFREE

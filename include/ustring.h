@@ -90,8 +90,8 @@ typedef struct UString {
  */
 
 /**
- * Low-level hash function used by @func{ustring_hash()}.
- * Can be customized by setting the ``ustring_hash_func`` macro.
+ * Low-level hash function used by @func{ustring_hash}.
+ * Can be customized by setting the @val{ustring_hash_func} macro.
  *
  * @param init Hash initialization constant.
  * @param buf Pointer to the start of the buffer.
@@ -102,7 +102,7 @@ typedef struct UString {
  */
 #ifndef ustring_hash_func
 #include "uhash_func.h" // IWYU pragma: keep, declares ulib_hash_mem_kr2
-#define ustring_hash_func(init, buf, size) ulib_hash_mem_kr2(init, buf, size)
+#define ustring_hash_func ulib_hash_mem_kr2
 #endif
 
 /// String with a NULL buffer.
@@ -167,7 +167,7 @@ ulib_uint ustring_length(UString string) {
  *
  * @destructor{ustring_deinit}
  * @note The buffer must be null-terminated.
- * @note Due to the internals of @type{#UString}, you must not attempt to access the buffer
+ * @note Due to the internals of @type{UString}, you must not attempt to access the buffer
  *       after calling this function as it may have been deallocated.
  */
 ULIB_API
@@ -194,7 +194,7 @@ UString ustring_copy(char const *buf, size_t length);
  *
  * @note The buffer must be null-terminated.
  * @note If the buffer has been dynamically allocated, you are responsible for its deallocation.
- * @note You must not call @func{#ustring_deinit()} on a string initialized with this function.
+ * @note You must not call @func{ustring_deinit} on a string initialized with this function.
  */
 ULIB_API
 UString ustring_wrap(char const *buf, size_t length);
@@ -216,8 +216,8 @@ char *ustring(UString *string, size_t length);
 /**
  * Initializes a new string by copying the specified string literal.
  *
- * @param literal @type{char const []} String literal.
- * @return @type{#UString} Initialized string.
+ * @param literal @ctype{char const []} String literal.
+ * @return @type{UString} Initialized string.
  *
  * @destructor{ustring_deinit}
  */
@@ -226,10 +226,10 @@ char *ustring(UString *string, size_t length);
 /**
  * Wraps the specified literal in a string.
  *
- * @param literal @type{char const []} String literal.
- * @return @type{#UString} String.
+ * @param literal @ctype{char const []} String literal.
+ * @return @type{UString} String.
  *
- * @note You must not call @func{#ustring_deinit()} on a string initialized with this function.
+ * @note You must not call @func{ustring_deinit} on a string initialized with this function.
  */
 #define ustring_literal(literal) ustring_wrap(literal, sizeof(literal) - 1)
 
@@ -242,7 +242,7 @@ char *ustring(UString *string, size_t length);
  *
  * @destructor{ustring_deinit}
  * @note The buffer must be null-terminated.
- * @note Due to the internals of @type{#UString}, you must not attempt to access the buffer
+ * @note Due to the internals of @type{UString}, you must not attempt to access the buffer
  *       after calling this function as it may have been deallocated.
  */
 ULIB_INLINE
@@ -272,7 +272,7 @@ UString ustring_copy_buf(char const *buf) {
  *
  * @note The buffer must be null-terminated.
  * @note If the buffer has been dynamically allocated, you are responsible for its deallocation.
- * @note You must not call @func{#ustring_deinit()} on a string initialized with this function.
+ * @note You must not call @func{ustring_deinit} on a string initialized with this function.
  */
 ULIB_INLINE
 UString ustring_wrap_buf(char const *buf) {

@@ -26,30 +26,30 @@ ULIB_BEGIN_DECLS
  */
 
 /**
- * @type{#UHash(T)} with @type{#ulib_int} keys and @type{#ulib_ptr} values.
+ * @type{UHash(T)} with @type{ulib_int} keys and @type{ulib_ptr} values.
  *
  * @alias typedef struct UHash(ulib_int) UHash(ulib_int);
  */
 UHASH_DECL_SPEC(ulib_int, ulib_int, ulib_ptr, ULIB_API)
 
 /**
- * @type{#UHash(T)} with @type{#ulib_uint} keys and @type{#ulib_ptr} values.
+ * @type{UHash(T)} with @type{ulib_uint} keys and @type{ulib_ptr} values.
  *
  * @alias typedef struct UHash(ulib_uint) UHash(ulib_uint);
  */
 UHASH_DECL_SPEC(ulib_uint, ulib_uint, ulib_ptr, ULIB_API)
 
 /**
- * @type{#UHash(T)} with @type{#ulib_ptr} keys and @type{#ulib_ptr} values.
+ * @type{UHash(T)} with @type{ulib_ptr} keys and @type{ulib_ptr} values.
  *
- * @note Expects pointers used as keys to have an alignment of @val{#ULIB_MALLOC_ALIGN}.
+ * @note Expects pointers used as keys to have an alignment of @val{ULIB_MALLOC_ALIGN}.
  *
  * @alias typedef struct UHash(ulib_ptr) UHash(ulib_ptr);
  */
 UHASH_DECL_SPEC(ulib_ptr, ulib_ptr, ulib_ptr, ULIB_API)
 
 /**
- * @type{#UHash(T)} with @type{#UString} keys and @type{#ulib_ptr} values.
+ * @type{UHash(T)} with @type{UString} keys and @type{ulib_ptr} values.
  *
  * @alias typedef struct UHash(UString) UHash(UString);
  */
