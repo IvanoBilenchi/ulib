@@ -13,7 +13,7 @@ target_sources(ulib-test
                        BASE_DIRS "${ULIB_TEST_SRC_DIR}"
                        FILES ${ULIB_TEST_HEADERS})
 target_compile_features(ulib-test PRIVATE ${ULIB_COMPILE_FEATURES})
-target_compile_options(ulib-test PRIVATE ${ULIB_WARNING_OPTIONS} ${ULIB_OPTIMIZER_OPTIONS})
+target_compile_options(ulib-test PRIVATE ${ULIB_WARNING_OPTIONS})
 target_link_libraries(ulib-test PRIVATE ulib)
 
 if(ULIB_LTO_ENABLED)

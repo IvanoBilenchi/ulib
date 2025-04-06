@@ -17,7 +17,7 @@ target_sources(ulib-bench
                        BASE_DIRS "${ULIB_BENCH_SRC_DIR}"
                        FILES ${ULIB_BENCH_HEADERS})
 target_compile_features(ulib-bench PRIVATE ${ULIB_COMPILE_FEATURES})
-target_compile_options(ulib-bench PRIVATE ${ULIB_WARNING_OPTIONS} ${ULIB_OPTIMIZER_OPTIONS})
+target_compile_options(ulib-bench PRIVATE ${ULIB_WARNING_OPTIONS})
 target_link_libraries(ulib-bench PRIVATE ulib khashl)
 
 if(ULIB_LTO_ENABLED)

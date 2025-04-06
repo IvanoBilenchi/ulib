@@ -159,8 +159,8 @@ set_target_properties(ulib PROPERTIES
                       VISIBILITY_INLINES_HIDDEN ON)
 target_compile_features(ulib PRIVATE ${ULIB_COMPILE_FEATURES})
 target_compile_options(ulib
-                       PUBLIC ${ULIB_SANITIZER_OPTIONS}
-                       PRIVATE ${ULIB_WARNING_OPTIONS} ${ULIB_OPTIMIZER_OPTIONS})
+                       PUBLIC ${ULIB_SANITIZER_OPTIONS} ${ULIB_OPTIMIZER_OPTIONS}
+                       PRIVATE ${ULIB_WARNING_OPTIONS})
 target_link_options(ulib PUBLIC ${ULIB_SANITIZER_OPTIONS})
 target_compile_definitions(ulib
                            PUBLIC ${ULIB_PUBLIC_DEFINES}
