@@ -27,9 +27,9 @@ project(uLib
 # Cache variables
 
 option(ULIB_DOCS "Enable the documentation targets" OFF)
-option(ULIB_TESTS "Enable the test targets" OFF)
-option(ULIB_CPP_TESTS "Enable the C++ test targets" OFF)
-option(ULIB_BENCHMARKS "Enable the benchmark targets" OFF)
+option(ULIB_TESTS "Enable the test targets" ${PROJECT_IS_TOP_LEVEL})
+option(ULIB_CPP_TESTS "Enable the C++ test targets" ${PROJECT_IS_TOP_LEVEL})
+option(ULIB_BENCHMARKS "Enable the benchmark targets" ${PROJECT_IS_TOP_LEVEL})
 option(ULIB_LTO "Enable link-time optimization, if available" ON)
 option(ULIB_OPTIMIZE_FOR_HOST "Enable host CPU optimizations (keep OFF for distribution)" OFF)
 option(ULIB_CLANG_TIDY "Enable clang-tidy, if available" OFF)
@@ -165,7 +165,10 @@ target_link_options(ulib PUBLIC ${ULIB_SANITIZER_OPTIONS})
 target_compile_definitions(ulib
                            PUBLIC ${ULIB_PUBLIC_DEFINES}
                            PRIVATE ${ULIB_PRIVATE_DEFINES})
-target_precompile_headers(ulib PUBLIC ${ULIB_USER_HEADERS})
+
+if(ULIB_USER_HEADERS)
+    target_precompile_headers(ulib PUBLIC ${ULIB_USER_HEADERS})
+endif()
 
 if(ULIB_LIBRARY_TYPE STREQUAL "SHARED")
     target_compile_definitions(ulib PUBLIC ULIB_SHARED)

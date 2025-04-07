@@ -62,7 +62,7 @@ If you're using CMake as your build system, you can link against uLib by configu
 .. code-block:: cmake
 
     # Assuming uLib's source is under "lib/ulib"
-    add_subdirectory("lib/ulib" EXCLUDE_FROM_ALL)
+    add_subdirectory("lib/ulib")
     target_link_libraries(your-target PRIVATE ulib)
 
 For other build systems or if you are building directly through a compiler, please refer
