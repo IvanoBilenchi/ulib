@@ -13,7 +13,7 @@
 #define UDEBUG_H
 
 #include "uattrs.h"
-#include "uutils.h" // IWYU pragma: keep, required for ulib_likely()
+#include "uutils.h"
 
 ULIB_BEGIN_DECLS
 
@@ -56,9 +56,9 @@ typedef struct USrcLoc {
  */
 #if defined(ULIB_DEBUG) || defined(__clang_analyzer__)
 #define ulib_assert(exp)                                                                           \
-    (ulib_likely(exp) ? (void)0 : p_ulib_assert(#exp, ULIB_FILE_NAME, __func__, __LINE__))
+    (ulib_likely(exp) ? ulib_noop : p_ulib_assert(#exp, ULIB_FILE_NAME, __func__, __LINE__))
 #else
-#define ulib_assert(exp) ((void)0)
+#define ulib_assert(exp) ulib_noop
 #endif
 
 /**
@@ -68,9 +68,9 @@ typedef struct USrcLoc {
  */
 #ifdef __clang_analyzer__
 #define ulib_analyzer_assert(exp)                                                                  \
-    ((exp) ? (void)0 : p_ulib_assert(#exp, ULIB_FILE_NAME, __func__, __LINE__))
+    ((exp) ? ulib_noop : p_ulib_assert(#exp, ULIB_FILE_NAME, __func__, __LINE__))
 #else
-#define ulib_analyzer_assert(exp) ((void)0)
+#define ulib_analyzer_assert(exp) ulib_noop
 #endif
 
 /// @}

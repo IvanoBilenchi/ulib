@@ -104,6 +104,16 @@
 #define ulib_unlikely(exp) (exp)
 #endif
 
+/// No-op macro.
+#define ulib_noop ((void)0)
+
+/**
+ * No-op function macro.
+ *
+ * @param ... Arguments (ignored).
+ */
+#define ulib_noop_func(...) ulib_noop
+
 /// @}
 
 #endif // UUTILS_H

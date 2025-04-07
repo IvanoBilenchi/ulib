@@ -113,9 +113,7 @@ typedef void *ulib_ptr;
  * @destructor{ulib_stackfree}
  * @alias void *ulib_stackalloc(size_t size);
  */
-#ifdef ULIB_STACKALLOC
-#define ulib_stackalloc(size) ULIB_STACKALLOC(size)
-#elif defined(__GLIBC__) || defined(__sun) || defined(__CYGWIN__)
+#if defined(__GLIBC__) || defined(__sun) || defined(__CYGWIN__)
 #include <alloca.h>
 #define P_ULIB_FOUND_ALLOCA alloca
 #elif defined(_WIN32)
@@ -128,10 +126,12 @@ typedef void *ulib_ptr;
 #endif
 #endif
 
-#if defined(P_ULIB_FOUND_ALLOCA)
-#define ulib_stackalloc(size) P_ULIB_FOUND_ALLOCA(size)
+#if defined(ULIB_STACKALLOC)
+#define ulib_stackalloc ULIB_STACKALLOC
+#elif defined(P_ULIB_FOUND_ALLOCA)
+#define ulib_stackalloc P_ULIB_FOUND_ALLOCA
 #else
-#define ulib_stackalloc(size) ulib_malloc(size)
+#define ulib_stackalloc ulib_malloc
 #endif
 
 /**
@@ -144,11 +144,12 @@ typedef void *ulib_ptr;
  * @alias void ulib_stackfree(void *ptr);
  */
 #ifdef ULIB_STACKFREE
-#define ulib_stackfree(ptr) ULIB_STACKFREE(ptr)
+#define ulib_stackfree ULIB_STACKFREE
 #elif defined(P_ULIB_FOUND_ALLOCA)
-#define ulib_stackfree(ptr) ((void)0)
+#include "uutils.h"
+#define ulib_stackfree ulib_noop_func
 #else
-#define ulib_stackfree(ptr) ulib_free(ptr)
+#define ulib_stackfree ulib_free
 #endif
 
 /**
