@@ -72,7 +72,7 @@ static bool log_leaks(void) {
 
     ulog_warn("Leaks: %" ULIB_UINT_FMT, leaks);
 
-    if (p_utest_status()) {
+    if (utest_all_passed()) {
         unsigned i = 0;
         uhash_foreach (AllocTable, alloc_table, alloc) {
             ulog_warn("Leak %u: 0x%" PRIxPTR " (%s)", ++i, *alloc.key, *alloc.val);

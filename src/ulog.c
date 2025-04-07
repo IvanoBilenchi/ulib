@@ -64,7 +64,7 @@ ustream_ret ulog_msg(ULog *log, ULogMsg msg) {
 }
 
 ustream_ret ulog_date(ULog *log) {
-    UTime now = utime_now();
+    UTime now = utime_local();
     return ulog_color(log, UCOLOR_DIM, "[" UTIME_FMT "]", utime_fmt_args(now));
 }
 

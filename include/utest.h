@@ -42,7 +42,7 @@ typedef struct UTestEvent {
  */
 
 /**
- * Defines the main test function.
+ * Defines the test driver function.
  *
  * @param CODE Code to execute, generally a sequence of utest_run statements.
  */
@@ -56,52 +56,103 @@ typedef struct UTestEvent {
 /**
  * Runs a test batch.
  *
- * @param NAME @ctype{string literal} Name of the test batch.
- * @param ... Comma separated list of (void) -> void test functions.
+ * @param name Name of the test batch.
+ * @param ... One or more @ctype{(void) -> void} test functions.
+ *
+ * @alias void utest_run(char const *name, ...);
  */
-#define utest_run(NAME, ...)                                                                       \
+#define utest_run(name, ...)                                                                       \
     do {                                                                                           \
-        p_utest_begin_test_run(NAME);                                                              \
+        p_utest_batch_begin(name);                                                                 \
                                                                                                    \
-        void (*tests_to_run[])(void) = { __VA_ARGS__ };                                            \
-        size_t const test_count = ulib_array_count(tests_to_run);                                  \
-        size_t pass_count = 0;                                                                     \
+        void (*p_test_batch[])(void) = { __VA_ARGS__ };                                            \
+        size_t const p_batch_size = ulib_array_count(p_test_batch);                                \
+        size_t p_pass_count = 0;                                                                   \
                                                                                                    \
-        for (size_t test_i = 0; test_i < test_count; ++test_i) {                                   \
-            if (p_utest_run_test(tests_to_run[test_i])) ++pass_count;                              \
+        for (size_t p_test_i = 0; p_test_i < p_batch_size; ++p_test_i) {                           \
+            if (p_utest_run(p_test_batch[p_test_i])) ++p_pass_count;                               \
         }                                                                                          \
                                                                                                    \
-        p_utest_end_test_run(NAME, pass_count, test_count);                                        \
+        p_utest_batch_end(name, p_pass_count, p_batch_size);                                       \
     } while (0)
+
+/**
+ * Runs a test subroutine. If the test subroutine fails, the test function will return.
+ *
+ * @param CODE Code to execute, typically a call to a function containing assertions.
+ */
+#define utest_sub(CODE)                                                                            \
+    do {                                                                                           \
+        CODE;                                                                                      \
+        if (!utest_passed()) return;                                                               \
+    } while (0)
+
+/**
+ * Whether all tests that have been run so far passed.
+ *
+ * @return True if all tests passed, false otherwise.
+ */
+ULIB_API
+ULIB_PURE
+bool utest_all_passed(void);
+
+/**
+ * Whether all tests in the current batch passed.
+ *
+ * @return True if all tests in the batch passed, false otherwise.
+ */
+ULIB_API
+ULIB_PURE
+bool utest_batch_all_passed(void);
+
+/**
+ * Whether the current test passed.
+ *
+ * @return True if the current test passed, false otherwise.
+ */
+ULIB_API
+ULIB_PURE
+bool utest_passed(void);
 
 /**
  * Logs a test failure message.
  *
- * @param ... Failure reason as printf arguments.
+ * @param fmt Format string.
+ * @param ... Format arguments.
+ * @return Return code.
+ *
+ * @alias ustream_ret utest_log_failure_reason(char const *fmt, ...);
  */
 #define utest_log_failure_reason(...) ulog(ulog_main, ULOG_INFO, &p_utest_event_assert, __VA_ARGS__)
 
-/// Causes the test function to fail.
+/**
+ * Causes the test function to fail.
+ *
+ * @alias void utest_fail(void);
+ */
 #ifdef __clang_analyzer__
 #define utest_fail() abort()
 #else
 #define utest_fail()                                                                               \
     do {                                                                                           \
-        p_utest_fail_test();                                                                       \
+        p_utest_fail();                                                                            \
         return;                                                                                    \
     } while (0)
 #endif
 
 /**
  * Asserts that the specified expression is true.
- * If it is not, logs a failure message and aborts the test.
+ * If it is not, logs a failure message and returns from the test function.
  *
- * @param EXP Expression.
- * @param ... Failure reason as printf arguments.
+ * @param exp Assertion condition.
+ * @param fmt Format string.
+ * @param ... Format arguments.
+ *
+ * @alias void utest_assert_msg(bool exp, char const *fmt, ...);
  */
-#define utest_assert_msg(EXP, ...)                                                                 \
+#define utest_assert_msg(exp, ...)                                                                 \
     do {                                                                                           \
-        if (!(EXP)) {                                                                              \
+        if (!(exp)) {                                                                              \
             utest_log_failure_reason(__VA_ARGS__);                                                 \
             utest_fail();                                                                          \
         }                                                                                          \
@@ -110,23 +161,29 @@ typedef struct UTestEvent {
 /**
  * Asserts that the specified expression is true.
  *
- * @param EXP Boolean expression.
+ * @param exp Assertion condition.
+ *
+ * @alias void utest_assert(bool exp);
  */
-#define utest_assert(EXP) utest_assert_msg(EXP, "\"" #EXP "\" must be true")
+#define utest_assert(exp) utest_assert_msg(exp, "\"" #exp "\" must be true")
 
 /**
  * Asserts that the specified expression is false.
  *
- * @param EXP Boolean expression.
+ * @param exp Assertion condition.
+ *
+ * @alias void utest_assert_false(bool exp);
  */
-#define utest_assert_false(EXP) utest_assert_msg(!(EXP), "\"" #EXP "\" must be false")
+#define utest_assert_false(exp) utest_assert_msg(!(exp), "\"" #exp "\" must be false")
 
 /**
- * Assert that the specified expression must not be NULL.
+ * Assert that the specified pointer must not be NULL.
  *
- * @param EXP Expression returning any pointer.
+ * @param ptr Pointer.
+ *
+ * @alias void utest_assert_not_null(void *ptr);
  */
-#define utest_assert_not_null(EXP) utest_assert_msg(EXP, "\"" #EXP "\" must not be NULL")
+#define utest_assert_not_null(ptr) utest_assert_msg(ptr, "\"" #ptr "\" must not be NULL")
 
 /**
  * Assert that `A OP B` must be true, where `A` and `B` are integers.
@@ -235,12 +292,14 @@ typedef struct UTestEvent {
  * Assert that the specified expression must be true.
  * Abort the tests if it is false.
  *
- * @param EXP Boolean expression.
+ * @param exp Assertion condition.
+ *
+ * @alias void utest_assert_fatal(bool exp);
  */
-#define utest_assert_fatal(EXP)                                                                    \
+#define utest_assert_fatal(exp)                                                                    \
     do {                                                                                           \
-        if (!(EXP)) {                                                                              \
-            ulog(ulog_main, ULOG_INFO, &p_utest_event_fatal, "\"" #EXP "\" must be true");         \
+        if (!(exp)) {                                                                              \
+            ulog(ulog_main, ULOG_INFO, &p_utest_event_fatal, "\"" #exp "\" must be true");         \
             abort();                                                                               \
         }                                                                                          \
     } while (0)
@@ -249,11 +308,12 @@ typedef struct UTestEvent {
  * Assert that the specified expression must be true.
  * Abort the tests if it is false.
  *
- * @param EXP Boolean expression.
+ * @param exp Boolean expression.
  *
  * @deprecated Use @func{utest_assert_fatal} instead.
+ * @alias void utest_assert_critical(bool exp);
  */
-#define utest_assert_critical(EXP) ULIB_DEPRECATED_MACRO utest_assert_fatal(EXP)
+#define utest_assert_critical(exp) ULIB_DEPRECATED_MACRO utest_assert_fatal(exp)
 
 /// @}
 
@@ -266,23 +326,19 @@ ULIB_API
 extern UTestEvent const p_utest_event_fatal;
 
 ULIB_API
-ULIB_PURE
-bool p_utest_status(void);
-
-ULIB_API
-void p_utest_begin_test_run(char const *name);
-
-ULIB_API
-bool p_utest_run_test(void (*test)(void));
-
-ULIB_API
-void p_utest_fail_test(void);
-
-ULIB_API
-void p_utest_end_test_run(char const *name, size_t passed, size_t total);
-
-ULIB_API
 bool p_utest_begin(void);
+
+ULIB_API
+void p_utest_batch_begin(char const *name);
+
+ULIB_API
+bool p_utest_run(void (*test)(void));
+
+ULIB_API
+void p_utest_fail(void);
+
+ULIB_API
+void p_utest_batch_end(char const *name, size_t passed, size_t total);
 
 ULIB_API
 bool p_utest_end(void);

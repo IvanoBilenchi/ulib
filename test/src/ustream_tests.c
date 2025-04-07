@@ -57,15 +57,14 @@ void ustream_init_test(void) {
 }
 
 static char *get_file_contents(char const *path, size_t *size) {
-    FILE *test_file = fopen(path, "rb");
-    if (!test_file) return NULL;
-
+    FILE *test_file = NULL;
     char *contents = NULL;
+    size_t read = 0;
+    if ((test_file = fopen(path, "rb")) == NULL) goto end;
+
     long ftell_ret;
     size_t test_file_size;
-    size_t read;
-
-    if (!(test_file && fseek(test_file, 0, SEEK_END) == 0)) goto end;
+    if (fseek(test_file, 0, SEEK_END) != 0) goto end;
 
     ftell_ret = ftell(test_file);
     if (ftell_ret < 0) goto end;
@@ -80,10 +79,9 @@ static char *get_file_contents(char const *path, size_t *size) {
         contents = NULL;
     }
 
-    if (size) *size = read;
-
 end:
-    fclose(test_file);
+    if (size) *size = read;
+    if (test_file) fclose(test_file);
     return contents;
 }
 
