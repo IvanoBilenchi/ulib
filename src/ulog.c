@@ -17,21 +17,21 @@
 #include <stddef.h>
 
 static char const *log_level_str[] = {
-    "TRACE", "DEBUG", "INFO ", "WARN ", "ERROR", "FATAL",
+    "TRACE", "DEBUG", "PERF ", "INFO ", "WARN ", "ERROR", "FATAL",
 };
 static char const *log_level_color[] = {
-    UCOLOR_TRACE, UCOLOR_DEBUG, UCOLOR_INFO, UCOLOR_WARN, UCOLOR_ERROR, UCOLOR_FATAL,
+    UCOLOR_TRACE, UCOLOR_DEBUG, UCOLOR_PERF, UCOLOR_INFO, UCOLOR_WARN, UCOLOR_ERROR, UCOLOR_FATAL,
 };
 
 static ULog main_log = ulog_init;
 ULog *const ulog_main = &main_log;
 
 ULIB_INLINE ustream_ret begin_color(ULog *log, char const *color) {
-    return log->color ? uostream_write_literal(log->stream, color, NULL) : USTREAM_OK;
+    return log->color ? uostream_write_buf(log->stream, color, NULL) : USTREAM_OK;
 }
 
 ULIB_INLINE ustream_ret end_color(ULog *log) {
-    return log->color ? uostream_write_literal(log->stream, UCOLOR_RST, NULL) : USTREAM_OK;
+    return log->color ? uostream_write_buf(log->stream, UCOLOR_RST, NULL) : USTREAM_OK;
 }
 
 ulib_ret ulog_default_handler(ULog *log, ULogEvent const *event) {
@@ -56,6 +56,10 @@ ustream_ret ulog_footer(ULog *log, ULogEvent const *event) {
         ulog_space(log);
     }
     ulog_msg(log, event->msg);
+    if (event->level == ULOG_PERF && event->data) {
+        ulog_space(log);
+        ulog_elapsed_time(log, *((utime_ns *)event->data));
+    }
     return ulog_newline(log);
 }
 
@@ -81,6 +85,15 @@ ustream_ret ulog_tag(ULog *log, ULogTag tag) {
 
 ustream_ret ulog_loc(ULog *log, USrcLoc loc) {
     return ulog_color(log, UCOLOR_DIM, "[%s:%d]", loc.file, loc.line);
+}
+
+ustream_ret ulog_elapsed_time(ULog *log, utime_ns elapsed) {
+    utime_unit unit = utime_interval_unit_auto(elapsed);
+    begin_color(log, UCOLOR_DIM);
+    uostream_write_literal(log->stream, "(", NULL);
+    uostream_write_time_interval(log->stream, elapsed, unit, 2, NULL);
+    uostream_write_literal(log->stream, ")", NULL);
+    return end_color(log);
 }
 
 ustream_ret ulog_color(ULog *log, char const *color, char const *fmt, ...) {

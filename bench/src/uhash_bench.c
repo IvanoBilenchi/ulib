@@ -6,10 +6,7 @@
  */
 
 #include "khashl.h"
-#include "ubench.h"
 #include "ulib.h"
-#include <stdio.h>
-#include <stdlib.h>
 
 #define klib_hash_int(x) ((khint_t)(x))
 UHASH_INIT(uint, ulib_uint, UHASH_VAL_IGNORE, ulib_hash_int, ulib_eq)
@@ -115,15 +112,13 @@ static HashTable hash_table_khashl(void) {
 // Benchmarks
 
 static void bench_hash(HashTable *table, ulib_uint size) {
-    ulog_debug("Hash table: %s", table->name);
-
-    UBenchGroup group = ubench_group(ustring_with_format("%s: size %zu", table->name, size));
+    ulog_info("%s: size %zu", table->name, size);
 
     void *h = table->init();
     urand_set_seed(SEED);
 
     ulib_uint count = 0;
-    ubench_block(&group, "insert") {
+    ulog_perf("insert") {
         for (ulib_uint i = 0; i < size; ++i) {
             ulib_uint key = urand_range(0, size >> 1);
             if (table->insert(h, key)) count++;
@@ -132,7 +127,7 @@ static void bench_hash(HashTable *table, ulib_uint size) {
     ulog_debug("Inserted: %" ULIB_UINT_FMT, count);
 
     count = 0;
-    ubench_block(&group, "get") {
+    ulog_perf("get") {
         for (ulib_uint i = 0; i < size; ++i) {
             ulib_uint key = urand_range(0, size >> 1);
             if (table->contains(h, key)) count++;
@@ -140,8 +135,7 @@ static void bench_hash(HashTable *table, ulib_uint size) {
     }
     ulog_debug("Found: %" ULIB_UINT_FMT, count);
 
-    count = 0;
-    ubench_block(&group, "remove") {
+    ulog_perf("remove") {
         for (ulib_uint i = 0; i < size; ++i) {
             ulib_uint key = urand_range(0, size >> 1);
             if (table->remove(h, key)) count++;
@@ -150,11 +144,11 @@ static void bench_hash(HashTable *table, ulib_uint size) {
     ulog_debug("Removed: %" ULIB_UINT_FMT, count);
 
     table->deinit(h);
-    ulog(ulog_main, ULOG_INFO, &group, NULL);
-    ubench_group_deinit(&group);
 }
 
 void bench_uhash(void) {
+    ulog_info("Starting UHash benchmarks");
+
     HashTable h[] = {
         hash_table_uhash(),
         hash_table_khashl(),

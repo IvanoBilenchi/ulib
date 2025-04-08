@@ -17,6 +17,7 @@
 #include "udebug.h"
 #include "ulib_ret.h"
 #include "ustream.h"
+#include "utime.h"
 #include "uutils.h"
 #include <limits.h>
 #include <stdarg.h>
@@ -55,6 +56,9 @@ typedef enum ULogLevel {
 
     /// Debug level.
     ULOG_DEBUG,
+
+    /// Performance level.
+    ULOG_PERF,
 
     /// Info level.
     ULOG_INFO,
@@ -254,6 +258,50 @@ void ulog_disable(ULog *log) {
 #define ulog_fatal(...) ulog(ulog_main, ULOG_FATAL, NULL, __VA_ARGS__)
 
 /**
+ * Same as @func{ulog}(`log`, @val{ULOG_PERF}, `nanos`, `fmt`, `...`).
+ *
+ * @param log Logger object.
+ * @param nanos Elapsed time in nanoseconds.
+ * @param fmt Message format string.
+ * @param ... Message format arguments.
+ * @return Return code.
+ *
+ * @alias ulib_ret ulog_ns(ULog *log, utime_ns const *nanos, char const *fmt, ...);
+ */
+#define ulog_ns(log, nanos, ...) ulog(ulog_main, ULOG_PERF, nanos, __VA_ARGS__)
+
+/**
+ * Measures and logs the time elapsed between the start and end of a block of code.
+ *
+ * Usage example:
+ * @code
+ * ulog_elapsed(ulog_main, "Block time") {
+ *     // Code to measure.
+ * }
+ * @endcode
+ *
+ * @param log Logger object.
+ * @param ... Format string and arguments.
+ */
+#define ulog_elapsed(log, ...)                                                                     \
+    for (utime_ns p_##__LINE__ = utime_get_ns(), p_end_##__LINE__ = 1; p_end_##__LINE__--;         \
+         (p_##__LINE__ = utime_get_ns() - p_##__LINE__), ulog_ns(log, &p_##__LINE__, __VA_ARGS__))
+
+/**
+ * Same as @func{ulog_elapsed}(@var{ulog_main}, `...`).
+ *
+ * Usage example:
+ * @code
+ * ulog_perf("Block time") {
+ *     // Code to measure.
+ * }
+ * @endcode
+ *
+ * @param ... Format string and arguments.
+ */
+#define ulog_perf(...) ulog_elapsed(ulog_main, __VA_ARGS__)
+
+/**
  * The default event handler. Logs the event to the logger's output stream.
  *
  * @param log Logger object.
@@ -345,6 +393,16 @@ ustream_ret ulog_tag(ULog *log, ULogTag tag);
  */
 ULIB_API
 ustream_ret ulog_loc(ULog *log, USrcLoc loc);
+
+/**
+ * Logs elapsed time to the logger's output stream.
+ *
+ * @param log Logger object.
+ * @param elapsed Elapsed time.
+ * @return Return code.
+ */
+ULIB_API
+ustream_ret ulog_elapsed_time(ULog *log, utime_ns elapsed);
 
 /**
  * Logs a formatted string in the specified color to the logger's output stream.

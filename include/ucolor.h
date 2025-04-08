@@ -200,6 +200,16 @@
 #define UCOLOR_DIM UCOLOR_HBLK
 #endif
 
+/// Color for success messages.
+#ifndef UCOLOR_OK
+#define UCOLOR_OK UCOLOR_GRN
+#endif
+
+/// Color for failure messages.
+#ifndef UCOLOR_FAIL
+#define UCOLOR_FAIL UCOLOR_RED
+#endif
+
 /// Color for trace messages.
 #ifndef UCOLOR_TRACE
 #define UCOLOR_TRACE UCOLOR_BLU
@@ -207,32 +217,32 @@
 
 /// Color for debug messages.
 #ifndef UCOLOR_DEBUG
-#define UCOLOR_DEBUG UCOLOR_CYN
+#define UCOLOR_DEBUG UCOLOR_MAG
+#endif
+
+/// Color for performance messages.
+#ifndef UCOLOR_PERF
+#define UCOLOR_PERF UCOLOR_YEL
 #endif
 
 /// Color for informational messages.
 #ifndef UCOLOR_INFO
-#define UCOLOR_INFO UCOLOR_GRN
-#endif
-
-/// Color for success messages.
-#ifndef UCOLOR_SUCCESS
-#define UCOLOR_SUCCESS UCOLOR_GRN
+#define UCOLOR_INFO UCOLOR_CYN
 #endif
 
 /// Color for warning messages.
 #ifndef UCOLOR_WARN
-#define UCOLOR_WARN UCOLOR_YEL
+#define UCOLOR_WARN UCOLOR_YELB
 #endif
 
 /// Color for error messages.
 #ifndef UCOLOR_ERROR
-#define UCOLOR_ERROR UCOLOR_RED
+#define UCOLOR_ERROR UCOLOR_REDB
 #endif
 
 /// Color for fatal error messages.
 #ifndef UCOLOR_FATAL
-#define UCOLOR_FATAL UCOLOR_MAG
+#define UCOLOR_FATAL UCOLOR_MAGB
 #endif
 
 /// @}

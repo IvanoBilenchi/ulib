@@ -17,8 +17,8 @@
 UTestEvent const p_utest_event_assert = { .type = UTEST_EVENT_ASSERT };
 UTestEvent const p_utest_event_fatal = { .type = UTEST_EVENT_FATAL };
 
-static ULogTag const pass_tag = { "PASS ", UCOLOR_SUCCESS };
-static ULogTag const fail_tag = { "FAIL ", UCOLOR_ERROR };
+static ULogTag const pass_tag = { "PASS ", UCOLOR_OK };
+static ULogTag const fail_tag = { "FAIL ", UCOLOR_FAIL };
 static ULogTag const fatal_tag = { "FATAL", UCOLOR_FATAL };
 
 static size_t test_total = 0;
