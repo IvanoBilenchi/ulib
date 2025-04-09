@@ -29,26 +29,26 @@ static bool test_batch_status = true;
 static bool test_func_status = true;
 
 static ulib_ret event_handler(ULog *log, ULogEvent const *event) {
-    if (!event->data) return ulog_event(log, event) == USTREAM_OK ? ULIB_OK : ULIB_ERR;
+    if (!event->data) return ulog_write_event(log, event) == USTREAM_OK ? ULIB_OK : ULIB_ERR;
     UTestEvent const *data = event->data;
-    ulog_date(log);
-    ulog_space(log);
+    ulog_write_date(log);
+    ulog_write_space(log);
     ULogTag tag;
     switch (data->type) {
         case UTEST_EVENT_PASS: tag = pass_tag; break;
         case UTEST_EVENT_FATAL: tag = fatal_tag; break;
         default: tag = fail_tag; break;
     }
-    ulog_tag(log, tag);
-    ulog_space(log);
-    ulog_msg(log, event->msg);
-    ulog_space(log);
+    ulog_write_tag(log, tag);
+    ulog_write_space(log);
+    ulog_write_msg(log, event->msg);
+    ulog_write_space(log);
     if (data->type == UTEST_EVENT_ASSERT || data->type == UTEST_EVENT_FATAL) {
-        ulog_loc(log, event->loc);
+        ulog_write_loc(log, event->loc);
     } else {
-        ulog_color(log, UCOLOR_DIM, "[%zu/%zu passed]", data->passed, data->total);
+        ulog_write_color(log, UCOLOR_DIM, "(%zu/%zu passed)", data->passed, data->total);
     }
-    return ulog_newline(log) == USTREAM_OK ? ULIB_OK : ULIB_ERR;
+    return ulog_write_newline(log) == USTREAM_OK ? ULIB_OK : ULIB_ERR;
 }
 
 bool utest_all_passed(void) {

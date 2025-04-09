@@ -312,17 +312,17 @@ ULIB_API
 ulib_ret ulog_default_handler(ULog *log, ULogEvent const *event);
 
 /**
- * Logs the specified event to the logger's output stream.
+ * Writes the specified event to the logger's output stream.
  *
  * @param log Logger object.
  * @param event Log event.
  * @return Return code.
  */
 ULIB_API
-ustream_ret ulog_event(ULog *log, ULogEvent const *event);
+ustream_ret ulog_write_event(ULog *log, ULogEvent const *event);
 
 /**
- * Logs the header of the specified event to the logger's output stream.
+ * Writes the header of the specified event to the logger's output stream.
  *
  * @param log Logger object.
  * @param event Log event.
@@ -331,81 +331,81 @@ ustream_ret ulog_event(ULog *log, ULogEvent const *event);
  * @note The header consists of the date, time, and log level.
  */
 ULIB_API
-ustream_ret ulog_header(ULog *log, ULogEvent const *event);
+ustream_ret ulog_write_header(ULog *log, ULogEvent const *event);
 
 /**
- * Logs the footer of the specified event to the logger's output stream.
+ * Writes the footer of the specified event to the logger's output stream.
  *
  * @param log Logger object.
  * @param event Log event.
  * @return Return code.
  *
- * @note The footer consists of the log message and, at the debug level, the source code location.
+ * @note The footer consists of the log message and additional metadata based on the debug level.
  */
 ULIB_API
-ustream_ret ulog_footer(ULog *log, ULogEvent const *event);
+ustream_ret ulog_write_footer(ULog *log, ULogEvent const *event);
 
 /**
- * Logs the specified message to the logger's output stream.
+ * Writes the specified message to the logger's output stream.
  *
  * @param log Logger object.
  * @param msg Log message.
  * @return Return code.
  */
 ULIB_API
-ustream_ret ulog_msg(ULog *log, ULogMsg msg);
+ustream_ret ulog_write_msg(ULog *log, ULogMsg msg);
 
 /**
- * Logs the current date and time to the logger's output stream.
+ * Writes the current date and time to the logger's output stream.
  *
  * @param log Logger object.
  * @return Return code.
  */
 ULIB_API
-ustream_ret ulog_date(ULog *log);
+ustream_ret ulog_write_date(ULog *log);
 
 /**
- * Logs the specified log level to the logger's output stream.
+ * Writes the specified log level to the logger's output stream.
  *
  * @param log Logger object.
  * @param level Log level.
  * @return Return code.
  */
 ULIB_API
-ustream_ret ulog_level(ULog *log, ULogLevel level);
+ustream_ret ulog_write_level(ULog *log, ULogLevel level);
 
 /**
- * Logs the specified tag to the logger's output stream.
+ * Writes the specified tag to the logger's output stream.
  *
  * @param log Logger object.
  * @param tag Tag.
  * @return Return code.
  */
 ULIB_API
-ustream_ret ulog_tag(ULog *log, ULogTag tag);
+ustream_ret ulog_write_tag(ULog *log, ULogTag tag);
 
 /**
- * Logs the specified source code location to the logger's output stream.
+ * Writes the specified source code location to the logger's output stream.
  *
  * @param log Logger object.
  * @param loc Source code location.
  * @return Return code.
  */
 ULIB_API
-ustream_ret ulog_loc(ULog *log, USrcLoc loc);
+ustream_ret ulog_write_loc(ULog *log, USrcLoc loc);
 
 /**
- * Logs elapsed time to the logger's output stream.
+ * Writes elapsed time to the logger's output stream.
  *
  * @param log Logger object.
  * @param elapsed Elapsed time.
  * @return Return code.
  */
 ULIB_API
-ustream_ret ulog_elapsed_time(ULog *log, utime_ns elapsed);
+ustream_ret ulog_write_elapsed(ULog *log, utime_ns elapsed);
 
 /**
- * Logs a formatted string in the specified color to the logger's output stream.
+ * Writes a formatted string in the specified color to the logger's output stream.
  *
  * @param log Logger object.
  * @param color ANSI color escape code.
@@ -414,25 +414,25 @@ ustream_ret ulog_elapsed_time(ULog *log, utime_ns elapsed);
  * @return Return code.
  */
 ULIB_API
-ustream_ret ulog_color(ULog *log, char const *color, char const *fmt, ...);
+ustream_ret ulog_write_color(ULog *log, char const *color, char const *fmt, ...);
 
 /**
- * Logs a space to the logger's output stream.
+ * Writes a space to the logger's output stream.
  *
  * @param log Logger object.
  * @return Return code.
  */
 ULIB_API
-ustream_ret ulog_space(ULog *log);
+ustream_ret ulog_write_space(ULog *log);
 
 /**
- * Logs a newline to the logger's output stream.
+ * Writes a newline to the logger's output stream.
  *
  * @param log Logger object.
  * @return Return code.
  */
 ULIB_API
-ustream_ret ulog_newline(ULog *log);
+ustream_ret ulog_write_newline(ULog *log);
 
 /// @}
 

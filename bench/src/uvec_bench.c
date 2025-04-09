@@ -190,7 +190,7 @@ static void bench_uvec_heap_queue(void) {
 }
 
 void bench_uvec(void) {
-    ulog_info("Starting UVec benchmarks");
+    ulog_info("=[ Starting UVec benchmarks ]=");
     bench_uvec_sort_small();
     bench_uvec_sort_large();
     bench_uvec_sort_large_repeated();

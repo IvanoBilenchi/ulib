@@ -147,7 +147,7 @@ static void bench_hash(HashTable *table, ulib_uint size) {
 }
 
 void bench_uhash(void) {
-    ulog_info("Starting UHash benchmarks");
+    ulog_info("=[ Starting UHash benchmarks ]=");
 
     HashTable h[] = {
         hash_table_uhash(),
