@@ -37,6 +37,7 @@ ULIB_BEGIN_DECLS
 #define ULOG_COLOR false
 #endif
 
+#define P_ULOG_LEVEL_MIN_EXP 8U
 #define p_ulog_event(level, data) p_ulog_event_f(level, data, ULIB_FILE_NAME, __func__, __LINE__)
 /// @endcond
 
@@ -46,33 +47,37 @@ ULIB_BEGIN_DECLS
  */
 
 /// Log level.
-typedef enum ULogLevel {
+typedef unsigned ULogLevel;
 
-    /// Marker level for disabled loggers.
-    ULOG_DISABLED = 0,
-
+/// Builtin log levels.
+enum ULogLevelBuiltin {
     /// Trace level.
-    ULOG_TRACE,
+    ULOG_TRACE = 1U << P_ULOG_LEVEL_MIN_EXP,
 
     /// Debug level.
-    ULOG_DEBUG,
+    ULOG_DEBUG = 1U << (P_ULOG_LEVEL_MIN_EXP + 1U),
 
     /// Performance level.
-    ULOG_PERF,
+    ULOG_PERF = 1U << (P_ULOG_LEVEL_MIN_EXP + 2U),
 
     /// Info level.
-    ULOG_INFO,
+    ULOG_INFO = 1U << (P_ULOG_LEVEL_MIN_EXP + 3U),
 
     /// Warning level.
-    ULOG_WARN,
+    ULOG_WARN = 1U << (P_ULOG_LEVEL_MIN_EXP + 4U),
 
     /// Error level.
-    ULOG_ERROR,
+    ULOG_ERROR = 1U << (P_ULOG_LEVEL_MIN_EXP + 5U),
 
     /// Fatal level.
-    ULOG_FATAL,
+    ULOG_FATAL = 1U << (P_ULOG_LEVEL_MIN_EXP + 6U),
+};
 
-} ULogLevel;
+/// Marker level for loggers that log everything.
+#define ULOG_ALL 0
+
+/// Marker level for disabled loggers.
+#define ULOG_DISABLED UINT_MAX
 
 /// Log message.
 typedef struct ULogMsg {
@@ -130,8 +135,14 @@ typedef struct ULog {
     /// Logger state.
     void *state;
 
-    /// Function that handles the event.
-    ulib_ret (*handler)(struct ULog *, ULogEvent const *);
+    /**
+     * Function that handles the event.
+     *
+     * @param log Logger object.
+     * @param event Log event.
+     * @return Return code.
+     */
+    ulib_ret (*handler)(struct ULog *log, ULogEvent const *event);
 
 } ULog;
 
@@ -158,7 +169,7 @@ extern ULog *const ulog_main;
 ULIB_PURE
 ULIB_INLINE
 bool ulog_enabled(ULog *log, ULogLevel level) {
-    return log->level && log->level <= level;
+    return log->level <= level;
 }
 #else
 #define ulog_enabled(...) (false)

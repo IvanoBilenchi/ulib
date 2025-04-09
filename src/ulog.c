@@ -10,28 +10,36 @@
 #include "ucolor.h"
 #include "udebug.h"
 #include "ulib_ret.h"
+#include "unumber.h"
 #include "ustream.h"
 #include "utime.h"
-#include "uutils.h"
 #include <stdarg.h>
 #include <stddef.h>
 
-static char const *log_level_str[] = {
-    "TRACE", "DEBUG", "PERF ", "INFO ", "WARN ", "ERROR", "FATAL",
+enum { LEVEL_COUNT = 8 };
+static char const *log_level_str[LEVEL_COUNT] = {
+    " ALL ", "TRACE", "DEBUG", "PERF ", "INFO ", "WARN ", "ERROR", "FATAL",
 };
-static char const *log_level_color[] = {
-    UCOLOR_TRACE, UCOLOR_DEBUG, UCOLOR_PERF, UCOLOR_INFO, UCOLOR_WARN, UCOLOR_ERROR, UCOLOR_FATAL,
+static char const *log_level_color[LEVEL_COUNT] = {
+    NULL,        UCOLOR_TRACE, UCOLOR_DEBUG, UCOLOR_PERF,
+    UCOLOR_INFO, UCOLOR_WARN,  UCOLOR_ERROR, UCOLOR_FATAL,
 };
 
 static ULog main_log = ulog_init;
 ULog *const ulog_main = &main_log;
 
 ULIB_INLINE ustream_ret begin_color(ULog *log, char const *color) {
-    return log->color ? uostream_write_buf(log->stream, color, NULL) : USTREAM_OK;
+    return color && log->color ? uostream_write_buf(log->stream, color, NULL) : USTREAM_OK;
 }
 
-ULIB_INLINE ustream_ret end_color(ULog *log) {
-    return log->color ? uostream_write_buf(log->stream, UCOLOR_RST, NULL) : USTREAM_OK;
+ULIB_INLINE ustream_ret end_color(ULog *log, char const *color) {
+    return color && log->color ? uostream_write_buf(log->stream, UCOLOR_RST, NULL) : USTREAM_OK;
+}
+
+ULIB_INLINE unsigned builtin_index(ULogLevel level) {
+    if (level < ULOG_TRACE) return 0;
+    if (level >= ULOG_FATAL) return LEVEL_COUNT - 1;
+    return ulib_uint32_log2(level) - P_ULOG_LEVEL_MIN_EXP + 1;
 }
 
 ulib_ret ulog_default_handler(ULog *log, ULogEvent const *event) {
@@ -73,8 +81,7 @@ ustream_ret ulog_write_date(ULog *log) {
 }
 
 ustream_ret ulog_write_level(ULog *log, ULogLevel level) {
-    unsigned idx = (unsigned)level - 1;
-    if (idx >= ulib_array_count(log_level_color)) return USTREAM_ERR;
+    unsigned idx = builtin_index(level);
     return ulog_write_tag(log, (ULogTag){ log_level_str[idx], log_level_color[idx] });
 }
 
@@ -93,7 +100,7 @@ ustream_ret ulog_write_elapsed(ULog *log, utime_ns elapsed) {
     uostream_write_literal(log->stream, "(", NULL);
     uostream_write_time_interval(log->stream, elapsed, unit, 2, NULL);
     uostream_write_literal(log->stream, ")", NULL);
-    return end_color(log);
+    return end_color(log, UCOLOR_DIM);
 }
 
 ustream_ret ulog_write_color(ULog *log, char const *color, char const *fmt, ...) {
@@ -102,7 +109,7 @@ ustream_ret ulog_write_color(ULog *log, char const *color, char const *fmt, ...)
     va_start(args, fmt);
     uostream_writef_list(log->stream, NULL, fmt, args);
     va_end(args);
-    return end_color(log);
+    return end_color(log, color);
 }
 
 ustream_ret ulog_write_space(ULog *log) {

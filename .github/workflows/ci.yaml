@@ -8,7 +8,7 @@ on:
 
 env:
   build_dir: build
-  build_config: Release
+  config: Release
 
 jobs:
   analyze:
@@ -70,11 +70,11 @@ jobs:
           -DULIB_SANITIZERS=ON
           -DCMAKE_SYSTEM_VERSION=''
           -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
-          -DCMAKE_BUILD_TYPE=${{env.build_config}}
+          -DCMAKE_BUILD_TYPE=${{env.config}}
 
       - name: Build
         run: >
-          cmake --build ${{env.build_dir}} --config ${{env.build_config}}
+          cmake --build ${{env.build_dir}} --config ${{env.config}}
 
       - name: Configure tests (Windows)
         working-directory: ${{env.build_dir}}
@@ -82,19 +82,20 @@ jobs:
         run: |
           if [ ${{matrix.lib_type}} == 'SHARED' ]; then
             for exe_dir in test bench; do
-              cp ${{env.build_config}}/*.dll ${exe_dir}/${{env.build_config}}
+              cp ${{env.config}}/*.dll ${exe_dir}/${{env.config}}
             done
           fi
         shell: bash
 
       - name: Run tests
         working-directory: ${{env.build_dir}}
-        run: ctest --build-config ${{env.build_config}} --output-on-failure
+        run: ctest --build-config ${{env.config}} --output-on-failure
 
   bench:
     name: Benchmark
     runs-on: ${{matrix.os}}
     strategy:
+      fail-fast: false
       matrix:
         os:
           - ${{vars.ubuntu_runner || 'ubuntu-latest'}}
@@ -110,15 +111,15 @@ jobs:
           -DULIB_LTO=ON
           -DULIB_OPTIMIZE_FOR_HOST=ON
           -DCMAKE_SYSTEM_VERSION=''
-          -DCMAKE_BUILD_TYPE=${{env.build_config}}
+          -DCMAKE_BUILD_TYPE=${{env.config}}
 
       - name: Build
-        run: cmake --build ${{env.build_dir}} --config ${{env.build_config}} --target ulib-bench
+        run: cmake --build ${{env.build_dir}} --config ${{env.config}} --target ulib-bench
 
       - name: Configure (Windows)
         working-directory: ${{env.build_dir}}/bench
         if: runner.os == 'Windows'
-        run: mv ${{env.build_config}}/*.exe ./
+        run: mv ${{env.config}}/*.exe ./
         shell: bash
 
       - name: Run
