@@ -112,7 +112,7 @@ static HashTable hash_table_khashl(void) {
 // Benchmarks
 
 static void bench_hash(HashTable *table, ulib_uint size) {
-    ulog_info("%s: size %zu", table->name, size);
+    ulog_info("- Size: %zu", size);
 
     void *h = table->init();
     urand_set_seed(SEED);
@@ -147,7 +147,7 @@ static void bench_hash(HashTable *table, ulib_uint size) {
 }
 
 void bench_uhash(void) {
-    ulog_info("=[ Starting UHash benchmarks ]=");
+    ulog_info("==[ UHash ]==");
 
     HashTable h[] = {
         hash_table_uhash(),
@@ -155,6 +155,7 @@ void bench_uhash(void) {
     };
 
     for (unsigned i = 0; i < ulib_array_count(h); ++i) {
+        ulog_info("=== %s ===", h[i].name);
         bench_hash(&h[i], COUNT_SMALL);
         bench_hash(&h[i], COUNT_LARGE);
     }

@@ -172,6 +172,16 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
 }
 #endif
 
+ULIB_CONST ULIB_INLINE ulib_uint p_uhash_mod(ulib_uint hash, ulib_uint bits) {
+    return hash & ((1U << bits) - 1U);
+}
+
+#ifdef UHASH_NO_SECONDARY_HASHING
+#define p_uhash_to_bits p_uhash_mod
+#else
+#define p_uhash_to_bits p_uhash_fib
+#endif
+
 #define P_UHASH_DEF_TYPE_HEAD(T, uh_key, uh_val)                                                   \
     typedef struct UHash_##T {                                                                     \
         /** @cond */                                                                               \
@@ -447,7 +457,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
         if (!h->_exp) return UHASH_INDEX_MISSING;                                                  \
                                                                                                    \
         ulib_uint const mask = p_uhash_size_gt0(h) - 1;                                            \
-        ulib_uint i = p_uhash_fib((ulib_uint)(hash_func(key)), h->_exp);                           \
+        ulib_uint i = p_uhash_to_bits((ulib_uint)(hash_func(key)), h->_exp);                       \
                                                                                                    \
         while (p_uhf_is_used(h->_flags, i)) {                                                      \
             if (equal_func(h->_keys[i], key)) return i;                                            \
@@ -487,7 +497,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
             /* Kick-out process. It is bound to access uninitialized data. */                      \
             /* NOLINTBEGIN(clang-analyzer-core.uninitialized.Assign) */                            \
             while (true) {                                                                         \
-                ulib_uint i = p_uhash_fib((ulib_uint)(hash_func(key)), new_exp);                   \
+                ulib_uint i = p_uhash_to_bits((ulib_uint)(hash_func(key)), new_exp);               \
                 while (p_uhf_is_used(new_flags, i)) i = (i + 1U) & mask;                           \
                 p_uhf_set_used(new_flags, i);                                                      \
                                                                                                    \
@@ -535,7 +545,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
         size = p_uhash_size_gt0(h) - 1;                                                            \
                                                                                                    \
         ret = UHASH_PRESENT;                                                                       \
-        i = p_uhash_fib((ulib_uint)(hash_func(key)), h->_exp);                                     \
+        i = p_uhash_to_bits((ulib_uint)(hash_func(key)), h->_exp);                                 \
                                                                                                    \
         while (p_uhf_is_used(h->_flags, i)) {                                                      \
             if (equal_func(h->_keys[i], key)) goto end;                                            \
@@ -561,7 +571,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
         while (true) {                                                                             \
             j = (j + 1U) & mask;                                                                   \
             if (i == j || p_uhf_is_empty(h->_flags, j)) break;                                     \
-            ulib_uint const k = p_uhash_fib((ulib_uint)(hash_func(h->_keys[j])), h->_exp);         \
+            ulib_uint const k = p_uhash_to_bits((ulib_uint)(hash_func(h->_keys[j])), h->_exp);     \
             if ((j > i && (k <= i || k > j)) || (j < i && (k <= i && k > j))) {                    \
                 h->_keys[i] = h->_keys[j];                                                         \
                 if (h->_vals) h->_vals[i] = h->_vals[j];                                           \

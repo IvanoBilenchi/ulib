@@ -33,7 +33,7 @@ static void bench_uvec_sort_small(void) {
     UVec(ulib_int) v = uvec(ulib_int);
     uvec_reserve(ulib_int, &v, SORT_COUNT_SMALL);
 
-    ulog_info("Sort: small");
+    ulog_info("- Sort: small");
 
     urand_set_seed(SEED);
     ulog_perf("qsort") {
@@ -69,7 +69,7 @@ static void bench_uvec_sort_large(void) {
     }
     uvec_append_array(ulib_int, &v, array, SORT_COUNT_LARGE);
 
-    ulog_info("Sort: unique, unsorted");
+    ulog_info("- Sort: unique, unsorted");
     ulog_perf("qsort") {
         qsort(array, SORT_COUNT_LARGE, sizeof(*array), int_compare);
     }
@@ -78,7 +78,7 @@ static void bench_uvec_sort_large(void) {
     }
 
     // Large array with mostly unique elements, already sorted
-    ulog_info("Sort: unique, sorted");
+    ulog_info("- Sort: unique, sorted");
     ulog_perf("qsort") {
         qsort(array, SORT_COUNT_LARGE, sizeof(*array), int_compare);
     }
@@ -99,7 +99,7 @@ static void bench_uvec_sort_large_repeated(void) {
     }
     uvec_append_array(ulib_int, &v, array, SORT_COUNT_LARGE);
 
-    ulog_info("Sort: repeated, unsorted");
+    ulog_info("- Sort: repeated, unsorted");
     ulog_perf("qsort") {
         qsort(array, SORT_COUNT_LARGE, sizeof(*array), int_compare);
     }
@@ -108,7 +108,7 @@ static void bench_uvec_sort_large_repeated(void) {
     }
 
     // Large array with repeated elements, already sorted
-    ulog_info("Sort: repeated, sorted");
+    ulog_info("- Sort: repeated, sorted");
     ulog_perf("qsort") {
         qsort(array, SORT_COUNT_LARGE, sizeof(*array), int_compare);
     }
@@ -123,7 +123,7 @@ static void bench_uvec_sorted_insertion(void) {
     UVec(ulib_int) v = uvec(ulib_int);
     uvec_reserve(ulib_int, &v, INSERT_COUNT_SMALL);
 
-    ulog_info("Sorted insertion");
+    ulog_info("- Sorted insertion");
 
     ulog_perf("small") {
         for (unsigned i = 0; i < (INSERT_COUNT_LARGE / INSERT_COUNT_SMALL); ++i) {
@@ -160,7 +160,7 @@ static void bench_uvec_heap_queue(void) {
     }
     uvec_shuffle(ulib_int, &items);
 
-    ulog_info("Heap queue");
+    ulog_info("- Heap queue");
     ulog_perf("push") {
         uvec_foreach (ulib_int, &items, e) {
             uvec_min_heapq_push(ulib_int, &heap, *e.item);
@@ -172,7 +172,7 @@ static void bench_uvec_heap_queue(void) {
         }
     }
 
-    ulog_info("Sorted vector");
+    ulog_info("- Sorted vector");
     ulog_perf("push") {
         uvec_foreach (ulib_int, &items, e) {
             uvec_sorted_insert(ulib_int, &sorted, *e.item, NULL);
@@ -190,7 +190,7 @@ static void bench_uvec_heap_queue(void) {
 }
 
 void bench_uvec(void) {
-    ulog_info("=[ Starting UVec benchmarks ]=");
+    ulog_info("==[ UVec ]==");
     bench_uvec_sort_small();
     bench_uvec_sort_large();
     bench_uvec_sort_large_repeated();
