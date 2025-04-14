@@ -133,16 +133,17 @@ void uistream_buffered_test(void) {
 void uostream_null_test(void) {
     size_t written;
 
-    ustream_ret ret = uostream_write(&uostream_null, test_data, TEST_DATA_SIZE, &written);
+    UOStream *stream = uostream_null();
+    ustream_ret ret = uostream_write(stream, test_data, TEST_DATA_SIZE, &written);
     utest_assert(ret == USTREAM_OK);
     utest_assert_uint(written, ==, TEST_DATA_SIZE);
 
     char const fmt_str[] = "12345";
-    ret = uostream_writef(&uostream_null, &written, fmt_str);
+    ret = uostream_writef(stream, &written, fmt_str);
     utest_assert(ret == USTREAM_OK);
     utest_assert_uint(written, ==, sizeof(fmt_str) - 1);
 
-    ret = uostream_flush(&uostream_null);
+    ret = uostream_flush(stream);
     utest_assert(ret == USTREAM_OK);
 }
 

@@ -151,12 +151,21 @@ typedef struct ULog {
  * @{
  */
 
-/// The main logger.
-ULIB_API
-extern ULog *const ulog_main;
+/**
+ * The main logger.
+ *
+ * @alias extern ULog *const ulog_main;
+ */
+#define ulog_main p_ulog_main()
 
-/// Initializes a logger object with the default settings.
-#define ulog_init { ULIB_LOG_LEVEL, ULOG_COLOR, &uostream_stderr, NULL, ulog_default_handler }
+/**
+ * Returns a logger object initialized with the default settings.
+ *
+ * @return Logger object.
+ */
+ULIB_API
+ULIB_CONST
+ULog ulog_default(void);
 
 /**
  * Checks whether the logger handles events at the specified log level.
@@ -448,6 +457,10 @@ ustream_ret ulog_write_newline(ULog *log);
 /// @}
 
 // Private API
+
+ULIB_API
+ULIB_CONST
+ULog *p_ulog_main(void);
 
 ULIB_API
 ulib_ret p_ulog(ULog *log, ULogEvent event, char const *fmt, ...);

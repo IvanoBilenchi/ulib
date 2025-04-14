@@ -99,9 +99,14 @@ typedef struct UIStream {
  * @{
  */
 
-/// Standard input stream.
+/**
+ * Standard input stream.
+ *
+ * @return Standard input stream.
+ */
 ULIB_API
-extern UIStream uistream_std;
+ULIB_CONST
+UIStream *uistream_std(void);
 
 /**
  * Initializes an input stream.
@@ -319,16 +324,33 @@ typedef struct UOStream {
  */
 
 /// Standard output stream.
-ULIB_API
-extern UOStream uostream_std;
 
-/// Standard error stream.
+/**
+ * Standard output stream.
+ *
+ * @return Standard output stream.
+ */
 ULIB_API
-extern UOStream uostream_stderr;
+ULIB_CONST
+UOStream *uostream_std(void);
 
-/// Null output stream, discards all data written to it.
+/**
+ * Standard error stream.
+ *
+ * @return Standard error stream.
+ */
 ULIB_API
-extern UOStream uostream_null;
+ULIB_CONST
+UOStream *uostream_stderr(void);
+
+/**
+ * Null output stream, discards all data written to it.
+ *
+ * @return Null output stream.
+ */
+ULIB_API
+ULIB_CONST
+UOStream *uostream_null(void);
 
 /**
  * Initializes an output stream.

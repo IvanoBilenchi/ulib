@@ -13,6 +13,7 @@
 #include "unumber.h"
 #include "ustream.h"
 #include "utime.h"
+#include "uutils.h"
 #include <stdarg.h>
 #include <stddef.h>
 
@@ -24,9 +25,6 @@ static char const *log_level_color[LEVEL_COUNT] = {
     NULL,        UCOLOR_TRACE, UCOLOR_DEBUG, UCOLOR_PERF,
     UCOLOR_INFO, UCOLOR_WARN,  UCOLOR_ERROR, UCOLOR_FATAL,
 };
-
-static ULog main_log = ulog_init;
-ULog *const ulog_main = &main_log;
 
 ULIB_INLINE ustream_ret begin_color(ULog *log, char const *color) {
     return color && log->color ? uostream_write_buf(log->stream, color, NULL) : USTREAM_OK;
@@ -40,6 +38,15 @@ ULIB_INLINE unsigned builtin_index(ULogLevel level) {
     if (level < ULOG_TRACE) return 0;
     if (level >= ULOG_FATAL) return LEVEL_COUNT - 1;
     return ulib_uint32_log2(level) - P_ULOG_LEVEL_MIN_EXP + 1;
+}
+
+ULog ulog_default(void) {
+    return (ULog){
+        .level = ULIB_LOG_LEVEL,
+        .color = ULOG_COLOR,
+        .stream = uostream_stderr(),
+        .handler = ulog_default_handler,
+    };
 }
 
 ulib_ret ulog_default_handler(ULog *log, ULogEvent const *event) {
@@ -118,6 +125,12 @@ ustream_ret ulog_write_space(ULog *log) {
 
 ustream_ret ulog_write_newline(ULog *log) {
     return uostream_write_literal(log->stream, "\n", NULL);
+}
+
+ULog *p_ulog_main(void) {
+    static ULog log = ulib_struct_init;
+    if (ulib_unlikely(!log.stream)) log = ulog_default();
+    return &log;
 }
 
 ulib_ret p_ulog(ULog *log, ULogEvent event, char const *fmt, ...) {
