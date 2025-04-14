@@ -79,7 +79,7 @@ ULIB_BEGIN_DECLS
 ULIB_CONST
 ULIB_INLINE
 ulib_uint p_ulib_hash_int32(uint32_t key) {
-    return (ulib_uint)(key >> 17U ^ key ^ key << 6U);
+    return (ulib_uint)key ^ (ulib_uint)(key >> 16U);
 }
 
 #define ulib_hash_int32(key) p_ulib_hash_int32((uint32_t)(key))
@@ -87,8 +87,8 @@ ulib_uint p_ulib_hash_int32(uint32_t key) {
 ULIB_CONST
 ULIB_INLINE
 ulib_uint p_ulib_hash_int64(uint64_t key) {
-    return (ulib_uint)(key >> 49U ^ key >> 33U ^ key >> 17U ^ key ^ key << 6U ^ key << 23U ^
-                       key << 39U);
+    return (ulib_uint)key ^ (ulib_uint)(key >> 16U) ^ (ulib_uint)(key >> 32U) ^
+           (ulib_uint)(key >> 48U);
 }
 
 #define ulib_hash_int64(key) p_ulib_hash_int64((uint32_t)(key))
@@ -105,7 +105,7 @@ ulib_uint p_ulib_hash_int64(uint64_t key) {
 ULIB_CONST
 ULIB_INLINE
 ulib_uint p_ulib_hash_int64(uint64_t key) {
-    return (ulib_uint)(key >> 33U ^ key ^ key << 11U);
+    return (ulib_uint)key ^ (ulib_uint)(key >> 32U);
 }
 
 #define ulib_hash_int64(key) p_ulib_hash_int64((uint64_t)(key))

@@ -23,6 +23,7 @@
 #include "unumber.h"
 #include "uutils.h"
 #include "uwarning.h"
+#include <limits.h>
 #include <string.h>
 
 ULIB_BEGIN_DECLS
@@ -158,17 +159,21 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
 #if defined(ULIB_TINY)
 ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
     ulib_assert(bits);
-    return (ulib_uint)((unsigned)hash * 40503U) >> (16U - bits);
+    unsigned h = (unsigned)hash;
+    unsigned const shift = 16U - bits;
+    return (ulib_uint)((h ^ (h >> shift)) * 40503U) >> shift;
 }
 #elif defined(ULIB_HUGE)
 ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
     ulib_assert(bits);
-    return hash * (ulib_uint)11400714819323198485LLU >> (64U - bits);
+    ulib_uint const shift = 64U - bits;
+    return (hash ^ (hash >> shift)) * (ulib_uint)11400714819323198485LLU >> shift;
 }
 #else
 ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
     ulib_assert(bits);
-    return hash * (ulib_uint)2654435769LU >> (32U - bits);
+    ulib_uint const shift = 32U - bits;
+    return (hash ^ (hash >> shift)) * (ulib_uint)2654435769LU >> shift;
 }
 #endif
 
