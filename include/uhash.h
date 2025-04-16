@@ -145,53 +145,30 @@ typedef enum uhash_ret {
 #define p_uhash_size_gt0(h) p_uhash_size_from_exp((h)->_exp)
 
 // Flags manipulation macros.
-#define p_uhf_size(m) ((m) <= 32 ? 1 : (m) >> 5U)
-#define p_uhf_size_from_exp(e) ((e) <= 5U ? 1U : p_uhash_size_from_exp((e) - 5U))
-#define p_uhf_is_used(flag, i) (((flag)[(i) >> 5U] >> ((i) & 0x1fU)) & 1U)
-#define p_uhf_is_empty(flag, i) (!p_uhf_is_used(flag, i))
-#define p_uhf_set_used(flag, i) ((flag)[(i) >> 5U] |= 1U << ((i) & 0x1fU))
-#define p_uhf_set_empty(flag, i) ((flag)[(i) >> 5U] &= ~(1U << ((i) & 0x1fU)))
+#define p_uhf_size(m) ((m) <= 16 ? 1 : (m) >> 4U)
+#define p_uhf_size_from_exp(e) ((e) <= 4U ? 1U : p_uhash_size_from_exp((e) - 4U))
+
+#define p_uhf_get(flag, i) ((flag)[(i) >> 4U] >> (((i) & 0xfU) << 1U))
+#define p_uhf_is_used_or_del(flag, i) (p_uhf_get(flag, i) & 3U)
+#define p_uhf_is_used(flag, i) (p_uhf_get(flag, i) & 2U)
+#define p_uhf_is_aux_set(flag, i) (p_uhf_get(flag, i) & 1U)
+
+#define p_uhf_set_empty(flag, i) ((flag)[(i) >> 4U] &= ~(3UL << (((i) & 0xfU) << 1U)))
+#define p_uhf_set_used_bit(flag, i) ((flag)[(i) >> 4U] |= 2UL << (((i) & 0xfU) << 1U))
+#define p_uhf_set_aux_bit(flag, i) ((flag)[(i) >> 4U] |= 1UL << (((i) & 0xfU) << 1U))
+#define p_uhf_unset_aux_bit(flag, i) ((flag)[(i) >> 4U] &= ~(1UL << (((i) & 0xfU) << 1U)))
+#define p_uhf_set_del(flag, i) (p_uhf_set_empty(flag, i), p_uhf_set_aux_bit(flag, i))
 
 ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) {
     return (buckets >> 1U) + (buckets >> 2U); // 0.75 * buckets
 }
-
-#if defined(ULIB_TINY)
-ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
-    ulib_assert(bits);
-    unsigned h = (unsigned)hash;
-    unsigned const shift = 16U - bits;
-    return (ulib_uint)((h ^ (h >> shift)) * 40503U) >> shift;
-}
-#elif defined(ULIB_HUGE)
-ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
-    ulib_assert(bits);
-    ulib_uint const shift = 64U - bits;
-    return (hash ^ (hash >> shift)) * (ulib_uint)11400714819323198485LLU >> shift;
-}
-#else
-ULIB_CONST ULIB_INLINE ulib_uint p_uhash_fib(ulib_uint hash, ulib_byte bits) {
-    ulib_assert(bits);
-    ulib_uint const shift = 32U - bits;
-    return (hash ^ (hash >> shift)) * (ulib_uint)2654435769LU >> shift;
-}
-#endif
-
-ULIB_CONST ULIB_INLINE ulib_uint p_uhash_mod(ulib_uint hash, ulib_uint bits) {
-    return hash & ((1U << bits) - 1U);
-}
-
-#ifdef UHASH_NO_SECONDARY_HASHING
-#define p_uhash_to_bits p_uhash_mod
-#else
-#define p_uhash_to_bits p_uhash_fib
-#endif
 
 #define P_UHASH_DEF_TYPE_HEAD(T, uh_key, uh_val)                                                   \
     typedef struct UHash_##T {                                                                     \
         /** @cond */                                                                               \
         ulib_byte _is_map;                                                                         \
         ulib_byte _exp;                                                                            \
+        ulib_uint _occupied;                                                                       \
         ulib_uint _count;                                                                          \
         uint32_t *_flags;                                                                          \
         uh_key *_keys;                                                                             \
@@ -254,7 +231,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_mod(ulib_uint hash, ulib_uint bits) {
     ATTRS ULIB_PURE ulib_uint uhash_get_##T(UHash_##T const *h, uh_key key);                       \
     ATTRS uhash_ret uhash_resize_##T(UHash_##T *h, ulib_uint new_size);                            \
     ATTRS uhash_ret uhash_put_##T(UHash_##T *h, uh_key key, ulib_uint *idx);                       \
-    ATTRS void uhash_delete_##T(UHash_##T *h, ulib_uint i);                                        \
+    ATTRS void uhash_delete_##T(UHash_##T *h, ulib_uint k);                                        \
     ATTRS ULIB_CONST UHash_##T uhmap_##T(void);                                                    \
     ATTRS ULIB_PURE uh_val uhmap_get_##T(UHash_##T const *h, uh_key key, uh_val if_missing);       \
     ATTRS uhash_ret uhmap_set_##T(UHash_##T *h, uh_key key, uh_val value, uh_val *existing);       \
@@ -447,26 +424,28 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_mod(ulib_uint hash, ulib_uint bits) {
         dest->_keys = new_keys;                                                                    \
         dest->_exp = src->_exp;                                                                    \
         dest->_is_map = 0;                                                                         \
+        dest->_occupied = src->_occupied;                                                          \
         dest->_count = src->_count;                                                                \
                                                                                                    \
         return UHASH_OK;                                                                           \
     }                                                                                              \
                                                                                                    \
     ATTRS void uhash_clear_##T(UHash_##T *h) {                                                     \
-        if (!h->_count) return;                                                                    \
+        if (!h->_occupied) return;                                                                 \
         memset(h->_flags, 0, p_uhf_size_from_exp(h->_exp) * sizeof(uint32_t));                     \
-        h->_count = 0;                                                                             \
+        h->_count = h->_occupied = 0;                                                              \
     }                                                                                              \
                                                                                                    \
     ATTRS ulib_uint uhash_get_##T(UHash_##T const *h, uh_key key) {                                \
         if (!h->_exp) return UHASH_INDEX_MISSING;                                                  \
                                                                                                    \
-        ulib_uint const mask = p_uhash_size_gt0(h) - 1;                                            \
-        ulib_uint i = p_uhash_to_bits((ulib_uint)(hash_func(key)), h->_exp);                       \
+        ulib_uint const mask = uhash_size_##T(h) - 1;                                              \
+        ulib_uint i = (ulib_uint)hash_func(key) & mask;                                            \
+        ulib_uint step = 0;                                                                        \
                                                                                                    \
-        while (p_uhf_is_used(h->_flags, i)) {                                                      \
-            if (equal_func(h->_keys[i], key)) return i;                                            \
-            i = (i + 1U) & mask;                                                                   \
+        while (p_uhf_is_used_or_del(h->_flags, i)) {                                               \
+            if (p_uhf_is_used(h->_flags, i) && equal_func(h->_keys[i], key)) return i;             \
+            i = (i + (++step)) & mask;                                                             \
         }                                                                                          \
                                                                                                    \
         return UHASH_INDEX_MISSING;                                                                \
@@ -487,12 +466,11 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_mod(ulib_uint hash, ulib_uint bits) {
         size_t const new_flags_size = p_uhf_size_from_exp(new_exp);                                \
         uint32_t *new_flags = (uint32_t *)ulib_calloc_array(new_flags, new_flags_size);            \
         if (!new_flags) return UHASH_ERR;                                                          \
-                                                                                                   \
         ulib_uint const mask = p_uhash_size_from_exp(new_exp) - 1;                                 \
         ulib_uint const cur_size = uhash_size_##T(h);                                              \
                                                                                                    \
         for (ulib_uint j = 0; j < cur_size; ++j) {                                                 \
-            if (p_uhf_is_empty(h->_flags, j)) continue;                                            \
+            if (!p_uhf_is_used(h->_flags, j)) continue;                                            \
                                                                                                    \
             uh_key key = h->_keys[j];                                                              \
             uh_val val = { 0 };                                                                    \
@@ -502,9 +480,11 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_mod(ulib_uint hash, ulib_uint bits) {
             /* Kick-out process. It is bound to access uninitialized data. */                      \
             /* NOLINTBEGIN(clang-analyzer-core.uninitialized.Assign) */                            \
             while (true) {                                                                         \
-                ulib_uint i = p_uhash_to_bits((ulib_uint)(hash_func(key)), new_exp);               \
-                while (p_uhf_is_used(new_flags, i)) i = (i + 1U) & mask;                           \
-                p_uhf_set_used(new_flags, i);                                                      \
+                ulib_uint i = (ulib_uint)hash_func(key) & mask;                                    \
+                ulib_uint step = 0;                                                                \
+                                                                                                   \
+                while (p_uhf_is_used_or_del(new_flags, i)) i = (i + (++step)) & mask;              \
+                p_uhf_set_used_bit(new_flags, i);                                                  \
                                                                                                    \
                 if (i < cur_size && p_uhf_is_used(h->_flags, i)) {                                 \
                     ulib_swap(uh_key, key, h->_keys[i]);                                           \
@@ -521,6 +501,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_mod(ulib_uint hash, ulib_uint bits) {
                                                                                                    \
         ulib_free(h->_flags);                                                                      \
         h->_flags = new_flags;                                                                     \
+        h->_occupied = h->_count;                                                                  \
         return UHASH_OK;                                                                           \
     }                                                                                              \
                                                                                                    \
@@ -539,52 +520,56 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_mod(ulib_uint hash, ulib_uint bits) {
         return UHASH_OK;                                                                           \
     }                                                                                              \
                                                                                                    \
+    ULIB_INLINE uhash_ret p_uhash_bookkeeping_##T(UHash_##T *h) {                                  \
+        ulib_uint const size = uhash_size_##T(h);                                                  \
+        ulib_uint const upper_bound = uhash_upper_bound(size);                                     \
+        if (h->_occupied < upper_bound) return UHASH_OK;                                           \
+        if (upper_bound > (h->_count << 1U)) return p_uhash_rehash_##T(h, h->_exp);                \
+        return uhash_resize_##T(h, size + 1);                                                      \
+    }                                                                                              \
+                                                                                                   \
     ATTRS uhash_ret uhash_put_##T(UHash_##T *h, uh_key key, ulib_uint *idx) {                      \
         ulib_analyzer_assert(h->_flags);                                                           \
+        uhash_ret ret;                                                                             \
                                                                                                    \
-        uhash_ret ret = UHASH_ERR;                                                                 \
-        ulib_uint i = UHASH_INDEX_MISSING;                                                         \
-        ulib_uint size = uhash_size_##T(h);                                                        \
-                                                                                                   \
-        if ((h->_count >= uhash_upper_bound(size)) && uhash_resize_##T(h, size + 1)) goto end;     \
-        size = p_uhash_size_gt0(h) - 1;                                                            \
-                                                                                                   \
-        ret = UHASH_PRESENT;                                                                       \
-        i = p_uhash_to_bits((ulib_uint)(hash_func(key)), h->_exp);                                 \
-                                                                                                   \
-        while (p_uhf_is_used(h->_flags, i)) {                                                      \
-            if (equal_func(h->_keys[i], key)) goto end;                                            \
-            i = (i + 1U) & size;                                                                   \
+        if ((ret = p_uhash_bookkeeping_##T(h))) {                                                  \
+            if (idx) *idx = UHASH_INDEX_MISSING;                                                   \
+            return ret;                                                                            \
         }                                                                                          \
                                                                                                    \
-        h->_keys[i] = key;                                                                         \
-        h->_count++;                                                                               \
-        p_uhf_set_used(h->_flags, i);                                                              \
+        ret = UHASH_PRESENT;                                                                       \
+        ulib_uint const mask = uhash_size_##T(h) - 1;                                              \
+        ulib_uint i = (ulib_uint)hash_func(key) & mask;                                            \
+        ulib_uint step = 0;                                                                        \
+        ulib_uint last_del = UHASH_INDEX_MISSING;                                                  \
+                                                                                                   \
+        while (p_uhf_is_used_or_del(h->_flags, i)) {                                               \
+            if (!p_uhf_is_used(h->_flags, i))                                                      \
+                last_del = i;                                                                      \
+            else if (equal_func(h->_keys[i], key))                                                 \
+                goto end;                                                                          \
+            i = (i + (++step)) & mask;                                                             \
+        }                                                                                          \
+                                                                                                   \
         ret = UHASH_INSERTED;                                                                      \
+        if (last_del == UHASH_INDEX_MISSING) {                                                     \
+            h->_occupied++;                                                                        \
+        } else {                                                                                   \
+            i = last_del;                                                                          \
+        }                                                                                          \
+                                                                                                   \
+        h->_count++;                                                                               \
+        h->_keys[i] = key;                                                                         \
+        p_uhf_set_used_bit(h->_flags, i);                                                          \
                                                                                                    \
     end:                                                                                           \
         if (idx) *idx = i;                                                                         \
         return ret;                                                                                \
     }                                                                                              \
                                                                                                    \
-    ATTRS void uhash_delete_##T(UHash_##T *h, ulib_uint i) {                                       \
-        if (!h->_exp || p_uhf_is_empty(h->_flags, i)) return;                                      \
-                                                                                                   \
-        ulib_uint j = i;                                                                           \
-        ulib_uint const mask = p_uhash_size_gt0(h) - 1U;                                           \
-                                                                                                   \
-        while (true) {                                                                             \
-            j = (j + 1U) & mask;                                                                   \
-            if (i == j || p_uhf_is_empty(h->_flags, j)) break;                                     \
-            ulib_uint const k = p_uhash_to_bits((ulib_uint)(hash_func(h->_keys[j])), h->_exp);     \
-            if ((j > i && (k <= i || k > j)) || (j < i && (k <= i && k > j))) {                    \
-                h->_keys[i] = h->_keys[j];                                                         \
-                if (h->_vals) h->_vals[i] = h->_vals[j];                                           \
-                i = j;                                                                             \
-            }                                                                                      \
-        }                                                                                          \
-                                                                                                   \
-        p_uhf_set_empty(h->_flags, i);                                                             \
+    ATTRS void uhash_delete_##T(UHash_##T *h, ulib_uint k) {                                       \
+        if (!p_uhf_is_used(h->_flags, k)) return;                                                  \
+        p_uhf_set_del(h->_flags, k);                                                               \
         h->_count--;                                                                               \
     }                                                                                              \
                                                                                                    \
