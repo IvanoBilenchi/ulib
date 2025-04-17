@@ -29,6 +29,8 @@ typedef void *ulib_ptr;
 #include <stdalign.h>
 #if defined(_WIN32)
 #define ULIB_MALLOC_ALIGN alignof(long double)
+#elif defined(__APPLE__) && defined(__aarch64__)
+#define ULIB_MALLOC_ALIGN ((size_t)16U)
 #else
 #define ULIB_MALLOC_ALIGN alignof(max_align_t)
 #endif

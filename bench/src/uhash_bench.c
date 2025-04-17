@@ -112,7 +112,7 @@ static HashTable hash_table_khashl(void) {
 // Benchmarks
 
 static void bench_hash(HashTable *table, ulib_uint size) {
-    ulog_info("- Size: %zu", size);
+    ulog_info("- Size: %" ULIB_UINT_FMT, size);
 
     void *h = table->init();
     urand_set_seed(SEED);
