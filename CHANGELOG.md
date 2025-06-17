@@ -5,6 +5,42 @@ All notable changes to uLib will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [0.3.0] - 2025-06-17
+### Added
+- Logging system supporting events, ANSI colors, and convenient time benchmarking (`ulog`).
+- Buffered IO streams (`uistream_buffered`, `uostream_buffered`).
+- Variable-length integers (`*_varint`, `*_svarint`).
+- Analyzer-aware assertions (`ulib_assert`).
+- `uostream_reset`, and associated `reset` field to output streams.
+- `uostream_write_buf`, `uostream_write_date`, `uostream_write_time_of_day`.
+- `uhash_shrink`.
+- `uhset_diff_intersect`, replacing `uhset_intersect`.
+- `ulib_uint_ceil_log2`, `ulib_uint16_ceil_log2`, `ulib_uint32_ceil_log2`, `ulib_uint64_ceil_log2`.
+- `ulib_uint_is_pow2_or_zero`.
+- `ulib_neq`, `ulib_lt`, `ulib_gt`, `ulib_leq`, `ulib_geq`, `ulib_noop`.
+- `ulib_stackfree`, making `ulib_stackalloc` portable by falling back to plain `malloc/free`.
+- `ustring_init_null`, `ustring_init_empty`.
+- `ulib_likely` and `ulib_unlikely` optimizer hints.
+- `ULIB_MACRO_STRINGIZE`, `ULIB_FILE_NAME`.
+- `ULIB_NORETURN` function attribute.
+- `ULIB_OPTIMIZE_FOR_HOST`, `ULIB_LOG_LEVEL`, `ULIB_COLOR` CMake variables.
+
+### Changed
+- Reworked `utest`, major breaking changes.
+- Reworked `uhash` internals.
+- Renamed `utest_leak_*` to `uleak_detect_*`.
+- Deprecated `ulib_equals` in favor of `ulib_eq`.
+
+### Removed
+- `uhset_intersect`, as it offered no way to know which elements were removed from the hash table.
+
+### Fixed
+- `UVEC_INIT`, `UVEC_INIT_EQUATABLE`, `UVEC_INIT_COMPARABLE`, `UVEC_INIT_IDENTIFIABLE`.
+- Value of `ULIB_MALLOC_ALIGN` on arm64 Apple platforms.
+- Miscellaneous compiler and static analyzer warnings.
+
+
 ## [0.2.6] - 2024-07-05
 ### Added
 - `ustring_range`, `ustring_replacing_char`.
@@ -234,6 +270,7 @@ uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Test utilities.
 - Miscellaneous helper macros.
 
+[0.3.0]: https://github.com/ivanobilenchi/ulib/compare/v0.2.6...v0.3.0
 [0.2.6]: https://github.com/ivanobilenchi/ulib/compare/v0.2.5...v0.2.6
 [0.2.5]: https://github.com/ivanobilenchi/ulib/compare/v0.2.4...v0.2.5
 [0.2.4]: https://github.com/ivanobilenchi/ulib/compare/v0.2.3...v0.2.4

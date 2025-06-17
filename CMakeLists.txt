@@ -9,8 +9,8 @@ cmake_minimum_required(VERSION 3.24)
 # Project
 
 set(ULIB_VERSION_MAJOR 0)
-set(ULIB_VERSION_MINOR 2)
-set(ULIB_VERSION_PATCH 6)
+set(ULIB_VERSION_MINOR 3)
+set(ULIB_VERSION_PATCH 0)
 set(ULIB_VERSION "${ULIB_VERSION_MAJOR}.${ULIB_VERSION_MINOR}.${ULIB_VERSION_PATCH}")
 
 set(ULIB_AUTHOR "Ivano Bilenchi")
@@ -20,7 +20,7 @@ set(ULIB_GIT_URL "https://github.com/IvanoBilenchi/ulib")
 
 project(uLib
         VERSION "${ULIB_VERSION}"
-        DESCRIPTION "A modern, generic C library."
+        DESCRIPTION "A modern library for C applications."
         HOMEPAGE_URL "${ULIB_GIT_URL}"
         LANGUAGES C)
 
