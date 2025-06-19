@@ -245,7 +245,8 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
     ATTRS bool uhset_remove_##T(UHash_##T *h, uh_key key, uh_key *removed);                        \
     ATTRS ULIB_PURE bool uhset_is_superset_##T(UHash_##T const *h1, UHash_##T const *h2);          \
     ATTRS uhash_ret uhset_union_##T(UHash_##T *h1, UHash_##T const *h2, UHash_##T *added);         \
-    ATTRS uhash_ret uhset_diff_intersect_##T(UHash_##T *h1, UHash_##T *h12, UHash_##T const *h2);  \
+    ATTRS uhash_ret uhset_intersect_##T(UHash_##T *h1, UHash_##T const *h2, UHash_##T *diff);      \
+    ATTRS uhash_ret uhset_diff_##T(UHash_##T *h1, UHash_##T const *h2, UHash_##T *inter);          \
     ATTRS ULIB_PURE ulib_uint uhset_hash_##T(UHash_##T const *h);                                  \
     ATTRS ULIB_PURE uh_key uhset_get_any_##T(UHash_##T const *h, uh_key if_empty);                 \
     /** @endcond */
@@ -685,14 +686,23 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
         return UHASH_OK;                                                                           \
     }                                                                                              \
                                                                                                    \
-    ATTRS uhash_ret uhset_diff_intersect_##T(UHash_##T *h1, UHash_##T *h12, UHash_##T const *h2) { \
-        ulib_uint const h2_size = uhash_size_##T(h2);                                              \
-        for (ulib_uint i = 0; i < h2_size; ++i) {                                                  \
-            if (!uhash_exists(T, h2, i)) continue;                                                 \
-            uh_key existing;                                                                       \
-            if (uhset_remove_##T(h1, h2->_keys[i], &existing) && h12) {                            \
-                if (uhset_insert_##T(h12, existing, NULL) == UHASH_ERR) return UHASH_ERR;          \
-            }                                                                                      \
+    ATTRS uhash_ret uhset_intersect_##T(UHash_##T *h1, UHash_##T const *h2, UHash_##T *diff) {     \
+        ulib_uint const h1_size = uhash_size_##T(h1);                                              \
+        for (ulib_uint i = 0; i < h1_size; ++i) {                                                  \
+            if (!uhash_exists(T, h1, i) || uhash_contains(T, h2, h1->_keys[i])) continue;          \
+            if (diff && uhset_insert_##T(diff, h1->_keys[i], NULL) == UHASH_ERR) return UHASH_ERR; \
+            uhash_delete_##T(h1, i);                                                               \
+        }                                                                                          \
+        return UHASH_OK;                                                                           \
+    }                                                                                              \
+                                                                                                   \
+    ATTRS uhash_ret uhset_diff_##T(UHash_##T *h1, UHash_##T const *h2, UHash_##T *inter) {         \
+        ulib_uint const h1_size = uhash_size_##T(h1);                                              \
+        for (ulib_uint i = 0; i < h1_size; ++i) {                                                  \
+            if (!(uhash_exists(T, h1, i) && uhash_contains(T, h2, h1->_keys[i]))) continue;        \
+            if (inter && uhset_insert_##T(inter, h1->_keys[i], NULL) == UHASH_ERR)                 \
+                return UHASH_ERR;                                                                  \
+            uhash_delete_##T(h1, i);                                                               \
         }                                                                                          \
         return UHASH_OK;                                                                           \
     }                                                                                              \
@@ -1314,6 +1324,32 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
 #define uhset_union(T, h1, h2, added) uhset_union_##T(h1, h2, added)
 
 /**
+ * Performs the intersection between `h1` and `h2` (`h1 && h2`), mutating `h1`.
+ *
+ * @param T Hash table type.
+ * @param h1 Set to mutate, will contain `h1 && h2`.
+ * @param h2 Other set.
+ * @param[out] diff Elements that were in `h1` but not in `h2`. Can be NULL.
+ * @return @val{UHASH_OK} if the operation succeeded, @val{UHASH_ERR} on error.
+ *
+ * @alias uhash_ret uhset_intersect(symbol T, UHash(T) *h1, UHash(T) const *h2, UHash(T) *diff);
+ */
+#define uhset_intersect(T, h1, h2, diff) uhset_intersect_##T(h1, h2, diff)
+
+/**
+ * Computes the difference between `h1` and `h2` (`h1 - h2`), mutating `h1`.
+ *
+ * @param T Hash table type.
+ * @param h1 Set to mutate, will contain `h1 - h2`.
+ * @param h2 Other set.
+ * @param[out] inter Elements of `h1` that were also in `h2`. Can be NULL.
+ * @return @val{UHASH_OK} if the operation succeeded, @val{UHASH_ERR} on error.
+ *
+ * @alias uhash_ret uhset_diff(symbol T, UHash(T) *h1, UHash(T) const *h2, UHash(T) *inter);
+ */
+#define uhset_diff(T, h1, h2, inter) uhset_diff_##T(h1, h2, inter)
+
+/**
  * Splits `h1` into two sets: one containing the elements that are in `h1` but not in `h2`
  * (`h1 - h2`), and one containing the elements that are in both `h1` and `h2` (`h1 && h2`).
  *
@@ -1323,9 +1359,10 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  * @param h2 Other set.
  * @return @val{UHASH_OK} if the operation succeeded, @val{UHASH_ERR} on error.
  *
+ * @deprecated Use @func{uhset_diff} or @func{uhset_intersect} instead.
  * @alias uhash_ret uhset_diff_intersect(symbol T, UHash(T) *h1, UHash(T) *h12, UHash(T) const *h2);
  */
-#define uhset_diff_intersect(T, h1, h12, h2) uhset_diff_intersect_##T(h1, h12, h2)
+#define uhset_diff_intersect(T, h1, h12, h2) ULIB_DEPRECATED_MACRO uhset_diff(T, h1, h2, h12)
 
 /**
  * Checks whether the set is equal to another set.
