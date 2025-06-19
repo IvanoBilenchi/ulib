@@ -244,7 +244,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
     ATTRS bool uhset_replace_##T(UHash_##T *h, uh_key key, uh_key *replaced);                      \
     ATTRS bool uhset_remove_##T(UHash_##T *h, uh_key key, uh_key *removed);                        \
     ATTRS ULIB_PURE bool uhset_is_superset_##T(UHash_##T const *h1, UHash_##T const *h2);          \
-    ATTRS uhash_ret uhset_union_##T(UHash_##T *h1, UHash_##T const *h2);                           \
+    ATTRS uhash_ret uhset_union_##T(UHash_##T *h1, UHash_##T const *h2, UHash_##T *added);         \
     ATTRS uhash_ret uhset_diff_intersect_##T(UHash_##T *h1, UHash_##T *h12, UHash_##T const *h2);  \
     ATTRS ULIB_PURE ulib_uint uhset_hash_##T(UHash_##T const *h);                                  \
     ATTRS ULIB_PURE uh_key uhset_get_any_##T(UHash_##T const *h, uh_key if_empty);                 \
@@ -673,10 +673,12 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
         return true;                                                                               \
     }                                                                                              \
                                                                                                    \
-    ATTRS uhash_ret uhset_union_##T(UHash_##T *h1, UHash_##T const *h2) {                          \
+    ATTRS uhash_ret uhset_union_##T(UHash_##T *h1, UHash_##T const *h2, UHash_##T *added) {        \
         ulib_uint const h2_size = uhash_size_##T(h2);                                              \
         for (ulib_uint i = 0; i < h2_size; ++i) {                                                  \
-            if (uhash_exists(T, h2, i) && uhset_insert_##T(h1, h2->_keys[i], NULL) == UHASH_ERR) { \
+            if (!uhash_exists(T, h2, i)) continue;                                                 \
+            if (uhset_insert_##T(h1, h2->_keys[i], NULL) == UHASH_ERR ||                           \
+                (added && uhset_insert_##T(added, h2->_keys[i], NULL) == UHASH_ERR)) {             \
                 return UHASH_ERR;                                                                  \
             }                                                                                      \
         }                                                                                          \
@@ -1304,11 +1306,12 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  * @param T Hash table type.
  * @param h1 Set to mutate, will contain `h1 || h2`.
  * @param h2 Other set.
+ * @param[out] added Elements added to `h1` from `h2`. Can be NULL.
  * @return @val{UHASH_OK} if the operation succeeded, @val{UHASH_ERR} on error.
  *
- * @alias uhash_ret uhset_union(symbol T, UHash(T) *h1, UHash(T) const *h2);
+ * @alias uhash_ret uhset_union(symbol T, UHash(T) *h1, UHash(T) const *h2, UHash(T) *added);
  */
-#define uhset_union(T, h1, h2) uhset_union_##T(h1, h2)
+#define uhset_union(T, h1, h2, added) uhset_union_##T(h1, h2, added)
 
 /**
  * Splits `h1` into two sets: one containing the elements that are in `h1` but not in `h2`
