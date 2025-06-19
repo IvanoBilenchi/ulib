@@ -304,17 +304,6 @@ bool utest_passed(void);
         }                                                                                          \
     } while (0)
 
-/**
- * Assert that the specified expression must be true.
- * Abort the tests if it is false.
- *
- * @param exp Boolean expression.
- *
- * @deprecated Use @func{utest_assert_fatal} instead.
- * @alias void utest_assert_critical(bool exp);
- */
-#define utest_assert_critical(exp) ULIB_DEPRECATED_MACRO utest_assert_fatal(exp)
-
 /// @}
 
 // Private API
