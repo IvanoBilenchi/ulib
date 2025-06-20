@@ -224,6 +224,8 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  */
 #define P_UHASH_DECL(T, ATTRS, uh_key, uh_val)                                                     \
     /** @cond */                                                                                   \
+    ATTRS uhash_ret uhash_populate_##T(UHash_##T *h, uh_key const *keys, uh_val const *vals,       \
+                                       ulib_uint n);                                               \
     ATTRS void uhash_deinit_##T(UHash_##T *h);                                                     \
     ATTRS uhash_ret uhash_copy_##T(UHash_##T const *src, UHash_##T *dest);                         \
     ATTRS uhash_ret uhash_copy_as_set_##T(UHash_##T const *src, UHash_##T *dest);                  \
@@ -240,7 +242,6 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
     ATTRS bool uhmap_remove_##T(UHash_##T *h, uh_key key, uh_key *r_key, uh_val *r_val);           \
     ATTRS ULIB_CONST UHash_##T uhset_##T(void);                                                    \
     ATTRS uhash_ret uhset_insert_##T(UHash_##T *h, uh_key key, uh_key *existing);                  \
-    ATTRS uhash_ret uhset_insert_all_##T(UHash_##T *h, uh_key const *items, ulib_uint n);          \
     ATTRS bool uhset_replace_##T(UHash_##T *h, uh_key key, uh_key *replaced);                      \
     ATTRS bool uhset_remove_##T(UHash_##T *h, uh_key key, uh_key *removed);                        \
     ATTRS ULIB_PURE bool uhset_is_superset_##T(UHash_##T const *h1, UHash_##T const *h2);          \
@@ -373,6 +374,24 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  * @param equal_func @ctype{(uh_key, uh_key) -> bool} Equality function.
  */
 #define P_UHASH_IMPL_COMMON(T, ATTRS, uh_key, uh_val, hash_func, equal_func)                       \
+                                                                                                   \
+    ATTRS uhash_ret uhash_populate_##T(UHash_##T *h, uh_key const *keys, uh_val const *vals,       \
+                                       ulib_uint n) {                                              \
+        if (n == 0) return UHASH_OK;                                                               \
+        if (uhash_resize_##T(h, n)) goto err;                                                      \
+                                                                                                   \
+        for (ulib_uint i = 0; i < n; ++i) {                                                        \
+            ulib_uint k;                                                                           \
+            if (uhash_put_##T(h, keys[i], &k) == UHASH_ERR) goto err;                              \
+            if (vals) h->_vals[k] = vals[i];                                                       \
+        }                                                                                          \
+                                                                                                   \
+        return UHASH_OK;                                                                           \
+                                                                                                   \
+    err:                                                                                           \
+        uhash_deinit_##T(h);                                                                       \
+        return UHASH_ERR;                                                                          \
+    }                                                                                              \
                                                                                                    \
     ATTRS void uhash_deinit_##T(UHash_##T *h) {                                                    \
         ulib_free((void *)h->_keys);                                                               \
@@ -634,19 +653,6 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
         return ret;                                                                                \
     }                                                                                              \
                                                                                                    \
-    ATTRS uhash_ret uhset_insert_all_##T(UHash_##T *h, uh_key const *items, ulib_uint n) {         \
-        if (uhash_resize_##T(h, n)) return UHASH_ERR;                                              \
-        uhash_ret ret = UHASH_PRESENT;                                                             \
-                                                                                                   \
-        for (ulib_uint i = 0; i < n; ++i) {                                                        \
-            uhash_ret l_ret = uhset_insert_##T(h, items[i], NULL);                                 \
-            if (l_ret == UHASH_ERR) return UHASH_ERR;                                              \
-            if (l_ret == UHASH_INSERTED) ret = UHASH_INSERTED;                                     \
-        }                                                                                          \
-                                                                                                   \
-        return ret;                                                                                \
-    }                                                                                              \
-                                                                                                   \
     ATTRS bool uhset_replace_##T(UHash_##T *h, uh_key key, uh_key *replaced) {                     \
         ulib_uint k = uhash_get_##T(h, key);                                                       \
         if (k == UHASH_INDEX_MISSING) return false;                                                \
@@ -837,6 +843,24 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  * @defgroup UHash_common UHash common API
  * @{
  */
+
+/**
+ * Populates a hash table with the specified keys and values.
+ *
+ * @param T Hash table type.
+ * @param h Hash table to populate.
+ * @param keys Array of keys to insert.
+ * @param vals Array of values to insert. Can be NULL if the hash table is a set.
+ * @param n Number of elements to insert.
+ * @return @val{UHASH_OK} if the operation succeeded, @val{UHASH_ERR} on error.
+ *
+ * @note This function replaces existing keys and values, though it gives no indication
+ *       of which keys and values were replaced. As such, it is best used to populate
+ *       an empty hash table.
+ * @alias uhash_ret uhash_populate(symbol T, UHash(T) *h, UHashKey(T) const *keys,
+ *                                 UHashVal(T) const *vals, ulib_uint n);
+ */
+#define uhash_populate(T, h, keys, vals, n) uhash_populate_##T(h, keys, vals, n)
 
 /**
  * Deinitializes the specified hash table.
@@ -1254,11 +1278,10 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  * @param n Size of the array.
  * @return Return code.
  *
- * @note This function returns @val{UHASH_INSERTED} if at least one element in the array
- *       was missing from the set.
+ * @deprecated Use @func{uhash_populate} instead.
  * @alias uhash_ret uhset_insert_all(symbol T, UHash(T) *h, UHashKey(T) *a, ulib_uint n);
  */
-#define uhset_insert_all(T, h, a, n) uhset_insert_all_##T(h, a, n)
+#define uhset_insert_all(T, h, a, n) ULIB_DEPRECATED_MACRO uhash_populate(T, h, a, NULL, n)
 
 /**
  * Replaces an element in the set, only if it exists.
