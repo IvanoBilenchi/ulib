@@ -146,9 +146,7 @@ void uhash_test_set(void) {
         elements[i] = i;
     }
 
-    utest_assert(uhset_insert_all(IntHash, &set, elements, MAX_VAL) == UHASH_PRESENT);
-    utest_assert(uhset_insert_all(IntHash, &set, elements, MAX_VAL + 1) == UHASH_INSERTED);
-
+    utest_assert(uhash_populate(IntHash, &set, elements, NULL, MAX_VAL + 1) == UHASH_OK);
     utest_assert(uhash_contains(IntHash, &set, MAX_VAL));
     utest_assert(uhset_remove(IntHash, &set, MAX_VAL));
     utest_assert_false(uhash_contains(IntHash, &set, MAX_VAL));
@@ -160,14 +158,14 @@ void uhash_test_set(void) {
     }
 
     UHash(IntHash) other_set = uhset(IntHash);
-    uhset_insert_all(IntHash, &set, elements, MAX_VAL);
-    uhset_insert_all(IntHash, &other_set, elements, MAX_VAL / 2);
+    uhash_populate(IntHash, &set, elements, NULL, MAX_VAL);
+    uhash_populate(IntHash, &other_set, elements, NULL, MAX_VAL / 2);
 
     utest_assert(uhset_is_superset(IntHash, &set, &other_set));
     utest_assert_false(uhset_is_superset(IntHash, &other_set, &set));
 
     utest_assert_false(uhset_equals(IntHash, &set, &other_set));
-    uhset_insert_all(IntHash, &other_set, elements, MAX_VAL);
+    uhash_populate(IntHash, &other_set, elements, NULL, MAX_VAL);
     utest_assert(uhset_equals(IntHash, &set, &other_set));
 
     uhash_deinit(IntHash, &other_set);
