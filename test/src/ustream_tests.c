@@ -34,8 +34,8 @@ static bool istream_check_test_data(UIStream *stream) {
     char byte;
     size_t read;
     for (size_t i = 0; i < TEST_DATA_SIZE; ++i) {
-        ustream_ret ret = uistream_read(stream, &byte, 1, &read);
-        if (!(ret == USTREAM_OK && read == 1 && byte == test_data[i])) return false;
+        ulib_ret ret = uistream_read(stream, &byte, 1, &read);
+        if (!(ret == ULIB_OK && read == 1 && byte == test_data[i])) return false;
     }
     return true;
 }
@@ -43,12 +43,12 @@ static bool istream_check_test_data(UIStream *stream) {
 static void istream_test(UIStream *stream) {
     utest_assert(istream_check_test_data(stream));
 
-    ustream_ret ret = uistream_reset(stream);
-    utest_assert(ret == USTREAM_OK);
+    ulib_ret ret = uistream_reset(stream);
+    utest_assert(ret == ULIB_OK);
     utest_assert(istream_check_test_data(stream));
 
     ret = uistream_deinit(stream);
-    utest_assert(ret == USTREAM_OK);
+    utest_assert(ret == ULIB_OK);
 }
 
 void ustream_init_test(void) {
@@ -87,32 +87,32 @@ end:
 
 void uistream_path_test(void) {
     UIStream stream;
-    ustream_ret ret = uistream_from_path(&stream, test_data_file);
-    utest_assert(ret == USTREAM_OK);
+    ulib_ret ret = uistream_from_path(&stream, test_data_file);
+    utest_assert(ret == ULIB_OK);
     istream_test(&stream);
 }
 
 void uistream_buf_test(void) {
     UIStream stream;
-    ustream_ret ret = uistream_from_buf(&stream, test_data, TEST_DATA_SIZE);
-    utest_assert(ret == USTREAM_OK);
+    ulib_ret ret = uistream_from_buf(&stream, test_data, TEST_DATA_SIZE);
+    utest_assert(ret == ULIB_OK);
     istream_test(&stream);
 }
 
 void uistream_buffered_test(void) {
     UIStream stream;
     UIStream *raw_stream;
-    ustream_ret ret = uistream_buffered(&stream, &raw_stream, 4);
-    utest_assert(ret == USTREAM_OK);
+    ulib_ret ret = uistream_buffered(&stream, &raw_stream, 4);
+    utest_assert(ret == ULIB_OK);
     ret = uistream_from_path(raw_stream, test_data_file);
-    utest_assert(ret == USTREAM_OK);
+    utest_assert(ret == ULIB_OK);
     istream_test(&stream);
 
     char buf[TEST_DATA_SIZE];
     ret = uistream_buffered(&stream, &raw_stream, 4);
-    utest_assert(ret == USTREAM_OK);
+    utest_assert(ret == ULIB_OK);
     ret = uistream_from_buf(raw_stream, test_data, TEST_DATA_SIZE);
-    utest_assert(ret == USTREAM_OK);
+    utest_assert(ret == ULIB_OK);
 
     for (size_t i = 0; i < TEST_DATA_SIZE;) {
         size_t to_read = urand_range(1, 7);
@@ -120,46 +120,46 @@ void uistream_buffered_test(void) {
 
         size_t read;
         ret = uistream_read(&stream, buf + i, to_read, &read);
-        utest_assert(ret == USTREAM_OK);
+        utest_assert(ret == ULIB_OK);
         utest_assert_uint(read, ==, to_read);
         i += read;
     }
 
     utest_assert_buf(buf, ==, test_data, TEST_DATA_SIZE);
     ret = uistream_deinit(&stream);
-    utest_assert(ret == USTREAM_OK);
+    utest_assert(ret == ULIB_OK);
 }
 
 void uostream_null_test(void) {
     size_t written;
 
     UOStream *stream = uostream_null();
-    ustream_ret ret = uostream_write(stream, test_data, TEST_DATA_SIZE, &written);
-    utest_assert(ret == USTREAM_OK);
+    ulib_ret ret = uostream_write(stream, test_data, TEST_DATA_SIZE, &written);
+    utest_assert(ret == ULIB_OK);
     utest_assert_uint(written, ==, TEST_DATA_SIZE);
 
     char const fmt_str[] = "12345";
     ret = uostream_writef(stream, &written, fmt_str);
-    utest_assert(ret == USTREAM_OK);
+    utest_assert(ret == ULIB_OK);
     utest_assert_uint(written, ==, sizeof(fmt_str) - 1);
 
     ret = uostream_flush(stream);
-    utest_assert(ret == USTREAM_OK);
+    utest_assert(ret == ULIB_OK);
 }
 
 void uostream_path_test(void) {
     UOStream stream;
-    ustream_ret ret = uostream_to_path(&stream, test_output_file);
-    utest_assert(ret == USTREAM_OK);
+    ulib_ret ret = uostream_to_path(&stream, test_output_file);
+    utest_assert(ret == ULIB_OK);
 
     size_t written;
     ret = uostream_write(&stream, test_data, TEST_DATA_SIZE, &written);
-    utest_assert(ret == USTREAM_OK);
+    utest_assert(ret == ULIB_OK);
     utest_assert_uint(written, ==, TEST_DATA_SIZE);
     ret = uostream_flush(&stream);
-    utest_assert(ret == USTREAM_OK);
+    utest_assert(ret == ULIB_OK);
     ret = uostream_deinit(&stream);
-    utest_assert(ret == USTREAM_OK);
+    utest_assert(ret == ULIB_OK);
 
     size_t buf_size;
     char *buf = get_file_contents(test_output_file, &buf_size);
@@ -169,14 +169,14 @@ void uostream_path_test(void) {
     ulib_free(buf);
 
     ret = uostream_to_path(&stream, test_output_file);
-    utest_assert(ret == USTREAM_OK);
+    utest_assert(ret == ULIB_OK);
 
     ret = uostream_writef(&stream, &written, "%s", test_data);
-    utest_assert(ret == USTREAM_OK);
+    utest_assert(ret == ULIB_OK);
     utest_assert_uint(written, ==, TEST_DATA_SIZE);
 
     ret = uostream_deinit(&stream);
-    utest_assert(ret == USTREAM_OK);
+    utest_assert(ret == ULIB_OK);
 
     buf = get_file_contents(test_output_file, &written);
     utest_assert_not_null(buf);
@@ -190,39 +190,39 @@ void uostream_buf_test(void) {
     size_t buf_size = sizeof(buf);
 
     UOStream stream;
-    ustream_ret ret = uostream_to_buf(&stream, buf, buf_size);
-    utest_assert(ret == USTREAM_OK);
+    ulib_ret ret = uostream_to_buf(&stream, buf, buf_size);
+    utest_assert(ret == ULIB_OK);
 
     size_t written;
     ret = uostream_writef(&stream, &written, "%s", test_data);
-    utest_assert(ret == USTREAM_OK);
+    utest_assert(ret == ULIB_OK);
     utest_assert_uint(written, ==, TEST_DATA_SIZE);
     utest_assert_buf(buf, ==, test_data, TEST_DATA_SIZE);
 
     ret = uostream_write_literal(&stream, test_data, &written);
-    utest_assert(ret == USTREAM_OK);
+    utest_assert(ret == ULIB_OK);
     utest_assert_uint(written, ==, TEST_DATA_SIZE);
     utest_assert_buf(buf + TEST_DATA_SIZE, ==, test_data, TEST_DATA_SIZE);
 
     ret = uostream_reset(&stream);
-    utest_assert(ret == USTREAM_OK);
+    utest_assert(ret == ULIB_OK);
     ret = uostream_write_buf(&stream, test_data, &written);
-    utest_assert(ret == USTREAM_OK);
+    utest_assert(ret == ULIB_OK);
     utest_assert_uint(written, ==, TEST_DATA_SIZE);
     utest_assert_buf(buf, ==, test_data, TEST_DATA_SIZE);
 
     ret = uostream_deinit(&stream);
-    utest_assert(ret == USTREAM_OK);
+    utest_assert(ret == ULIB_OK);
 
     ret = uostream_to_buf(&stream, buf, TEST_DATA_SIZE / 2);
-    utest_assert(ret == USTREAM_OK);
+    utest_assert(ret == ULIB_OK);
 
     ret = uostream_write(&stream, test_data, TEST_DATA_SIZE, &written);
-    utest_assert(ret == USTREAM_ERR_BOUNDS);
+    utest_assert(ret == ULIB_ERR_BOUNDS);
     utest_assert_uint(written, ==, TEST_DATA_SIZE / 2);
 
     ret = uostream_deinit(&stream);
-    utest_assert(ret == USTREAM_OK);
+    utest_assert(ret == ULIB_OK);
 }
 
 void uostream_multi_test(void) {
@@ -230,30 +230,30 @@ void uostream_multi_test(void) {
     size_t const buf_size = sizeof(buf);
 
     UOStream stream_a;
-    ustream_ret ret = uostream_to_buf(&stream_a, buf, buf_size);
-    utest_assert(ret == USTREAM_OK);
+    ulib_ret ret = uostream_to_buf(&stream_a, buf, buf_size);
+    utest_assert(ret == ULIB_OK);
 
     UOStream stream_b;
     ret = uostream_to_path(&stream_b, test_output_file);
-    utest_assert(ret == USTREAM_OK);
+    utest_assert(ret == ULIB_OK);
 
     UOStream stream;
     ret = uostream_to_multi(&stream);
-    utest_assert(ret == USTREAM_OK);
+    utest_assert(ret == ULIB_OK);
 
     ret = uostream_add_substream(&stream, &stream_a);
-    utest_assert(ret == USTREAM_OK);
+    utest_assert(ret == ULIB_OK);
 
     ret = uostream_add_substream(&stream, &stream_b);
-    utest_assert(ret == USTREAM_OK);
+    utest_assert(ret == ULIB_OK);
 
     size_t size;
     ret = uostream_write_literal(&stream, test_data, &size);
-    utest_assert(ret == USTREAM_OK);
+    utest_assert(ret == ULIB_OK);
     utest_assert_uint(size, ==, TEST_DATA_SIZE);
 
     ret = uostream_deinit(&stream);
-    utest_assert(ret == USTREAM_OK);
+    utest_assert(ret == ULIB_OK);
 
     utest_assert_buf(buf, ==, test_data, TEST_DATA_SIZE);
 
@@ -267,11 +267,11 @@ void uostream_multi_test(void) {
 void uostream_buffered_test(void) {
     UOStream *raw_stream;
     UOStream stream;
-    ustream_ret ret = uostream_buffered(&stream, &raw_stream, 4);
-    utest_assert(ret == USTREAM_OK);
+    ulib_ret ret = uostream_buffered(&stream, &raw_stream, 4);
+    utest_assert(ret == ULIB_OK);
 
     ret = uostream_to_path(raw_stream, test_output_file);
-    utest_assert(ret == USTREAM_OK);
+    utest_assert(ret == ULIB_OK);
 
     for (size_t i = 0; i < TEST_DATA_SIZE;) {
         size_t to_write = urand_range(1, 7);
@@ -279,13 +279,13 @@ void uostream_buffered_test(void) {
 
         size_t written;
         ret = uostream_write(&stream, test_data + i, to_write, &written);
-        utest_assert(ret == USTREAM_OK);
+        utest_assert(ret == ULIB_OK);
         utest_assert_uint(written, ==, to_write);
         i += written;
     }
 
     ret = uostream_flush(&stream);
-    utest_assert(ret == USTREAM_OK);
+    utest_assert(ret == ULIB_OK);
 
     size_t size;
     char *contents = get_file_contents(test_output_file, &size);
@@ -295,7 +295,7 @@ void uostream_buffered_test(void) {
     ulib_free(contents);
 
     ret = uostream_deinit(&stream);
-    utest_assert(ret == USTREAM_OK);
+    utest_assert(ret == ULIB_OK);
 }
 
 void ustream_varint_test(void) {
@@ -312,8 +312,8 @@ void ustream_varint_test(void) {
     uostream_to_buf(&ostream, buffer, sizeof(buffer));
 
     for (ulib_uint i = 0; i < max_value; i += increment) {
-        utest_assert(uostream_write_varint(&ostream, i, &written) == USTREAM_OK);
-        utest_assert(uistream_read_varint(&istream, &value, &read) == USTREAM_OK);
+        utest_assert(uostream_write_varint(&ostream, i, &written) == ULIB_OK);
+        utest_assert(uistream_read_varint(&istream, &value, &read) == ULIB_OK);
         utest_assert_uint(value, ==, i);
         utest_assert_uint(written, ==, read);
         uistream_reset(&istream);
@@ -338,8 +338,8 @@ void ustream_svarint_test(void) {
     uostream_to_buf(&ostream, buffer, sizeof(buffer));
 
     for (int32_t i = -max_value; i < max_value; i += increment) {
-        utest_assert(uostream_write_svarint(&ostream, (ulib_int)i, &written) == USTREAM_OK);
-        utest_assert(uistream_read_svarint(&istream, &value, &read) == USTREAM_OK);
+        utest_assert(uostream_write_svarint(&ostream, (ulib_int)i, &written) == ULIB_OK);
+        utest_assert(uistream_read_svarint(&istream, &value, &read) == ULIB_OK);
         utest_assert_int(value, ==, i);
         utest_assert_uint(written, ==, read);
         uistream_reset(&istream);

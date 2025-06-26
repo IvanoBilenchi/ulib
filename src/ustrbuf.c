@@ -9,6 +9,7 @@
 #include "ualloc.h"
 #include "uattrs.h"
 #include "udebug.h"
+#include "ulib_ret.h"
 #include "unumber.h"
 #include "ustring.h"
 #include "ustring_raw.h"
@@ -17,20 +18,20 @@
 #include <stdio.h>
 #include <string.h>
 
-uvec_ret ustrbuf_append_format(UStrBuf *buf, char const *format, ...) {
+ulib_ret ustrbuf_append_format(UStrBuf *buf, char const *format, ...) {
     va_list args;
     va_start(args, format);
-    uvec_ret ret = ustrbuf_append_format_list(buf, format, args);
+    ulib_ret ret = ustrbuf_append_format_list(buf, format, args);
     va_end(args);
     return ret;
 }
 
-uvec_ret ustrbuf_append_format_list(UStrBuf *buf, char const *format, va_list args) {
+ulib_ret ustrbuf_append_format_list(UStrBuf *buf, char const *format, va_list args) {
     size_t length = ulib_str_flength_list(format, args);
     size_t size = length + 1;
-    uvec_ret ret = uvec_expand(char, buf, (ulib_uint)size);
+    ulib_ret ret = uvec_expand(char, buf, (ulib_uint)size);
 
-    if (ret == UVEC_OK) {
+    if (ret == ULIB_OK) {
         ulib_uint old_length = ustrbuf_length(buf);
         vsnprintf(ustrbuf_data(buf) + old_length, size, format, args);
         p_uvec_set_count_char(buf, old_length + (ulib_uint)length);

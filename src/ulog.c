@@ -26,12 +26,12 @@ static char const *log_level_color[LEVEL_COUNT] = {
     UCOLOR_INFO, UCOLOR_WARN,  UCOLOR_ERROR, UCOLOR_FATAL,
 };
 
-ULIB_INLINE ustream_ret begin_color(ULog *log, char const *color) {
-    return color && log->color ? uostream_write_buf(log->stream, color, NULL) : USTREAM_OK;
+ULIB_INLINE ulib_ret begin_color(ULog *log, char const *color) {
+    return color && log->color ? uostream_write_buf(log->stream, color, NULL) : ULIB_OK;
 }
 
-ULIB_INLINE ustream_ret end_color(ULog *log, char const *color) {
-    return color && log->color ? uostream_write_buf(log->stream, UCOLOR_RST, NULL) : USTREAM_OK;
+ULIB_INLINE ulib_ret end_color(ULog *log, char const *color) {
+    return color && log->color ? uostream_write_buf(log->stream, UCOLOR_RST, NULL) : ULIB_OK;
 }
 
 ULIB_INLINE unsigned builtin_index(ULogLevel level) {
@@ -45,27 +45,23 @@ ULog ulog_default(void) {
         .level = ULIB_LOG_LEVEL,
         .color = ULOG_COLOR,
         .stream = uostream_stderr(),
-        .handler = ulog_default_handler,
+        .handler = ulog_write_event,
     };
 }
 
-ulib_ret ulog_default_handler(ULog *log, ULogEvent const *event) {
-    return ulog_write_event(log, event) == USTREAM_OK ? ULIB_OK : ULIB_ERR;
-}
-
-ustream_ret ulog_write_event(ULog *log, ULogEvent const *event) {
+ulib_ret ulog_write_event(ULog *log, ULogEvent const *event) {
     ulog_write_header(log, event);
     return ulog_write_footer(log, event);
 }
 
-ustream_ret ulog_write_header(ULog *log, ULogEvent const *event) {
+ulib_ret ulog_write_header(ULog *log, ULogEvent const *event) {
     ulog_write_date(log);
     ulog_write_space(log);
     ulog_write_level(log, event->level);
     return ulog_write_space(log);
 }
 
-ustream_ret ulog_write_footer(ULog *log, ULogEvent const *event) {
+ulib_ret ulog_write_footer(ULog *log, ULogEvent const *event) {
     if (event->level <= ULOG_DEBUG) {
         ulog_write_loc(log, event->loc);
         ulog_write_space(log);
@@ -78,30 +74,29 @@ ustream_ret ulog_write_footer(ULog *log, ULogEvent const *event) {
     return ulog_write_newline(log);
 }
 
-ustream_ret ulog_write_msg(ULog *log, ULogMsg msg) {
+ulib_ret ulog_write_msg(ULog *log, ULogMsg msg) {
     return uostream_writef_list(log->stream, NULL, msg.fmt, msg.args);
 }
 
-ustream_ret ulog_write_date(ULog *log) {
+ulib_ret ulog_write_date(ULog *log) {
     UTime now = utime_local();
     return ulog_write_color(log, UCOLOR_DIM, "[" UTIME_FMT "]", utime_fmt_args(now));
 }
 
-ustream_ret ulog_write_level(ULog *log, ULogLevel level) {
+ulib_ret ulog_write_level(ULog *log, ULogLevel level) {
     unsigned idx = builtin_index(level);
     return ulog_write_tag(log, (ULogTag){ log_level_str[idx], log_level_color[idx] });
 }
 
-ustream_ret ulog_write_tag(ULog *log, ULogTag tag) {
-    if (!tag.string) return USTREAM_OK;
-    return ulog_write_color(log, tag.color, "[%s]", tag.string);
+ulib_ret ulog_write_tag(ULog *log, ULogTag tag) {
+    return tag.string ? ulog_write_color(log, tag.color, "[%s]", tag.string) : ULIB_OK;
 }
 
-ustream_ret ulog_write_loc(ULog *log, USrcLoc loc) {
+ulib_ret ulog_write_loc(ULog *log, USrcLoc loc) {
     return ulog_write_color(log, UCOLOR_DIM, "(%s:%d)", loc.file, loc.line);
 }
 
-ustream_ret ulog_write_elapsed(ULog *log, utime_ns elapsed) {
+ulib_ret ulog_write_elapsed(ULog *log, utime_ns elapsed) {
     utime_unit unit = utime_interval_unit_auto(elapsed);
     begin_color(log, UCOLOR_DIM);
     uostream_write_literal(log->stream, "(", NULL);
@@ -110,7 +105,7 @@ ustream_ret ulog_write_elapsed(ULog *log, utime_ns elapsed) {
     return end_color(log, UCOLOR_DIM);
 }
 
-ustream_ret ulog_write_color(ULog *log, char const *color, char const *fmt, ...) {
+ulib_ret ulog_write_color(ULog *log, char const *color, char const *fmt, ...) {
     begin_color(log, color);
     va_list args;
     va_start(args, fmt);
@@ -119,11 +114,11 @@ ustream_ret ulog_write_color(ULog *log, char const *color, char const *fmt, ...)
     return end_color(log, color);
 }
 
-ustream_ret ulog_write_space(ULog *log) {
+ulib_ret ulog_write_space(ULog *log) {
     return uostream_write_literal(log->stream, " ", NULL);
 }
 
-ustream_ret ulog_write_newline(ULog *log) {
+ulib_ret ulog_write_newline(ULog *log) {
     return uostream_write_literal(log->stream, "\n", NULL);
 }
 

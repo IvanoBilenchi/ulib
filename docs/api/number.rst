@@ -37,7 +37,10 @@ Bitmasks
 Return codes
 ============
 
-.. doxygenenum:: ulib_ret
+.. doxygentypedef:: ulib_ret
+.. doxygenenum:: ulib_ret_builtin
+.. doxygengroup:: ulib_ret
+   :content-only:
 
 Other types
 ===========

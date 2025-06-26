@@ -20,6 +20,7 @@
 #include "uattrs.h"
 #include "udebug.h"
 #include "uhash_func.h" // IWYU pragma: export
+#include "ulib_ret.h"
 #include "unumber.h"
 #include "uutils.h"
 #include "uwarning.h"
@@ -87,24 +88,29 @@ ULIB_BEGIN_DECLS
 #define uhash_decl(T) typedef struct UHash(T) UHash(T)
 
 /// Return codes.
-typedef enum uhash_ret {
+enum uhash_ret {
 
     /**
      * The operation failed.
      * As of right now, it can only happen if memory cannot be allocated.
      */
-    UHASH_ERR = -1,
+    ULIB_DEPRECATED_ENUM(UHASH_ERR, ULIB_ERR_MEM),
 
     /// The operation succeeded.
-    UHASH_OK = 0,
+    ULIB_DEPRECATED_ENUM(UHASH_OK, ULIB_OK),
 
     /// The key is already present.
     UHASH_PRESENT = 0,
 
     /// The key has been inserted (it was absent).
-    UHASH_INSERTED = 1
+    UHASH_INSERTED = 1,
 
-} uhash_ret;
+};
+
+/// @cond
+ULIB_DEPRECATED(Use @type{ulib_ret} instead.)
+typedef enum uhash_ret uhash_ret;
+/// @endcond
 
 /**
  * @defgroup UHash_constants UHash constants
@@ -224,30 +230,30 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  */
 #define P_UHASH_DECL(T, ATTRS, uh_key, uh_val)                                                     \
     /** @cond */                                                                                   \
-    ATTRS uhash_ret uhash_populate_##T(UHash_##T *h, uh_key const *keys, uh_val const *vals,       \
-                                       ulib_uint n);                                               \
+    ATTRS ulib_ret uhash_populate_##T(UHash_##T *h, uh_key const *keys, uh_val const *vals,        \
+                                      ulib_uint n);                                                \
     ATTRS void uhash_deinit_##T(UHash_##T *h);                                                     \
-    ATTRS uhash_ret uhash_copy_##T(UHash_##T const *src, UHash_##T *dest);                         \
-    ATTRS uhash_ret uhash_copy_as_set_##T(UHash_##T const *src, UHash_##T *dest);                  \
+    ATTRS ulib_ret uhash_copy_##T(UHash_##T const *src, UHash_##T *dest);                          \
+    ATTRS ulib_ret uhash_copy_as_set_##T(UHash_##T const *src, UHash_##T *dest);                   \
     ATTRS void uhash_clear_##T(UHash_##T *h);                                                      \
     ATTRS ULIB_PURE ulib_uint uhash_get_##T(UHash_##T const *h, uh_key key);                       \
-    ATTRS uhash_ret uhash_resize_##T(UHash_##T *h, ulib_uint new_size);                            \
-    ATTRS uhash_ret uhash_put_##T(UHash_##T *h, uh_key key, ulib_uint *idx);                       \
+    ATTRS ulib_ret uhash_resize_##T(UHash_##T *h, ulib_uint new_size);                             \
+    ATTRS ulib_ret uhash_put_##T(UHash_##T *h, uh_key key, ulib_uint *idx);                        \
     ATTRS void uhash_delete_##T(UHash_##T *h, ulib_uint k);                                        \
     ATTRS ULIB_CONST UHash_##T uhmap_##T(void);                                                    \
     ATTRS ULIB_PURE uh_val uhmap_get_##T(UHash_##T const *h, uh_key key, uh_val if_missing);       \
-    ATTRS uhash_ret uhmap_set_##T(UHash_##T *h, uh_key key, uh_val value, uh_val *existing);       \
-    ATTRS uhash_ret uhmap_add_##T(UHash_##T *h, uh_key key, uh_val value, uh_val *existing);       \
+    ATTRS ulib_ret uhmap_set_##T(UHash_##T *h, uh_key key, uh_val value, uh_val *existing);        \
+    ATTRS ulib_ret uhmap_add_##T(UHash_##T *h, uh_key key, uh_val value, uh_val *existing);        \
     ATTRS bool uhmap_replace_##T(UHash_##T *h, uh_key key, uh_val value, uh_val *replaced);        \
     ATTRS bool uhmap_remove_##T(UHash_##T *h, uh_key key, uh_key *r_key, uh_val *r_val);           \
     ATTRS ULIB_CONST UHash_##T uhset_##T(void);                                                    \
-    ATTRS uhash_ret uhset_insert_##T(UHash_##T *h, uh_key key, uh_key *existing);                  \
+    ATTRS ulib_ret uhset_insert_##T(UHash_##T *h, uh_key key, uh_key *existing);                   \
     ATTRS bool uhset_replace_##T(UHash_##T *h, uh_key key, uh_key *replaced);                      \
     ATTRS bool uhset_remove_##T(UHash_##T *h, uh_key key, uh_key *removed);                        \
     ATTRS ULIB_PURE bool uhset_is_superset_##T(UHash_##T const *h1, UHash_##T const *h2);          \
-    ATTRS uhash_ret uhset_union_##T(UHash_##T *h1, UHash_##T const *h2, UHash_##T *added);         \
-    ATTRS uhash_ret uhset_intersect_##T(UHash_##T *h1, UHash_##T const *h2, UHash_##T *diff);      \
-    ATTRS uhash_ret uhset_diff_##T(UHash_##T *h1, UHash_##T const *h2, UHash_##T *inter);          \
+    ATTRS ulib_ret uhset_union_##T(UHash_##T *h1, UHash_##T const *h2, UHash_##T *added);          \
+    ATTRS ulib_ret uhset_intersect_##T(UHash_##T *h1, UHash_##T const *h2, UHash_##T *diff);       \
+    ATTRS ulib_ret uhset_diff_##T(UHash_##T *h1, UHash_##T const *h2, UHash_##T *inter);           \
     ATTRS ULIB_PURE ulib_uint uhset_hash_##T(UHash_##T const *h);                                  \
     ATTRS ULIB_PURE uh_key uhset_get_any_##T(UHash_##T const *h, uh_key if_empty);                 \
     /** @endcond */
@@ -295,7 +301,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
         return i;                                                                                  \
     }                                                                                              \
                                                                                                    \
-    ATTRS ULIB_INLINE uhash_ret uhash_shrink_##T(UHash_##T *h) {                                   \
+    ATTRS ULIB_INLINE ulib_ret uhash_shrink_##T(UHash_##T *h) {                                    \
         return uhash_resize_##T(h, h->_count);                                                     \
     }                                                                                              \
                                                                                                    \
@@ -375,22 +381,22 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  */
 #define P_UHASH_IMPL_COMMON(T, ATTRS, uh_key, uh_val, hash_func, equal_func)                       \
                                                                                                    \
-    ATTRS uhash_ret uhash_populate_##T(UHash_##T *h, uh_key const *keys, uh_val const *vals,       \
-                                       ulib_uint n) {                                              \
-        if (n == 0) return UHASH_OK;                                                               \
+    ATTRS ulib_ret uhash_populate_##T(UHash_##T *h, uh_key const *keys, uh_val const *vals,        \
+                                      ulib_uint n) {                                               \
+        if (n == 0) return ULIB_OK;                                                                \
         if (uhash_resize_##T(h, n)) goto err;                                                      \
                                                                                                    \
         for (ulib_uint i = 0; i < n; ++i) {                                                        \
             ulib_uint k;                                                                           \
-            if (uhash_put_##T(h, keys[i], &k) == UHASH_ERR) goto err;                              \
+            if (uhash_put_##T(h, keys[i], &k) == ULIB_ERR_MEM) goto err;                           \
             if (vals) h->_vals[k] = vals[i];                                                       \
         }                                                                                          \
                                                                                                    \
-        return UHASH_OK;                                                                           \
+        return ULIB_OK;                                                                            \
                                                                                                    \
     err:                                                                                           \
         uhash_deinit_##T(h);                                                                       \
-        return UHASH_ERR;                                                                          \
+        return ULIB_ERR_MEM;                                                                       \
     }                                                                                              \
                                                                                                    \
     ATTRS void uhash_deinit_##T(UHash_##T *h) {                                                    \
@@ -401,41 +407,41 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
         *h = zero;                                                                                 \
     }                                                                                              \
                                                                                                    \
-    ATTRS uhash_ret uhash_copy_##T(UHash_##T const *src, UHash_##T *dest) {                        \
-        uhash_ret ret = uhash_copy_as_set_##T(src, dest);                                          \
+    ATTRS ulib_ret uhash_copy_##T(UHash_##T const *src, UHash_##T *dest) {                         \
+        ulib_ret ret = uhash_copy_as_set_##T(src, dest);                                           \
                                                                                                    \
-        if (ret == UHASH_OK && src->_is_map) {                                                     \
+        if (ret == ULIB_OK && src->_is_map) {                                                      \
             dest->_is_map = 1;                                                                     \
-            if (!src->_exp) return UHASH_OK;                                                       \
+            if (!src->_exp) return ULIB_OK;                                                        \
             ulib_uint const size = uhash_size_##T(src);                                            \
             uh_val *new_vals = (uh_val *)ulib_realloc_array(dest->_vals, size);                    \
             if (new_vals) {                                                                        \
                 p_uhash_copy_items(uh_val, new_vals, src->_vals, size);                            \
                 dest->_vals = new_vals;                                                            \
             } else {                                                                               \
-                ret = UHASH_ERR;                                                                   \
+                ret = ULIB_ERR_MEM;                                                                \
             }                                                                                      \
         }                                                                                          \
                                                                                                    \
         return ret;                                                                                \
     }                                                                                              \
                                                                                                    \
-    ATTRS uhash_ret uhash_copy_as_set_##T(UHash_##T const *src, UHash_##T *dest) {                 \
+    ATTRS ulib_ret uhash_copy_as_set_##T(UHash_##T const *src, UHash_##T *dest) {                  \
         if (!src->_exp) {                                                                          \
             uhash_deinit(T, dest);                                                                 \
             *dest = uhset(T);                                                                      \
-            return UHASH_OK;                                                                       \
+            return ULIB_OK;                                                                        \
         }                                                                                          \
                                                                                                    \
         ulib_uint const size = p_uhash_size_gt0(src);                                              \
         ulib_uint const n_flags = p_uhf_size(size);                                                \
         uint32_t *new_flags = (uint32_t *)ulib_realloc_array(dest->_flags, n_flags);               \
-        if (!new_flags) return UHASH_ERR;                                                          \
+        if (!new_flags) return ULIB_ERR_MEM;                                                       \
                                                                                                    \
         uh_key *new_keys = (uh_key *)ulib_realloc_array(dest->_keys, size);                        \
         if (!new_keys) {                                                                           \
             ulib_free(new_flags);                                                                  \
-            return UHASH_ERR;                                                                      \
+            return ULIB_ERR_MEM;                                                                   \
         }                                                                                          \
                                                                                                    \
         p_uhash_copy_items(uint32_t, new_flags, src->_flags, n_flags);                             \
@@ -447,7 +453,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
         dest->_occupied = src->_occupied;                                                          \
         dest->_count = src->_count;                                                                \
                                                                                                    \
-        return UHASH_OK;                                                                           \
+        return ULIB_OK;                                                                            \
     }                                                                                              \
                                                                                                    \
     ATTRS void uhash_clear_##T(UHash_##T *h) {                                                     \
@@ -471,21 +477,21 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
         return UHASH_INDEX_MISSING;                                                                \
     }                                                                                              \
                                                                                                    \
-    static uhash_ret p_uhash_resize_kv_##T(UHash_##T *h, ulib_uint new_size) {                     \
+    static ulib_ret p_uhash_resize_kv_##T(UHash_##T *h, ulib_uint new_size) {                      \
         void *temp = ulib_realloc_array(h->_keys, new_size);                                       \
-        if (!temp) return UHASH_ERR;                                                               \
+        if (!temp) return ULIB_ERR_MEM;                                                            \
         h->_keys = (uh_key *)temp;                                                                 \
-        if (!h->_is_map) return UHASH_OK;                                                          \
+        if (!h->_is_map) return ULIB_OK;                                                           \
         temp = ulib_realloc_array(h->_vals, new_size);                                             \
-        if (!temp) return UHASH_ERR;                                                               \
+        if (!temp) return ULIB_ERR_MEM;                                                            \
         h->_vals = (uh_val *)temp;                                                                 \
-        return UHASH_OK;                                                                           \
+        return ULIB_OK;                                                                            \
     }                                                                                              \
                                                                                                    \
-    static uhash_ret p_uhash_rehash_##T(UHash_##T *h, ulib_byte new_exp) {                         \
+    static ulib_ret p_uhash_rehash_##T(UHash_##T *h, ulib_byte new_exp) {                          \
         size_t const new_flags_size = p_uhf_size_from_exp(new_exp);                                \
         uint32_t *new_flags = (uint32_t *)ulib_calloc_array(new_flags, new_flags_size);            \
-        if (!new_flags) return UHASH_ERR;                                                          \
+        if (!new_flags) return ULIB_ERR_MEM;                                                       \
         ulib_uint const mask = p_uhash_size_from_exp(new_exp) - 1;                                 \
         ulib_uint const cur_size = uhash_size_##T(h);                                              \
                                                                                                    \
@@ -522,35 +528,35 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
         ulib_free(h->_flags);                                                                      \
         h->_flags = new_flags;                                                                     \
         h->_occupied = h->_count;                                                                  \
-        return UHASH_OK;                                                                           \
+        return ULIB_OK;                                                                            \
     }                                                                                              \
                                                                                                    \
-    ATTRS uhash_ret uhash_resize_##T(UHash_##T *h, ulib_uint new_size) {                           \
+    ATTRS ulib_ret uhash_resize_##T(UHash_##T *h, ulib_uint new_size) {                            \
         if (new_size < 4) new_size = 4;                                                            \
         ulib_byte const new_exp = p_uhash_exp_from_size(new_size);                                 \
         new_size = p_uhash_size_from_exp(new_exp);                                                 \
-        if (h->_exp == new_exp || h->_count >= uhash_upper_bound(new_size)) return UHASH_OK;       \
+        if (h->_exp == new_exp || h->_count >= uhash_upper_bound(new_size)) return ULIB_OK;        \
                                                                                                    \
         bool expand = new_exp > h->_exp;                                                           \
-        if (expand && p_uhash_resize_kv_##T(h, new_size)) return UHASH_ERR;                        \
-        if (p_uhash_rehash_##T(h, new_exp)) return UHASH_ERR;                                      \
+        if (expand && p_uhash_resize_kv_##T(h, new_size)) return ULIB_ERR_MEM;                     \
+        if (p_uhash_rehash_##T(h, new_exp)) return ULIB_ERR_MEM;                                   \
         if (!expand) p_uhash_resize_kv_##T(h, new_size);                                           \
                                                                                                    \
         h->_exp = new_exp;                                                                         \
-        return UHASH_OK;                                                                           \
+        return ULIB_OK;                                                                            \
     }                                                                                              \
                                                                                                    \
-    ULIB_INLINE uhash_ret p_uhash_bookkeeping_##T(UHash_##T *h) {                                  \
+    ULIB_INLINE ulib_ret p_uhash_bookkeeping_##T(UHash_##T *h) {                                   \
         ulib_uint const size = uhash_size_##T(h);                                                  \
         ulib_uint const upper_bound = uhash_upper_bound(size);                                     \
-        if (h->_occupied < upper_bound) return UHASH_OK;                                           \
+        if (h->_occupied < upper_bound) return ULIB_OK;                                            \
         if (upper_bound > (h->_count << 1U)) return p_uhash_rehash_##T(h, h->_exp);                \
         return uhash_resize_##T(h, size + 1);                                                      \
     }                                                                                              \
                                                                                                    \
-    ATTRS uhash_ret uhash_put_##T(UHash_##T *h, uh_key key, ulib_uint *idx) {                      \
+    ATTRS ulib_ret uhash_put_##T(UHash_##T *h, uh_key key, ulib_uint *idx) {                       \
         ulib_analyzer_assert(h->_flags);                                                           \
-        uhash_ret ret;                                                                             \
+        ulib_ret ret;                                                                              \
                                                                                                    \
         if ((ret = p_uhash_bookkeeping_##T(h))) {                                                  \
             if (idx) *idx = UHASH_INDEX_MISSING;                                                   \
@@ -599,13 +605,13 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
         return k == UHASH_INDEX_MISSING ? if_missing : h->_vals[k];                                \
     }                                                                                              \
                                                                                                    \
-    ATTRS uhash_ret uhmap_set_##T(UHash_##T *h, uh_key key, uh_val value, uh_val *existing) {      \
+    ATTRS ulib_ret uhmap_set_##T(UHash_##T *h, uh_key key, uh_val value, uh_val *existing) {       \
         ulib_analyzer_assert(h->_vals);                                                            \
                                                                                                    \
         ulib_uint k;                                                                               \
-        uhash_ret ret = uhash_put_##T(h, key, &k);                                                 \
+        ulib_ret ret = uhash_put_##T(h, key, &k);                                                  \
                                                                                                    \
-        if (ret != UHASH_ERR) {                                                                    \
+        if (ret != ULIB_ERR_MEM) {                                                                 \
             if (ret == UHASH_PRESENT && existing) *existing = h->_vals[k];                         \
             h->_vals[k] = value;                                                                   \
         }                                                                                          \
@@ -613,11 +619,11 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
         return ret;                                                                                \
     }                                                                                              \
                                                                                                    \
-    ATTRS uhash_ret uhmap_add_##T(UHash_##T *h, uh_key key, uh_val value, uh_val *existing) {      \
+    ATTRS ulib_ret uhmap_add_##T(UHash_##T *h, uh_key key, uh_val value, uh_val *existing) {       \
         ulib_analyzer_assert(h->_vals);                                                            \
                                                                                                    \
         ulib_uint k;                                                                               \
-        uhash_ret ret = uhash_put_##T(h, key, &k);                                                 \
+        ulib_ret ret = uhash_put_##T(h, key, &k);                                                  \
                                                                                                    \
         if (ret == UHASH_INSERTED) {                                                               \
             h->_vals[k] = value;                                                                   \
@@ -646,9 +652,9 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
         return true;                                                                               \
     }                                                                                              \
                                                                                                    \
-    ATTRS uhash_ret uhset_insert_##T(UHash_##T *h, uh_key key, uh_key *existing) {                 \
+    ATTRS ulib_ret uhset_insert_##T(UHash_##T *h, uh_key key, uh_key *existing) {                  \
         ulib_uint k;                                                                               \
-        uhash_ret ret = uhash_put_##T(h, key, &k);                                                 \
+        ulib_ret ret = uhash_put_##T(h, key, &k);                                                  \
         if (ret == UHASH_PRESENT && existing) *existing = h->_keys[k];                             \
         return ret;                                                                                \
     }                                                                                              \
@@ -680,37 +686,38 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
         return true;                                                                               \
     }                                                                                              \
                                                                                                    \
-    ATTRS uhash_ret uhset_union_##T(UHash_##T *h1, UHash_##T const *h2, UHash_##T *added) {        \
+    ATTRS ulib_ret uhset_union_##T(UHash_##T *h1, UHash_##T const *h2, UHash_##T *added) {         \
         ulib_uint const h2_size = uhash_size_##T(h2);                                              \
         for (ulib_uint i = 0; i < h2_size; ++i) {                                                  \
             if (!uhash_exists(T, h2, i)) continue;                                                 \
-            if (uhset_insert_##T(h1, h2->_keys[i], NULL) == UHASH_ERR ||                           \
-                (added && uhset_insert_##T(added, h2->_keys[i], NULL) == UHASH_ERR)) {             \
-                return UHASH_ERR;                                                                  \
+            if (uhset_insert_##T(h1, h2->_keys[i], NULL) == ULIB_ERR_MEM ||                        \
+                (added && uhset_insert_##T(added, h2->_keys[i], NULL) == ULIB_ERR_MEM)) {          \
+                return ULIB_ERR_MEM;                                                               \
             }                                                                                      \
         }                                                                                          \
-        return UHASH_OK;                                                                           \
+        return ULIB_OK;                                                                            \
     }                                                                                              \
                                                                                                    \
-    ATTRS uhash_ret uhset_intersect_##T(UHash_##T *h1, UHash_##T const *h2, UHash_##T *diff) {     \
+    ATTRS ulib_ret uhset_intersect_##T(UHash_##T *h1, UHash_##T const *h2, UHash_##T *diff) {      \
         ulib_uint const h1_size = uhash_size_##T(h1);                                              \
         for (ulib_uint i = 0; i < h1_size; ++i) {                                                  \
             if (!uhash_exists(T, h1, i) || uhash_contains(T, h2, h1->_keys[i])) continue;          \
-            if (diff && uhset_insert_##T(diff, h1->_keys[i], NULL) == UHASH_ERR) return UHASH_ERR; \
+            if (diff && uhset_insert_##T(diff, h1->_keys[i], NULL) == ULIB_ERR_MEM)                \
+                return ULIB_ERR_MEM;                                                               \
             uhash_delete_##T(h1, i);                                                               \
         }                                                                                          \
-        return UHASH_OK;                                                                           \
+        return ULIB_OK;                                                                            \
     }                                                                                              \
                                                                                                    \
-    ATTRS uhash_ret uhset_diff_##T(UHash_##T *h1, UHash_##T const *h2, UHash_##T *inter) {         \
+    ATTRS ulib_ret uhset_diff_##T(UHash_##T *h1, UHash_##T const *h2, UHash_##T *inter) {          \
         ulib_uint const h1_size = uhash_size_##T(h1);                                              \
         for (ulib_uint i = 0; i < h1_size; ++i) {                                                  \
             if (!(uhash_exists(T, h1, i) && uhash_contains(T, h2, h1->_keys[i]))) continue;        \
-            if (inter && uhset_insert_##T(inter, h1->_keys[i], NULL) == UHASH_ERR)                 \
-                return UHASH_ERR;                                                                  \
+            if (inter && uhset_insert_##T(inter, h1->_keys[i], NULL) == ULIB_ERR_MEM)              \
+                return ULIB_ERR_MEM;                                                               \
             uhash_delete_##T(h1, i);                                                               \
         }                                                                                          \
-        return UHASH_OK;                                                                           \
+        return ULIB_OK;                                                                            \
     }                                                                                              \
                                                                                                    \
     ATTRS ulib_uint uhset_hash_##T(UHash_##T const *h) {                                           \
@@ -943,12 +950,12 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  * @param keys Array of keys to insert.
  * @param vals Array of values to insert. Can be NULL if the hash table is a set.
  * @param n Number of elements to insert.
- * @return @val{UHASH_OK} if the operation succeeded, @val{UHASH_ERR} on error.
+ * @return @val{ULIB_OK} if the operation succeeded, @val{ULIB_ERR_MEM} on error.
  *
  * @note This function replaces existing keys and values, though it gives no indication
  *       of which keys and values were replaced. As such, it is best used to populate
  *       an empty hash table.
- * @alias uhash_ret uhash_populate(symbol T, UHash(T) *h, UHashKey(T) const *keys,
+ * @alias ulib_ret uhash_populate(symbol T, UHash(T) *h, UHashKey(T) const *keys,
  *                                 UHashVal(T) const *vals, ulib_uint n);
  */
 #define uhash_populate(T, h, keys, vals, n) uhash_populate_##T(h, keys, vals, n)
@@ -981,9 +988,9 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  * @param T Hash table type.
  * @param src Hash table to copy.
  * @param dest Hash table to copy into.
- * @return @val{UHASH_OK} if the operation succeeded, @val{UHASH_ERR} on error.
+ * @return @val{ULIB_OK} if the operation succeeded, @val{ULIB_ERR_MEM} on error.
  *
- * @alias uhash_ret uhash_copy(symbol T, UHash(T) const *src, UHash(T) *dest);
+ * @alias ulib_ret uhash_copy(symbol T, UHash(T) const *src, UHash(T) *dest);
  */
 #define uhash_copy(T, src, dest) uhash_copy_##T(src, dest)
 
@@ -993,9 +1000,9 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  * @param T Hash table type.
  * @param src Hash table to copy.
  * @param dest Hash table to copy into.
- * @return @val{UHASH_OK} if the operation succeeded, @val{UHASH_ERR} on error.
+ * @return @val{ULIB_OK} if the operation succeeded, @val{ULIB_ERR_MEM} on error.
  *
- * @alias uhash_ret uhash_copy_as_set(symbol T, UHash(T) const *src, UHash(T) *dest);
+ * @alias ulib_ret uhash_copy_as_set(symbol T, UHash(T) const *src, UHash(T) *dest);
  */
 #define uhash_copy_as_set(T, src, dest) uhash_copy_as_set_##T(src, dest)
 
@@ -1005,9 +1012,9 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  * @param T Hash table type.
  * @param h Hash table to resize.
  * @param s Hash table size.
- * @return @val{UHASH_OK} if the operation succeeded, @val{UHASH_ERR} on error.
+ * @return @val{ULIB_OK} if the operation succeeded, @val{ULIB_ERR_MEM} on error.
  *
- * @alias uhash_ret uhash_resize(symbol T, UHash(T) *h, ulib_uint s);
+ * @alias ulib_ret uhash_resize(symbol T, UHash(T) *h, ulib_uint s);
  */
 #define uhash_resize(T, h, s) uhash_resize_##T(h, s)
 
@@ -1017,9 +1024,9 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  *
  * @param T Hash table type.
  * @param h Hash table to shrink.
- * @return @val{UHASH_OK} if the operation succeeded, @val{UHASH_ERR} on error.
+ * @return @val{ULIB_OK} if the operation succeeded, @val{ULIB_ERR_MEM} on error.
  *
- * @alias uhash_ret uhash_shrink(symbol T, UHash(T) *h);
+ * @alias ulib_ret uhash_shrink(symbol T, UHash(T) *h);
  */
 #define uhash_shrink(T, h) uhash_shrink_##T(h)
 
@@ -1043,7 +1050,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  * @param[out] i Index of the inserted element.
  * @return Return code.
  *
- * @alias uhash_ret uhash_put(symbol T, UHash(T) *h, UHashKey(T) k, ulib_uint *i);
+ * @alias ulib_ret uhash_put(symbol T, UHash(T) *h, UHashKey(T) k, ulib_uint *i);
  */
 #define uhash_put(T, h, k, i) uhash_put_##T(h, k, i)
 
@@ -1245,7 +1252,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  * @param[out] e Existing value, only set if key was in the map.
  * @return Return code.
  *
- * @alias uhash_ret uhmap_set(symbol T, UHash(T) *h, UHashKey(T) k, UHashVal(T) v, UHashVal(T) *e);
+ * @alias ulib_ret uhmap_set(symbol T, UHash(T) *h, UHashKey(T) k, UHashVal(T) v, UHashVal(T) *e);
  */
 #define uhmap_set(T, h, k, v, e) uhmap_set_##T(h, k, v, e)
 
@@ -1259,7 +1266,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  * @param[out] e Existing value, only set if key was in the map.
  * @return Return code.
  *
- * @alias uhash_ret uhmap_add(symbol T, UHash(T) *h, UHashKey(T) k, UHashVal(T) v, UHashVal(T) *e);
+ * @alias ulib_ret uhmap_add(symbol T, UHash(T) *h, UHashKey(T) k, UHashVal(T) v, UHashVal(T) *e);
  */
 #define uhmap_add(T, h, k, v, e) uhmap_add_##T(h, k, v, e)
 
@@ -1343,7 +1350,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  * @param k Element to insert.
  * @return Return code.
  *
- * @alias uhash_ret uhset_insert(symbol T, UHash(T) *h, UHashKey(T) k);
+ * @alias ulib_ret uhset_insert(symbol T, UHash(T) *h, UHashKey(T) k);
  */
 #define uhset_insert(T, h, k) uhset_insert_##T(h, k, NULL)
 
@@ -1356,7 +1363,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  * @param[out] e Existing element, only set if key was in the set.
  * @return Return code.
  *
- * @alias uhash_ret uhset_insert_get_existing(symbol T, UHash(T) *h, UHashKey(T) k, UHashKey(T) *e);
+ * @alias ulib_ret uhset_insert_get_existing(symbol T, UHash(T) *h, UHashKey(T) k, UHashKey(T) *e);
  */
 #define uhset_insert_get_existing(T, h, k, e) uhset_insert_##T(h, k, e)
 
@@ -1370,7 +1377,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  * @return Return code.
  *
  * @deprecated Use @func{uhash_populate} instead.
- * @alias uhash_ret uhset_insert_all(symbol T, UHash(T) *h, UHashKey(T) *a, ulib_uint n);
+ * @alias ulib_ret uhset_insert_all(symbol T, UHash(T) *h, UHashKey(T) *a, ulib_uint n);
  */
 #define uhset_insert_all(T, h, a, n) ULIB_DEPRECATED_MACRO uhash_populate(T, h, a, NULL, n)
 
@@ -1431,9 +1438,9 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  * @param h1 Set to mutate, will contain `h1 || h2`.
  * @param h2 Other set.
  * @param[out] added Elements added to `h1` from `h2`. Can be NULL.
- * @return @val{UHASH_OK} if the operation succeeded, @val{UHASH_ERR} on error.
+ * @return @val{ULIB_OK} if the operation succeeded, @val{ULIB_ERR_MEM} on error.
  *
- * @alias uhash_ret uhset_union(symbol T, UHash(T) *h1, UHash(T) const *h2, UHash(T) *added);
+ * @alias ulib_ret uhset_union(symbol T, UHash(T) *h1, UHash(T) const *h2, UHash(T) *added);
  */
 #define uhset_union(T, h1, h2, added) uhset_union_##T(h1, h2, added)
 
@@ -1444,9 +1451,9 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  * @param h1 Set to mutate, will contain `h1 && h2`.
  * @param h2 Other set.
  * @param[out] diff Elements that were in `h1` but not in `h2`. Can be NULL.
- * @return @val{UHASH_OK} if the operation succeeded, @val{UHASH_ERR} on error.
+ * @return @val{ULIB_OK} if the operation succeeded, @val{ULIB_ERR_MEM} on error.
  *
- * @alias uhash_ret uhset_intersect(symbol T, UHash(T) *h1, UHash(T) const *h2, UHash(T) *diff);
+ * @alias ulib_ret uhset_intersect(symbol T, UHash(T) *h1, UHash(T) const *h2, UHash(T) *diff);
  */
 #define uhset_intersect(T, h1, h2, diff) uhset_intersect_##T(h1, h2, diff)
 
@@ -1457,9 +1464,9 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  * @param h1 Set to mutate, will contain `h1 - h2`.
  * @param h2 Other set.
  * @param[out] inter Elements of `h1` that were also in `h2`. Can be NULL.
- * @return @val{UHASH_OK} if the operation succeeded, @val{UHASH_ERR} on error.
+ * @return @val{ULIB_OK} if the operation succeeded, @val{ULIB_ERR_MEM} on error.
  *
- * @alias uhash_ret uhset_diff(symbol T, UHash(T) *h1, UHash(T) const *h2, UHash(T) *inter);
+ * @alias ulib_ret uhset_diff(symbol T, UHash(T) *h1, UHash(T) const *h2, UHash(T) *inter);
  */
 #define uhset_diff(T, h1, h2, inter) uhset_diff_##T(h1, h2, inter)
 
@@ -1471,10 +1478,10 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  * @param h1 Set to mutate, will contain `h1 - h2`.
  * @param h12 Set that will contain `h1 && h2`.
  * @param h2 Other set.
- * @return @val{UHASH_OK} if the operation succeeded, @val{UHASH_ERR} on error.
+ * @return @val{ULIB_OK} if the operation succeeded, @val{ULIB_ERR_MEM} on error.
  *
  * @deprecated Use @func{uhset_diff} or @func{uhset_intersect} instead.
- * @alias uhash_ret uhset_diff_intersect(symbol T, UHash(T) *h1, UHash(T) *h12, UHash(T) const *h2);
+ * @alias ulib_ret uhset_diff_intersect(symbol T, UHash(T) *h1, UHash(T) *h12, UHash(T) const *h2);
  */
 #define uhset_diff_intersect(T, h1, h12, h2) ULIB_DEPRECATED_MACRO uhset_diff(T, h1, h2, h12)
 

@@ -13,6 +13,7 @@
 #define USTREAM_H
 
 #include "uattrs.h"
+#include "ulib_ret.h"
 #include "ustrbuf.h"
 #include "ustring.h"
 #include "utime.h"
@@ -25,26 +26,27 @@ typedef struct UVersion UVersion;
 /// @endcond
 
 /// Return codes for IO streams.
+ULIB_DEPRECATED(Use @type{ulib_ret} instead.)
 typedef enum ustream_ret {
 
     /// Success.
-    USTREAM_OK = 0,
+    ULIB_DEPRECATED_ENUM(USTREAM_OK, ULIB_OK),
 
     /// Buffer bounds exceeded, usually when writing to a stream backed by a fixed memory buffer.
-    USTREAM_ERR_BOUNDS,
+    ULIB_DEPRECATED_ENUM(USTREAM_ERR_BOUNDS, ULIB_ERR_BOUNDS),
 
     /// Memory error, usually caused by failed allocations.
-    USTREAM_ERR_MEM,
+    ULIB_DEPRECATED_ENUM(USTREAM_ERR_MEM, ULIB_ERR_MEM),
 
     /**
      * Input/output error, usually returned when a file or stream operation fails.
      *
      * @note When this happens, @cval{errno} is sometimes set to a more meaningful value.
      */
-    USTREAM_ERR_IO,
+    ULIB_DEPRECATED_ENUM(USTREAM_ERR_IO, ULIB_ERR_IO),
 
     /// Generic error.
-    USTREAM_ERR
+    ULIB_DEPRECATED_ENUM(USTREAM_ERR, ULIB_ERR),
 
 } ustream_ret;
 
@@ -52,7 +54,7 @@ typedef enum ustream_ret {
 typedef struct UIStream {
 
     /// Stream state.
-    ustream_ret state;
+    ulib_ret state;
 
     /// Bytes read since the last `reset` call.
     size_t read_bytes;
@@ -69,7 +71,7 @@ typedef struct UIStream {
      * @param[out] read Number of bytes actually read.
      * @return Return code.
      */
-    ustream_ret (*read)(void *ctx, void *buf, size_t count, size_t *read);
+    ulib_ret (*read)(void *ctx, void *buf, size_t count, size_t *read);
 
     /**
      * Pointer to a function that resets the stream.
@@ -79,7 +81,7 @@ typedef struct UIStream {
      *
      * @note Can be NULL if the stream cannot be reset.
      */
-    ustream_ret (*reset)(void *ctx);
+    ulib_ret (*reset)(void *ctx);
 
     /**
      * Pointer to a function that releases any resource reserved by the stream.
@@ -90,7 +92,7 @@ typedef struct UIStream {
      *
      * @note Can be NULL if the stream does not need to release resources.
      */
-    ustream_ret (*free)(void *ctx);
+    ulib_ret (*free)(void *ctx);
 
 } UIStream;
 
@@ -121,9 +123,9 @@ UIStream *uistream_std(void);
  */
 ULIB_CONST
 ULIB_INLINE
-UIStream uistream(void *ctx, ustream_ret (*read_func)(void *, void *, size_t, size_t *),
-                  ustream_ret (*reset_func)(void *), ustream_ret (*free_func)(void *)) {
-    UIStream s = { USTREAM_OK, 0, ctx, read_func, reset_func, free_func };
+UIStream uistream(void *ctx, ulib_ret (*read_func)(void *, void *, size_t, size_t *),
+                  ulib_ret (*reset_func)(void *), ulib_ret (*free_func)(void *)) {
+    UIStream s = { ULIB_OK, 0, ctx, read_func, reset_func, free_func };
     return s;
 }
 
@@ -134,7 +136,7 @@ UIStream uistream(void *ctx, ustream_ret (*read_func)(void *, void *, size_t, si
  * @return Return code.
  */
 ULIB_API
-ustream_ret uistream_deinit(UIStream *stream);
+ulib_ret uistream_deinit(UIStream *stream);
 
 /**
  * Resets the stream.
@@ -143,7 +145,7 @@ ustream_ret uistream_deinit(UIStream *stream);
  * @return Return code.
  */
 ULIB_API
-ustream_ret uistream_reset(UIStream *stream);
+ulib_ret uistream_reset(UIStream *stream);
 
 /**
  * Reads `count` bytes from the stream and writes them into `buf`.
@@ -155,7 +157,7 @@ ustream_ret uistream_reset(UIStream *stream);
  * @return Return code.
  */
 ULIB_API
-ustream_ret uistream_read(UIStream *stream, void *buf, size_t count, size_t *read);
+ulib_ret uistream_read(UIStream *stream, void *buf, size_t count, size_t *read);
 
 /**
  * Initializes a stream that reads from the file at the specified path.
@@ -167,7 +169,7 @@ ustream_ret uistream_read(UIStream *stream, void *buf, size_t count, size_t *rea
  * @destructor{uistream_deinit}
  */
 ULIB_API
-ustream_ret uistream_from_path(UIStream *stream, char const *path);
+ulib_ret uistream_from_path(UIStream *stream, char const *path);
 
 /**
  * Initializes a stream that reads from the specified file.
@@ -179,7 +181,7 @@ ustream_ret uistream_from_path(UIStream *stream, char const *path);
  * @destructor{uistream_deinit}
  */
 ULIB_API
-ustream_ret uistream_from_file(UIStream *stream, FILE *file);
+ulib_ret uistream_from_file(UIStream *stream, FILE *file);
 
 /**
  * Initializes a stream that reads from the specified buffer.
@@ -192,7 +194,7 @@ ustream_ret uistream_from_file(UIStream *stream, FILE *file);
  * @destructor{uistream_deinit}
  */
 ULIB_API
-ustream_ret uistream_from_buf(UIStream *stream, void const *buf, size_t size);
+ulib_ret uistream_from_buf(UIStream *stream, void const *buf, size_t size);
 
 /**
  * Initializes a stream that reads from the specified string buffer.
@@ -204,7 +206,7 @@ ustream_ret uistream_from_buf(UIStream *stream, void const *buf, size_t size);
  * @destructor{uistream_deinit}
  */
 ULIB_API
-ustream_ret uistream_from_strbuf(UIStream *stream, UStrBuf const *buf);
+ulib_ret uistream_from_strbuf(UIStream *stream, UStrBuf const *buf);
 
 /**
  * Initializes a stream that reads from the specified null-terminated string.
@@ -216,7 +218,7 @@ ustream_ret uistream_from_strbuf(UIStream *stream, UStrBuf const *buf);
  * @destructor{uistream_deinit}
  */
 ULIB_API
-ustream_ret uistream_from_string(UIStream *stream, char const *string);
+ulib_ret uistream_from_string(UIStream *stream, char const *string);
 
 /**
  * Initializes a stream that reads from the specified string.
@@ -228,7 +230,7 @@ ustream_ret uistream_from_string(UIStream *stream, char const *string);
  * @destructor{uistream_deinit}
  */
 ULIB_API
-ustream_ret uistream_from_ustring(UIStream *stream, UString const *string);
+ulib_ret uistream_from_ustring(UIStream *stream, UString const *string);
 
 /**
  * Initializes a buffered stream that reads from the specified stream.
@@ -245,7 +247,7 @@ ustream_ret uistream_from_ustring(UIStream *stream, UString const *string);
  * @note The raw stream is automatically deinitialized when the buffered stream is deinitialized.
  */
 ULIB_API
-ustream_ret uistream_buffered(UIStream *stream, UIStream **raw_stream, size_t buffer_size);
+ulib_ret uistream_buffered(UIStream *stream, UIStream **raw_stream, size_t buffer_size);
 
 /// @}
 
@@ -253,7 +255,7 @@ ustream_ret uistream_buffered(UIStream *stream, UIStream **raw_stream, size_t bu
 typedef struct UOStream {
 
     /// Stream state.
-    ustream_ret state;
+    ulib_ret state;
 
     /// Bytes written since the last `reset` call.
     size_t written_bytes;
@@ -270,7 +272,7 @@ typedef struct UOStream {
      * @param[out] written Number of bytes actually written.
      * @return Return code.
      */
-    ustream_ret (*write)(void *ctx, void const *buf, size_t count, size_t *written);
+    ulib_ret (*write)(void *ctx, void const *buf, size_t count, size_t *written);
 
     /**
      * Pointer to a function that writes a formatted string into the stream.
@@ -283,7 +285,7 @@ typedef struct UOStream {
      *
      * @note Can be NULL, in which case the stream will fallback to `write`.
      */
-    ustream_ret (*writef)(void *ctx, size_t *written, char const *format, va_list args);
+    ulib_ret (*writef)(void *ctx, size_t *written, char const *format, va_list args);
 
     /**
      * Pointer to a function that flushes the stream, writing any buffered data.
@@ -293,7 +295,7 @@ typedef struct UOStream {
      *
      * @note Can be NULL if the stream cannot be flushed.
      */
-    ustream_ret (*flush)(void *ctx);
+    ulib_ret (*flush)(void *ctx);
 
     /**
      * Pointer to a function that resets the stream.
@@ -303,7 +305,7 @@ typedef struct UOStream {
      *
      * @note Can be NULL if the stream cannot be reset.
      */
-    ustream_ret (*reset)(void *ctx);
+    ulib_ret (*reset)(void *ctx);
 
     /**
      * Pointer to a function that releases any resource reserved by the stream.
@@ -314,7 +316,7 @@ typedef struct UOStream {
      *
      * @note Can be NULL if the stream does not need to release resources.
      */
-    ustream_ret (*free)(void *ctx);
+    ulib_ret (*free)(void *ctx);
 
 } UOStream;
 
@@ -367,11 +369,11 @@ UOStream *uostream_null(void);
  */
 ULIB_CONST
 ULIB_INLINE
-UOStream uostream(void *ctx, ustream_ret (*write_func)(void *, void const *, size_t, size_t *),
-                  ustream_ret (*writef_func)(void *, size_t *, char const *, va_list),
-                  ustream_ret (*flush_func)(void *), ustream_ret (*reset_func)(void *),
-                  ustream_ret (*free_func)(void *)) {
-    UOStream s = { USTREAM_OK, 0, ctx, write_func, writef_func, flush_func, reset_func, free_func };
+UOStream uostream(void *ctx, ulib_ret (*write_func)(void *, void const *, size_t, size_t *),
+                  ulib_ret (*writef_func)(void *, size_t *, char const *, va_list),
+                  ulib_ret (*flush_func)(void *), ulib_ret (*reset_func)(void *),
+                  ulib_ret (*free_func)(void *)) {
+    UOStream s = { ULIB_OK, 0, ctx, write_func, writef_func, flush_func, reset_func, free_func };
     return s;
 }
 
@@ -393,7 +395,7 @@ UOStream uostream(void *ctx, ustream_ret (*write_func)(void *, void const *, siz
  * @return Return code.
  */
 ULIB_API
-ustream_ret uostream_deinit(UOStream *stream);
+ulib_ret uostream_deinit(UOStream *stream);
 
 /**
  * Flushes the stream, writing any buffered data.
@@ -402,7 +404,7 @@ ustream_ret uostream_deinit(UOStream *stream);
  * @return Return code.
  */
 ULIB_API
-ustream_ret uostream_flush(UOStream *stream);
+ulib_ret uostream_flush(UOStream *stream);
 
 /**
  * Resets the stream.
@@ -411,7 +413,7 @@ ustream_ret uostream_flush(UOStream *stream);
  * @return Return code.
  */
 ULIB_API
-ustream_ret uostream_reset(UOStream *stream);
+ulib_ret uostream_reset(UOStream *stream);
 
 /**
  * Writes `count` bytes from `buf` into the specified output stream.
@@ -423,7 +425,7 @@ ustream_ret uostream_reset(UOStream *stream);
  * @return Return code.
  */
 ULIB_API
-ustream_ret uostream_write(UOStream *stream, void const *buf, size_t count, size_t *written);
+ulib_ret uostream_write(UOStream *stream, void const *buf, size_t count, size_t *written);
 
 /**
  * Writes a formatted string into the stream.
@@ -435,7 +437,7 @@ ustream_ret uostream_write(UOStream *stream, void const *buf, size_t count, size
  * @return Return code.
  */
 ULIB_API
-ustream_ret uostream_writef(UOStream *stream, size_t *written, char const *format, ...);
+ulib_ret uostream_writef(UOStream *stream, size_t *written, char const *format, ...);
 
 /**
  * Writes a formatted string into the stream.
@@ -447,8 +449,7 @@ ustream_ret uostream_writef(UOStream *stream, size_t *written, char const *forma
  * @return Return code.
  */
 ULIB_API
-ustream_ret
-uostream_writef_list(UOStream *stream, size_t *written, char const *format, va_list args);
+ulib_ret uostream_writef_list(UOStream *stream, size_t *written, char const *format, va_list args);
 
 /**
  * Writes a NULL-terminated string into the stream.
@@ -459,7 +460,7 @@ uostream_writef_list(UOStream *stream, size_t *written, char const *format, va_l
  * @return Return code.
  */
 ULIB_API
-ustream_ret uostream_write_buf(UOStream *stream, char const *buf, size_t *written);
+ulib_ret uostream_write_buf(UOStream *stream, char const *buf, size_t *written);
 
 /**
  * Writes a string into the stream.
@@ -470,7 +471,7 @@ ustream_ret uostream_write_buf(UOStream *stream, char const *buf, size_t *writte
  * @return Return code.
  */
 ULIB_API
-ustream_ret uostream_write_string(UOStream *stream, UString const *string, size_t *written);
+ulib_ret uostream_write_string(UOStream *stream, UString const *string, size_t *written);
 
 /**
  * Writes the specified date and time into the stream.
@@ -481,7 +482,7 @@ ustream_ret uostream_write_string(UOStream *stream, UString const *string, size_
  * @return Return code.
  */
 ULIB_API
-ustream_ret uostream_write_time(UOStream *stream, UTime const *time, size_t *written);
+ulib_ret uostream_write_time(UOStream *stream, UTime const *time, size_t *written);
 
 /**
  * Writes the date component of the specified date and time into the stream.
@@ -492,7 +493,7 @@ ustream_ret uostream_write_time(UOStream *stream, UTime const *time, size_t *wri
  * @return Return code.
  */
 ULIB_API
-ustream_ret uostream_write_date(UOStream *stream, UTime const *time, size_t *written);
+ulib_ret uostream_write_date(UOStream *stream, UTime const *time, size_t *written);
 
 /**
  * Writes the time component of the specified date and time into the stream.
@@ -503,7 +504,7 @@ ustream_ret uostream_write_date(UOStream *stream, UTime const *time, size_t *wri
  * @return Return code.
  */
 ULIB_API
-ustream_ret uostream_write_time_of_day(UOStream *stream, UTime const *time, size_t *written);
+ulib_ret uostream_write_time_of_day(UOStream *stream, UTime const *time, size_t *written);
 
 /**
  * Writes the specified time interval into the stream.
@@ -516,8 +517,8 @@ ustream_ret uostream_write_time_of_day(UOStream *stream, UTime const *time, size
  * @return Return code.
  */
 ULIB_API
-ustream_ret uostream_write_time_interval(UOStream *stream, utime_ns interval, utime_unit unit,
-                                         unsigned decimal_digits, size_t *written);
+ulib_ret uostream_write_time_interval(UOStream *stream, utime_ns interval, utime_unit unit,
+                                      unsigned decimal_digits, size_t *written);
 
 /**
  * Writes the specified version into the stream.
@@ -528,7 +529,7 @@ ustream_ret uostream_write_time_interval(UOStream *stream, utime_ns interval, ut
  * @return Return code.
  */
 ULIB_API
-ustream_ret uostream_write_version(UOStream *stream, UVersion const *version, size_t *written);
+ulib_ret uostream_write_version(UOStream *stream, UVersion const *version, size_t *written);
 
 /**
  * Initializes a stream that writes to the file at the specified path.
@@ -540,7 +541,7 @@ ustream_ret uostream_write_version(UOStream *stream, UVersion const *version, si
  * @destructor{uostream_deinit}
  */
 ULIB_API
-ustream_ret uostream_to_path(UOStream *stream, char const *path);
+ulib_ret uostream_to_path(UOStream *stream, char const *path);
 
 /**
  * Initializes a stream that writes to the specified file.
@@ -553,7 +554,7 @@ ustream_ret uostream_to_path(UOStream *stream, char const *path);
  * @note You are responsible for closing the file.
  */
 ULIB_API
-ustream_ret uostream_to_file(UOStream *stream, FILE *file);
+ulib_ret uostream_to_file(UOStream *stream, FILE *file);
 
 /**
  * Initializes a stream that writes to the specified buffer.
@@ -566,7 +567,7 @@ ustream_ret uostream_to_file(UOStream *stream, FILE *file);
  * @destructor{uostream_deinit}
  */
 ULIB_API
-ustream_ret uostream_to_buf(UOStream *stream, void *buf, size_t size);
+ulib_ret uostream_to_buf(UOStream *stream, void *buf, size_t size);
 
 /**
  * Initializes a stream that writes to the specified string buffer.
@@ -581,7 +582,7 @@ ustream_ret uostream_to_buf(UOStream *stream, void *buf, size_t size);
  *       @func{uostream_deinit}.
  */
 ULIB_API
-ustream_ret uostream_to_strbuf(UOStream *stream, UStrBuf *buf);
+ulib_ret uostream_to_strbuf(UOStream *stream, UStrBuf *buf);
 
 /**
  * Initializes a stream that writes to multiple substreams.
@@ -599,7 +600,7 @@ ustream_ret uostream_to_strbuf(UOStream *stream, UStrBuf *buf);
  *       - Calling @func{uostream_deinit} deinitializes all substreams.
  */
 ULIB_API
-ustream_ret uostream_to_multi(UOStream *stream);
+ulib_ret uostream_to_multi(UOStream *stream);
 
 /**
  * Adds a new output stream to the specified multi-stream.
@@ -612,7 +613,7 @@ ustream_ret uostream_to_multi(UOStream *stream);
  *       must have been initialized via @func{uostream_to_multi}.
  */
 ULIB_API
-ustream_ret uostream_add_substream(UOStream *stream, UOStream const *other);
+ulib_ret uostream_add_substream(UOStream *stream, UOStream const *other);
 
 /**
  * Initializes a buffered stream that writes to the specified stream.
@@ -630,7 +631,7 @@ ustream_ret uostream_add_substream(UOStream *stream, UOStream const *other);
  * @note The raw stream is automatically deinitialized when the buffered stream is deinitialized.
  */
 ULIB_API
-ustream_ret uostream_buffered(UOStream *stream, UOStream **raw_stream, size_t buffer_size);
+ulib_ret uostream_buffered(UOStream *stream, UOStream **raw_stream, size_t buffer_size);
 
 /// @}
 

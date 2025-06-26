@@ -83,33 +83,33 @@ void ustring_utils_test(void) {
 
 void ustrbuf_test(void) {
     UStrBuf buf = ustrbuf();
-    uvec_ret ret;
+    ulib_ret ret;
 
     char const str[] = "12345";
     ulib_uint const str_len = sizeof(str) - 1;
     ulib_uint cur_len;
 
     ret = ustrbuf_append_literal(&buf, str);
-    utest_assert(ret == UVEC_OK);
+    utest_assert(ret == ULIB_OK);
     cur_len = ustrbuf_length(&buf);
     utest_assert_uint(cur_len, ==, str_len);
     utest_assert_buf(ustrbuf_data(&buf), ==, str, str_len);
 
     ret = ustrbuf_append_string(&buf, str, str_len);
-    utest_assert(ret == UVEC_OK);
+    utest_assert(ret == ULIB_OK);
     cur_len = ustrbuf_length(&buf);
     utest_assert_uint(cur_len, ==, 2 * str_len);
     utest_assert_buf(ustrbuf_data(&buf) + cur_len - str_len, ==, str, str_len);
 
     UString string = ustring_wrap(str, str_len);
     ret = ustrbuf_append_ustring(&buf, string);
-    utest_assert(ret == UVEC_OK);
+    utest_assert(ret == ULIB_OK);
     cur_len = ustrbuf_length(&buf);
     utest_assert_uint(cur_len, ==, 3 * str_len);
     utest_assert_buf(ustrbuf_data(&buf) + cur_len - str_len, ==, str, str_len);
 
     ret = ustrbuf_append_format(&buf, "%s", str);
-    utest_assert(ret == UVEC_OK);
+    utest_assert(ret == ULIB_OK);
     cur_len = ustrbuf_length(&buf);
     utest_assert_uint(cur_len, ==, 4 * str_len);
     utest_assert_buf(ustrbuf_data(&buf) + cur_len - str_len, ==, str, str_len);

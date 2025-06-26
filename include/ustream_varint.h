@@ -13,6 +13,7 @@
 #define USTREAM_VARINT_H
 
 #include "uattrs.h"
+#include "ulib_ret.h"
 #include "unumber.h"
 #include "ustream.h"
 #include <stddef.h>
@@ -33,7 +34,7 @@ ULIB_BEGIN_DECLS
  * @return Return code.
  */
 ULIB_API
-ustream_ret uistream_read_varint(UIStream *stream, ulib_uint *value, size_t *read);
+ulib_ret uistream_read_varint(UIStream *stream, ulib_uint *value, size_t *read);
 
 /**
  * Reads a variable-length signed integer.
@@ -44,7 +45,7 @@ ustream_ret uistream_read_varint(UIStream *stream, ulib_uint *value, size_t *rea
  * @return Return code.
  */
 ULIB_API
-ustream_ret uistream_read_svarint(UIStream *stream, ulib_int *value, size_t *read);
+ulib_ret uistream_read_svarint(UIStream *stream, ulib_int *value, size_t *read);
 
 /**
  * Writes a variable-length unsigned integer.
@@ -55,7 +56,7 @@ ustream_ret uistream_read_svarint(UIStream *stream, ulib_int *value, size_t *rea
  * @return Return code.
  */
 ULIB_API
-ustream_ret uostream_write_varint(UOStream *stream, ulib_uint value, size_t *written);
+ulib_ret uostream_write_varint(UOStream *stream, ulib_uint value, size_t *written);
 
 /**
  * Writes a variable-length signed integer.
@@ -66,7 +67,7 @@ ustream_ret uostream_write_varint(UOStream *stream, ulib_uint value, size_t *wri
  * @return Return code.
  */
 ULIB_API
-ustream_ret uostream_write_svarint(UOStream *stream, ulib_int value, size_t *written);
+ulib_ret uostream_write_svarint(UOStream *stream, ulib_int value, size_t *written);
 
 /// @}
 

@@ -47,8 +47,8 @@ void uvec_test_base(void) {
     uvec_set(VTYPE, &v, 2, 5);
     utest_assert_int(uvec_get(VTYPE, &v, 2), ==, 5);
 
-    uvec_ret ret = uvec_push(VTYPE, &v, 4);
-    utest_assert(ret == UVEC_OK);
+    ulib_ret ret = uvec_push(VTYPE, &v, 4);
+    utest_assert(ret == ULIB_OK);
     uvec_assert_elements(VTYPE, &v, 3, 2, 5, 1, 4);
 
     UVec(VTYPE) view = uvec_view(VTYPE, &v, 2, 3);
@@ -60,7 +60,7 @@ void uvec_test_base(void) {
     uvec_assert_elements(VTYPE, &v, 3, 2, 5, 1);
 
     ret = uvec_insert_at(VTYPE, &v, 2, 4);
-    utest_assert(ret == UVEC_OK);
+    utest_assert(ret == ULIB_OK);
     uvec_assert_elements(VTYPE, &v, 3, 2, 4, 5, 1);
 
     uvec_remove_at(VTYPE, &v, 1);
@@ -99,8 +99,8 @@ void uvec_test_range(void) {
     VTYPE items[] = { 6, 7 };
 
     // uvec_set_range
-    uvec_ret ret = uvec_set_range(VTYPE, &v, items, 3, ulib_array_count(items));
-    utest_assert(ret == UVEC_OK);
+    ulib_ret ret = uvec_set_range(VTYPE, &v, items, 3, ulib_array_count(items));
+    utest_assert(ret == ULIB_OK);
     uvec_assert_elements(VTYPE, &v, 1, 2, 3, 6, 7);
     uvec_set_range(VTYPE, &v, items, 1, ulib_array_count(items));
     uvec_assert_elements(VTYPE, &v, 1, 6, 7, 6, 7);
@@ -111,7 +111,7 @@ void uvec_test_range(void) {
     uvec_clear(VTYPE, &v);
     uvec_append_items(VTYPE, &v, 1, 2, 3, 4, 5);
     ret = uvec_insert_range(VTYPE, &v, items, 2, ulib_array_count(items));
-    utest_assert(ret == UVEC_OK);
+    utest_assert(ret == ULIB_OK);
     uvec_assert_elements(VTYPE, &v, 1, 2, 6, 7, 3, 4, 5);
     uvec_insert_range(VTYPE, &v, items, uvec_count(VTYPE, &v), ulib_array_count(items));
     uvec_assert_elements(VTYPE, &v, 1, 2, 6, 7, 3, 4, 5, 6, 7);
@@ -133,39 +133,39 @@ void uvec_test_range(void) {
 
 void uvec_test_capacity(void) {
     UVec(VTYPE) v = uvec(VTYPE);
-    uvec_ret ret;
+    ulib_ret ret;
 
     for (unsigned i = 0; i < p_uvec_small_size(VTYPE); ++i) {
         ret = uvec_push(VTYPE, &v, 42);
-        utest_assert(ret == UVEC_OK);
+        utest_assert(ret == ULIB_OK);
     }
 
     utest_assert(p_uvec_is_small(VTYPE, &v));
     utest_assert_false(p_uvec_is_large(VTYPE, &v));
 
     ret = uvec_push(VTYPE, &v, 42);
-    utest_assert(ret == UVEC_OK);
+    utest_assert(ret == ULIB_OK);
     utest_assert(p_uvec_is_large(VTYPE, &v));
     utest_assert_false(p_uvec_is_small(VTYPE, &v));
     uvec_clear(VTYPE, &v);
 
     ulib_uint const capacity = 10;
     ret = uvec_reserve(VTYPE, &v, capacity);
-    utest_assert(ret == UVEC_OK);
+    utest_assert(ret == ULIB_OK);
     utest_assert_uint(uvec_size(VTYPE, &v), >=, capacity);
 
     for (unsigned i = 0; i < 9; ++i) {
         ret = uvec_push(VTYPE, &v, 42);
-        utest_assert(ret == UVEC_OK);
+        utest_assert(ret == ULIB_OK);
     }
     utest_assert_uint(uvec_size(VTYPE, &v), >=, uvec_count(VTYPE, &v));
 
     ret = uvec_expand(VTYPE, &v, capacity);
-    utest_assert(ret == UVEC_OK);
+    utest_assert(ret == ULIB_OK);
     utest_assert_uint(uvec_size(VTYPE, &v), >=, uvec_count(VTYPE, &v) + capacity);
 
     ret = uvec_shrink(VTYPE, &v);
-    utest_assert(ret == UVEC_OK);
+    utest_assert(ret == ULIB_OK);
     utest_assert(p_uvec_is_compact(VTYPE, &v));
     utest_assert_uint(uvec_size(VTYPE, &v), ==, uvec_count(VTYPE, &v));
 
@@ -173,7 +173,7 @@ void uvec_test_capacity(void) {
     utest_assert_uint(uvec_count(VTYPE, &v), ==, 0);
 
     ret = uvec_shrink(VTYPE, &v);
-    utest_assert(ret == UVEC_OK);
+    utest_assert(ret == ULIB_OK);
     utest_assert(p_uvec_is_small(VTYPE, &v));
 
     uvec_deinit(VTYPE, &v);
@@ -186,12 +186,12 @@ void uvec_test_storage(void) {
     utest_assert_uint(uvec_size(VTYPE, &vec), ==, ULIB_UINT_MAX);
     uvec_assert_elements(VTYPE, &vec, 1, 2, 3);
 
-    utest_assert(uvec_push(VTYPE, &vec, 4) == UVEC_OK);
+    utest_assert(uvec_push(VTYPE, &vec, 4) == ULIB_OK);
     utest_assert_uint(uvec_count(VTYPE, &vec), ==, 4);
     uvec_assert_elements(VTYPE, &vec, 1, 2, 3, 4);
 
-    utest_assert(uvec_reserve(VTYPE, &vec, 1000) == UVEC_OK);
-    utest_assert(uvec_shrink(VTYPE, &vec) == UVEC_OK);
+    utest_assert(uvec_reserve(VTYPE, &vec, 1000) == ULIB_OK);
+    utest_assert(uvec_shrink(VTYPE, &vec) == ULIB_OK);
     utest_assert(uvec_data(VTYPE, &vec) == s_array);
 
     VTYPE *d_array = (VTYPE *)ulib_calloc_array(d_array, 4);
@@ -212,8 +212,8 @@ void uvec_test_equality(void) {
     uvec_append_items(VTYPE, &v1, 3, 2, 4, 1);
 
     UVec(VTYPE) v2 = uvec(VTYPE);
-    uvec_ret ret = uvec_copy(VTYPE, &v1, &v2);
-    utest_assert(ret == UVEC_OK);
+    ulib_ret ret = uvec_copy(VTYPE, &v1, &v2);
+    utest_assert(ret == ULIB_OK);
     utest_assert(uvec_equals(VTYPE, &v1, &v2));
 
     VTYPE *arr = (VTYPE *)ulib_alloc_array(arr, uvec_count(VTYPE, &v1));
@@ -225,7 +225,7 @@ void uvec_test_equality(void) {
     utest_assert_false(uvec_equals(VTYPE, &v1, &v2));
 
     ret = uvec_push(VTYPE, &v2, 5);
-    utest_assert(ret == UVEC_OK);
+    utest_assert(ret == ULIB_OK);
     utest_assert_false(uvec_equals(VTYPE, &v1, &v2));
 
     uvec_deinit(VTYPE, &v1);
@@ -247,13 +247,13 @@ void uvec_test_contains(void) {
     utest_assert(uvec_contains(VTYPE, &v1, 2));
     utest_assert_false(uvec_contains(VTYPE, &v1, 7));
 
-    uvec_ret ret = uvec_push_unique(VTYPE, &v1, 7);
-    utest_assert(ret == UVEC_OK);
+    ulib_ret ret = uvec_push_unique(VTYPE, &v1, 7);
+    utest_assert(ret == ULIB_OK);
     uvec_assert_elements(VTYPE, &v1, 3, 2, 5, 4, 5, 1, 7);
     utest_assert(uvec_contains(VTYPE, &v1, 7));
 
     ret = uvec_push_unique(VTYPE, &v1, 7);
-    utest_assert(ret == UVEC_NO);
+    utest_assert(ret == ULIB_NO);
     uvec_assert_elements(VTYPE, &v1, 3, 2, 5, 4, 5, 1, 7);
     uvec_pop(VTYPE, &v1, NULL);
 
@@ -271,8 +271,8 @@ void uvec_test_comparable(void) {
     UVec(VTYPE) values = uvec(VTYPE);
     uvec_append_items(VTYPE, &values, 3, 2, 2, 2, 4, 1, 5, 6, 5);
 
-    uvec_ret ret = uvec_append(VTYPE, &v, &values);
-    utest_assert(ret == UVEC_OK);
+    ulib_ret ret = uvec_append(VTYPE, &v, &values);
+    utest_assert(ret == ULIB_OK);
     utest_assert_uint(uvec_index_of_min(VTYPE, &v), ==, 5);
     utest_assert_uint(uvec_index_of_max(VTYPE, &v), ==, 7);
 
@@ -291,7 +291,7 @@ void uvec_test_comparable(void) {
     uvec_foreach (VTYPE, &values, loop) {
         if (!uvec_contains(VTYPE, &v, *loop.item)) {
             ret = uvec_push(VTYPE, &v, *loop.item);
-            utest_assert(ret == UVEC_OK);
+            utest_assert(ret == ULIB_OK);
         }
     }
 
@@ -316,12 +316,12 @@ void uvec_test_comparable(void) {
 
     ret = uvec_sorted_unique_insert(VTYPE, &v, 7, &idx);
     uvec_assert_elements(VTYPE, &v, 0, 1, 2, 3, 3, 5, 6, 7);
-    utest_assert(ret == UVEC_OK);
+    utest_assert(ret == ULIB_OK);
     utest_assert_uint(idx, ==, 7);
 
     ret = uvec_sorted_unique_insert(VTYPE, &v, 3, &idx);
     uvec_assert_elements(VTYPE, &v, 0, 1, 2, 3, 3, 5, 6, 7);
-    utest_assert(ret == UVEC_NO);
+    utest_assert(ret == ULIB_NO);
     utest_assert_uint(idx, ==, 3);
 
     // uvec_insertion_index_sorted with binary search
@@ -387,11 +387,11 @@ void uvec_test_max_heapq(void) {
 
     UVec(VTYPE) heap = uvec(VTYPE);
     VTYPE item;
-    uvec_ret ret;
+    ulib_ret ret;
 
     for (unsigned i = 0; i < ulib_array_count(arr); ++i) {
         ret = uvec_max_heapq_push(VTYPE, &heap, arr[i]);
-        utest_assert(ret == UVEC_OK);
+        utest_assert(ret == ULIB_OK);
         utest_assert_uint(uvec_count(VTYPE, &heap), ==, i + 1);
         utest_assert_int(uvec_first(VTYPE, &heap), ==, max[i]);
     }
@@ -446,11 +446,11 @@ void uvec_test_min_heapq(void) {
 
     UVec(VTYPE) heap = uvec(VTYPE);
     VTYPE item;
-    uvec_ret ret;
+    ulib_ret ret;
 
     for (unsigned i = 0; i < ulib_array_count(arr); ++i) {
         ret = uvec_min_heapq_push(VTYPE, &heap, arr[i]);
-        utest_assert(ret == UVEC_OK);
+        utest_assert(ret == ULIB_OK);
         utest_assert_uint(uvec_count(VTYPE, &heap), ==, i + 1);
         utest_assert_int(uvec_first(VTYPE, &heap), ==, min[i]);
     }

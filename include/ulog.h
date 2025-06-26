@@ -322,16 +322,6 @@ void ulog_disable(ULog *log) {
 #define ulog_perf(...) ulog_elapsed(ulog_main, __VA_ARGS__)
 
 /**
- * The default event handler. Logs the event to the logger's output stream.
- *
- * @param log Logger object.
- * @param event Log event.
- * @return Return code.
- */
-ULIB_API
-ulib_ret ulog_default_handler(ULog *log, ULogEvent const *event);
-
-/**
  * Writes the specified event to the logger's output stream.
  *
  * @param log Logger object.
@@ -339,7 +329,7 @@ ulib_ret ulog_default_handler(ULog *log, ULogEvent const *event);
  * @return Return code.
  */
 ULIB_API
-ustream_ret ulog_write_event(ULog *log, ULogEvent const *event);
+ulib_ret ulog_write_event(ULog *log, ULogEvent const *event);
 
 /**
  * Writes the header of the specified event to the logger's output stream.
@@ -351,7 +341,7 @@ ustream_ret ulog_write_event(ULog *log, ULogEvent const *event);
  * @note The header consists of the date, time, and log level.
  */
 ULIB_API
-ustream_ret ulog_write_header(ULog *log, ULogEvent const *event);
+ulib_ret ulog_write_header(ULog *log, ULogEvent const *event);
 
 /**
  * Writes the footer of the specified event to the logger's output stream.
@@ -363,7 +353,7 @@ ustream_ret ulog_write_header(ULog *log, ULogEvent const *event);
  * @note The footer consists of the log message and additional metadata based on the debug level.
  */
 ULIB_API
-ustream_ret ulog_write_footer(ULog *log, ULogEvent const *event);
+ulib_ret ulog_write_footer(ULog *log, ULogEvent const *event);
 
 /**
  * Writes the specified message to the logger's output stream.
@@ -373,7 +363,7 @@ ustream_ret ulog_write_footer(ULog *log, ULogEvent const *event);
  * @return Return code.
  */
 ULIB_API
-ustream_ret ulog_write_msg(ULog *log, ULogMsg msg);
+ulib_ret ulog_write_msg(ULog *log, ULogMsg msg);
 
 /**
  * Writes the current date and time to the logger's output stream.
@@ -382,7 +372,7 @@ ustream_ret ulog_write_msg(ULog *log, ULogMsg msg);
  * @return Return code.
  */
 ULIB_API
-ustream_ret ulog_write_date(ULog *log);
+ulib_ret ulog_write_date(ULog *log);
 
 /**
  * Writes the specified log level to the logger's output stream.
@@ -392,7 +382,7 @@ ustream_ret ulog_write_date(ULog *log);
  * @return Return code.
  */
 ULIB_API
-ustream_ret ulog_write_level(ULog *log, ULogLevel level);
+ulib_ret ulog_write_level(ULog *log, ULogLevel level);
 
 /**
  * Writes the specified tag to the logger's output stream.
@@ -402,7 +392,7 @@ ustream_ret ulog_write_level(ULog *log, ULogLevel level);
  * @return Return code.
  */
 ULIB_API
-ustream_ret ulog_write_tag(ULog *log, ULogTag tag);
+ulib_ret ulog_write_tag(ULog *log, ULogTag tag);
 
 /**
  * Writes the specified source code location to the logger's output stream.
@@ -412,7 +402,7 @@ ustream_ret ulog_write_tag(ULog *log, ULogTag tag);
  * @return Return code.
  */
 ULIB_API
-ustream_ret ulog_write_loc(ULog *log, USrcLoc loc);
+ulib_ret ulog_write_loc(ULog *log, USrcLoc loc);
 
 /**
  * Writes elapsed time to the logger's output stream.
@@ -422,7 +412,7 @@ ustream_ret ulog_write_loc(ULog *log, USrcLoc loc);
  * @return Return code.
  */
 ULIB_API
-ustream_ret ulog_write_elapsed(ULog *log, utime_ns elapsed);
+ulib_ret ulog_write_elapsed(ULog *log, utime_ns elapsed);
 
 /**
  * Writes a formatted string in the specified color to the logger's output stream.
@@ -434,7 +424,7 @@ ustream_ret ulog_write_elapsed(ULog *log, utime_ns elapsed);
  * @return Return code.
  */
 ULIB_API
-ustream_ret ulog_write_color(ULog *log, char const *color, char const *fmt, ...);
+ulib_ret ulog_write_color(ULog *log, char const *color, char const *fmt, ...);
 
 /**
  * Writes a space to the logger's output stream.
@@ -443,7 +433,7 @@ ustream_ret ulog_write_color(ULog *log, char const *color, char const *fmt, ...)
  * @return Return code.
  */
 ULIB_API
-ustream_ret ulog_write_space(ULog *log);
+ulib_ret ulog_write_space(ULog *log);
 
 /**
  * Writes a newline to the logger's output stream.
@@ -452,7 +442,7 @@ ustream_ret ulog_write_space(ULog *log);
  * @return Return code.
  */
 ULIB_API
-ustream_ret ulog_write_newline(ULog *log);
+ulib_ret ulog_write_newline(ULog *log);
 
 /// @}
 

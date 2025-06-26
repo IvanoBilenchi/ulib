@@ -23,7 +23,8 @@ typedef void *ulib_ptr;
 /**
  * Alignment of pointers returned by memory allocation functions.
  *
- * On most platforms this is equal to the strictest alignment of any scalar type (e.g. long double).
+ * On most platforms this is equal to the strictest alignment
+ * of any scalar type (e.g. @ctype{long double}).
  */
 #ifndef ULIB_MALLOC_ALIGN
 #include <stdalign.h>

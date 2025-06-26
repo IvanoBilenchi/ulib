@@ -9,7 +9,6 @@
 #include "uleak.h"
 #include "ulib_ret.h"
 #include "ulog.h"
-#include "ustream.h"
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -29,7 +28,7 @@ static bool test_batch_status = true;
 static bool test_func_status = true;
 
 static ulib_ret event_handler(ULog *log, ULogEvent const *event) {
-    if (!event->data) return ulog_write_event(log, event) == USTREAM_OK ? ULIB_OK : ULIB_ERR;
+    if (!event->data) return ulog_write_event(log, event);
     UTestEvent const *data = event->data;
     ulog_write_date(log);
     ulog_write_space(log);
@@ -48,7 +47,7 @@ static ulib_ret event_handler(ULog *log, ULogEvent const *event) {
     } else {
         ulog_write_color(log, UCOLOR_DIM, "(%zu/%zu passed)", data->passed, data->total);
     }
-    return ulog_write_newline(log) == USTREAM_OK ? ULIB_OK : ULIB_ERR;
+    return ulog_write_newline(log);
 }
 
 bool utest_all_passed(void) {
