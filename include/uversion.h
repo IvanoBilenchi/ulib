@@ -14,22 +14,9 @@
 
 #include "uattrs.h"
 #include "ustring.h"
+#include "uversion_t.h" // IWYU pragma: export
 
 ULIB_BEGIN_DECLS
-
-/// Version information.
-typedef struct UVersion {
-
-    /// Major revision.
-    unsigned major;
-
-    /// Minor revision.
-    unsigned minor;
-
-    /// Patch number.
-    unsigned patch;
-
-} UVersion;
 
 /**
  * @defgroup UVersion UVersion API

@@ -17,13 +17,10 @@
 #include "ustrbuf.h"
 #include "ustring.h"
 #include "utime.h"
+#include "uversion_t.h"
 #include <stdio.h>
 
 ULIB_BEGIN_DECLS
-
-/// @cond
-typedef struct UVersion UVersion;
-/// @endcond
 
 /// Return codes for IO streams.
 ULIB_DEPRECATED(Use @type{ulib_ret} instead.)
