@@ -24,6 +24,7 @@
 #include "uhash_func.h"
 #include "uleak.h"
 #include "ulib_ret.h"
+#include "ulib_ret_t.h"
 #include "ulog.h"
 #include "umeta.h"
 #include "unumber.h"

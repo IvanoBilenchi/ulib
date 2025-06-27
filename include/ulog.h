@@ -15,7 +15,7 @@
 #include "uattrs.h"
 #include "ucolor.h" // IWYU pragma: export
 #include "udebug.h"
-#include "ulib_ret.h"
+#include "ulib_ret_t.h"
 #include "ustream.h"
 #include "utime.h"
 #include "uutils.h"

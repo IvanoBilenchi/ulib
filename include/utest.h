@@ -13,6 +13,7 @@
 #define UTEST_H
 
 #include "uattrs.h"
+#include "ulib_ret.h"
 #include "ulog.h"
 #include "ustring.h"
 #include "uutils.h"
@@ -175,6 +176,35 @@ bool utest_passed(void);
  * @alias void utest_assert_false(bool exp);
  */
 #define utest_assert_false(exp) utest_assert_msg(!(exp), "\"" #exp "\" must be false")
+
+/**
+ * Asserts that the specified return code is equal to the expected value.
+ *
+ * @param ret Return code.
+ * @param val Expected value.
+ *
+ * @alias void utest_assert_ret(ulib_ret ret, ulib_ret val);
+ */
+#define utest_assert_ret(ret, val)                                                                 \
+    do {                                                                                           \
+        ulib_ret const utest_ret = (ulib_ret)(ret);                                                \
+        ulib_ret const utest_val = (ulib_ret)(val);                                                \
+        if (utest_ret == utest_val) break;                                                         \
+        UString const utest_ret_name = ulib_ret_to_name(utest_ret);                                \
+        UString const utest_val_name = ulib_ret_to_name(utest_val);                                \
+        utest_log_failure_reason("\"" #ret "\" must be equal to \"%s\", found \"%s\"",             \
+                                 ustring_data(utest_val_name), ustring_data(utest_ret_name));      \
+        utest_fail();                                                                              \
+    } while (0)
+
+/**
+ * Asserts that the specified return code is equal to @val{ULIB_OK}.
+ *
+ * @param ret Return code.
+ *
+ * @alias void utest_assert_ok(ulib_ret ret);
+ */
+#define utest_assert_ok(ret) utest_assert_ret(ret, ULIB_OK)
 
 /**
  * Assert that the specified pointer must not be NULL.
@@ -342,6 +372,9 @@ void p_utest_batch_end(char const *name, size_t passed, size_t total);
 
 ULIB_API
 bool p_utest_end(void);
+
+ULIB_API
+void p_utest_log_ret_failure(char const *ret_exp, char const *val_exp, ulib_ret ret, ulib_ret val);
 
 ULIB_END_DECLS
 

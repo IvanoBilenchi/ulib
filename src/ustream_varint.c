@@ -6,7 +6,7 @@
  */
 
 #include "ustream_varint.h"
-#include "ulib_ret.h"
+#include "ulib_ret_t.h"
 #include "unumber.h"
 #include "ustream.h"
 #include <limits.h>
@@ -54,9 +54,7 @@ ulib_ret uostream_write_varint(UOStream *stream, ulib_uint value, size_t *writte
 ulib_ret uistream_read_svarint(UIStream *stream, ulib_int *value, size_t *read) {
     ulib_uint zig_zagged;
     ulib_ret ret = uistream_read_varint(stream, &zig_zagged, read);
-    if (ret == ULIB_OK) {
-        *value = (ulib_int)((zig_zagged >> 1U) ^ -(ulib_int)(zig_zagged & 1U));
-    }
+    if (ret == ULIB_OK) *value = (ulib_int)((zig_zagged >> 1U) ^ -(ulib_int)(zig_zagged & 1U));
     return ret;
 }
 

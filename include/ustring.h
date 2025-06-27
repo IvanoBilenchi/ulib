@@ -13,7 +13,7 @@
 #define USTRING_H
 
 #include "uattrs.h"
-#include "ulib_ret.h"
+#include "ulib_ret_t.h"
 #include "unumber.h"
 #include "ustring_raw.h"
 #include <limits.h>

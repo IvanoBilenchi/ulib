@@ -13,7 +13,7 @@
 #define USTREAM_H
 
 #include "uattrs.h"
-#include "ulib_ret.h"
+#include "ulib_ret_t.h"
 #include "ustrbuf.h"
 #include "ustring.h"
 #include "utime.h"

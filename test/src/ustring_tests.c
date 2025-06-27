@@ -83,33 +83,28 @@ void ustring_utils_test(void) {
 
 void ustrbuf_test(void) {
     UStrBuf buf = ustrbuf();
-    ulib_ret ret;
 
     char const str[] = "12345";
     ulib_uint const str_len = sizeof(str) - 1;
     ulib_uint cur_len;
 
-    ret = ustrbuf_append_literal(&buf, str);
-    utest_assert(ret == ULIB_OK);
+    utest_assert_ok(ustrbuf_append_literal(&buf, str));
     cur_len = ustrbuf_length(&buf);
     utest_assert_uint(cur_len, ==, str_len);
     utest_assert_buf(ustrbuf_data(&buf), ==, str, str_len);
 
-    ret = ustrbuf_append_string(&buf, str, str_len);
-    utest_assert(ret == ULIB_OK);
+    utest_assert_ok(ustrbuf_append_string(&buf, str, str_len));
     cur_len = ustrbuf_length(&buf);
     utest_assert_uint(cur_len, ==, 2 * str_len);
     utest_assert_buf(ustrbuf_data(&buf) + cur_len - str_len, ==, str, str_len);
 
     UString string = ustring_wrap(str, str_len);
-    ret = ustrbuf_append_ustring(&buf, string);
-    utest_assert(ret == ULIB_OK);
+    utest_assert_ok(ustrbuf_append_ustring(&buf, string));
     cur_len = ustrbuf_length(&buf);
     utest_assert_uint(cur_len, ==, 3 * str_len);
     utest_assert_buf(ustrbuf_data(&buf) + cur_len - str_len, ==, str, str_len);
 
-    ret = ustrbuf_append_format(&buf, "%s", str);
-    utest_assert(ret == ULIB_OK);
+    utest_assert_ok(ustrbuf_append_format(&buf, "%s", str));
     cur_len = ustrbuf_length(&buf);
     utest_assert_uint(cur_len, ==, 4 * str_len);
     utest_assert_buf(ustrbuf_data(&buf) + cur_len - str_len, ==, str, str_len);
@@ -209,42 +204,25 @@ void ustring_test_convert(void) {
     ulib_int int_out;
     ulib_uint uint_out;
     ulib_float float_out;
+
     UString a = ustring_literal("123");
-
-    ulib_ret ret = ustring_to_int(a, &int_out, 10);
-    utest_assert(ret == ULIB_OK);
+    utest_assert_ok(ustring_to_int(a, &int_out, 10));
     utest_assert_int(int_out, ==, 123);
-
-    ret = ustring_to_uint(a, &uint_out, 10);
-    utest_assert(ret == ULIB_OK);
+    utest_assert_ok(ustring_to_uint(a, &uint_out, 10));
     utest_assert_uint(uint_out, ==, 123);
-
-    ret = ustring_to_float(a, &float_out);
-    utest_assert(ret == ULIB_OK);
+    utest_assert_ok(ustring_to_float(a, &float_out));
     utest_assert_float(float_out, ==, 123.0);
 
     a = ustring_literal("123.0");
-
-    ret = ustring_to_int(a, &int_out, 10);
-    utest_assert(ret == ULIB_ERR);
-
-    ret = ustring_to_uint(a, &uint_out, 10);
-    utest_assert(ret == ULIB_ERR);
-
-    ret = ustring_to_float(a, &float_out);
-    utest_assert(ret == ULIB_OK);
+    utest_assert_ret(ustring_to_int(a, &int_out, 10), ULIB_ERR);
+    utest_assert_ret(ustring_to_uint(a, &uint_out, 10), ULIB_ERR);
+    utest_assert_ok(ustring_to_float(a, &float_out));
     utest_assert_float(float_out, ==, 123.0);
 
     a = ustring_literal("123a");
-
-    ret = ustring_to_int(a, &int_out, 10);
-    utest_assert(ret == ULIB_ERR);
-
-    ret = ustring_to_uint(a, &uint_out, 10);
-    utest_assert(ret == ULIB_ERR);
-
-    ret = ustring_to_float(a, &float_out);
-    utest_assert(ret == ULIB_ERR);
+    utest_assert_ret(ustring_to_int(a, &int_out, 10), ULIB_ERR);
+    utest_assert_ret(ustring_to_uint(a, &uint_out, 10), ULIB_ERR);
+    utest_assert_ret(ustring_to_float(a, &float_out), ULIB_ERR);
 }
 
 void ustring_test_sso(void) {

@@ -13,7 +13,7 @@
 #define USTRBUF_H
 
 #include "uattrs.h"
-#include "ulib_ret.h"
+#include "ulib_ret_t.h"
 #include "ustring.h"
 #include "uvec_builtin.h"
 

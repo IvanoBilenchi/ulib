@@ -20,7 +20,7 @@
 #include "uattrs.h"
 #include "udebug.h"
 #include "uhash_func.h" // IWYU pragma: export
-#include "ulib_ret.h"
+#include "ulib_ret_t.h"
 #include "unumber.h"
 #include "uutils.h"
 #include "uwarning.h"

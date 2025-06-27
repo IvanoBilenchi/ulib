@@ -25,23 +25,19 @@ static bool int32_eq(uint32_t lhs, uint32_t rhs) {
 void uhash_test_memory(void) {
     UHash(IntHash) set = uhset(IntHash);
 
-    ulib_ret ret = uhash_put(IntHash, &set, 0, NULL);
-    utest_assert(ret == UHASH_INSERTED);
+    utest_assert(uhash_put(IntHash, &set, 0, NULL) == UHASH_INSERTED);
     utest_assert_uint(uhash_count(IntHash, &set), ==, 1);
 
     ulib_uint buckets = uhash_size(IntHash, &set);
-    ret = uhash_resize(IntHash, &set, 200);
-    utest_assert(ret == ULIB_OK);
+    utest_assert_ok(uhash_resize(IntHash, &set, 200));
     utest_assert_uint(uhash_size(IntHash, &set), >, buckets);
 
     buckets = uhash_size(IntHash, &set);
-    ret = uhash_resize(IntHash, &set, 100);
-    utest_assert(ret == ULIB_OK);
+    utest_assert_ok(uhash_resize(IntHash, &set, 100));
     utest_assert_uint(uhash_size(IntHash, &set), <, buckets);
 
     buckets = uhash_size(IntHash, &set);
-    ret = uhash_shrink(IntHash, &set);
-    utest_assert(ret == ULIB_OK);
+    utest_assert_ok(uhash_shrink(IntHash, &set));
     utest_assert_uint(uhash_size(IntHash, &set), <, buckets);
 
     buckets = uhash_size(IntHash, &set);
@@ -97,7 +93,7 @@ void uhash_test_map(void) {
     }
 
     UHash(IntHash) set = uhset(IntHash);
-    utest_assert(uhash_copy_as_set(IntHash, &map, &set) == ULIB_OK);
+    utest_assert_ok(uhash_copy_as_set(IntHash, &map, &set));
     utest_assert(uhset_equals(IntHash, &set, &map));
     uhash_deinit(IntHash, &set);
 
@@ -146,7 +142,7 @@ void uhash_test_set(void) {
         elements[i] = i;
     }
 
-    utest_assert(uhash_populate(IntHash, &set, elements, NULL, MAX_VAL + 1) == ULIB_OK);
+    utest_assert_ok(uhash_populate(IntHash, &set, elements, NULL, MAX_VAL + 1));
     utest_assert(uhash_contains(IntHash, &set, MAX_VAL));
     utest_assert(uhset_remove(IntHash, &set, MAX_VAL));
     utest_assert_false(uhash_contains(IntHash, &set, MAX_VAL));
@@ -170,7 +166,7 @@ void uhash_test_set(void) {
 
     uhash_deinit(IntHash, &other_set);
     other_set = uhset(IntHash);
-    utest_assert(uhash_copy(IntHash, &set, &other_set) == ULIB_OK);
+    utest_assert_ok(uhash_copy(IntHash, &set, &other_set));
     utest_assert(uhset_equals(IntHash, &set, &other_set));
     uhash_deinit(IntHash, &other_set);
 
@@ -178,13 +174,13 @@ void uhash_test_set(void) {
     UHash(IntHash) temp = uhset(IntHash);
 
     uhset_insert(IntHash, &other_set, MAX_VAL);
-    utest_assert(uhset_union(IntHash, &other_set, &set, &temp) == ULIB_OK);
+    utest_assert_ok(uhset_union(IntHash, &other_set, &set, &temp));
     utest_assert(uhset_equals(IntHash, &temp, &set));
     utest_assert(uhset_is_superset(IntHash, &other_set, &set));
     utest_assert_false(uhset_is_superset(IntHash, &set, &other_set));
 
     uhash_clear(IntHash, &temp);
-    utest_assert(uhset_diff(IntHash, &other_set, &set, &temp) == ULIB_OK);
+    utest_assert_ok(uhset_diff(IntHash, &other_set, &set, &temp));
     utest_assert(uhash_count(IntHash, &other_set) == 1);
     utest_assert(uhash_count(IntHash, &temp) == MAX_VAL);
     uint32_t element = uhset_get_any(IntHash, &other_set, 0);
