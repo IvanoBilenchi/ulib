@@ -18,6 +18,7 @@
 #include "ustring.h"
 #include "utime.h"
 #include "uversion_t.h"
+#include "uwarning.h"
 #include <stdio.h>
 
 ULIB_BEGIN_DECLS

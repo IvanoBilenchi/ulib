@@ -14,6 +14,7 @@
 
 #include "uattrs.h"
 #include "ustring.h"
+#include "uwarning.h"
 
 ULIB_BEGIN_DECLS
 

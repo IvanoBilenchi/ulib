@@ -14,8 +14,8 @@ Debug and assertions
 .. doxygengroup:: debug
    :content-only:
 
-Warning suppression
-===================
+Warnings
+========
 
 .. doxygengroup:: warnings
    :content-only:

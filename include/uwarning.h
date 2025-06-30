@@ -21,6 +21,86 @@
 
 // clang-format off
 
+/**
+ * Raises a compiler warning.
+ *
+ * @param msg Warning message.
+ */
+#if defined(__GNUC__) || defined(__clang__)
+    #define ULIB_WARNING(msg) P_ULIB_PRAGMA(GCC warning #msg)
+#elif defined(_MSC_VER)
+    #define ULIB_WARNING(msg)                                                                      \
+        __pragma(message(__FILE__ ":" ULIB_MACRO_STRINGIZE(__LINE__) ": warning: " #msg))
+#else
+    #define ULIB_WARNING(msg)
+#endif
+
+/**
+ * Raises a compiler error.
+ *
+ * @param msg Error message.
+ */
+#if defined(__GNUC__) || defined(__clang__)
+    #define ULIB_ERROR(msg) P_ULIB_PRAGMA(GCC error #msg)
+#elif defined(__cplusplus)
+    #define ULIB_ERROR(msg) static_assert(false, #msg);
+#else
+    #define ULIB_ERROR(msg) _Static_assert(0, #msg);
+#endif
+
+/**
+ * Marks deprecated APIs.
+ *
+ * Deprecated APIs are usually replaced by alternatives, and will be removed in later
+ * major versions of the library.
+ *
+ * @param msg Deprecation message.
+ * @def ULIB_DEPRECATED
+ */
+
+/**
+ * Marks deprecated macros.
+ *
+ * Deprecated macros are usually replaced by alternatives, and will be removed in later
+ * major versions of the library.
+ *
+ * @def ULIB_DEPRECATED_MACRO
+ */
+
+/**
+ * Marks deprecated enum values.
+ *
+ * Deprecated enum values are usually replaced by alternatives, and will be removed in later
+ * major versions of the library.
+ *
+ * @param old_val Old enum value.
+ * @param new_val New enum value.
+ * @def ULIB_DEPRECATED_ENUM
+ */
+
+#ifndef ULIB_NO_DEPRECATED
+
+#define ULIB_DEPRECATED_MACRO                                                                      \
+    ULIB_WARNING(Deprecated. See the docstring for a possible replacement.)
+
+#if defined(__GNUC__) || defined(__clang__)
+    #define ULIB_DEPRECATED(msg) __attribute__((__deprecated__(#msg)))
+    #define ULIB_DEPRECATED_ENUM(old_val, new_val)                                                 \
+        old_val __attribute__((__deprecated__("Use " #new_val " instead."))) = new_val
+#elif defined(_MSC_VER)
+    #define ULIB_DEPRECATED(msg) __declspec(deprecated(#msg))
+    #define ULIB_DEPRECATED_ENUM(old_val, new_val) old_val = new_val
+#else
+    #define ULIB_DEPRECATED(msg)
+    #define ULIB_DEPRECATED_ENUM(old_val, new_val) old_val = new_val
+#endif
+
+#else // ULIB_NO_DEPRECATED
+    #define ULIB_DEPRECATED_MACRO
+    #define ULIB_DEPRECATED(msg)
+    #define ULIB_DEPRECATED_ENUM(old_val, new_val) old_val = new_val
+#endif // ULIB_NO_DEPRECATED
+
 /// Suppresses unused variable warnings.
 #if defined(__GNUC__) || defined(__clang__)
     #define ulib_unused __attribute__((__unused__))

@@ -12,8 +12,6 @@
 #ifndef UATTRS_H
 #define UATTRS_H
 
-#include "uutils.h"
-
 /**
  * @defgroup attributes API attributes
  * @{
@@ -107,59 +105,6 @@
     #define ULIB_NORETURN __declspec(noreturn)
 #else
     #define ULIB_NORETURN
-#endif
-
-/**
- * Marks deprecated APIs.
- *
- * Deprecated APIs are usually replaced by alternatives, and will be removed in later
- * major versions of the library.
- *
- * @param msg Deprecation message.
- * @def ULIB_DEPRECATED
- */
-
-/**
- * Marks deprecated macros.
- *
- * Deprecated macros are usually replaced by alternatives, and will be removed in later
- * major versions of the library.
- *
- * @def ULIB_DEPRECATED_MACRO
- */
-
-/**
- * Marks deprecated enum values.
- *
- * Deprecated enum values are usually replaced by alternatives, and will be removed in later
- * major versions of the library.
- *
- * @param old_val Old enum value.
- * @param new_val New enum value.
- * @def ULIB_DEPRECATED_ENUM
- */
-
-#ifndef ULIB_NO_DEPRECATED
-#if defined(__GNUC__) || defined(__clang__)
-    #define ULIB_DEPRECATED(msg) __attribute__((__deprecated__(#msg)))
-    #define ULIB_DEPRECATED_MACRO                                                                  \
-        P_ULIB_PRAGMA(GCC warning "Deprecated. See the docstring for a possible replacement.")
-    #define ULIB_DEPRECATED_ENUM(old_val, new_val)                                                 \
-        old_val __attribute__((__deprecated__("Use " #new_val " instead."))) = new_val
-#elif defined(_MSC_VER)
-    #define ULIB_DEPRECATED(msg) __declspec(deprecated(#msg))
-    #define ULIB_DEPRECATED_MACRO                                                                  \
-        __pragma(message("Deprecated. See the docstring for a possible replacement."))
-    #define ULIB_DEPRECATED_ENUM(old_val, new_val) old_val = new_val
-#else
-    #define ULIB_DEPRECATED(msg)
-    #define ULIB_DEPRECATED_MACRO
-    #define ULIB_DEPRECATED_ENUM(old_val, new_val) old_val = new_val
-#endif
-#else
-    #define ULIB_DEPRECATED(msg)
-    #define ULIB_DEPRECATED_MACRO
-    #define ULIB_DEPRECATED_ENUM(old_val, new_val) old_val = new_val
 #endif
 
 /// @}

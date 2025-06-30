@@ -17,6 +17,7 @@
 #include "ulog.h"
 #include "ustring.h"
 #include "uutils.h"
+#include "uwarning.h"
 #include <stdbool.h>
 #include <stdlib.h>
 
