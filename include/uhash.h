@@ -88,7 +88,8 @@ ULIB_BEGIN_DECLS
 #define uhash_decl(T) typedef struct UHash(T) UHash(T)
 
 /// Return codes.
-enum uhash_ret {
+ULIB_DEPRECATED(Use @type{ulib_ret} instead.)
+typedef enum uhash_ret {
 
     /**
      * The operation failed.
@@ -100,17 +101,12 @@ enum uhash_ret {
     ULIB_DEPRECATED_ENUM(UHASH_OK, ULIB_OK),
 
     /// The key is already present.
-    UHASH_PRESENT = 0,
+    ULIB_DEPRECATED_ENUM(UHASH_PRESENT, ULIB_NO),
 
     /// The key has been inserted (it was absent).
-    UHASH_INSERTED = 1,
+    ULIB_DEPRECATED_ENUM(UHASH_INSERTED, ULIB_OK)
 
-};
-
-/// @cond
-ULIB_DEPRECATED(Use @type{ulib_ret} instead.)
-typedef enum uhash_ret uhash_ret;
-/// @endcond
+} uhash_ret;
 
 /**
  * @defgroup UHash_constants UHash constants
@@ -563,7 +559,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
             return ret;                                                                            \
         }                                                                                          \
                                                                                                    \
-        ret = UHASH_PRESENT;                                                                       \
+        ret = ULIB_NO;                                                                             \
         ulib_uint const mask = uhash_size_##T(h) - 1;                                              \
         ulib_uint i = (ulib_uint)hash_func(key) & mask;                                            \
         ulib_uint step = 0;                                                                        \
@@ -577,7 +573,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
             i = (i + (++step)) & mask;                                                             \
         }                                                                                          \
                                                                                                    \
-        ret = UHASH_INSERTED;                                                                      \
+        ret = ULIB_OK;                                                                             \
         if (last_del == UHASH_INDEX_MISSING) {                                                     \
             h->_occupied++;                                                                        \
         } else {                                                                                   \
@@ -612,7 +608,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
         ulib_ret ret = uhash_put_##T(h, key, &k);                                                  \
                                                                                                    \
         if (ret != ULIB_ERR_MEM) {                                                                 \
-            if (ret == UHASH_PRESENT && existing) *existing = h->_vals[k];                         \
+            if (ret == ULIB_NO && existing) *existing = h->_vals[k];                               \
             h->_vals[k] = value;                                                                   \
         }                                                                                          \
                                                                                                    \
@@ -625,9 +621,9 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
         ulib_uint k;                                                                               \
         ulib_ret ret = uhash_put_##T(h, key, &k);                                                  \
                                                                                                    \
-        if (ret == UHASH_INSERTED) {                                                               \
+        if (ret == ULIB_OK) {                                                                      \
             h->_vals[k] = value;                                                                   \
-        } else if (ret == UHASH_PRESENT && existing) {                                             \
+        } else if (ret == ULIB_NO && existing) {                                                   \
             *existing = h->_vals[k];                                                               \
         }                                                                                          \
                                                                                                    \
@@ -655,7 +651,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
     ATTRS ulib_ret uhset_insert_##T(UHash_##T *h, uh_key key, uh_key *existing) {                  \
         ulib_uint k;                                                                               \
         ulib_ret ret = uhash_put_##T(h, key, &k);                                                  \
-        if (ret == UHASH_PRESENT && existing) *existing = h->_keys[k];                             \
+        if (ret == ULIB_NO && existing) *existing = h->_keys[k];                                   \
         return ret;                                                                                \
     }                                                                                              \
                                                                                                    \
@@ -1048,7 +1044,8 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  * @param h Hash table instance.
  * @param k Key to insert.
  * @param[out] i Index of the inserted element.
- * @return Return code.
+ * @return @val{ULIB_OK} if the key was inserted, @val{ULIB_NO} if it was already present,
+ *         @val{ULIB_ERR_MEM} if memory could not be allocated.
  *
  * @alias ulib_ret uhash_put(symbol T, UHash(T) *h, UHashKey(T) k, ulib_uint *i);
  */
@@ -1243,28 +1240,30 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
 #define uhmap_get(T, h, k, m) uhmap_get_##T(h, k, m)
 
 /**
- * Adds a key:value pair to the map, returning the replaced value (if any).
+ * Adds a key:value pair to the map, replacing existing values.
  *
  * @param T Hash table type.
  * @param h Hash table instance.
  * @param k The key.
  * @param v The value.
- * @param[out] e Existing value, only set if key was in the map.
- * @return Return code.
+ * @param[out] e Existing value, only set if the key was already in the map.
+ * @return @val{ULIB_OK} if the key was inserted, @val{ULIB_NO} if it was already present,
+ *         @val{ULIB_ERR_MEM} if memory could not be allocated.
  *
  * @alias ulib_ret uhmap_set(symbol T, UHash(T) *h, UHashKey(T) k, UHashVal(T) v, UHashVal(T) *e);
  */
 #define uhmap_set(T, h, k, v, e) uhmap_set_##T(h, k, v, e)
 
 /**
- * Adds a key:value pair to the map, only if the key is missing.
+ * Adds a key:value pair to the map, without replacing existing values.
  *
  * @param T Hash table type.
  * @param h Hash table instance.
  * @param k The key.
  * @param v The value.
- * @param[out] e Existing value, only set if key was in the map.
- * @return Return code.
+ * @param[out] e Existing value, only set if the key was already in the map.
+ * @return @val{ULIB_OK} if the key was inserted, @val{ULIB_NO} if it was already present,
+ *         @val{ULIB_ERR_MEM} if memory could not be allocated.
  *
  * @alias ulib_ret uhmap_add(symbol T, UHash(T) *h, UHashKey(T) k, UHashVal(T) v, UHashVal(T) *e);
  */
@@ -1348,7 +1347,8 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  * @param T Hash table type.
  * @param h Hash table instance.
  * @param k Element to insert.
- * @return Return code.
+ * @return @val{ULIB_OK} if the element was inserted, @val{ULIB_NO} if it was already present,
+ *         @val{ULIB_ERR_MEM} if memory could not be allocated.
  *
  * @alias ulib_ret uhset_insert(symbol T, UHash(T) *h, UHashKey(T) k);
  */
@@ -1361,7 +1361,8 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  * @param h Hash table instance.
  * @param k Element to insert.
  * @param[out] e Existing element, only set if key was in the set.
- * @return Return code.
+ * @return @val{ULIB_OK} if the element was inserted, @val{ULIB_NO} if it was already present,
+ *         @val{ULIB_ERR_MEM} if memory could not be allocated.
  *
  * @alias ulib_ret uhset_insert_get_existing(symbol T, UHash(T) *h, UHashKey(T) k, UHashKey(T) *e);
  */

@@ -25,7 +25,7 @@ static bool int32_eq(uint32_t lhs, uint32_t rhs) {
 void uhash_test_memory(void) {
     UHash(IntHash) set = uhset(IntHash);
 
-    utest_assert(uhash_put(IntHash, &set, 0, NULL) == UHASH_INSERTED);
+    utest_assert_ok(uhash_put(IntHash, &set, 0, NULL));
     utest_assert_uint(uhash_count(IntHash, &set), ==, 1);
 
     ulib_uint buckets = uhash_size(IntHash, &set);
@@ -61,7 +61,7 @@ void uhash_test_base(void) {
     utest_assert_uint(uhash_count(IntHash, &set), ==, 0);
 
     for (uint32_t i = 0; i < MAX_VAL; ++i) {
-        utest_assert(uhash_put(IntHash, &set, i, NULL) == UHASH_INSERTED);
+        utest_assert_ok(uhash_put(IntHash, &set, i, NULL));
     }
 
     utest_assert_uint(uhash_count(IntHash, &set), ==, MAX_VAL);
@@ -89,7 +89,7 @@ void uhash_test_map(void) {
     UHash(IntHash) map = uhmap(IntHash);
 
     for (uint32_t i = 0; i < MAX_VAL; ++i) {
-        utest_assert(uhmap_set(IntHash, &map, i, i, NULL) == UHASH_INSERTED);
+        utest_assert_ok(uhmap_set(IntHash, &map, i, i, NULL));
     }
 
     UHash(IntHash) set = uhset(IntHash);
@@ -98,17 +98,17 @@ void uhash_test_map(void) {
     uhash_deinit(IntHash, &set);
 
     uint32_t existing_val;
-    utest_assert(uhmap_set(IntHash, &map, 0, 1, &existing_val) == UHASH_PRESENT);
+    utest_assert_ret(uhmap_set(IntHash, &map, 0, 1, &existing_val), ULIB_NO);
     utest_assert_uint(existing_val, ==, 0);
 
-    utest_assert(uhmap_add(IntHash, &map, 0, 1, &existing_val) == UHASH_PRESENT);
+    utest_assert_ret(uhmap_add(IntHash, &map, 0, 1, &existing_val), ULIB_NO);
     utest_assert_uint(existing_val, ==, 1);
 
     utest_assert(uhmap_replace(IntHash, &map, 0, 0, &existing_val));
     utest_assert_uint(uhmap_get(IntHash, &map, 0, UINT32_MAX), ==, 0);
     utest_assert_uint(existing_val, ==, 1);
 
-    utest_assert(uhmap_add(IntHash, &map, MAX_VAL, MAX_VAL, &existing_val) == UHASH_INSERTED);
+    utest_assert_ok(uhmap_add(IntHash, &map, MAX_VAL, MAX_VAL, &existing_val));
     utest_assert(uhmap_remove(IntHash, &map, MAX_VAL));
 
     for (uint32_t i = 0; i < MAX_VAL; ++i) {
@@ -125,15 +125,15 @@ void uhash_test_set(void) {
     UHash(IntHash) set = uhset(IntHash);
 
     for (uint32_t i = 0; i < MAX_VAL; ++i) {
-        utest_assert(uhset_insert(IntHash, &set, i) == UHASH_INSERTED);
+        utest_assert_ok(uhset_insert(IntHash, &set, i));
     }
 
-    utest_assert(uhset_insert(IntHash, &set, 0) == UHASH_PRESENT);
+    utest_assert_ret(uhset_insert(IntHash, &set, 0), ULIB_NO);
     utest_assert_uint(uhash_count(IntHash, &set), ==, MAX_VAL);
 
     for (uint32_t i = 0; i < MAX_VAL; ++i) {
         uint32_t existing;
-        utest_assert(uhset_insert_get_existing(IntHash, &set, i, &existing) == UHASH_PRESENT);
+        utest_assert_ret(uhset_insert_get_existing(IntHash, &set, i, &existing), ULIB_NO);
         utest_assert_uint(existing, ==, i);
     }
 
@@ -215,21 +215,21 @@ void uhash_test_per_instance(void) {
     UHash(IntHashPi) map = uhmap_pi(IntHashPi, int32_hash, int32_eq);
 
     for (uint32_t i = 0; i < MAX_VAL; ++i) {
-        utest_assert(uhmap_set(IntHashPi, &map, i, i, NULL) == UHASH_INSERTED);
+        utest_assert_ok(uhmap_set(IntHashPi, &map, i, i, NULL));
     }
 
     uint32_t existing_val;
-    utest_assert(uhmap_set(IntHashPi, &map, 0, 1, &existing_val) == UHASH_PRESENT);
+    utest_assert_ret(uhmap_set(IntHashPi, &map, 0, 1, &existing_val), ULIB_NO);
     utest_assert_uint(existing_val, ==, 0);
 
-    utest_assert(uhmap_add(IntHashPi, &map, 0, 1, &existing_val) == UHASH_PRESENT);
+    utest_assert_ret(uhmap_add(IntHashPi, &map, 0, 1, &existing_val), ULIB_NO);
     utest_assert_uint(existing_val, ==, 1);
 
     utest_assert(uhmap_replace(IntHashPi, &map, 0, 0, &existing_val));
     utest_assert_uint(uhmap_get(IntHashPi, &map, 0, UINT32_MAX), ==, 0);
     utest_assert_uint(existing_val, ==, 1);
 
-    utest_assert(uhmap_add(IntHashPi, &map, MAX_VAL, MAX_VAL, &existing_val) == UHASH_INSERTED);
+    utest_assert_ok(uhmap_add(IntHashPi, &map, MAX_VAL, MAX_VAL, &existing_val));
     utest_assert(uhmap_remove(IntHashPi, &map, MAX_VAL));
 
     for (uint32_t i = 0; i < MAX_VAL; ++i) {
