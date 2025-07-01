@@ -47,10 +47,10 @@ ULIB_BEGIN_DECLS
  */
 
 /// Log level.
-typedef unsigned ULogLevel;
+typedef unsigned ulog_level;
 
 /// Builtin log levels.
-enum ULogLevelBuiltin {
+enum ulog_level_builtin {
     /// Trace level.
     ULOG_TRACE = 1U << P_ULOG_LEVEL_MIN_EXP,
 
@@ -105,7 +105,7 @@ typedef struct ULogTag {
 typedef struct ULogEvent {
 
     /// Log level.
-    ULogLevel level;
+    ulog_level level;
 
     /// Source code location.
     USrcLoc loc;
@@ -124,7 +124,7 @@ typedef struct ULogEvent {
 typedef struct ULog {
 
     /// Log level.
-    ULogLevel level;
+    ulog_level level;
 
     /// Whether color output is enabled.
     bool color;
@@ -177,7 +177,7 @@ ULog ulog_default(void);
 #ifndef ULIB_NO_LOGGING
 ULIB_PURE
 ULIB_INLINE
-bool ulog_enabled(ULog *log, ULogLevel level) {
+bool ulog_enabled(ULog *log, ulog_level level) {
     return log->level <= level;
 }
 #else
@@ -206,7 +206,7 @@ void ulog_disable(ULog *log) {
  * @param ... Message format arguments.
  * @return Return code.
  *
- * @alias ulib_ret ulog(ULog *log, ULogLevel level, void *data, char const *fmt, ...);
+ * @alias ulib_ret ulog(ULog *log, ulog_level level, void *data, char const *fmt, ...);
  */
 #define ulog(log, level, data, ...)                                                                \
     (ulog_enabled(log, level) ? p_ulog(log, p_ulog_event(level, data), __VA_ARGS__) : ULIB_OK)
@@ -382,7 +382,7 @@ ulib_ret ulog_write_date(ULog *log);
  * @return Return code.
  */
 ULIB_API
-ulib_ret ulog_write_level(ULog *log, ULogLevel level);
+ulib_ret ulog_write_level(ULog *log, ulog_level level);
 
 /**
  * Writes the specified tag to the logger's output stream.
@@ -457,8 +457,8 @@ ulib_ret p_ulog(ULog *log, ULogEvent event, char const *fmt, ...);
 
 ULIB_CONST
 ULIB_INLINE
-ULogEvent p_ulog_event_f(ULogLevel level, void const *data, char const *file_name, char const *func,
-                         int line) {
+ULogEvent p_ulog_event_f(ulog_level level, void const *data, char const *file_name,
+                         char const *func, int line) {
     ULogEvent event = ulib_struct_init;
     event.data = data;
     event.level = level;

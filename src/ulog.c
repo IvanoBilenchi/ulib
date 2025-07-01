@@ -34,7 +34,7 @@ ULIB_INLINE ulib_ret end_color(ULog *log, char const *color) {
     return color && log->color ? uostream_write_buf(log->stream, UCOLOR_RST, NULL) : ULIB_OK;
 }
 
-ULIB_INLINE unsigned builtin_index(ULogLevel level) {
+ULIB_INLINE unsigned builtin_index(ulog_level level) {
     if (level < ULOG_TRACE) return 0;
     if (level >= ULOG_FATAL) return LEVEL_COUNT - 1;
     return ulib_uint32_log2(level) - P_ULOG_LEVEL_MIN_EXP + 1;
@@ -83,7 +83,7 @@ ulib_ret ulog_write_date(ULog *log) {
     return ulog_write_color(log, UCOLOR_DIM, "[" UTIME_FMT "]", utime_fmt_args(now));
 }
 
-ulib_ret ulog_write_level(ULog *log, ULogLevel level) {
+ulib_ret ulog_write_level(ULog *log, ulog_level level) {
     unsigned idx = builtin_index(level);
     return ulog_write_tag(log, (ULogTag){ log_level_str[idx], log_level_color[idx] });
 }
