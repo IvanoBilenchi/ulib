@@ -278,17 +278,16 @@ void ulog_disable(ULog *log) {
 #define ulog_fatal(...) ulog(ulog_main, ULOG_FATAL, NULL, __VA_ARGS__)
 
 /**
- * Same as @func{ulog}(`log`, @val{ULOG_PERF}, `nanos`, `fmt`, `...`).
+ * Same as @func{ulog}(@var{ulog_main}, @val{ULOG_PERF}, `nanos`, `fmt`, `...`).
  *
- * @param log Logger object.
  * @param nanos Elapsed time in nanoseconds.
  * @param fmt Message format string.
  * @param ... Message format arguments.
  * @return Return code.
  *
- * @alias ulib_ret ulog_ns(ULog *log, utime_ns const *nanos, char const *fmt, ...);
+ * @alias ulib_ret ulog_ns(utime_ns const *nanos, char const *fmt, ...);
  */
-#define ulog_ns(log, nanos, ...) ulog(ulog_main, ULOG_PERF, nanos, __VA_ARGS__)
+#define ulog_ns(nanos, ...) ulog(ulog_main, ULOG_PERF, nanos, __VA_ARGS__)
 
 /**
  * Measures and logs the time elapsed between the start and end of a block of code.
@@ -305,7 +304,8 @@ void ulog_disable(ULog *log) {
  */
 #define ulog_elapsed(log, ...)                                                                     \
     for (utime_ns p_##__LINE__ = utime_get_ns(), p_end_##__LINE__ = 1; p_end_##__LINE__--;         \
-         (p_##__LINE__ = utime_get_ns() - p_##__LINE__), ulog_ns(log, &p_##__LINE__, __VA_ARGS__))
+         ((p_##__LINE__ = utime_get_ns() - p_##__LINE__),                                          \
+          ulog(log, ULOG_PERF, &p_##__LINE__, __VA_ARGS__)))
 
 /**
  * Same as @func{ulog_elapsed}(@var{ulog_main}, `...`).

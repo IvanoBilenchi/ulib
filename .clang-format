@@ -4,6 +4,8 @@ AllowShortCaseLabelsOnASingleLine: true
 AllowShortFunctionsOnASingleLine: Empty
 AllowShortIfStatementsOnASingleLine: WithoutElse
 AllowShortLoopsOnASingleLine: true
+AttributeMacros:
+  - ulib_unused
 ColumnLimit: 100
 Cpp11BracedListStyle: false
 ForEachMacros:
@@ -23,6 +25,7 @@ StatementMacros:
   - ULIB_END_DECLS
   - p_ubit_count_set_def
 TypenameMacros:
+  - UBit
   - UHash
   - UVec
 WhitespaceSensitiveMacros:
