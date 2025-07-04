@@ -123,7 +123,7 @@ bool utest_passed(void);
  * @param ... Format arguments.
  * @return Return code.
  *
- * @alias ustream_ret utest_log_failure_reason(char const *fmt, ...);
+ * @alias ulib_ret utest_log_failure_reason(char const *fmt, ...);
  */
 #define utest_log_failure_reason(...) ulog(ulog_main, ULOG_INFO, &p_utest_event_assert, __VA_ARGS__)
 

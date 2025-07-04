@@ -1917,7 +1917,7 @@ typedef enum uvec_ret {
  * @return @val{UVEC_OK} on success, otherwise @val{UVEC_ERR}.
  *
  * @deprecated Use @func{uvec_sorted_insert} instead.
- * @alias uvec_ret uvec_insert_sorted(symbol T, UVec(T) *vec, T item, ulib_uint *idx);
+ * @alias ulib_ret uvec_insert_sorted(symbol T, UVec(T) *vec, T item, ulib_uint *idx);
  */
 #define uvec_insert_sorted(T, vec, item, idx)                                                      \
     ULIB_DEPRECATED_MACRO uvec_sorted_insert(T, vec, item, idx)
@@ -1933,7 +1933,7 @@ typedef enum uvec_ret {
  *         @val{UVEC_NO} if the element was already present, otherwise @val{UVEC_ERR}.
  *
  * @deprecated Use @func{uvec_sorted_unique_insert} instead.
- * @alias uvec_ret uvec_insert_sorted_unique(symbol T, UVec(T) *vec, T item, ulib_uint *idx);
+ * @alias ulib_ret uvec_insert_sorted_unique(symbol T, UVec(T) *vec, T item, ulib_uint *idx);
  */
 #define uvec_insert_sorted_unique(T, vec, item, idx)                                               \
     ULIB_DEPRECATED_MACRO uvec_sorted_unique_insert(T, vec, item, idx)
