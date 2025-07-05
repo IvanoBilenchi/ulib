@@ -286,7 +286,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
                                                                                                    \
     ATTRS ULIB_INLINE UHash_##T uhash_move_##T(UHash_##T *h) {                                     \
         UHash_##T temp = *h;                                                                       \
-        UHash_##T zero = ulib_struct_init;                                                         \
+        UHash_##T zero = ulib_zero_init;                                                           \
         *h = zero;                                                                                 \
         return temp;                                                                               \
     }                                                                                              \
@@ -321,7 +321,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
     }                                                                                              \
                                                                                                    \
     ATTRS UHash_##T uhset_##T(void) {                                                              \
-        UHash_##T h = ulib_struct_init;                                                            \
+        UHash_##T h = ulib_zero_init;                                                              \
         return h;                                                                                  \
     }
 
@@ -351,7 +351,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
     }                                                                                              \
                                                                                                    \
     ATTRS UHash_##T uhset_##T(void) {                                                              \
-        UHash_##T h = ulib_struct_init;                                                            \
+        UHash_##T h = ulib_zero_init;                                                              \
         h._hfunc = default_hfunc;                                                                  \
         h._efunc = default_efunc;                                                                  \
         return h;                                                                                  \
@@ -359,7 +359,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
                                                                                                    \
     ATTRS UHash_##T uhset_pi_##T(ulib_uint (*hash_func)(uh_key key),                               \
                                  bool (*equal_func)(uh_key lhs, uh_key rhs)) {                     \
-        UHash_##T h = ulib_struct_init;                                                            \
+        UHash_##T h = ulib_zero_init;                                                              \
         h._hfunc = hash_func;                                                                      \
         h._efunc = equal_func;                                                                     \
         return h;                                                                                  \
@@ -399,7 +399,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
         ulib_free((void *)h->_keys);                                                               \
         ulib_free((void *)h->_vals);                                                               \
         ulib_free(h->_flags);                                                                      \
-        UHash_##T zero = ulib_struct_init;                                                         \
+        UHash_##T zero = ulib_zero_init;                                                           \
         *h = zero;                                                                                 \
     }                                                                                              \
                                                                                                    \

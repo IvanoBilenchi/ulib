@@ -202,7 +202,7 @@ typedef enum uvec_ret {
     /* NOLINTBEGIN(clang-analyzer-unix.Malloc) */                                                  \
                                                                                                    \
     ATTRS ULIB_CONST ULIB_INLINE UVec(T) uvec_##T(void) {                                          \
-        UVec(T) vec = ulib_struct_init;                                                            \
+        UVec(T) vec = ulib_zero_init;                                                              \
         return vec;                                                                                \
     }                                                                                              \
                                                                                                    \
@@ -263,13 +263,13 @@ typedef enum uvec_ret {
             return;                                                                                \
         }                                                                                          \
         ulib_free((void *)vec->_l._data);                                                          \
-        struct p_uvec_large_##T zero = ulib_struct_init;                                           \
+        struct p_uvec_large_##T zero = ulib_zero_init;                                             \
         vec->_l = zero;                                                                            \
     }                                                                                              \
                                                                                                    \
     ATTRS ULIB_INLINE UVec(T) uvec_move_##T(UVec(T) *vec) {                                        \
         UVec(T) temp = *vec;                                                                       \
-        UVec(T) zero = ulib_struct_init;                                                           \
+        UVec(T) zero = ulib_zero_init;                                                             \
         *vec = zero;                                                                               \
         return temp;                                                                               \
     }                                                                                              \

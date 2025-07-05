@@ -249,7 +249,7 @@ void ustream_varint_test(void) {
     ulib_uint const max_value = ulib_min(ULIB_UINT_MAX >> 1U, 1000000);
     ulib_uint const increment = 999;
     ulib_uint value = 0;
-    ulib_byte buffer[sizeof(value) + 1] = {};
+    ulib_byte buffer[sizeof(value) + 1] = ulib_zero_init;
     size_t written = 0;
     size_t read = 0;
 
@@ -275,7 +275,7 @@ void ustream_svarint_test(void) {
     int32_t const max_value = ulib_min(ULIB_UINT_MAX >> 2U, 500000);
     int32_t const increment = 999;
     ulib_int value = 0;
-    ulib_byte buffer[sizeof(value) + 1] = {};
+    ulib_byte buffer[sizeof(value) + 1] = ulib_zero_init;
     size_t written = 0;
     size_t read = 0;
 

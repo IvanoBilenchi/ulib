@@ -123,7 +123,7 @@ ulib_ret ulog_write_newline(ULog *log) {
 }
 
 ULog *p_ulog_main(void) {
-    static ULog log = ulib_struct_init;
+    static ULog log = ulib_zero_init;
     if (ulib_unlikely(!log.stream)) log = ulog_default();
     return &log;
 }

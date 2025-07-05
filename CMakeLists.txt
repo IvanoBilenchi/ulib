@@ -96,7 +96,7 @@ list(APPEND ULIB_PRIVATE_DEFINES
 if(MSVC)
     set(ULIB_WARNING_OPTIONS /W4 /wd4200 /wd4996)
 else()
-    set(ULIB_WARNING_OPTIONS -Wall -Wextra)
+    set(ULIB_WARNING_OPTIONS -Wall -Wextra -Wpedantic)
     if(ULIB_SANITIZERS)
         set(ULIB_SANITIZER_OPTIONS "-fsanitize=address,undefined")
     endif()

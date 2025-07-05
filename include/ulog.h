@@ -459,7 +459,7 @@ ULIB_CONST
 ULIB_INLINE
 ULogEvent p_ulog_event_f(ulog_level level, void const *data, char const *file_name,
                          char const *func, int line) {
-    ULogEvent event = ulib_struct_init;
+    ULogEvent event = ulib_zero_init;
     event.data = data;
     event.level = level;
     event.loc.file = file_name;

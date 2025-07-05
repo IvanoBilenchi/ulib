@@ -39,14 +39,21 @@
  */
 #define ulib_array_count(array) (sizeof(array) / sizeof(*(array)))
 
-/// C and C++ compatible struct initializer.
+/// C and C++ compatible zero initializer.
 // clang-format off
 #ifdef __cplusplus
-#define ulib_struct_init {}
+#define ulib_zero_init {}
 #else
-#define ulib_struct_init { 0 }
+#define ulib_zero_init { 0 }
 #endif
 // clang-format on
+
+/**
+ * C and C++ compatible struct initializer.
+ *
+ * @deprecated Use @val{ulib_zero_init} instead.
+ */
+#define ulib_struct_init ULIB_DEPRECATED_MACRO ulib_zero_init
 
 /**
  * Concatenates the `a` and `b` tokens, allowing `a` and `b` to be macro-expanded.
