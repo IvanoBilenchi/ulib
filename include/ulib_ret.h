@@ -15,6 +15,7 @@
 #include "uattrs.h"
 #include "ulib_ret_t.h" // IWYU pragma: export
 #include "ustring.h"
+#include "uutils.h"
 #include <stdbool.h>
 
 ULIB_BEGIN_DECLS
@@ -35,6 +36,40 @@ ULIB_INLINE
 bool ulib_ret_is_err(ulib_ret ret) {
     return ret >= ULIB_ERR;
 }
+
+/**
+ * Checks if a return code does not indicate an error.
+ *
+ * @param ret Return code.
+ * @return True if the return code does not indicate an error, false otherwise.
+ */
+ULIB_CONST
+ULIB_INLINE
+bool ulib_ret_is_ok(ulib_ret ret) {
+    return !ulib_ret_is_err(ret);
+}
+
+/**
+ * Checks if a return code indicates an error.
+ *
+ * @param ret Return code.
+ * @return True if the return code indicates an error, false otherwise.
+ *
+ * @note Hints the compiler that the condition is unlikely to be true.
+ * @alias bool ulib_is_err(ulib_ret ret);
+ */
+#define ulib_is_err(ret) ulib_unlikely(ulib_ret_is_err(ret))
+
+/**
+ * Checks if a return code does not indicate an error.
+ *
+ * @param ret Return code.
+ * @return True if the return code does not indicate an error, false otherwise.
+ *
+ * @note Hints the compiler that the condition is likely to be true.
+ * @alias bool ulib_is_ok(ulib_ret ret);
+ */
+#define ulib_is_ok(ret) ulib_likely(ulib_ret_is_ok(ret))
 
 /**
  * Returns the enumeration name of the given return code.
