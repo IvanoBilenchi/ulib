@@ -16,6 +16,7 @@
 #include "unumber.h"
 #include "ustring.h"
 #include <stddef.h>
+#include <stdlib.h>
 
 ULIB_BEGIN_DECLS
 
@@ -23,6 +24,11 @@ ULIB_BEGIN_DECLS
  * @defgroup rand Random generators
  * @{
  */
+
+/// Maximum value returned by @func{urand}.
+#ifndef ULIB_RAND_MAX
+#define ULIB_RAND_MAX RAND_MAX
+#endif
 
 /**
  * Sets the seed of the random number generator.
@@ -42,12 +48,12 @@ ULIB_PURE
 UString const *urand_default_charset(void);
 
 /**
- * Returns a random integer.
+ * Returns a random integer between 0 and @val{ULIB_RAND_MAX}.
  *
  * @return Random integer.
  */
 ULIB_API
-ulib_int urand(void);
+ulib_uint urand(void);
 
 /**
  * Returns a random integer in the specified range.

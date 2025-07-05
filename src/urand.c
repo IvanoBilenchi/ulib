@@ -22,10 +22,6 @@
 #define ULIB_SRAND srand
 #endif
 
-#ifndef ULIB_RAND_MAX
-#define ULIB_RAND_MAX RAND_MAX
-#endif
-
 char const default_charset_buf[] = "0123456789abcdefghijklmnopqrstuvwxyz";
 UString const default_charset = p_ustring_init_large(default_charset_buf,
                                                      sizeof(default_charset_buf));
@@ -38,13 +34,13 @@ void urand_set_seed(ulib_uint seed) {
     ULIB_SRAND((unsigned)seed);
 }
 
-ulib_int urand(void) {
-    return (ulib_int)ULIB_RAND();
+ulib_uint urand(void) {
+    return (ulib_uint)ULIB_RAND();
 }
 
 ulib_int urand_range(ulib_int start, ulib_uint len) {
-    if (!len) return start;
-    return (ulib_int)(start + ((ulib_uint)ULIB_RAND() % len));
+    if (len == 0) return start;
+    return (ulib_int)(start + (urand() % len));
 }
 
 ulib_float urand_float(void) {

@@ -39,7 +39,7 @@ static void bench_uvec_sort_small(void) {
     ulog_perf("qsort") {
         for (unsigned i = 0; i < SORT_COUNT_LARGE; ++i) {
             for (unsigned j = 0; j < SORT_COUNT_SMALL; ++j) {
-                array[j] = urand();
+                array[j] = (ulib_int)urand();
             }
             qsort(array, SORT_COUNT_SMALL, sizeof(*array), int_compare);
         }
@@ -49,7 +49,7 @@ static void bench_uvec_sort_small(void) {
     ulog_perf("uvec_sort") {
         for (unsigned i = 0; i < SORT_COUNT_LARGE; ++i) {
             for (unsigned j = 0; j < SORT_COUNT_SMALL; ++j) {
-                uvec_push(ulib_int, &v, urand());
+                uvec_push(ulib_int, &v, (ulib_int)urand());
             }
             uvec_sort(ulib_int, &v);
             uvec_clear(ulib_int, &v);
@@ -65,7 +65,7 @@ static void bench_uvec_sort_large(void) {
 
     // Large array with mostly unique elements
     for (unsigned i = 0; i < SORT_COUNT_LARGE; ++i) {
-        array[i] = urand();
+        array[i] = (ulib_int)urand();
     }
     uvec_append_array(ulib_int, &v, array, SORT_COUNT_LARGE);
 
@@ -95,7 +95,7 @@ static void bench_uvec_sort_large_repeated(void) {
 
     // Large array with repeated elements
     for (unsigned i = 0; i < SORT_COUNT_LARGE; ++i) {
-        array[i] = (ulib_int)(urand() % 100);
+        array[i] = urand_range(0, 100);
     }
     uvec_append_array(ulib_int, &v, array, SORT_COUNT_LARGE);
 
@@ -128,7 +128,7 @@ static void bench_uvec_sorted_insertion(void) {
     ulog_perf("small") {
         for (unsigned i = 0; i < (INSERT_COUNT_LARGE / INSERT_COUNT_SMALL); ++i) {
             for (unsigned j = 0; j < INSERT_COUNT_SMALL; ++j) {
-                uvec_sorted_insert(ulib_int, &v, urand(), NULL);
+                uvec_sorted_insert(ulib_int, &v, (ulib_int)urand(), NULL);
             }
             uvec_clear(ulib_int, &v);
         }
@@ -139,7 +139,7 @@ static void bench_uvec_sorted_insertion(void) {
 
     ulog_perf("large") {
         for (unsigned i = 0; i < INSERT_COUNT_LARGE; ++i) {
-            uvec_sorted_insert(ulib_int, &v, urand(), NULL);
+            uvec_sorted_insert(ulib_int, &v, (ulib_int)urand(), NULL);
         }
     }
 

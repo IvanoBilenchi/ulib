@@ -11,15 +11,15 @@
 void urand_int_test(void) {
     urand_set_seed(12345);
 
-    ulib_int val = urand();
+    ulib_uint val = urand();
     for (unsigned i = 0; i < 100; ++i) {
         utest_assert_int(val, !=, (val = urand()));
     }
 
     for (unsigned i = 0; i < 100; ++i) {
-        val = urand_range(-10, 20);
-        utest_assert_int(val, >=, -10);
-        utest_assert_int(val, <, 10);
+        ulib_int ival = urand_range(-10, 20);
+        utest_assert_int(ival, >=, -10);
+        utest_assert_int(ival, <, 10);
     }
 }
 
