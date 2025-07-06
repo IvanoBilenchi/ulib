@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.3.1] - 2025-07-06
+### Added
+- `ulib_ret_is_ok`, `ulib_ret_is_err`, `ulib_is_ok`, and `ulib_is_err`.
+- `ulib_ret_to_name` and `ulib_ret_to_string`.
+- `ulog_level_from_string` and `ulog_level_to_string`.
+- `utest_assert_enum`.
+- `ULIB_WARNING` and `ULIB_ERROR`.
+- `ULIB_DEPRECATED_ENUM`.
+- `URAND_MAX`.
+
+### Changed
+- Return value of `urand` to `ulib_uint`.
+- Deprecated `uvec_ret`, `uhash_ret` and `ustream_ret` in favor of `ulib_ret`.
+- Deprecated `uhset_diff_intersect` in favor of `uhset_diff` and `uhset_intersect`.
+- Deprecated `uhset_add_all` in favor of `uhash_populate`.
+- Deprecated `ulib_struct_init` in favor of `ulib_zero_init`.
+- Renamed `ULogLevel` to `ulog_level`.
+
+### Fixed
+- Removed unused parameter in `ulib_ns`.
+
+
 ## [0.3.0] - 2025-06-17
 ### Added
 - Logging system supporting events, ANSI colors, and convenient time benchmarking (`ulog`).
@@ -270,6 +292,7 @@ uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Test utilities.
 - Miscellaneous helper macros.
 
+[0.3.1]: https://github.com/ivanobilenchi/ulib/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/ivanobilenchi/ulib/compare/v0.2.6...v0.3.0
 [0.2.6]: https://github.com/ivanobilenchi/ulib/compare/v0.2.5...v0.2.6
 [0.2.5]: https://github.com/ivanobilenchi/ulib/compare/v0.2.4...v0.2.5
