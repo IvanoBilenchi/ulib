@@ -8,8 +8,6 @@
 #ifndef UHASH_TESTS_H
 #define UHASH_TESTS_H
 
-#include <stdbool.h>
-
 void uhash_test_memory(void);
 void uhash_test_base(void);
 void uhash_test_map(void);

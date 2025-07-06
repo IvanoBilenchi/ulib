@@ -8,8 +8,6 @@
 #ifndef URAND_TESTS_H
 #define URAND_TESTS_H
 
-#include <stdbool.h>
-
 void urand_int_test(void);
 void urand_float_test(void);
 void urand_string_test(void);

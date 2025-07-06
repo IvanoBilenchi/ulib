@@ -12,16 +12,18 @@
 #include "ulib_ret_t.h"
 #include "unumber.h"
 #include "ustream.h"
+#include "ustring.h"
 #include "utime.h"
 #include "uutils.h"
 #include <stdarg.h>
 #include <stddef.h>
+#include <string.h>
 
 enum { LEVEL_COUNT = 8 };
-static char const *log_level_str[LEVEL_COUNT] = {
-    " ALL ", "TRACE", "DEBUG", "PERF ", "INFO ", "WARN ", "ERROR", "FATAL",
+static char const *level_str[LEVEL_COUNT] = {
+    "ALL", "TRACE", "DEBUG", "PERF", "INFO", "WARN", "ERROR", "FATAL",
 };
-static char const *log_level_color[LEVEL_COUNT] = {
+static char const *level_color[LEVEL_COUNT] = {
     NULL,        UCOLOR_TRACE, UCOLOR_DEBUG, UCOLOR_PERF,
     UCOLOR_INFO, UCOLOR_WARN,  UCOLOR_ERROR, UCOLOR_FATAL,
 };
@@ -34,10 +36,42 @@ ULIB_INLINE ulib_ret end_color(ULog *log, char const *color) {
     return color && log->color ? uostream_write_buf(log->stream, UCOLOR_RST, NULL) : ULIB_OK;
 }
 
+ULIB_INLINE ulog_level builtin_level(unsigned index) {
+    if (index == 0) return ULOG_ALL;
+    if (index >= LEVEL_COUNT - 1) return ULOG_FATAL;
+    return (ulog_level)(1U << (P_ULOG_LEVEL_MIN_EXP + index - 1U));
+}
+
 ULIB_INLINE unsigned builtin_index(ulog_level level) {
     if (level < ULOG_TRACE) return 0;
     if (level >= ULOG_FATAL) return LEVEL_COUNT - 1;
     return ulib_uint32_log2(level) - P_ULOG_LEVEL_MIN_EXP + 1;
+}
+
+// `padding` must be already filled with spaces.
+ULIB_INLINE char const *level_str_padded(char const *str, char *padding, size_t len) {
+    size_t str_len = strlen(str);
+    if (str_len >= len) return str;
+    char *cur = padding + ((len - str_len) >> 1U);
+    for (; str_len--;) *cur++ = *str++;
+    return padding;
+}
+
+UString ulog_level_to_string(ulog_level level) {
+    return ustring_wrap_buf(level_str[builtin_index(level)]);
+}
+
+ulog_level ulog_level_from_string(UString string) {
+    UString it = ustring_to_upper(string);
+    ulog_level ret = ULOG_DISABLED;
+    for (unsigned i = 0; i < LEVEL_COUNT; ++i) {
+        if (ustring_starts_with(it, ustring_wrap_buf(level_str[i]))) {
+            ret = builtin_level(i);
+            break;
+        }
+    }
+    ustring_deinit(&it);
+    return ret;
 }
 
 ULog ulog_default(void) {
@@ -84,8 +118,10 @@ ulib_ret ulog_write_date(ULog *log) {
 }
 
 ulib_ret ulog_write_level(ULog *log, ulog_level level) {
-    unsigned idx = builtin_index(level);
-    return ulog_write_tag(log, (ULogTag){ log_level_str[idx], log_level_color[idx] });
+    char padding[] = "     ";
+    unsigned const idx = builtin_index(level);
+    char const *str = level_str_padded(level_str[idx], padding, sizeof(padding) - 1);
+    return ulog_write_tag(log, (ULogTag){ str, level_color[idx] });
 }
 
 ulib_ret ulog_write_tag(ULog *log, ULogTag tag) {

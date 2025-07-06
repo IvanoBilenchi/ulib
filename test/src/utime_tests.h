@@ -8,8 +8,6 @@
 #ifndef UTIME_TESTS_H
 #define UTIME_TESTS_H
 
-#include <stdbool.h>
-
 void utime_test_ns(void);
 void utime_test_date(void);
 

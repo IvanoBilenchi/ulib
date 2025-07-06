@@ -5,11 +5,11 @@
  * @copyright SPDX-License-Identifier: ISC
  */
 
-#ifndef UNUMBER_TESTS_H
-#define UNUMBER_TESTS_H
+#ifndef ULOG_TESTS_H
+#define ULOG_TESTS_H
 
-void unumber_test_pow2(void);
+void ulog_level_test(void);
 
-#define UNUMBER_TESTS unumber_test_pow2
+#define ULOG_TESTS ulog_level_test
 
-#endif // UNUMBER_TESTS_H
+#endif // ULOG_TESTS_H

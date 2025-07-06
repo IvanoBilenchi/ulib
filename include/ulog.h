@@ -17,6 +17,7 @@
 #include "udebug.h"
 #include "ulib_ret_t.h"
 #include "ustream.h"
+#include "ustring.h"
 #include "utime.h"
 #include "uutils.h"
 #include <limits.h>
@@ -136,7 +137,7 @@ typedef struct ULog {
     void *state;
 
     /**
-     * Function that handles the event.
+     * Function that handles log events.
      *
      * @param log Logger object.
      * @param event Log event.
@@ -150,6 +151,32 @@ typedef struct ULog {
  * @defgroup ULog Log API
  * @{
  */
+
+/**
+ * Returns the string representation of the specified log level.
+ *
+ * @param level Log level.
+ * @return String representation of the log level.
+ *
+ * @note You must not call @func{ustring_deinit} on the returned string.
+ */
+ULIB_API
+ULIB_CONST
+UString ulog_level_to_string(ulog_level level);
+
+/**
+ * Converts the specified string to a log level.
+ *
+ * @param string String representation of the log level.
+ * @return Log level corresponding to the specified string.
+ *         If the string does not match any known log level, returns @val{ULOG_DISABLED}.
+ *
+ * @note The match is case-insensitive and based on the beginning of the string.
+ *       For example, "info" will match @val{ULOG_INFO}, and so will "INFO", "Information", etc.
+ */
+ULIB_API
+ULIB_PURE
+ulog_level ulog_level_from_string(UString string);
 
 /**
  * The main logger.

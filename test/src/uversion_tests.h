@@ -8,8 +8,6 @@
 #ifndef UVERSION_TESTS_H
 #define UVERSION_TESTS_H
 
-#include <stdbool.h>
-
 void uversion_test(void);
 
 #define UVERSION_TESTS uversion_test

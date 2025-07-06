@@ -8,8 +8,6 @@
 #ifndef USTREAM_TESTS_H
 #define USTREAM_TESTS_H
 
-#include <stdbool.h>
-
 void ustream_init_test(void);
 void uistream_path_test(void);
 void uistream_buf_test(void);

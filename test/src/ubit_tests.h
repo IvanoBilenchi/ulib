@@ -8,8 +8,6 @@
 #ifndef UBIT_TESTS_H
 #define UBIT_TESTS_H
 
-#include <stdbool.h>
-
 void ubit_test_8(void);
 void ubit_test_16(void);
 void ubit_test_32(void);

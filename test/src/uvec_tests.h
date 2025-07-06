@@ -8,8 +8,6 @@
 #ifndef UVEC_TESTS_H
 #define UVEC_TESTS_H
 
-#include <stdbool.h>
-
 void uvec_test_base(void);
 void uvec_test_range(void);
 void uvec_test_capacity(void);

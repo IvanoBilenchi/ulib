@@ -8,8 +8,6 @@
 #ifndef USTRING_TESTS_H
 #define USTRING_TESTS_H
 
-#include <stdbool.h>
-
 void ustring_utils_test(void);
 void ustrbuf_test(void);
 void ustring_test_base(void);
