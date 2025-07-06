@@ -217,6 +217,22 @@ bool utest_passed(void);
 #define utest_assert_not_null(ptr) utest_assert_msg(ptr, "\"" #ptr "\" must not be NULL")
 
 /**
+ * Assert that `A OP B` must be true, where `A` and `B` are enum values.
+ *
+ * @param A @ctype{int} First enum value.
+ * @param OP Comparison operator.
+ * @param B @ctype{int} Second enum value.
+ */
+#define utest_assert_enum(A, OP, B)                                                                \
+    do {                                                                                           \
+        int utest_A = (int)(A);                                                                    \
+        int utest_B = (int)(B);                                                                    \
+        utest_assert_msg(utest_A OP utest_B,                                                       \
+                         "\"" #A "\" must be " #OP " " #B " (%d), found \"%d\"", utest_B,          \
+                         utest_A);                                                                 \
+    } while (0)
+
+/**
  * Assert that `A OP B` must be true, where `A` and `B` are integers.
  *
  * @param A @ctype{long long} First integer.
