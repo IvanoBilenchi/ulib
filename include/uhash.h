@@ -36,7 +36,7 @@ ULIB_BEGIN_DECLS
  *
  * @param T Hash table type.
  */
-#define UHash(T) UHash_##T
+#define UHash(T) ULIB_MACRO_CONCAT(UHash_, T)
 
 /**
  * Generic hash table type.
@@ -54,7 +54,7 @@ ULIB_BEGIN_DECLS
  * @note While you can use this macro to reference the key type of a @func{UHash(T)},
  *       it is usually better to directly use the type specified when defining the hash table type.
  */
-#define UHashKey(T) uhash_##T##_key
+#define UHashKey(T) ULIB_MACRO_CONCAT(ULIB_MACRO_CONCAT(uhash_, T), _key)
 
 /**
  * Generic hash table key type.
@@ -71,7 +71,7 @@ ULIB_BEGIN_DECLS
  * @note While you can use this macro to reference the value type of a @func{UHash(T)},
  *       it is usually better to directly use the type specified when defining the hash table type.
  */
-#define UHashVal(T) uhash_##T##_val
+#define UHashVal(T) ULIB_MACRO_CONCAT(ULIB_MACRO_CONCAT(uhash_, T), _val)
 
 /**
  * Generic hash table value type.
@@ -277,11 +277,21 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  *
  * @param T @ctype{symbol} Hash table type.
  * @param ATTRS @ctype{attributes} Attributes of the definitions.
+ * @param uh_key @ctype{type} Hash table key type.
+ * @param uh_val @ctype{type} Hash table value type.
  */
-#define P_UHASH_DEF_INLINE(T, ATTRS)                                                               \
+#define P_UHASH_DEF_INLINE(T, ATTRS, uh_key, uh_val)                                               \
     /** @cond */                                                                                   \
+    ATTRS ULIB_PURE ULIB_INLINE bool uhash_is_map_##T(UHash_##T const *h) {                        \
+        return h->_is_map;                                                                         \
+    }                                                                                              \
+                                                                                                   \
     ATTRS ULIB_PURE ULIB_INLINE ulib_uint uhash_size_##T(UHash_##T const *h) {                     \
         return h->_exp ? p_uhash_size_from_exp(h->_exp) : 0;                                       \
+    }                                                                                              \
+                                                                                                   \
+    ATTRS ULIB_PURE ULIB_INLINE ulib_uint uhash_count_##T(UHash_##T const *h) {                    \
+        return h->_count;                                                                          \
     }                                                                                              \
                                                                                                    \
     ATTRS ULIB_INLINE UHash_##T uhash_move_##T(UHash_##T *h) {                                     \
@@ -291,10 +301,34 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
         return temp;                                                                               \
     }                                                                                              \
                                                                                                    \
+    ATTRS ULIB_PURE ULIB_INLINE bool uhash_exists_##T(UHash_##T const *h, ulib_uint i) {           \
+        return p_uhf_is_used(h->_flags, i);                                                        \
+    }                                                                                              \
+                                                                                                   \
+    ATTRS ULIB_PURE ULIB_INLINE uh_key uhash_key_##T(UHash_##T const *h, ulib_uint i) {            \
+        return h->_keys[i];                                                                        \
+    }                                                                                              \
+                                                                                                   \
+    ATTRS ULIB_INLINE void uhash_set_key_##T(UHash_##T *h, ulib_uint i, uh_key key) {              \
+        h->_keys[i] = key;                                                                         \
+    }                                                                                              \
+                                                                                                   \
+    ATTRS ULIB_INLINE void uhash_set_val_##T(UHash_##T *h, ulib_uint i, uh_val val) {              \
+        h->_vals[i] = val;                                                                         \
+    }                                                                                              \
+                                                                                                   \
+    ATTRS ULIB_PURE ULIB_INLINE uh_val uhash_val_##T(UHash_##T const *h, ulib_uint i) {            \
+        return h->_vals[i];                                                                        \
+    }                                                                                              \
+                                                                                                   \
     ATTRS ULIB_PURE ULIB_INLINE ulib_uint uhash_next_##T(UHash_##T const *h, ulib_uint i) {        \
         ulib_uint size = uhash_size_##T(h);                                                        \
         for (; i < size && !uhash_exists(T, h, i); ++i) {}                                         \
         return i;                                                                                  \
+    }                                                                                              \
+                                                                                                   \
+    ATTRS ULIB_PURE ULIB_INLINE bool uhash_contains_##T(UHash_##T const *h, uh_key key) {          \
+        return uhash_get_##T(h, key) != UHASH_INDEX_MISSING;                                       \
     }                                                                                              \
                                                                                                    \
     ATTRS ULIB_INLINE ulib_ret uhash_shrink_##T(UHash_##T *h) {                                    \
@@ -745,7 +779,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
 #define UHASH_DECL(T, uh_key, uh_val)                                                              \
     P_UHASH_DEF_TYPE(T, uh_key, uh_val)                                                            \
     P_UHASH_DECL(T, ulib_unused, uh_key, uh_val)                                                   \
-    P_UHASH_DEF_INLINE(T, ulib_unused)
+    P_UHASH_DEF_INLINE(T, ulib_unused, uh_key, uh_val)
 
 /**
  * Declares a new hash table type, prepending a specifier to the generated declarations.
@@ -758,7 +792,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
 #define UHASH_DECL_SPEC(T, uh_key, uh_val, SPEC)                                                   \
     P_UHASH_DEF_TYPE(T, uh_key, uh_val)                                                            \
     P_UHASH_DECL(T, SPEC ulib_unused, uh_key, uh_val)                                              \
-    P_UHASH_DEF_INLINE(T, ulib_unused)
+    P_UHASH_DEF_INLINE(T, ulib_unused, uh_key, uh_val)
 
 /**
  * Declares a new hash table type with per-instance hash and equality functions.
@@ -770,7 +804,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
 #define UHASH_DECL_PI(T, uh_key, uh_val)                                                           \
     P_UHASH_DEF_TYPE_PI(T, uh_key, uh_val)                                                         \
     P_UHASH_DECL_PI(T, ulib_unused, uh_key, uh_val)                                                \
-    P_UHASH_DEF_INLINE(T, ulib_unused)
+    P_UHASH_DEF_INLINE(T, ulib_unused, uh_key, uh_val)
 
 /**
  * Declares a new hash table type with per-instance hash and equality functions,
@@ -784,7 +818,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
 #define UHASH_DECL_PI_SPEC(T, uh_key, uh_val, SPEC)                                                \
     P_UHASH_DEF_TYPE_PI(T, uh_key, uh_val)                                                         \
     P_UHASH_DECL_PI(T, SPEC ulib_unused, uh_key, uh_val)                                           \
-    P_UHASH_DEF_INLINE(T, ulib_unused)
+    P_UHASH_DEF_INLINE(T, ulib_unused, uh_key, uh_val)
 
 /**
  * Implements a previously declared hash table type.
@@ -820,7 +854,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
 #define UHASH_INIT(T, uh_key, uh_val, hash_func, equal_func)                                       \
     P_UHASH_DEF_TYPE(T, uh_key, uh_val)                                                            \
     P_UHASH_DECL(T, ULIB_INLINE ulib_unused, uh_key, uh_val)                                       \
-    P_UHASH_DEF_INLINE(T, ulib_unused)                                                             \
+    P_UHASH_DEF_INLINE(T, ulib_unused, uh_key, uh_val)                                             \
     P_UHASH_IMPL_INIT(T, ULIB_INLINE ulib_unused)                                                  \
     P_UHASH_IMPL_COMMON(T, ULIB_INLINE ulib_unused, uh_key, uh_val, hash_func, equal_func)
 
@@ -836,7 +870,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
 #define UHASH_INIT_PI(T, uh_key, uh_val, default_hfunc, default_efunc)                             \
     P_UHASH_DEF_TYPE_PI(T, uh_key, uh_val)                                                         \
     P_UHASH_DECL_PI(T, ULIB_INLINE ulib_unused, uh_key, uh_val)                                    \
-    P_UHASH_DEF_INLINE(T, ulib_unused)                                                             \
+    P_UHASH_DEF_INLINE(T, ulib_unused, uh_key, uh_val)                                             \
     P_UHASH_IMPL_INIT_PI(T, ULIB_INLINE ulib_unused, uh_key, default_hfunc, default_efunc)         \
     P_UHASH_IMPL_COMMON(T, ULIB_INLINE ulib_unused, uh_key, uh_val, h->_hfunc, h->_efunc)
 
@@ -954,7 +988,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  * @alias ulib_ret uhash_populate(symbol T, UHash(T) *h, UHashKey(T) const *keys,
  *                                 UHashVal(T) const *vals, ulib_uint n);
  */
-#define uhash_populate(T, h, keys, vals, n) uhash_populate_##T(h, keys, vals, n)
+#define uhash_populate(T, h, keys, vals, n) ULIB_MACRO_CONCAT(uhash_populate_, T)(h, keys, vals, n)
 
 /**
  * Deinitializes the specified hash table.
@@ -964,7 +998,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  *
  * @alias void uhash_deinit(symbol T, UHash(T) *h);
  */
-#define uhash_deinit(T, h) uhash_deinit_##T(h)
+#define uhash_deinit(T, h) ULIB_MACRO_CONCAT(uhash_deinit_, T)(h)
 
 /**
  * Invalidates the hash table and returns its storage.
@@ -976,7 +1010,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  * @destructor{uhash_deinit}
  * @alias UHash(T) uhash_move(symbol T, UHash(T) *h);
  */
-#define uhash_move(T, h) uhash_move_##T(h)
+#define uhash_move(T, h) ULIB_MACRO_CONCAT(uhash_move_, T)(h)
 
 /**
  * Copies the specified hash table.
@@ -988,7 +1022,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  *
  * @alias ulib_ret uhash_copy(symbol T, UHash(T) const *src, UHash(T) *dest);
  */
-#define uhash_copy(T, src, dest) uhash_copy_##T(src, dest)
+#define uhash_copy(T, src, dest) ULIB_MACRO_CONCAT(uhash_copy_, T)(src, dest)
 
 /**
  * Returns a new hash set obtained by copying the keys of another hash table.
@@ -1000,7 +1034,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  *
  * @alias ulib_ret uhash_copy_as_set(symbol T, UHash(T) const *src, UHash(T) *dest);
  */
-#define uhash_copy_as_set(T, src, dest) uhash_copy_as_set_##T(src, dest)
+#define uhash_copy_as_set(T, src, dest) ULIB_MACRO_CONCAT(uhash_copy_as_set_, T)(src, dest)
 
 /**
  * Resizes the specified hash table.
@@ -1012,7 +1046,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  *
  * @alias ulib_ret uhash_resize(symbol T, UHash(T) *h, ulib_uint s);
  */
-#define uhash_resize(T, h, s) uhash_resize_##T(h, s)
+#define uhash_resize(T, h, s) ULIB_MACRO_CONCAT(uhash_resize_, T)(h, s)
 
 /**
  * Shrinks the specified hash table so that its allocated size
@@ -1024,7 +1058,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  *
  * @alias ulib_ret uhash_shrink(symbol T, UHash(T) *h);
  */
-#define uhash_shrink(T, h) uhash_shrink_##T(h)
+#define uhash_shrink(T, h) ULIB_MACRO_CONCAT(uhash_shrink_, T)(h)
 
 /**
  * Checks whether the hash table is a map.
@@ -1035,7 +1069,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  *
  * @alias bool uhash_is_map(symbol T, UHash(T) const *h);
  */
-#define uhash_is_map(T, h) (((UHash(T) *)(h))->_is_map)
+#define uhash_is_map(T, h) ULIB_MACRO_CONCAT(uhash_is_map_, T)(h)
 
 /**
  * Inserts a key into the specified hash table.
@@ -1049,7 +1083,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  *
  * @alias ulib_ret uhash_put(symbol T, UHash(T) *h, UHashKey(T) k, ulib_uint *i);
  */
-#define uhash_put(T, h, k, i) uhash_put_##T(h, k, i)
+#define uhash_put(T, h, k, i) ULIB_MACRO_CONCAT(uhash_put_, T)(h, k, i)
 
 /**
  * Retrieves the index of the bucket associated with the specified key.
@@ -1061,7 +1095,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  *
  * @alias ulib_uint uhash_get(symbol T, UHash(T) const *h, UHashKey(T) k);
  */
-#define uhash_get(T, h, k) uhash_get_##T(h, k)
+#define uhash_get(T, h, k) ULIB_MACRO_CONCAT(uhash_get_, T)(h, k)
 
 /**
  * Deletes the bucket at the specified index.
@@ -1072,7 +1106,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  *
  * @alias void uhash_delete(symbol T, UHash(T) *h, ulib_uint k);
  */
-#define uhash_delete(T, h, k) uhash_delete_##T(h, k)
+#define uhash_delete(T, h, k) ULIB_MACRO_CONCAT(uhash_delete_, T)(h, k)
 
 /**
  * Checks whether the hash table contains the specified key.
@@ -1084,7 +1118,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  *
  * @alias bool uhash_contains(symbol T, UHash(T) const *h, UHashKey(T) k);
  */
-#define uhash_contains(T, h, k) (uhash_get_##T(h, k) != UHASH_INDEX_MISSING)
+#define uhash_contains(T, h, k) ULIB_MACRO_CONCAT(uhash_contains_, T)(h, k)
 
 /**
  * Tests whether a bucket contains data.
@@ -1096,7 +1130,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  *
  * @alias bool uhash_exists(symbol T, UHash(T) const *h, ulib_uint i);
  */
-#define uhash_exists(T, h, i) (p_uhf_is_used(((UHash(T) *)(h))->_flags, (i)))
+#define uhash_exists(T, h, i) ULIB_MACRO_CONCAT(uhash_exists_, T)(h, i)
 
 /**
  * Retrieves the key at the specified index.
@@ -1108,7 +1142,19 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  *
  * @alias UHashKey(T) uhash_key(symbol T, UHash(T) const *h, ulib_uint i);
  */
-#define uhash_key(T, h, i) (((UHash(T) *)(h))->_keys[i])
+#define uhash_key(T, h, i) ULIB_MACRO_CONCAT(uhash_key_, T)(h, i)
+
+/**
+ * Sets the key at the specified index.
+ *
+ * @param T Hash table type.
+ * @param h Hash table instance.
+ * @param i Index of the bucket whose key should be set.
+ * @param k Key.
+ *
+ * @alias void uhash_set_key(symbol T, UHash(T) *h, ulib_uint i, UHashKey(T) k);
+ */
+#define uhash_set_key(T, h, i, k) ULIB_MACRO_CONCAT(uhash_set_key_, T)(h, i, k)
 
 /**
  * Retrieves the value at the specified index.
@@ -1121,7 +1167,20 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  * @note Undefined behavior if used on hash sets.
  * @alias UHashVal(T) uhash_value(symbol T, UHash(T) const *h, ulib_uint i);
  */
-#define uhash_value(T, h, i) (((UHash(T) *)(h))->_vals[i])
+#define uhash_value(T, h, i) ULIB_MACRO_CONCAT(uhash_value_, T)(h, i)
+
+/**
+ * Sets the value at the specified index.
+ *
+ * @param T Hash table type.
+ * @param h Hash table instance.
+ * @param i Index of the bucket whose value should be set.
+ * @param v Value.
+ *
+ * @note Undefined behavior if used on hash sets.
+ * @alias void uhash_set_value(symbol T, UHash(T) *h, ulib_uint i, UHashVal(T) v);
+ */
+#define uhash_set_value(T, h, i, v) ULIB_MACRO_CONCAT(uhash_set_value_, T)(h, i, v)
 
 /**
  * Returns the maximum number of elements that can be held by the hash table.
@@ -1132,7 +1191,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  *
  * @alias ulib_uint uhash_size(symbol T, UHash(T) const *h);
  */
-#define uhash_size(T, h) uhash_size_##T(h)
+#define uhash_size(T, h) ULIB_MACRO_CONCAT(uhash_size_, T)(h)
 
 /**
  * Returns the number of elements in the hash table.
@@ -1143,7 +1202,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  *
  * @alias ulib_uint uhash_count(symbol T, UHash(T) const *h);
  */
-#define uhash_count(T, h) (((UHash(T) *)(h))->_count)
+#define uhash_count(T, h) ULIB_MACRO_CONCAT(uhash_count_, T)(h)
 
 /**
  * Resets the specified hash table without deallocating it.
@@ -1153,7 +1212,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  *
  * @alias void uhash_clear(symbol T, UHash(T) *h);
  */
-#define uhash_clear(T, h) uhash_clear_##T(h)
+#define uhash_clear(T, h) ULIB_MACRO_CONCAT(uhash_clear_, T)(h)
 
 /**
  * Returns the index of the first bucket starting from (and including) `i` which contains data.
@@ -1165,7 +1224,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  *
  * @alias ulib_uint uhash_next(symbol T, UHash(T) const *h, ulib_uint i);
  */
-#define uhash_next(T, h, i) uhash_next_##T(h, i)
+#define uhash_next(T, h, i) ULIB_MACRO_CONCAT(uhash_next_, T)(h, i)
 
 /**
  * Iterates over the entries in the hash table.
@@ -1210,7 +1269,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  * @destructor{uhash_deinit}
  * @alias UHash(T) uhmap(symbol T);
  */
-#define uhmap(T) uhmap_##T()
+#define uhmap(T) ULIB_MACRO_CONCAT(uhmap_, T)()
 
 /**
  * Initializes a new hash map with per-instance hash and equality functions.
@@ -1224,7 +1283,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  * @alias UHash(T) uhmap_pi(symbol T, ulib_uint (*hash_func)(UHashKey(T) key),
  *                          bool (*equal_func)(UHashKey(T) a, UHashKey(T) b));
  */
-#define uhmap_pi(T, hash_func, equal_func) uhmap_pi_##T(hash_func, equal_func)
+#define uhmap_pi(T, hash_func, equal_func) ULIB_MACRO_CONCAT(uhmap_pi_, T)(hash_func, equal_func)
 
 /**
  * Returns the value associated with the specified key.
@@ -1237,7 +1296,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  *
  * @alias UHashVal(T) uhmap_get(symbol T, UHash(T) const *h, UHashKey(T) k, UHashVal(T) m);
  */
-#define uhmap_get(T, h, k, m) uhmap_get_##T(h, k, m)
+#define uhmap_get(T, h, k, m) ULIB_MACRO_CONCAT(uhmap_get_, T)(h, k, m)
 
 /**
  * Adds a key:value pair to the map, replacing existing values.
@@ -1252,7 +1311,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  *
  * @alias ulib_ret uhmap_set(symbol T, UHash(T) *h, UHashKey(T) k, UHashVal(T) v, UHashVal(T) *e);
  */
-#define uhmap_set(T, h, k, v, e) uhmap_set_##T(h, k, v, e)
+#define uhmap_set(T, h, k, v, e) ULIB_MACRO_CONCAT(uhmap_set_, T)(h, k, v, e)
 
 /**
  * Adds a key:value pair to the map, without replacing existing values.
@@ -1267,7 +1326,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  *
  * @alias ulib_ret uhmap_add(symbol T, UHash(T) *h, UHashKey(T) k, UHashVal(T) v, UHashVal(T) *e);
  */
-#define uhmap_add(T, h, k, v, e) uhmap_add_##T(h, k, v, e)
+#define uhmap_add(T, h, k, v, e) ULIB_MACRO_CONCAT(uhmap_add_, T)(h, k, v, e)
 
 /**
  * Replaces a value in the map, only if its associated key exists.
@@ -1281,7 +1340,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  *
  * @alias bool uhmap_replace(symbol T, UHash(T) *h, UHashKey(T) k, UHashVal(T) v, UHashVal(T) *r);
  */
-#define uhmap_replace(T, h, k, v, r) uhmap_replace_##T(h, k, v, r)
+#define uhmap_replace(T, h, k, v, r) ULIB_MACRO_CONCAT(uhmap_replace_, T)(h, k, v, r)
 
 /**
  * Removes a key:value pair from the map.
@@ -1293,7 +1352,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  *
  * @alias bool uhmap_remove(symbol T, UHash(T) *h, UHashKey(T) k);
  */
-#define uhmap_remove(T, h, k) uhmap_remove_##T(h, k, NULL, NULL)
+#define uhmap_remove(T, h, k) ULIB_MACRO_CONCAT(uhmap_remove_, T)(h, k, NULL, NULL)
 
 /**
  * Removes a key:value pair from the map, returning the removed key and value.
@@ -1307,7 +1366,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  *
  * @alias bool uhmap_pop(symbol T, UHash(T) *h, UHashKey(T) k, UHashKey(T) *dk, UHashVal(T) *dv);
  */
-#define uhmap_pop(T, h, k, dk, dv) uhmap_remove_##T(h, k, dk, dv)
+#define uhmap_pop(T, h, k, dk, dv) ULIB_MACRO_CONCAT(uhmap_remove_, T)(h, k, dk, dv)
 
 /// @}
 
@@ -1325,7 +1384,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  * @destructor{uhash_deinit}
  * @alias UHash(T) uhset(symbol T);
  */
-#define uhset(T) uhset_##T()
+#define uhset(T) ULIB_MACRO_CONCAT(uhset_, T)()
 
 /**
  * Initializes a new hash set with per-instance hash and equality functions.
@@ -1339,7 +1398,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  * @alias UHash(T) uhset_pi(symbol T, ulib_uint (*hash_func)(UHashKey(T) key),
  *                          bool (*equal_func)(UHashKey(T) a, UHashKey(T) b));
  */
-#define uhset_pi(T, hash_func, equal_func) uhset_pi_##T(hash_func, equal_func)
+#define uhset_pi(T, hash_func, equal_func) ULIB_MACRO_CONCAT(uhset_pi_, T)(hash_func, equal_func)
 
 /**
  * Inserts an element in the set.
@@ -1352,7 +1411,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  *
  * @alias ulib_ret uhset_insert(symbol T, UHash(T) *h, UHashKey(T) k);
  */
-#define uhset_insert(T, h, k) uhset_insert_##T(h, k, NULL)
+#define uhset_insert(T, h, k) ULIB_MACRO_CONCAT(uhset_insert_, T)(h, k, NULL)
 
 /**
  * Inserts an element in the set, returning the existing element if it was already present.
@@ -1366,7 +1425,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  *
  * @alias ulib_ret uhset_insert_get_existing(symbol T, UHash(T) *h, UHashKey(T) k, UHashKey(T) *e);
  */
-#define uhset_insert_get_existing(T, h, k, e) uhset_insert_##T(h, k, e)
+#define uhset_insert_get_existing(T, h, k, e) ULIB_MACRO_CONCAT(uhset_insert_, T)(h, k, e)
 
 /**
  * Populates the set with elements from an array.
@@ -1393,7 +1452,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  *
  * @alias bool uhset_replace(symbol T, UHash(T) *h, UHashKey(T) k, UHashKey(T) *r);
  */
-#define uhset_replace(T, h, k, r) uhset_replace_##T(h, k, r)
+#define uhset_replace(T, h, k, r) ULIB_MACRO_CONCAT(uhset_replace_, T)(h, k, r)
 
 /**
  * Removes an element from the set.
@@ -1405,7 +1464,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  *
  * @alias bool uhset_remove(symbol T, UHash(T) *h, UHashKey(T) k);
  */
-#define uhset_remove(T, h, k) uhset_remove_##T(h, k, NULL)
+#define uhset_remove(T, h, k) ULIB_MACRO_CONCAT(uhset_remove_, T)(h, k, NULL)
 
 /**
  * Removes and returns an element from the set.
@@ -1418,7 +1477,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  *
  * @alias bool uhset_pop(symbol T, UHash(T) *h, UHashKey(T) k, UHashKey(T) *d);
  */
-#define uhset_pop(T, h, k, d) uhset_remove_##T(h, k, d)
+#define uhset_pop(T, h, k, d) ULIB_MACRO_CONCAT(uhset_remove_, T)(h, k, d)
 
 /**
  * Checks whether the set is a superset of another set.
@@ -1430,7 +1489,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  *
  * @alias bool uhset_is_superset(symbol T, UHash(T) const *h1, UHash(T) const *h2);
  */
-#define uhset_is_superset(T, h1, h2) uhset_is_superset_##T(h1, h2)
+#define uhset_is_superset(T, h1, h2) ULIB_MACRO_CONCAT(uhset_is_superset_, T)(h1, h2)
 
 /**
  * Performs the union between `h1` and `h2` (`h1 || h2`), mutating `h1`.
@@ -1443,7 +1502,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  *
  * @alias ulib_ret uhset_union(symbol T, UHash(T) *h1, UHash(T) const *h2, UHash(T) *added);
  */
-#define uhset_union(T, h1, h2, added) uhset_union_##T(h1, h2, added)
+#define uhset_union(T, h1, h2, added) ULIB_MACRO_CONCAT(uhset_union_, T)(h1, h2, added)
 
 /**
  * Performs the intersection between `h1` and `h2` (`h1 && h2`), mutating `h1`.
@@ -1456,7 +1515,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  *
  * @alias ulib_ret uhset_intersect(symbol T, UHash(T) *h1, UHash(T) const *h2, UHash(T) *diff);
  */
-#define uhset_intersect(T, h1, h2, diff) uhset_intersect_##T(h1, h2, diff)
+#define uhset_intersect(T, h1, h2, diff) ULIB_MACRO_CONCAT(uhset_intersect_, T)(h1, h2, diff)
 
 /**
  * Computes the difference between `h1` and `h2` (`h1 - h2`), mutating `h1`.
@@ -1469,7 +1528,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  *
  * @alias ulib_ret uhset_diff(symbol T, UHash(T) *h1, UHash(T) const *h2, UHash(T) *inter);
  */
-#define uhset_diff(T, h1, h2, inter) uhset_diff_##T(h1, h2, inter)
+#define uhset_diff(T, h1, h2, inter) ULIB_MACRO_CONCAT(uhset_diff_, T)(h1, h2, inter)
 
 /**
  * Splits `h1` into two sets: one containing the elements that are in `h1` but not in `h2`
@@ -1496,7 +1555,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  *
  * @alias bool uhset_equals(symbol T, UHash(T) const *h1, UHash(T) const *h2);
  */
-#define uhset_equals(T, h1, h2) uhset_equals_##T(h1, h2)
+#define uhset_equals(T, h1, h2) ULIB_MACRO_CONCAT(uhset_equals_, T)(h1, h2)
 
 /**
  * Computes the hash of the set.
@@ -1508,7 +1567,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  *
  * @alias ulib_uint uhset_hash(symbol T, UHash(T) const *h);
  */
-#define uhset_hash(T, h) uhset_hash_##T(h)
+#define uhset_hash(T, h) ULIB_MACRO_CONCAT(uhset_hash_, T)(h)
 
 /**
  * Returns one of the elements in the set.
@@ -1520,7 +1579,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  *
  * @alias UHashKey(T) uhset_get_any(symbol T, UHash(T) const *h, UHashKey(T) m);
  */
-#define uhset_get_any(T, h, m) uhset_get_any_##T(h, m)
+#define uhset_get_any(T, h, m) ULIB_MACRO_CONCAT(uhset_get_any_, T)(h, m)
 
 /// @}
 
