@@ -73,7 +73,7 @@ void utime_days_to_ymd(long long days, long long *oy, unsigned *om, unsigned *od
     long long const y = (long long)(yoe) + (era * 400);
     unsigned const doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
     unsigned const mp = (5 * doy + 2) / 153;
-    *od = doy - (153 * mp + 2) / 5 + 1;
+    *od = doy - ((153 * mp + 2) / 5) + 1;
     *om = mp < 10 ? mp + 3 : mp - 9;
     *oy = y + (*om <= 2);
 }
@@ -268,7 +268,7 @@ static utime_ns unit_ns[] = { NS_PER_NS, NS_PER_US, NS_PER_MS, NS_PER_S,
 
 utime_unit utime_interval_unit_auto(utime_ns t) {
     utime_unit unit = UTIME_MICROSECONDS;
-    for (; t > unit_ns[unit] - unit_ns[unit - 1] / UNIT_DIV - 1; ++unit) {}
+    for (; t > unit_ns[unit] - (unit_ns[unit - 1] / UNIT_DIV) - 1; ++unit) {}
     return (utime_unit)(unit - 1);
 }
 
@@ -297,7 +297,7 @@ utime_stamp utime_get_timestamp(void) {
 
 // clang-format off
 
-#if defined(_WIN32)
+#ifdef _WIN32
     #include <windows.h>
 
     utime_ns utime_get_ns(void) {
@@ -322,7 +322,7 @@ utime_stamp utime_get_timestamp(void) {
         return (utime_ns)micros() * 1000;
     }
 #else
-    #if defined(CLOCK_MONOTONIC)
+    #ifdef CLOCK_MONOTONIC
         typedef struct timespec utimespec;
         #ifdef CLOCK_MONOTONIC_RAW
             #define utime_get_timespec(t) clock_gettime(CLOCK_MONOTONIC_RAW, t)

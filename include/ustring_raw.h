@@ -194,7 +194,7 @@ void ulib_str_to_lower(char *dst, char const *src, size_t length) {
 ULIB_INLINE
 ulib_int ulib_str_to_int(char const *src, char **end, unsigned base) {
     char *endptr;
-#if defined ULIB_HUGE
+#ifdef ULIB_HUGE
     long long ret = strtoll(src, &endptr, (int)base);
 #else
     long ret = strtol(src, &endptr, (int)base);
@@ -217,7 +217,7 @@ ulib_int ulib_str_to_int(char const *src, char **end, unsigned base) {
 ULIB_INLINE
 ulib_uint ulib_str_to_uint(char const *src, char **end, unsigned base) {
     char *endptr;
-#if defined ULIB_HUGE
+#ifdef ULIB_HUGE
     unsigned long long ret = strtoull(src, &endptr, (int)base);
 #else
     unsigned long ret = strtoul(src, &endptr, (int)base);
@@ -239,7 +239,7 @@ ulib_uint ulib_str_to_uint(char const *src, char **end, unsigned base) {
 ULIB_INLINE
 ulib_float ulib_str_to_float(char const *src, char **end) {
     char *endptr;
-#if defined ULIB_TINY
+#ifdef ULIB_TINY
     float ret = strtof(src, &endptr);
 #else
     double ret = strtod(src, &endptr);

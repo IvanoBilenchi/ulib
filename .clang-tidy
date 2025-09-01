@@ -10,6 +10,7 @@ Checks: >
   -clang-analyzer-cplusplus-*,
   -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,
   misc-*,
+  -misc-no-recursion,
   modernize-*,
   performance-*,
   -performance-enum-size,

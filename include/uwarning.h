@@ -120,7 +120,7 @@
     #define P_ULIB_GCC_SUPPRESS_END
 #endif
 
-#if defined(__clang__)
+#ifdef __clang__
     #define P_ULIB_CLANG_SUPPRESS_BEGIN _Pragma("clang diagnostic push")
     #define P_ULIB_CLANG_SUPPRESS(warning) ULIB_PRAGMA(clang diagnostic ignored warning)
     #define P_ULIB_CLANG_SUPPRESS_END _Pragma("clang diagnostic pop")
@@ -130,7 +130,7 @@
     #define P_ULIB_CLANG_SUPPRESS_END
 #endif
 
-#if defined(_MSC_VER)
+#ifdef _MSC_VER
     #define P_ULIB_MSVC_SUPPRESS_BEGIN __pragma(warning(push))
     #define P_ULIB_MSVC_SUPPRESS(warning) __pragma(warning(disable : warnings))
     #define P_ULIB_MSVC_SUPPRESS_END __pragma(warning(pop))
@@ -140,7 +140,7 @@
     #define P_ULIB_MSVC_SUPPRESS_END
 #endif
 
-#if defined(__clang__)
+#ifdef __clang__
     #define P_ULIB_GNUC_SUPPRESS_BEGIN P_ULIB_CLANG_SUPPRESS_BEGIN
     #define P_ULIB_GNUC_SUPPRESS(warning) P_ULIB_CLANG_SUPPRESS(warning)
     #define P_ULIB_GNUC_SUPPRESS_END P_ULIB_CLANG_SUPPRESS_END

@@ -13,6 +13,7 @@
 #define UNUMBER_H
 
 #include "uattrs.h"
+#include "udebug.h"
 
 #include <float.h>
 #include <inttypes.h>
@@ -469,7 +470,7 @@ unsigned ulib_uint64_ceil_log2(uint64_t x) {
 
 #endif
 
-#if defined ULIB_TINY
+#ifdef ULIB_TINY
 
 typedef uint16_t ulib_uint;
 #define ULIB_UINT_MAX UINT16_MAX
@@ -655,6 +656,7 @@ ulib_float ulib_float_next(ulib_float x) {
 ULIB_CONST
 ULIB_INLINE
 ulib_uint ulib_uint_pow2(ulib_byte x) {
+    ulib_assert(x < sizeof(ulib_uint) * CHAR_BIT);
     return ((ulib_uint)1) << x;
 }
 

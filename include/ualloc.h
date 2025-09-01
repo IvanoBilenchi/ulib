@@ -28,7 +28,7 @@ typedef void *ulib_ptr;
  */
 #ifndef ULIB_MALLOC_ALIGN
 #include <stdalign.h>
-#if defined(_WIN32)
+#ifdef _WIN32
 #define ULIB_MALLOC_ALIGN alignof(long double)
 #elif defined(__APPLE__) && defined(__aarch64__)
 #define ULIB_MALLOC_ALIGN ((size_t)16U)
@@ -124,12 +124,12 @@ typedef void *ulib_ptr;
 #define P_ULIB_FOUND_ALLOCA _alloca
 #else
 #include <stdlib.h> // IWYU pragma: keep, required for alloca on some platforms
-#if defined(alloca)
+#ifdef alloca
 #define P_ULIB_FOUND_ALLOCA alloca
 #endif
 #endif
 
-#if defined(ULIB_STACKALLOC)
+#ifdef ULIB_STACKALLOC
 #define ulib_stackalloc ULIB_STACKALLOC
 #elif defined(P_ULIB_FOUND_ALLOCA)
 #define ulib_stackalloc P_ULIB_FOUND_ALLOCA

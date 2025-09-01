@@ -74,7 +74,7 @@ ULIB_BEGIN_DECLS
 
 /// @cond
 
-#if defined ULIB_TINY
+#ifdef ULIB_TINY
 
 ULIB_CONST
 ULIB_INLINE
