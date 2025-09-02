@@ -162,6 +162,7 @@ typedef enum uvec_ret {
                                                                                                    \
     /** @cond */                                                                                   \
     typedef struct UVec_Loop_##T {                                                                 \
+        T *data;                                                                                   \
         T *item;                                                                                   \
         ulib_uint i;                                                                               \
         ulib_uint count;                                                                           \
@@ -300,14 +301,16 @@ typedef enum uvec_ret {
         p_uvec_set_count_##T(vec, 0);                                                              \
     }                                                                                              \
                                                                                                    \
-    ATTRS ULIB_PURE ULIB_INLINE UVec_Loop_##T p_uvec_loop_init_##T(UVec(T) const *vec) {           \
-        UVec_Loop_##T loop = { uvec_data(T, vec), 0, uvec_count(T, vec) };                         \
+    ATTRS ULIB_PURE ULIB_INLINE UVec_Loop_##T p_uvec_loop_##T(UVec(T) const *vec) {                \
+        T *data = uvec_data(T, vec);                                                               \
+        UVec_Loop_##T loop = { data, data, 0, uvec_count(T, vec) };                                \
         return loop;                                                                               \
     }                                                                                              \
                                                                                                    \
-    ATTRS ULIB_PURE ULIB_INLINE UVec_Loop_##T p_uvec_loop_reverse_init_##T(UVec(T) const *vec) {   \
+    ATTRS ULIB_PURE ULIB_INLINE UVec_Loop_##T p_uvec_loop_reverse_##T(UVec(T) const *vec) {        \
+        T *data = uvec_data(T, vec);                                                               \
         ulib_uint count = uvec_count(T, vec);                                                      \
-        UVec_Loop_##T loop = { uvec_data(T, vec) + count, count, count };                          \
+        UVec_Loop_##T loop = { data, data + count, count, count };                                 \
         return loop;                                                                               \
     }                                                                                              \
     /* NOLINTEND(clang-analyzer-unix.Malloc,clang-analyzer-security.ArrayBound) */                 \
@@ -1612,12 +1615,11 @@ typedef enum uvec_ret {
  *
  * @param T @ctype{symbol} Vector type.
  * @param vec @ctype{#UVec(T) *} Vector instance.
- * @param enum_name @ctype{symbol} Name of the variable holding the current item and its index.
+ * @param it @ctype{symbol} Name of the variable holding the current item and its index.
  */
-#define uvec_foreach(T, vec, enum_name)                                                            \
-    for (ULIB_MACRO_CONCAT(UVec_Loop_, T) enum_name =                                              \
-         ULIB_MACRO_CONCAT(p_uvec_loop_init_, T)(vec);                                             \
-         enum_name.i != enum_name.count; ++enum_name.item, ++enum_name.i)
+#define uvec_foreach(T, vec, it)                                                                   \
+    for (ULIB_MACRO_CONCAT(UVec_Loop_, T) it = ULIB_MACRO_CONCAT(p_uvec_loop_, T)(vec);            \
+         it.item = it.data + it.i, it.i != it.count; ++it.i)
 
 /**
  * Iterates over the vector in reverse order, executing the specified code block for each element.
@@ -1633,12 +1635,11 @@ typedef enum uvec_ret {
  *
  * @param T @ctype{symbol} Vector type.
  * @param vec @ctype{#UVec(T) *} Vector instance.
- * @param enum_name @ctype{symbol} Name of the variable holding the current item and its index.
+ * @param it @ctype{symbol} Name of the variable holding the current item and its index.
  */
-#define uvec_foreach_reverse(T, vec, enum_name)                                                    \
-    for (ULIB_MACRO_CONCAT(UVec_Loop_, T) enum_name =                                              \
-         ULIB_MACRO_CONCAT(p_uvec_loop_reverse_init_, T)(vec);                                     \
-         --enum_name.item, enum_name.i-- != 0;)
+#define uvec_foreach_reverse(T, vec, it)                                                           \
+    for (ULIB_MACRO_CONCAT(UVec_Loop_, T) it = ULIB_MACRO_CONCAT(p_uvec_loop_reverse_, T)(vec);    \
+         --it.item, it.i-- != 0;)
 
 /// @}
 

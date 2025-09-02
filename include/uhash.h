@@ -189,6 +189,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
         uh_key *key;                                                                               \
         uh_val *val;                                                                               \
         ulib_uint i;                                                                               \
+        ulib_uint size;                                                                            \
     } UHash_Loop_##T;                                                                              \
     /** @endcond */
 
@@ -347,6 +348,22 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
                                                                                                    \
     ATTRS ULIB_PURE ULIB_INLINE bool uhset_equals_##T(UHash_##T const *h1, UHash_##T const *h2) {  \
         return h1->_count == h2->_count && uhset_is_superset_##T(h1, h2);                          \
+    }                                                                                              \
+                                                                                                   \
+    ATTRS ULIB_PURE ULIB_INLINE UHash_Loop_##T p_uhash_loop_##T(UHash_##T const *h) {              \
+        UHash_Loop_##T loop = ulib_zero_init;                                                      \
+        loop.h = h;                                                                                \
+        loop.size = uhash_size_##T(h);                                                             \
+        return loop;                                                                               \
+    }                                                                                              \
+                                                                                                   \
+    ATTRS ULIB_INLINE bool p_uhash_loop_next_##T(UHash_Loop_##T *loop) {                           \
+        UHash_##T const *h = loop->h;                                                              \
+        loop->i = uhash_next_##T(h, loop->i);                                                      \
+        if (loop->i >= loop->size) return false;                                                   \
+        loop->key = h->_keys + loop->i;                                                            \
+        if (h->_is_map) loop->val = h->_vals + loop->i;                                            \
+        return true;                                                                               \
     }                                                                                              \
     /** @endcond */
 
@@ -1251,18 +1268,13 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  * @endcode
  *
  * @param T @ctype{symbol} Hash table type.
- * @param ht @ctype{#UHash(T) *} Hash table instance.
- * @param enum_name @ctype{symbol} Name of the variable holding the current index, key and value.
+ * @param h @ctype{#UHash(T) *} Hash table instance.
+ * @param it @ctype{symbol} Name of the variable holding the current index, key and value.
  */
 // clang-format off
-#define uhash_foreach(T, ht, enum_name) /* NOLINTNEXTLINE(misc-const-correctness) */               \
-    for (UHash_Loop_##T p_h_##enum_name = { (ht), NULL, NULL, uhash_size(T, ht) },                 \
-         enum_name = { p_h_##enum_name.h, NULL, NULL, uhash_next(T, p_h_##enum_name.h, 0) };       \
-         enum_name.i < p_h_##enum_name.i &&                                                        \
-         (enum_name.key = enum_name.h->_keys + enum_name.i) != NULL &&                             \
-         (!uhash_is_map(T, enum_name.h) ||                                                         \
-          (enum_name.val = enum_name.h->_vals + enum_name.i) != NULL);                             \
-         enum_name.i = uhash_next(T, enum_name.h, enum_name.i + 1))
+#define uhash_foreach(T, h, it)                                                                    \
+    for (ULIB_MACRO_CONCAT(UHash_Loop_,T) it = ULIB_MACRO_CONCAT(p_uhash_loop_,T)(h);              \
+         ULIB_MACRO_CONCAT(p_uhash_loop_next_,T)(&it); ++it.i)
 // clang-format on
 
 /// @}
