@@ -309,20 +309,30 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
         return h->_keys[i];                                                                        \
     }                                                                                              \
                                                                                                    \
+    ATTRS ULIB_PURE ULIB_INLINE ulib_uint uhash_key_idx_##T(UHash_##T const *h,                    \
+                                                            uh_key const *key) {                   \
+        return (ulib_uint)(key - h->_keys);                                                        \
+    }                                                                                              \
+                                                                                                   \
     ATTRS ULIB_INLINE void uhash_set_key_##T(UHash_##T *h, ulib_uint i, uh_key key) {              \
         h->_keys[i] = key;                                                                         \
     }                                                                                              \
                                                                                                    \
-    ATTRS ULIB_INLINE void uhash_set_val_##T(UHash_##T *h, ulib_uint i, uh_val val) {              \
-        h->_vals[i] = val;                                                                         \
-    }                                                                                              \
-                                                                                                   \
-    ATTRS ULIB_PURE ULIB_INLINE uh_val uhash_val_##T(UHash_##T const *h, ulib_uint i) {            \
+    ATTRS ULIB_PURE ULIB_INLINE uh_val uhmap_val_##T(UHash_##T const *h, ulib_uint i) {            \
         return h->_vals[i];                                                                        \
     }                                                                                              \
                                                                                                    \
+    ATTRS ULIB_PURE ULIB_INLINE ulib_uint uhmap_val_idx_##T(UHash_##T const *h,                    \
+                                                            uh_val const *val) {                   \
+        return (ulib_uint)(val - h->_vals);                                                        \
+    }                                                                                              \
+                                                                                                   \
+    ATTRS ULIB_INLINE void uhmap_set_val_##T(UHash_##T *h, ulib_uint i, uh_val val) {              \
+        h->_vals[i] = val;                                                                         \
+    }                                                                                              \
+                                                                                                   \
     ATTRS ULIB_PURE ULIB_INLINE ulib_uint uhash_next_##T(UHash_##T const *h, ulib_uint i) {        \
-        ulib_uint size = uhash_size_##T(h);                                                        \
+        ulib_uint const size = uhash_size_##T(h);                                                  \
         for (; i < size && !uhash_exists(T, h, i); ++i) {}                                         \
         return i;                                                                                  \
     }                                                                                              \
@@ -1145,6 +1155,20 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
 #define uhash_key(T, h, i) ULIB_MACRO_CONCAT(uhash_key_, T)(h, i)
 
 /**
+ * Returns the index of the specified key pointer.
+ *
+ * @param T Hash table type.
+ * @param h Hash table instance.
+ * @param k Key pointer.
+ * @return Index.
+ *
+ * @note The pointer must point to a valid key in the hash table,
+ *       otherwise the behavior is undefined.
+ * @alias ulib_uint uhash_key_idx(symbol T, UHash(T) const *h, UHashKey(T) const *k);
+ */
+#define uhash_key_idx(T, h, k) ULIB_MACRO_CONCAT(uhash_key_idx_, T)(h, k)
+
+/**
  * Sets the key at the specified index.
  *
  * @param T Hash table type.
@@ -1165,22 +1189,10 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  * @return Value.
  *
  * @note Undefined behavior if used on hash sets.
+ * @deprecated Use @func{uhmap_val} instead.
  * @alias UHashVal(T) uhash_value(symbol T, UHash(T) const *h, ulib_uint i);
  */
-#define uhash_value(T, h, i) ULIB_MACRO_CONCAT(uhash_value_, T)(h, i)
-
-/**
- * Sets the value at the specified index.
- *
- * @param T Hash table type.
- * @param h Hash table instance.
- * @param i Index of the bucket whose value should be set.
- * @param v Value.
- *
- * @note Undefined behavior if used on hash sets.
- * @alias void uhash_set_value(symbol T, UHash(T) *h, ulib_uint i, UHashVal(T) v);
- */
-#define uhash_set_value(T, h, i, v) ULIB_MACRO_CONCAT(uhash_set_value_, T)(h, i, v)
+#define uhash_value(T, h, i) ULIB_DEPRECATED_MACRO ULIB_MACRO_CONCAT(uhmap_val_, T)(h, i)
 
 /**
  * Returns the maximum number of elements that can be held by the hash table.
@@ -1284,6 +1296,46 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  *                          bool (*equal_func)(UHashKey(T) a, UHashKey(T) b));
  */
 #define uhmap_pi(T, hash_func, equal_func) ULIB_MACRO_CONCAT(uhmap_pi_, T)(hash_func, equal_func)
+
+/**
+ * Retrieves the value at the specified index.
+ *
+ * @param T Hash table type.
+ * @param h Hash table instance.
+ * @param i Index of the bucket whose value should be retrieved.
+ * @return Value.
+ *
+ * @note Undefined behavior if used on hash sets.
+ * @alias UHashVal(T) uhmap_val(symbol T, UHash(T) const *h, ulib_uint i);
+ */
+#define uhmap_val(T, h, i) ULIB_MACRO_CONCAT(uhmap_val_, T)(h, i)
+
+/**
+ * Returns the index of the specified value pointer.
+ *
+ * @param T Hash table type.
+ * @param h Hash table instance.
+ * @param v Value pointer.
+ * @return Index.
+ *
+ * @note The pointer must point to a valid value in the hash table,
+ *       otherwise the behavior is undefined.
+ * @alias ulib_uint uhmap_val_idx(symbol T, UHash(T) const *h, UHashVal(T) const *v);
+ */
+#define uhmap_val_idx(T, h, v) ULIB_MACRO_CONCAT(uhmap_val_idx_, T)(h, v)
+
+/**
+ * Sets the value at the specified index.
+ *
+ * @param T Hash table type.
+ * @param h Hash table instance.
+ * @param i Index of the bucket whose value should be set.
+ * @param v Value.
+ *
+ * @note Undefined behavior if used on hash sets.
+ * @alias void uhmap_set_val(symbol T, UHash(T) *h, ulib_uint i, UHashVal(T) v);
+ */
+#define uhmap_set_val(T, h, i, v) ULIB_MACRO_CONCAT(uhmap_set_val_, T)(h, i, v)
 
 /**
  * Returns the value associated with the specified key.

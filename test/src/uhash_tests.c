@@ -70,6 +70,7 @@ void uhash_test_base(void) {
         ulib_uint idx = uhash_get(IntHash, &set, i);
         utest_assert(idx != UHASH_INDEX_MISSING);
         utest_assert(uhash_exists(IntHash, &set, idx));
+        utest_assert_uint(uhash_key(IntHash, &set, idx), ==, i);
     }
 
     utest_assert(uhash_get(IntHash, &set, 200) == UHASH_INDEX_MISSING);
@@ -90,6 +91,14 @@ void uhash_test_map(void) {
 
     for (uint32_t i = 0; i < MAX_VAL; ++i) {
         utest_assert_ok(uhmap_set(IntHash, &map, i, i, NULL));
+        ulib_uint idx = uhash_get(IntHash, &map, i);
+        utest_assert_uint(uhash_key(IntHash, &map, idx), ==, i);
+        utest_assert_uint(uhmap_val(IntHash, &map, idx), ==, i);
+    }
+
+    uhash_foreach (IntHash, &map, it) {
+        utest_assert_uint(uhash_key_idx(IntHash, &map, it.key), ==, it.i);
+        utest_assert_uint(uhmap_val_idx(IntHash, &map, it.val), ==, it.i);
     }
 
     UHash(IntHash) set = uhset(IntHash);
