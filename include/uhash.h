@@ -20,6 +20,7 @@
 #include "uattrs.h"
 #include "udebug.h"
 #include "uhash_func.h" // IWYU pragma: export
+#include "uiter.h"      // IWYU pragma: keep, needed for UIter
 #include "ulib_ret_t.h"
 #include "unumber.h"
 #include "uutils.h"
@@ -348,6 +349,10 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
                                                                                                    \
     ATTRS ULIB_PURE ULIB_INLINE bool uhset_equals_##T(UHash_##T const *h1, UHash_##T const *h2) {  \
         return h1->_count == h2->_count && uhset_is_superset_##T(h1, h2);                          \
+    }                                                                                              \
+                                                                                                   \
+    ATTRS ULIB_PURE ULIB_INLINE UIter uhash_iter_##T(UHash_##T const *h) {                         \
+        return p_uiter_hash((void *)h->_keys, h->_flags, uhash_size_##T(h), sizeof(uh_key));       \
     }                                                                                              \
                                                                                                    \
     ATTRS ULIB_PURE ULIB_INLINE UHash_Loop_##T p_uhash_loop_##T(UHash_##T const *h) {              \
@@ -1254,6 +1259,18 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
  * @alias ulib_uint uhash_next(symbol T, UHash(T) const *h, ulib_uint i);
  */
 #define uhash_next(T, h, i) ULIB_MACRO_CONCAT(uhash_next_, T)(h, i)
+
+/**
+ * Returns an iterator over the keys of the specified hash table.
+ *
+ * @param T Hash table type.
+ * @param h Hash table instance.
+ * @return Iterator.
+ *
+ * @destructor{uiter_deinit}
+ * @alias UIter uhash_iter(symbol T, UHash(T) const *h);
+ */
+#define uhash_iter(T, h) ULIB_MACRO_CONCAT(uhash_iter_, T)(h)
 
 /**
  * Iterates over the entries in the hash table.

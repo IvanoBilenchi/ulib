@@ -15,6 +15,7 @@
 #include "ualloc.h"
 #include "uattrs.h"
 #include "udebug.h"
+#include "uiter.h" // IWYU pragma: keep, needed for UIter
 #include "ulib_ret_t.h"
 #include "unumber.h"
 #include "urand.h" // IWYU pragma: keep, needed for urand_range
@@ -319,6 +320,10 @@ typedef enum uvec_ret {
                                                                                                    \
     ATTRS ULIB_INLINE void uvec_clear_##T(UVec(T) *vec) {                                          \
         p_uvec_set_count_##T(vec, 0);                                                              \
+    }                                                                                              \
+                                                                                                   \
+    ATTRS ULIB_PURE ULIB_INLINE UIter uvec_iter_##T(UVec(T) const *vec) {                          \
+        return uiter_buf((void *)uvec_data(T, vec), uvec_count(T, vec), sizeof(T));                \
     }                                                                                              \
                                                                                                    \
     ATTRS ULIB_PURE ULIB_INLINE UVec_Loop_##T p_uvec_loop_##T(UVec(T) const *vec) {                \
@@ -1608,6 +1613,18 @@ typedef enum uvec_ret {
  * @alias void uvec_shuffle(symbol T, UVec(T) *vec);
  */
 #define uvec_shuffle(T, vec) ULIB_MACRO_CONCAT(uvec_shuffle_, T)(vec)
+
+/**
+ * Returns an iterator over the elements of the vector.
+ *
+ * @param T Vector type.
+ * @param vec Vector instance.
+ * @return Iterator.
+ *
+ * @destructor{uiter_deinit}
+ * @alias UIter uvec_iter(symbol T, UVec(T) const *vec);
+ */
+#define uvec_iter(T, vec) ULIB_MACRO_CONCAT(uvec_iter_, T)(vec)
 
 // clang-format off
 

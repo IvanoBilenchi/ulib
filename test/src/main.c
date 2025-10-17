@@ -7,6 +7,7 @@
 
 #include "ubit_tests.h"
 #include "uhash_tests.h"
+#include "uiter_tests.h"
 #include "ulib.h"
 #include "ulog_tests.h"
 #include "unumber_tests.h"
@@ -20,12 +21,13 @@
 utest_main({
     utest_run("unumber", UNUMBER_TESTS);
     utest_run("ubit", UBIT_TESTS);
-    utest_run("uhash", UHASH_TESTS);
-    utest_run("ulog", ULOG_TESTS);
-    utest_run("urand", URAND_TESTS);
-    utest_run("ustream", USTREAM_TESTS);
     utest_run("ustring", USTRING_TESTS);
     utest_run("uvec", UVEC_TESTS);
+    utest_run("uhash", UHASH_TESTS);
+    utest_run("uiter", UITER_TESTS);
+    utest_run("ustream", USTREAM_TESTS);
+    utest_run("ulog", ULOG_TESTS);
+    utest_run("urand", URAND_TESTS);
     utest_run("utime", UTIME_TESTS);
     utest_run("uversion", UVERSION_TESTS);
 })

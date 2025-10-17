@@ -16,6 +16,7 @@ Welcome to uLib's documentation!
    api/number
    api/string
    api/collection
+   api/iter
    api/stream
    api/compression
    api/time

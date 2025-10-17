@@ -22,6 +22,7 @@
 #include "uhash.h"
 #include "uhash_builtin.h"
 #include "uhash_func.h"
+#include "uiter.h"
 #include "uleak.h"
 #include "ulib_ret.h"
 #include "ulib_ret_t.h"

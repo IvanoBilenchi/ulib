@@ -10,6 +10,7 @@ ColumnLimit: 100
 Cpp11BracedListStyle: false
 ForEachMacros:
   - uhash_foreach
+  - uiter_foreach
   - uvec_foreach
   - uvec_foreach_reverse
 IndentCaseLabels: true

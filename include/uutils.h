@@ -37,7 +37,8 @@
  * @param array The array.
  * @return Number of elements.
  */
-#define ulib_array_count(array) (sizeof(array) / sizeof(*(array)))
+#define ulib_array_count(array)                                                                    \
+    /* NOLINT(bugprone-sizeof-expression) */ (sizeof(array) / sizeof(*(array)))
 
 /// C and C++ compatible zero initializer.
 // clang-format off

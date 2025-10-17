@@ -6,6 +6,7 @@
  */
 
 #include "uhash_bench.h"
+#include "uiter_bench.h"
 #include "ulib.h"
 #include "uvec_bench.h"
 #include <stdlib.h>
@@ -14,5 +15,6 @@ int main(void) {
     ulog_main->level = ULOG_PERF;
     bench_uvec();
     bench_uhash();
+    bench_uiter();
     return EXIT_SUCCESS;
 }
