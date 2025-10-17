@@ -127,6 +127,14 @@ void uvec_test_range(void) {
     uvec_deinit(VTYPE, &v);
 }
 
+#if UVEC_SBO
+#define uvec_assert_small(T, vec) utest_assert(p_uvec_is_small(T, vec))
+#define uvec_assert_large(T, vec) utest_assert(p_uvec_is_large(T, vec))
+#else
+#define uvec_assert_small(T, vec) ulib_noop
+#define uvec_assert_large(T, vec) ulib_noop
+#endif
+
 void uvec_test_capacity(void) {
     UVec(VTYPE) v = uvec(VTYPE);
 
@@ -134,12 +142,9 @@ void uvec_test_capacity(void) {
         utest_assert_ok(uvec_push(VTYPE, &v, 42));
     }
 
-    utest_assert(p_uvec_is_small(VTYPE, &v));
-    utest_assert_false(p_uvec_is_large(VTYPE, &v));
-
+    uvec_assert_small(VTYPE, &v);
     utest_assert_ok(uvec_push(VTYPE, &v, 42));
-    utest_assert(p_uvec_is_large(VTYPE, &v));
-    utest_assert_false(p_uvec_is_small(VTYPE, &v));
+    uvec_assert_large(VTYPE, &v);
     uvec_clear(VTYPE, &v);
 
     ulib_uint const capacity = 10;
@@ -162,7 +167,7 @@ void uvec_test_capacity(void) {
     utest_assert_uint(uvec_count(VTYPE, &v), ==, 0);
 
     utest_assert_ok(uvec_shrink(VTYPE, &v));
-    utest_assert(p_uvec_is_small(VTYPE, &v));
+    uvec_assert_small(VTYPE, &v);
 
     uvec_deinit(VTYPE, &v);
 }

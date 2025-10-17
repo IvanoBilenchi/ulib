@@ -101,6 +101,15 @@ typedef enum uvec_ret {
 #define UVEC_BINARY_SEARCH_THRESH (sizeof(ulib_uint) * CHAR_BIT)
 #endif
 
+/// Enable the small buffer optimization.
+#ifndef UVEC_SBO
+#if defined(ULIB_DEBUG) || defined(__clang_analyzer__)
+#define UVEC_SBO 0
+#else
+#define UVEC_SBO 1
+#endif
+#endif
+
 /// @}
 
 #define P_UVEC_EXP_COMPACT ((ulib_byte)0xFF)
@@ -108,13 +117,25 @@ typedef enum uvec_ret {
 #define P_UVEC_EXP_MIN_MARKER P_UVEC_EXP_WRAPPED
 #define P_UVEC_FLAG_LARGE ((ulib_byte)0x80)
 
+#if UVEC_SBO
+#define p_uvec_exp_is_large(e) ((e) & (P_UVEC_FLAG_LARGE))
+#define p_uvec_count_is_small(T, c) ((c) <= p_uvec_small_size(T))
+#define p_uvec_large_exp_to_size(e) (ulib_uint_pow2(p_uvec_exp_large_exp(e)))
+#define p_uvec_size_min(s) (s)
+#else
+#define p_uvec_exp_is_large(e) 1
+#define p_uvec_count_is_small(T, c) 0
+#define p_uvec_large_exp_to_size(e)                                                                \
+    (p_uvec_exp_large_exp(e) ? ulib_uint_pow2(p_uvec_exp_large_exp(e)) : 0)
+#define p_uvec_size_min(s) ((s) < 2 ? 2 : (s))
+#endif
+
 #define p_uvec_size(T) (sizeof(struct ULIB_MACRO_CONCAT(p_uvec_large_, T)))
 #define p_uvec_exp_size(T)                                                                         \
     (sizeof(struct ULIB_MACRO_CONCAT(p_uvec_sizing_, T)) - sizeof(T *) - sizeof(ulib_uint))
 #define p_uvec_small_size(T) ((sizeof(struct ULIB_MACRO_CONCAT(p_uvec_large_, T)) - 1) / sizeof(T))
 #define p_uvec_exp(T, v) ((v)->_s[p_uvec_size(T) - 1])
 #define p_uvec_exp_set(T, v, e) (p_uvec_exp(T, v) = (ulib_byte)(e))
-#define p_uvec_exp_is_large(e) ((e) & (P_UVEC_FLAG_LARGE))
 #define p_uvec_exp_is_small(e) (!p_uvec_exp_is_large(e))
 #define p_uvec_exp_is_compact(e) ((e) == P_UVEC_EXP_COMPACT)
 #define p_uvec_exp_is_wrapped(e) ((e) == P_UVEC_EXP_WRAPPED)
@@ -200,7 +221,6 @@ typedef enum uvec_ret {
  */
 #define P_UVEC_DEF_INLINE(T, ATTRS)                                                                \
     /** @cond */                                                                                   \
-    /* NOLINTBEGIN(clang-analyzer-unix.Malloc,clang-analyzer-security.ArrayBound) */               \
     ATTRS ULIB_CONST ULIB_INLINE UVec(T) uvec_##T(void) {                                          \
         UVec(T) vec = ulib_zero_init;                                                              \
         return vec;                                                                                \
@@ -231,13 +251,13 @@ typedef enum uvec_ret {
     ATTRS ULIB_PURE ULIB_INLINE ulib_uint uvec_size_##T(UVec(T) const *vec) {                      \
         ulib_byte exp = p_uvec_exp(T, vec);                                                        \
         if (p_uvec_exp_is_small(exp)) return p_uvec_small_size(T);                                 \
-        if (!p_uvec_exp_is_marker(exp)) return ulib_uint_pow2(p_uvec_exp_large_exp(exp));          \
+        if (!p_uvec_exp_is_marker(exp)) return p_uvec_large_exp_to_size(exp);                      \
         return p_uvec_exp_is_compact(exp) ? vec->_l._count : ULIB_UINT_MAX;                        \
     }                                                                                              \
                                                                                                    \
     ATTRS ULIB_PURE ULIB_INLINE ulib_uint uvec_count_##T(UVec(T) const *vec) {                     \
         ulib_byte exp = p_uvec_exp(T, vec);                                                        \
-        return p_uvec_exp_is_small(exp) ? exp : vec->_l._count;                                    \
+        return p_uvec_exp_is_large(exp) ? vec->_l._count : exp;                                    \
     }                                                                                              \
                                                                                                    \
     ATTRS ULIB_INLINE void p_uvec_set_count_##T(UVec(T) *vec, ulib_uint count) {                   \
@@ -313,7 +333,6 @@ typedef enum uvec_ret {
         UVec_Loop_##T loop = { data, data + count, count, count };                                 \
         return loop;                                                                               \
     }                                                                                              \
-    /* NOLINTEND(clang-analyzer-unix.Malloc,clang-analyzer-security.ArrayBound) */                 \
     /** @endcond */
 
 /*
@@ -340,11 +359,9 @@ typedef enum uvec_ret {
  */
 #define P_UVEC_DEF_INLINE_EQUATABLE(T, ATTRS)                                                      \
     /** @cond */                                                                                   \
-    /* NOLINTBEGIN(clang-analyzer-unix.Malloc,clang-analyzer-security.ArrayBound) */               \
     ATTRS ULIB_PURE ULIB_INLINE bool uvec_contains_##T(UVec(T) const *vec, T item) {               \
         return uvec_index_of(T, vec, item) < uvec_count(T, vec);                                   \
     }                                                                                              \
-    /* NOLINTEND(clang-analyzer-unix.Malloc,clang-analyzer-security.ArrayBound) */                 \
     /** @endcond */
 
 /*
@@ -400,7 +417,6 @@ typedef enum uvec_ret {
  */
 #define P_UVEC_DEF_INLINE_COMPARABLE(T, ATTRS)                                                     \
     /** @cond */                                                                                   \
-    /* NOLINTBEGIN(clang-analyzer-unix.Malloc,clang-analyzer-security.ArrayBound) */               \
     ATTRS ULIB_INLINE void uvec_sort_##T(UVec(T) *vec) {                                           \
         uvec_sort_range(T, vec, 0, uvec_count(T, vec));                                            \
     }                                                                                              \
@@ -408,7 +424,6 @@ typedef enum uvec_ret {
     ATTRS ULIB_PURE ULIB_INLINE bool uvec_sorted_contains_##T(UVec(T) const *vec, T item) {        \
         return uvec_sorted_index_of(T, vec, item) < uvec_count(T, vec);                            \
     }                                                                                              \
-    /* NOLINTEND(clang-analyzer-unix.Malloc,clang-analyzer-security.ArrayBound) */                 \
     /** @endcond */
 
 /*
@@ -418,8 +433,9 @@ typedef enum uvec_ret {
  * @param ATTRS @ctype{attributes} Attributes of the definitions.
  */
 #define P_UVEC_IMPL(T, ATTRS)                                                                      \
-    /* NOLINTBEGIN(clang-analyzer-unix.Malloc,clang-analyzer-security.ArrayBound) */               \
+                                                                                                   \
     ATTRS ulib_ret uvec_reserve_##T(UVec(T) *vec, ulib_uint size) {                                \
+        size = p_uvec_size_min(size);                                                              \
         if (size <= uvec_size(T, vec)) return ULIB_OK;                                             \
                                                                                                    \
         ulib_byte const exp = p_uvec_exp(T, vec);                                                  \
@@ -488,7 +504,7 @@ typedef enum uvec_ret {
             return ULIB_OK;                                                                        \
         }                                                                                          \
                                                                                                    \
-        if (count <= p_uvec_small_size(T)) {                                                       \
+        if (p_uvec_count_is_small(T, count)) {                                                     \
             /* Store elements inline */                                                            \
             if (p_uvec_exp_is_small(exp)) return ULIB_OK;                                          \
             T *old_data = vec->_l._data;                                                           \
@@ -579,8 +595,7 @@ typedef enum uvec_ret {
             ulib_uint swap_idx = (ulib_uint)urand_range(0, count);                                 \
             ulib_swap(T, data[i], data[swap_idx]);                                                 \
         }                                                                                          \
-    }                                                                                              \
-    /* NOLINTEND(clang-analyzer-unix.Malloc,clang-analyzer-security.ArrayBound) */
+    }
 
 /*
  * Generates common function definitions for the specified equatable vector type.
@@ -590,7 +605,7 @@ typedef enum uvec_ret {
  * @param equal_func @ctype{(T, T) -> bool} Equality function.
  */
 #define P_UVEC_IMPL_EQUATABLE_COMMON(T, ATTRS, equal_func)                                         \
-    /* NOLINTBEGIN(clang-analyzer-unix.Malloc,clang-analyzer-security.ArrayBound) */               \
+                                                                                                   \
     ATTRS ulib_uint uvec_index_of_##T(UVec(T) const *vec, T item) {                                \
         T *data = uvec_data(T, vec);                                                               \
         ulib_uint count = uvec_count(T, vec);                                                      \
@@ -630,8 +645,7 @@ typedef enum uvec_ret {
     ATTRS ulib_ret uvec_push_unique_##T(UVec(T) *vec, T item) {                                    \
         ulib_uint count = uvec_count(T, vec);                                                      \
         return uvec_index_of(T, vec, item) < count ? ULIB_NO : uvec_push(T, vec, item);            \
-    }                                                                                              \
-    /* NOLINTEND(clang-analyzer-unix.Malloc,clang-analyzer-security.ArrayBound) */
+    }
 
 /*
  * Generates default 'uvec_index_of' and 'uvec_equals' definitions.
@@ -641,7 +655,7 @@ typedef enum uvec_ret {
  * @param equal_func \type{(T, T) -> bool} Equality function.
  */
 #define P_UVEC_IMPL_EQUATABLE_FUNC(T, ATTRS, equal_func)                                           \
-    /* NOLINTBEGIN(clang-analyzer-unix.Malloc,clang-analyzer-security.ArrayBound) */               \
+                                                                                                   \
     ATTRS bool uvec_equals_##T(UVec(T) const *vec, UVec(T) const *other) {                         \
         if (vec == other) return true;                                                             \
         ulib_uint const count = uvec_count(T, vec);                                                \
@@ -657,8 +671,7 @@ typedef enum uvec_ret {
         }                                                                                          \
                                                                                                    \
         return true;                                                                               \
-    }                                                                                              \
-    /* NOLINTEND(clang-analyzer-unix.Malloc,clang-analyzer-security.ArrayBound) */
+    }
 
 /*
  * Generates 'uvec_index_of' and 'uvec_equals' definitions for vectors
@@ -668,7 +681,7 @@ typedef enum uvec_ret {
  * @param ATTRS @ctype{attributes} Attributes of the definitions.
  */
 #define P_UVEC_IMPL_EQUATABLE_IDENTITY(T, ATTRS)                                                   \
-    /* NOLINTBEGIN(clang-analyzer-unix.Malloc,clang-analyzer-security.ArrayBound) */               \
+                                                                                                   \
     ATTRS bool uvec_equals_##T(UVec(T) const *vec, UVec(T) const *other) {                         \
         if (vec == other) return true;                                                             \
         ulib_uint const count = uvec_count(T, vec);                                                \
@@ -678,8 +691,7 @@ typedef enum uvec_ret {
         T *data = uvec_data(T, vec);                                                               \
         T *o_data = uvec_data(T, other);                                                           \
         return *data == *o_data && p_uvec_compare_items(T, data, o_data, count) == 0;              \
-    }                                                                                              \
-    /* NOLINTEND(clang-analyzer-unix.Malloc,clang-analyzer-security.ArrayBound) */
+    }
 
 /*
  * Generates function definitions for the specified equatable vector type.
@@ -713,7 +725,7 @@ typedef enum uvec_ret {
  * @param compare_func @ctype{(T, T) -> bool} Comparison function.
  */
 #define P_UVEC_IMPL_COMPARABLE(T, ATTRS, equal_func, compare_func)                                 \
-    /* NOLINTBEGIN(clang-analyzer-unix.Malloc,clang-analyzer-security.ArrayBound) */               \
+                                                                                                   \
     ATTRS ulib_uint uvec_index_of_min_##T(UVec(T) const *vec) {                                    \
         ulib_uint min_idx = 0;                                                                     \
         T *data = uvec_data(T, vec);                                                               \
@@ -844,8 +856,7 @@ typedef enum uvec_ret {
         if (!uvec_index_is_valid(T, vec, i)) return false;                                         \
         uvec_remove_at(T, vec, i);                                                                 \
         return true;                                                                               \
-    }                                                                                              \
-    /* NOLINTEND(clang-analyzer-unix.Malloc,clang-analyzer-security.ArrayBound) */
+    }
 
 /*
  * Generates heap queue function definitions.
@@ -856,7 +867,7 @@ typedef enum uvec_ret {
  * @param compare_func @ctype{(T, T) -> bool} Comparison function.
  */
 #define P_UVEC_IMPL_HEAPQ_TYPE(T, ATTRS, TYPE, compare_func)                                       \
-    /* NOLINTBEGIN(clang-analyzer-unix.Malloc,clang-analyzer-security.ArrayBound) */               \
+                                                                                                   \
     ULIB_INLINE void p_uvec_##TYPE##_heapq_down_##T(T *heap, ulib_uint len, ulib_uint i) {         \
         while (true) {                                                                             \
             ulib_uint l = (i << 1) + 1;                                                            \
@@ -941,8 +952,7 @@ typedef enum uvec_ret {
             p_uvec_##TYPE##_heapq_down_##T(heap, count, idx);                                      \
         }                                                                                          \
         return true;                                                                               \
-    }                                                                                              \
-    /* NOLINTEND(clang-analyzer-unix.Malloc,clang-analyzer-security.ArrayBound) */
+    }
 
 /*
  * Generates heap queue function definitions.
