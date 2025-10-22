@@ -58,6 +58,7 @@ ulib_uint p_ustring_large_size(struct p_ustring_large string) {
 
 #define p_ustring_is_large(str) p_ustring_last_byte_is_large(p_ustring_last_byte(str))
 #define p_ustring_length_is_small(l) ((l) < P_USTRING_SIZE)
+#define p_ustring_length_is_large(l) (!p_ustring_length_is_small(l))
 #define p_ustring_init_small(size)                                                                 \
     {                                                                                              \
         ._s = { [P_USTRING_SIZE - 1] = (ulib_byte)((P_USTRING_SIZE - (size))) },                   \

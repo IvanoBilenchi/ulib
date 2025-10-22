@@ -33,30 +33,22 @@ UString ustring_large(char const *buf, size_t length) {
     ulib_uint size = ((ulib_uint)length + 1) | ~((ulib_uint)-1 >> 1U);
     UString ret = { ._l = { ._data = buf, ._flags = { 0 } } };
     unsigned const offset = P_USTRING_FLAGS_SIZE - sizeof(ulib_uint);
-
     for (unsigned i = 0; i < sizeof(size); ++i) {
         ret._l._flags[offset + i] = (ulib_byte)(size >> (i * CHAR_BIT));
     }
-
     return ret;
 }
 
 UString ustring_assign(char const *buf, size_t length) {
-    bool should_free = true;
-    UString ret = ustring_null;
-
-    if (!buf) goto end;
-
-    if (p_ustring_length_is_small(length)) {
+    if (!buf) return ustring_null;
+    UString ret;
+    if (p_ustring_length_is_large(length)) {
+        ret = ustring_large(buf, length);
+        ulib_assert(ret._l._data == buf);
+    } else {
         ret = ustring_small(buf, length);
-        goto end;
+        ulib_free((void *)buf);
     }
-
-    ret = ustring_large(buf, length);
-    should_free = false;
-
-end:
-    if (should_free) ulib_free((void *)buf);
     return ret;
 }
 
