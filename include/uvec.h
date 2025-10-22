@@ -581,10 +581,10 @@ typedef enum uvec_ret {
                                                                                                    \
     ATTRS void uvec_reverse_##T(UVec(T) *vec) {                                                    \
         T *data = uvec_data(T, vec);                                                               \
-        ulib_uint count = uvec_count(T, vec);                                                      \
-        for (ulib_uint i = 0; i < count / 2; ++i) {                                                \
-            ulib_uint swap_idx = count - i - 1;                                                    \
-            ulib_swap(T, data[i], data[swap_idx]);                                                 \
+        ulib_uint j = uvec_count(T, vec);                                                          \
+        if (j < 2) return;                                                                         \
+        for (ulib_uint i = 0; i < --j; ++i) {                                                      \
+            ulib_swap(T, data[i], data[j]);                                                        \
         }                                                                                          \
     }                                                                                              \
                                                                                                    \

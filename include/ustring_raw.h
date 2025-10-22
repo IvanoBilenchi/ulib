@@ -14,6 +14,7 @@
 
 #include "uattrs.h"
 #include "unumber.h"
+#include "uutils.h"
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
@@ -178,6 +179,20 @@ void ulib_str_to_upper(char *dst, char const *src, size_t length) {
 ULIB_INLINE
 void ulib_str_to_lower(char *dst, char const *src, size_t length) {
     while (length--) dst[length] = ulib_char_to_lower(src[length]);
+}
+
+/**
+ * Reverses the given string in place.
+ *
+ * @param string String to reverse.
+ * @param length Length of the string.
+ */
+ULIB_INLINE
+void ulib_str_reverse(char *string, size_t length) {
+    if (length < 2) return;
+    for (size_t i = 0; i < --length; ++i) {
+        ulib_swap(char, string[i], string[length]);
+    }
 }
 
 /**

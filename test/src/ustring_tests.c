@@ -11,8 +11,13 @@
 enum { MAX_ASCII = 127 };
 
 void ustring_utils_test(void) {
-    char const str[] = "12345";
+    char str[] = "12345";
     size_t const str_len = sizeof(str) - 1;
+
+    ulib_str_reverse(str, str_len);
+    utest_assert_string(str, ==, "54321");
+    ulib_str_reverse(str, str_len);
+    utest_assert_string(str, ==, "12345");
 
     char *string = ulib_str_dup(str, str_len);
     utest_assert_not_null(string);
