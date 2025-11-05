@@ -321,6 +321,22 @@ utime_stamp utime_get_timestamp(void) {
     utime_ns utime_get_ns(void) {
         return (utime_ns)micros() * 1000;
     }
+#elif defined(__ZEPHYR__)
+    #include <stdint.h>
+    #include <zephyr/drivers/timer/system_timer.h>
+    #include <zephyr/kernel.h>
+    #include <zephyr/sys/time_units.h>
+    #include <zephyr/sys/util_macro.h>
+
+    utime_ns utime_get_ns(void) {
+    #if IS_ENABLED(CONFIG_TIMER_HAS_64BIT_CYCLE_COUNTER)
+        uint64_t const cycles = k_cycle_get_64();
+        return (utime_ns)k_cyc_to_ns_floor64(cycles);
+    #else
+        int64_t const ticks = k_uptime_ticks();
+        return (utime_ns)k_ticks_to_ns_floor64(ticks);
+    #endif
+    }
 #else
     #ifdef CLOCK_MONOTONIC
         typedef struct timespec utimespec;
