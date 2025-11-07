@@ -291,6 +291,16 @@ static ulib_ret uistream_buffered_reset(void *ctx) {
     return uistream_reset(&bs->raw_stream);
 }
 
+static UIStreamBuffered *uistream_buffered_alloc(UIStream const *raw, size_t buffer_size) {
+    UIStreamBuffered *bs = ulib_malloc(sizeof(UIStreamBuffered) + buffer_size);
+    if (ulib_unlikely(!bs)) return NULL;
+    bs->raw_stream = *raw;
+    bs->size = buffer_size;
+    bs->available = 0;
+    bs->cur = bs->buf;
+    return bs;
+}
+
 static ulib_ret uistream_buffered_free(void *ctx) {
     UIStreamBuffered *bs = ctx;
     ulib_ret ret = uistream_deinit(&bs->raw_stream);
@@ -356,6 +366,15 @@ static ulib_ret uostream_buffered_reset(void *ctx) {
     UOStreamBuffered *bs = ctx;
     bs->cur = bs->buf;
     return uostream_reset(&bs->raw_stream);
+}
+
+static UOStreamBuffered *uostream_buffered_alloc(UOStream const *raw, size_t buffer_size) {
+    UOStreamBuffered *bs = ulib_malloc(sizeof(UOStreamBuffered) + buffer_size);
+    if (ulib_unlikely(!bs)) return NULL;
+    bs->raw_stream = *raw;
+    bs->size = buffer_size;
+    bs->cur = bs->buf;
+    return bs;
 }
 
 static ulib_ret uostream_buffered_free(void *ctx) {
@@ -444,28 +463,31 @@ ulib_ret uistream_from_ustring(UIStream *stream, UString const *string) {
     return uistream_from_buf(stream, ustring_data(*string), ustring_length(*string));
 }
 
-ulib_ret uistream_buffered(UIStream *stream, UIStream **raw_stream, size_t buffer_size) {
-    UIStreamBuffered *bs = NULL;
-    *stream = (UIStream){ .state = ULIB_OK };
+bool uistream_is_buf(UIStream const *stream) {
+    return stream->read == uistream_buffered_read;
+}
 
-    if (buffer_size) {
-        if (!(bs = ulib_malloc(sizeof(*bs) + buffer_size))) stream->state = ULIB_ERR_MEM;
-    } else {
-        stream->state = ULIB_ERR_BOUNDS;
-    }
+size_t uistream_buf_size(UIStream const *stream) {
+    return uistream_is_buf(stream) ? ((UIStreamBuffered *)stream->ctx)->size : 0;
+}
 
-    if (!stream->state) {
-        bs->cur = bs->buf;
-        bs->available = 0;
-        bs->size = buffer_size;
-        stream->ctx = bs;
-        stream->read = uistream_buffered_read;
-        stream->reset = uistream_buffered_reset;
-        stream->free = uistream_buffered_free;
-    }
+ulib_ret uistream_buf(UIStream *stream, size_t buf_size) {
+    if (uistream_is_buf(stream)) return uistream_buf_size(stream) == buf_size ? ULIB_OK : ULIB_ERR;
+    UIStreamBuffered *bs = uistream_buffered_alloc(stream, buf_size);
+    if (ulib_unlikely(!bs)) return ULIB_ERR_MEM;
+    stream->ctx = bs;
+    stream->read = uistream_buffered_read;
+    stream->reset = uistream_buffered_reset;
+    stream->free = uistream_buffered_free;
+    return ULIB_OK;
+}
 
-    *raw_stream = stream->state ? NULL : &bs->raw_stream;
-    return stream->state;
+ulib_ret uistream_unbuf(UIStream *stream) {
+    if (!uistream_is_buf(stream)) return ULIB_OK;
+    UIStreamBuffered *bs = stream->ctx;
+    *stream = bs->raw_stream;
+    ulib_free(bs);
+    return ULIB_OK;
 }
 
 UOStream *uostream_std(void) {
@@ -687,26 +709,30 @@ ulib_ret uostream_add_substream(UOStream *stream, UOStream const *other) {
     return stream->state = uvec_push(ulib_ptr, stream->ctx, (void *)other);
 }
 
-ulib_ret uostream_buffered(UOStream *stream, UOStream **raw_stream, size_t buffer_size) {
-    UOStreamBuffered *bs = NULL;
-    *stream = (UOStream){ .state = ULIB_OK };
+bool uostream_is_buf(UOStream const *stream) {
+    return stream->write == uostream_buffered_write;
+}
 
-    if (buffer_size) {
-        if (!(bs = ulib_malloc(sizeof(*bs) + buffer_size))) stream->state = ULIB_ERR_MEM;
-    } else {
-        stream->state = ULIB_ERR_BOUNDS;
-    }
+size_t uostream_buf_size(UOStream const *stream) {
+    return uostream_is_buf(stream) ? ((UOStreamBuffered *)stream->ctx)->size : 0;
+}
 
-    if (!stream->state) {
-        bs->cur = bs->buf;
-        bs->size = buffer_size;
-        stream->ctx = bs;
-        stream->write = uostream_buffered_write;
-        stream->flush = uostream_buffered_flush;
-        stream->reset = uostream_buffered_reset;
-        stream->free = uostream_buffered_free;
-    }
+ulib_ret uostream_buf(UOStream *stream, size_t buf_size) {
+    if (uostream_is_buf(stream)) return uostream_buf_size(stream) == buf_size ? ULIB_OK : ULIB_ERR;
+    UOStreamBuffered *bs = uostream_buffered_alloc(stream, buf_size);
+    if (ulib_unlikely(!bs)) return ULIB_ERR_MEM;
+    stream->ctx = bs;
+    stream->write = uostream_buffered_write;
+    stream->flush = uostream_buffered_flush;
+    stream->reset = uostream_buffered_reset;
+    stream->free = uostream_buffered_free;
+    return ULIB_OK;
+}
 
-    *raw_stream = stream->state ? NULL : &bs->raw_stream;
-    return stream->state;
+ulib_ret uostream_unbuf(UOStream *stream) {
+    if (!uostream_is_buf(stream)) return ULIB_OK;
+    UOStreamBuffered *bs = stream->ctx;
+    *stream = bs->raw_stream;
+    ulib_free(bs);
+    return ULIB_OK;
 }

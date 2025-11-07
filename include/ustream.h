@@ -231,21 +231,43 @@ ULIB_API
 ulib_ret uistream_from_ustring(UIStream *stream, UString const *string);
 
 /**
- * Initializes a buffered stream that reads from the specified stream.
+ * Checks whether the input stream is buffered.
  *
  * @param stream Input stream.
- * @param[out] raw_stream Raw stream.
- * @param buffer_size Buffer size.
- * @return Return code.
- *
- * @destructor{uistream_deinit}
- * @note You must only initialize the returned raw stream, which is then managed
- *       by the buffered stream. Using the raw stream directly will result in the buffer
- *       becoming out of sync, leading to undefined behavior.
- * @note The raw stream is automatically deinitialized when the buffered stream is deinitialized.
+ * @return True if the stream is buffered, false otherwise.
  */
 ULIB_API
-ulib_ret uistream_buffered(UIStream *stream, UIStream **raw_stream, size_t buffer_size);
+ULIB_PURE
+bool uistream_is_buf(UIStream const *stream);
+
+/**
+ * Gets the buffer size of an input stream.
+ *
+ * @param stream Input stream.
+ * @return Buffer size, or zero if the stream is not buffered.
+ */
+ULIB_API
+ULIB_PURE
+size_t uistream_buf_size(UIStream const *stream);
+
+/**
+ * Buffers the input stream with the specified buffer size.
+ *
+ * @param stream Input stream.
+ * @param buf_size Buffer size.
+ * @return Return code.
+ */
+ULIB_API
+ulib_ret uistream_buf(UIStream *stream, size_t buf_size);
+
+/**
+ * Unbuffers the input stream.
+ *
+ * @param stream Input stream.
+ * @return Return code.
+ */
+ULIB_API
+ulib_ret uistream_unbuf(UIStream *stream);
 
 /// @}
 
@@ -614,22 +636,43 @@ ULIB_API
 ulib_ret uostream_add_substream(UOStream *stream, UOStream const *other);
 
 /**
- * Initializes a buffered stream that writes to the specified stream.
+ * Checks whether the output stream is buffered.
  *
  * @param stream Output stream.
- * @param[out] raw_stream Raw stream.
- * @param buffer_size Buffer size.
- * @return Return code.
- *
- * @destructor{uostream_deinit}
- *
- * @note You must only initialize the returned raw stream, which is then managed
- *       by the buffered stream. Using the raw stream directly will result in the buffer
- *       becoming out of sync, leading to undefined behavior.
- * @note The raw stream is automatically deinitialized when the buffered stream is deinitialized.
+ * @return True if the stream is buffered, false otherwise.
  */
 ULIB_API
-ulib_ret uostream_buffered(UOStream *stream, UOStream **raw_stream, size_t buffer_size);
+ULIB_PURE
+bool uostream_is_buf(UOStream const *stream);
+
+/**
+ * Gets the buffer size of an output stream.
+ *
+ * @param stream Output stream.
+ * @return Buffer size, or zero if the stream is not buffered.
+ */
+ULIB_API
+ULIB_PURE
+size_t uostream_buf_size(UOStream const *stream);
+
+/**
+ * Buffers the output stream with the specified buffer size.
+ *
+ * @param stream Output stream.
+ * @param buf_size Buffer size.
+ * @return Return code.
+ */
+ULIB_API
+ulib_ret uostream_buf(UOStream *stream, size_t buf_size);
+
+/**
+ * Unbuffers the output stream.
+ *
+ * @param stream Output stream.
+ * @return Return code.
+ */
+ULIB_API
+ulib_ret uostream_unbuf(UOStream *stream);
 
 /// @}
 

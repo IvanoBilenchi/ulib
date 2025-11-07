@@ -95,15 +95,14 @@ void uistream_buf_test(void) {
 
 void uistream_buffered_test(void) {
     UIStream stream;
-    UIStream *raw_stream;
 
-    utest_assert_ok(uistream_buffered(&stream, &raw_stream, 4));
-    utest_assert_ok(uistream_from_path(raw_stream, test_data_file));
+    utest_assert_ok(uistream_from_path(&stream, test_data_file));
+    utest_assert_ok(uistream_buf(&stream, 4));
     istream_test(&stream);
 
     char buf[TEST_DATA_SIZE];
-    utest_assert_ok(uistream_buffered(&stream, &raw_stream, 4));
-    utest_assert_ok(uistream_from_buf(raw_stream, test_data, TEST_DATA_SIZE));
+    utest_assert_ok(uistream_from_buf(&stream, test_data, TEST_DATA_SIZE));
+    utest_assert_ok(uistream_buf(&stream, 4));
 
     for (size_t i = 0; i < TEST_DATA_SIZE;) {
         size_t to_read = urand_range(1, 7);
@@ -218,10 +217,9 @@ void uostream_multi_test(void) {
 }
 
 void uostream_buffered_test(void) {
-    UOStream *raw_stream;
     UOStream stream;
-    utest_assert_ok(uostream_buffered(&stream, &raw_stream, 4));
-    utest_assert_ok(uostream_to_path(raw_stream, test_output_file));
+    utest_assert_ok(uostream_to_path(&stream, test_output_file));
+    utest_assert_ok(uostream_buf(&stream, 4));
 
     for (size_t i = 0; i < TEST_DATA_SIZE;) {
         size_t to_write = urand_range(1, 7);
