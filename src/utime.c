@@ -318,11 +318,11 @@ utime_stamp utime_get_timestamp(void) {
     }
 #elif defined(ARDUINO)
     #include <Arduino.h>
+
     utime_ns utime_get_ns(void) {
         return (utime_ns)micros() * 1000;
     }
 #elif defined(__ZEPHYR__)
-    #include <stdint.h>
     #include <zephyr/drivers/timer/system_timer.h>
     #include <zephyr/kernel.h>
     #include <zephyr/sys/time_units.h>
@@ -330,32 +330,30 @@ utime_stamp utime_get_timestamp(void) {
 
     utime_ns utime_get_ns(void) {
     #if IS_ENABLED(CONFIG_TIMER_HAS_64BIT_CYCLE_COUNTER)
-        uint64_t const cycles = k_cycle_get_64();
+        utime_ns const cycles = (utime_ns)k_cycle_get_64();
         return (utime_ns)k_cyc_to_ns_floor64(cycles);
     #else
-        int64_t const ticks = k_uptime_ticks();
+        utime_ns const ticks = (utime_ns)k_uptime_ticks();
         return (utime_ns)k_ticks_to_ns_floor64(ticks);
     #endif
     }
-#else
-    #ifdef CLOCK_MONOTONIC
-        typedef struct timespec utimespec;
-        #ifdef CLOCK_MONOTONIC_RAW
-            #define utime_get_timespec(t) clock_gettime(CLOCK_MONOTONIC_RAW, t)
-        #else
-            #define utime_get_timespec(t) clock_gettime(CLOCK_MONOTONIC, t)
-        #endif
-    #elif defined(TIME_UTC)
-        typedef struct timespec utimespec;
-        #define utime_get_timespec(t) timespec_get(t, TIME_UTC)
+#elif defined(TIME_UTC) || defined(CLOCK_MONOTONIC)
+    #ifdef CLOCK_MONOTONIC_RAW
+        #define p_get_timespec(t) clock_gettime(CLOCK_MONOTONIC_RAW, t)
+    #elif defined(CLOCK_MONOTONIC)
+        #define p_get_timespec(t) clock_gettime(CLOCK_MONOTONIC, t)
     #else
-        typedef struct utimespec { utime_ns tv_sec; utime_ns tv_nsec; } utimespec;
-        #define utime_get_timespec(t) (*(t) = (struct utimespec){0})
+        #define p_get_timespec(t) timespec_get(t, TIME_UTC)
     #endif
 
     utime_ns utime_get_ns(void) {
-        utimespec ts;
-        utime_get_timespec(&ts);
+        struct timespec ts;
+        p_get_timespec(&ts);
         return ((utime_ns)ts.tv_sec * NS_PER_S) + (utime_ns)ts.tv_nsec;
+    }
+#else
+    #include "uwarning.h"
+    utime_ns utime_get_ns(void) {
+        return 0;
     }
 #endif
