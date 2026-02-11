@@ -208,6 +208,15 @@ bool utest_passed(void);
 #define utest_assert_ok(ret) utest_assert_ret(ret, ULIB_OK)
 
 /**
+ * Assert that the specified pointer must be NULL.
+ *
+ * @param ptr Pointer.
+ *
+ * @alias void utest_assert_null(void *ptr);
+ */
+#define utest_assert_null(ptr) utest_assert_msg(!(ptr), "\"" #ptr "\" must be NULL")
+
+/**
  * Assert that the specified pointer must not be NULL.
  *
  * @param ptr Pointer.

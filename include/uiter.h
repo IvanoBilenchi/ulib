@@ -15,21 +15,43 @@
 #include "uattrs.h"
 #include "ulib_ret.h"
 #include "unumber.h"
-#include "uutils.h"
 #include <stddef.h>
 #include <stdint.h>
 
 ULIB_BEGIN_DECLS
 
 /// An iterator.
-typedef struct UIter {
+typedef struct UIter UIter;
+
+/// @cond
+struct UIterBuf {
+    size_t _elem_size;
+    ulib_byte *_cur;
+    ulib_byte *_oob;
+};
+
+struct UIterHash {
+    uint32_t const *_flags;
+    ulib_byte *_keys;
+    size_t _key_size;
+    ulib_uint _size;
+    ulib_uint _cur;
+};
+/// @endcond
+
+struct UIter {
     /// @cond
     ulib_ret _state;
-    void *_data;
-    void *(*_next)(void *data, ulib_ret *state);
-    void (*_free)(void *data);
+    UIter *_next_iter;
+    void *(*_next)(UIter *self);
+    void (*_free)(UIter *self);
+    union {
+        struct UIterBuf _buf;
+        struct UIterHash _hash;
+        void *_data;
+    };
     /// @endcond
-} UIter;
+};
 
 /**
  * @defgroup UIter UIter API
@@ -46,16 +68,9 @@ typedef struct UIter {
  *
  * @destructor{uiter_deinit}
  */
+ULIB_API
 ULIB_CONST
-ULIB_INLINE
-UIter uiter(void const *data, void *(*next)(void *data, ulib_ret *state),
-            void (*free)(void *data)) {
-    UIter iter = ulib_zero_init;
-    iter._data = (void *)data;
-    iter._next = next;
-    iter._free = free;
-    return iter;
-}
+UIter uiter(void const *data, void *(*next)(UIter *self), void (*free)(UIter *self));
 
 /**
  * Creates an empty iterator.
@@ -65,6 +80,7 @@ UIter uiter(void const *data, void *(*next)(void *data, ulib_ret *state),
  * @destructor{uiter_deinit}
  */
 ULIB_API
+ULIB_CONST
 UIter uiter_empty(void);
 
 /**
@@ -93,26 +109,27 @@ UIter uiter_buf(void const *buf, size_t count, size_t elem_size);
 #define uiter_array(array, count) uiter_buf(array, count, sizeof(*(array)))
 
 /**
- * Joins multiple iterators into a single iterator.
+ * Joins two iterators.
  *
- * @param iters Array of iterators to join.
- * @param count Number of iterators in the array.
- * @return Joined iterator.
+ * @param iter First iterator.
+ * @param other Second iterator.
+ * @return Return code.
  *
- * @destructor{uiter_deinit}
+ * @note The second iterator is consumed by this operation and should not be used afterwards.
  */
 ULIB_API
-UIter uiter_join(UIter *iters, size_t count);
+ulib_ret uiter_join(UIter *iter, UIter *other);
 
 /**
  * Deinitializes an iterator.
  *
  * @param iter Iterator to deinitialize.
+ *
+ * @note Iterators are automatically deinitialized when exhausted. Calling this function
+ *       is only necessary if you stop iterating before reaching the end.
  */
-ULIB_INLINE
-void uiter_deinit(UIter *iter) {
-    if (iter->_free) iter->_free(iter->_data);
-}
+ULIB_API
+void uiter_deinit(UIter *iter);
 
 /**
  * Retrieves the next element from the iterator.
@@ -120,10 +137,8 @@ void uiter_deinit(UIter *iter) {
  * @param iter Iterator.
  * @return Next element, or NULL if the iteration is finished or an error occurred.
  */
-ULIB_INLINE
-void *uiter_next(UIter *iter) {
-    return iter->_next(iter->_data, &iter->_state);
-}
+ULIB_API
+void *uiter_next(UIter *iter);
 
 /**
  * Retrieves the current state of the iterator.
@@ -135,6 +150,33 @@ ULIB_PURE
 ULIB_INLINE
 ulib_ret uiter_state(UIter const *iter) {
     return iter->_state;
+}
+
+/**
+ * Sets the state of the iterator.
+ *
+ * @param iter Iterator.
+ * @param state New state.
+ *
+ * @note Should only be used in the functions of custom iterators created with @func{uiter}.
+ */
+ULIB_INLINE
+void uiter_set_state(UIter *iter, ulib_ret state) {
+    iter->_state = state;
+}
+
+/**
+ * Retrieves the user-defined data associated with the iterator.
+ *
+ * @param iter Iterator.
+ * @return User-defined data.
+ *
+ * @note Should only be used in the functions of custom iterators created with @func{uiter}.
+ */
+ULIB_PURE
+ULIB_INLINE
+void *uiter_data(UIter const *iter) {
+    return iter->_data;
 }
 
 /**
@@ -153,6 +195,47 @@ ulib_ret uiter_state(UIter const *iter) {
  * @param var @ctype{symbol} Name of the variable holding the current item.
  */
 #define uiter_foreach(T, iter, var) for (T * var; (var = (T *)uiter_next(iter)) != NULL;)
+
+/**
+ * Breaks out of a @func{uiter_foreach} loop, deinitializing the iterator.
+ *
+ * Usage example:
+ * @code
+ * uiter_foreach (ulib_int, iter, var) {
+ *     if (some_condition) {
+ *         uiter_break(iter);
+ *     }
+ *     ...
+ * }
+ * @endcode
+ *
+ * @param iter @type{UIter *} Iterator.
+ */
+#define uiter_break(iter)                                                                          \
+    if (1) {                                                                                       \
+        uiter_deinit(iter);                                                                        \
+        break;                                                                                     \
+    } else                                                                                         \
+        ((void)0)
+
+/**
+ * Continues to the next iteration of a @func{uiter_foreach} loop.
+ *
+ * Usage example:
+ * @code
+ * uiter_foreach (ulib_int, iter, var) {
+ *     if (some_condition) {
+ *         uiter_continue(iter);
+ *     }
+ *     ...
+ * }
+ * @endcode
+ *
+ * @param iter @type{UIter *} Iterator.
+ *
+ * @note Provided for symmetry with @func{uiter_break}.
+ */
+#define uiter_continue(iter) continue
 
 /// @}
 

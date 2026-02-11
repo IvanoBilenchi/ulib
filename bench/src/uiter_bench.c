@@ -53,11 +53,9 @@ static ulib_uint compute_iter(UVec(UString) const *vec) {
 static ulib_uint compute_iter_multi(UVec(UString) const *vec) {
     ulib_uint ret = 0;
     UString buf = ustring_empty;
-    UIter iters[] = {
-        uvec_iter(UString, vec),
-        uiter_array(&buf, 1),
-    };
-    UIter iter = uiter_join(iters, ulib_array_count(iters));
+    UIter iter = uvec_iter(UString, vec);
+    UIter other = uiter_array(&buf, 1);
+    uiter_join(&iter, &other);
     uiter_foreach (UString, &iter, val) {
         ret += compute_str(val);
     }
@@ -79,7 +77,10 @@ static void bench_uiter_param(unsigned str_len, unsigned count) {
     UVec(UString) vec = generate_data(str_len, count);
 
     ulib_uint results[] = {
-        compute_loop(&vec), // Cache warmup.
+        compute_loop(&vec),
+        compute_foreach(&vec),
+        compute_iter(&vec),
+        compute_iter_multi(&vec), // Cache warmup.
         bench("loop", &vec, compute_loop),
         bench("foreach", &vec, compute_foreach),
         bench("iter", &vec, compute_iter),

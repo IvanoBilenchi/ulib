@@ -8,70 +8,76 @@
 #include "ulib.h"
 #include <stddef.h>
 
+enum {
+    JOIN_COUNT = 3,
+    ITEM_COUNT = 100,
+};
+
 void uiter_test_buf(void) {
     char const data[] = "Hello, world!";
     size_t const len = sizeof(data) - 1;
 
     UIter iter = uiter_array(data, len);
-    ulib_uint count = 0;
+    unsigned count = 0;
 
     uiter_foreach (char, &iter, c) {
         utest_assert_uint(*c, ==, *(data + count));
         ++count;
     }
+
     utest_assert_uint(count, ==, len);
-    uiter_deinit(&iter);
+    utest_assert_null(uiter_next(&iter));
 
-    UIter iters[] = {
-        uiter_array(data, len),
-        uiter_array(data, len),
-    };
-    iter = uiter_join(iters, ulib_array_count(iters));
+    iter = uiter_array(data, len);
 
-    UIter more[] = {
-        iter,
-        uiter_array(data, len),
-        uiter_array(data, len),
-    };
-    iter = uiter_join(more, ulib_array_count(more));
+    for (unsigned i = 0; i < JOIN_COUNT; ++i) {
+        UIter other = uiter_array(data, len);
+        utest_assert(uiter_join(&iter, &other) == ULIB_OK);
+    }
 
     count = 0;
+
     uiter_foreach (char, &iter, c) {
         utest_assert_uint(*c, ==, *(data + (count % len)));
         ++count;
     }
-    utest_assert_uint(count, ==, 4 * len);
-    uiter_deinit(&iter);
+
+    utest_assert_uint(count, ==, (JOIN_COUNT + 1) * len);
+    utest_assert_null(uiter_next(&iter));
 }
 
 void uiter_test_vec(void) {
     UVec(ulib_uint) vec = uvec(ulib_uint);
-    for (ulib_uint i = 0; i < 100; ++i) uvec_push(ulib_uint, &vec, i);
+    for (unsigned i = 0; i < ITEM_COUNT; ++i) uvec_push(ulib_uint, &vec, (ulib_uint)i);
 
     UIter iter = uvec_iter(ulib_uint, &vec);
-    ulib_uint count = 0;
+    unsigned count = 0;
 
     uiter_foreach (ulib_uint, &iter, val) {
         utest_assert_uint(*val, ==, count);
         ++count;
     }
-    utest_assert_uint(count, ==, 100);
-    uiter_deinit(&iter);
+
+    utest_assert_uint(count, ==, ITEM_COUNT);
+    utest_assert_null(uiter_next(&iter));
+
     uvec_deinit(ulib_uint, &vec);
 }
 
 void uiter_test_hash(void) {
     UHash(ulib_uint) h = uhmap(ulib_uint);
-    for (ulib_uint i = 0; i < 100; ++i) uhmap_set(ulib_uint, &h, i, NULL, NULL);
+    for (unsigned i = 0; i < ITEM_COUNT; ++i) uhmap_set(ulib_uint, &h, (ulib_uint)i, NULL, NULL);
 
     UIter iter = uhash_iter(ulib_uint, &h);
-    ulib_uint count = 0;
+    unsigned count = 0;
 
-    uiter_foreach (ulib_uint, &iter, e) {
-        utest_assert_uint(*e, ==, count);
+    uiter_foreach (ulib_uint, &iter, key) {
+        utest_assert_uint(*key, ==, count);
         ++count;
     }
-    utest_assert_uint(count, ==, 100);
-    uiter_deinit(&iter);
+
+    utest_assert_uint(count, ==, ITEM_COUNT);
+    utest_assert_null(uiter_next(&iter));
+
     uhash_deinit(ulib_uint, &h);
 }
