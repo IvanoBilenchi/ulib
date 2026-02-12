@@ -27,8 +27,15 @@ static void *empty_next(ulib_unused UIter *self) {
     return NULL;
 }
 
+static UIter empty_iter(ulib_ret state) {
+    return (UIter){
+        ._state = state,
+        ._next = empty_next,
+    };
+}
+
 UIter uiter_empty(void) {
-    return uiter(NULL, empty_next, NULL);
+    return empty_iter(ULIB_OK);
 }
 
 static inline bool is_empty(UIter const *iter) {
@@ -86,22 +93,65 @@ ulib_ret uiter_join(UIter *iter, UIter *other) {
     UIter *it = ulib_alloc(it);
     if (!it) return iter->_state = ULIB_ERR_MEM;
     *it = *other;
-    other = it;
 
     while (iter->_next_iter) iter = iter->_next_iter;
-    iter->_next_iter = other;
+    iter->_next_iter = it;
+    return ULIB_OK;
+}
+
+static void *map_next(UIter *self) {
+    struct UIterMap *d = &self->_map;
+
+    void *mapped = NULL;
+    while (!mapped) {
+        mapped = uiter_next(d->_iter);
+        self->_state = d->_iter->_state;
+        if (!mapped) break;
+        mapped = d->_map(self, d->_ctx, mapped);
+    }
+
+    return mapped;
+}
+
+static void map_free(UIter *self) {
+    struct UIterMap *d = &self->_map;
+    if (d->_free) d->_free(self, d->_ctx);
+    uiter_deinit(d->_iter);
+    ulib_free(d->_iter);
+}
+
+ulib_ret uiter_map(UIter *iter, void *ctx, void *(*map)(UIter *self, void *ctx, void *elem),
+                   void (*free)(UIter *self, void *ctx)) {
+    if (is_empty(iter)) return ULIB_OK;
+
+    UIter *it = ulib_alloc(it);
+    if (!it) return iter->_state = ULIB_ERR_MEM;
+    *it = *iter;
+
+    *iter = (UIter) {
+        ._state = it->_state,
+        ._next = map_next,
+        ._free = map_free,
+        ._map = {
+            ._iter = it,
+            ._ctx = ctx,
+            ._map = map,
+            ._free = free,
+        },
+    };
     return ULIB_OK;
 }
 
 static inline void deinit(UIter *iter) {
     if (iter->_free) iter->_free(iter);
-    *iter = uiter_empty();
+    *iter = empty_iter(iter->_state);
 }
 
 static inline bool swap_next(UIter *iter) {
     UIter *next = iter->_next_iter;
     deinit(iter);
     if (!next) return false;
+    next->_state = iter->_state;
     *iter = *next;
     ulib_free(next);
     return true;
@@ -114,12 +164,12 @@ void *uiter_next(UIter *iter) {
 }
 
 void uiter_deinit(UIter *iter) {
+    UIter *next = iter->_next_iter;
     deinit(iter);
-    iter = iter->_next_iter;
-    while (iter) {
-        UIter *next = iter->_next_iter;
-        deinit(iter);
-        ulib_free(iter);
-        iter = next;
+    while (next) {
+        iter = next->_next_iter;
+        deinit(next);
+        ulib_free(next);
+        next = iter;
     }
 }

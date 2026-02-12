@@ -11,7 +11,9 @@
 void uiter_test_buf(void);
 void uiter_test_vec(void);
 void uiter_test_hash(void);
+void uiter_test_join(void);
+void uiter_test_map(void);
 
-#define UITER_TESTS uiter_test_buf, uiter_test_vec, uiter_test_hash
+#define UITER_TESTS uiter_test_buf, uiter_test_vec, uiter_test_hash, uiter_test_join, uiter_test_map
 
 #endif // UITER_TESTS_H

@@ -15,6 +15,7 @@
 #include "uattrs.h"
 #include "ulib_ret.h"
 #include "unumber.h"
+#include "uwarning.h"
 #include <stddef.h>
 #include <stdint.h>
 
@@ -37,6 +38,13 @@ struct UIterHash {
     ulib_uint _size;
     ulib_uint _cur;
 };
+
+struct UIterMap {
+    UIter *_iter;
+    void *_ctx;
+    void *(*_map)(UIter *self, void *ctx, void *elem);
+    void (*_free)(UIter *self, void *ctx);
+};
 /// @endcond
 
 struct UIter {
@@ -48,6 +56,7 @@ struct UIter {
     union {
         struct UIterBuf _buf;
         struct UIterHash _hash;
+        struct UIterMap _map;
         void *_data;
     };
     /// @endcond
@@ -119,6 +128,19 @@ UIter uiter_buf(void const *buf, size_t count, size_t elem_size);
  */
 ULIB_API
 ulib_ret uiter_join(UIter *iter, UIter *other);
+
+/**
+ * Maps an iterator.
+ *
+ * @param iter Iterator.
+ * @param ctx User-defined context.
+ * @param map Function that maps each element. Return NULL to skip an element.
+ * @param free Function that deinitializes the user-defined context.
+ * @return Return code.
+ */
+ULIB_API
+ulib_ret uiter_map(UIter *iter, void *ctx, void *(*map)(UIter *self, void *ctx, void *elem),
+                   void (*free)(UIter *self, void *ctx));
 
 /**
  * Deinitializes an iterator.
@@ -211,12 +233,17 @@ void *uiter_data(UIter const *iter) {
  *
  * @param iter @type{UIter *} Iterator.
  */
+// clang-format off
 #define uiter_break(iter)                                                                          \
+    ULIB_SUPPRESS_ONE(GNUC, "-Wdangling-else")                                                     \
+    /* NOLINTBEGIN */                                                                              \
     if (1) {                                                                                       \
         uiter_deinit(iter);                                                                        \
         break;                                                                                     \
-    } else                                                                                         \
-        ((void)0)
+    } else ((void)0)                                                                               \
+    /* NOLINTEND */                                                                                \
+    ULIB_SUPPRESS_END(GNUC)
+// clang-format on
 
 /**
  * Continues to the next iteration of a @func{uiter_foreach} loop.
