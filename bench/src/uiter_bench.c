@@ -91,7 +91,7 @@ static ulib_uint compute_iter_join_map(UVec(UString) const *vec) {
 static UVec(UString) generate_data(unsigned str_len, unsigned count) {
     UVec(UString) vec = uvec(UString);
     for (unsigned i = 0; i < count; ++i) {
-        UString str = urand_string((ulib_uint)str_len, NULL);
+        UString str = urand_string((ulib_uint)(str_len - 1), NULL);
         uvec_push(UString, &vec, str);
     }
     return vec;

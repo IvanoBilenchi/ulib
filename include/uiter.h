@@ -25,13 +25,13 @@ ULIB_BEGIN_DECLS
 typedef struct UIter UIter;
 
 /// @cond
-struct UIterBuf {
+struct p_uiter_buf {
     size_t _elem_size;
     ulib_byte *_cur;
     ulib_byte *_oob;
 };
 
-struct UIterHash {
+struct p_uiter_hash {
     uint32_t const *_flags;
     ulib_byte *_keys;
     size_t _key_size;
@@ -39,7 +39,13 @@ struct UIterHash {
     ulib_uint _cur;
 };
 
-struct UIterMap {
+struct p_uiter_join {
+    ulib_uint _cur;
+    ulib_uint _count;
+    UIter *_iters;
+};
+
+struct p_uiter_map {
     UIter *_iter;
     void *_ctx;
     void *(*_map)(UIter *self, void *ctx, void *elem);
@@ -50,13 +56,13 @@ struct UIterMap {
 struct UIter {
     /// @cond
     ulib_ret _state;
-    UIter *_next_iter;
     void *(*_next)(UIter *self);
     void (*_free)(UIter *self);
     union {
-        struct UIterBuf _buf;
-        struct UIterHash _hash;
-        struct UIterMap _map;
+        struct p_uiter_buf _buf;
+        struct p_uiter_hash _hash;
+        struct p_uiter_join _join;
+        struct p_uiter_map _map;
         void *_data;
     };
     /// @endcond
@@ -150,8 +156,11 @@ ulib_ret uiter_map(UIter *iter, void *ctx, void *(*map)(UIter *self, void *ctx, 
  * @note Iterators are automatically deinitialized when exhausted. Calling this function
  *       is only necessary if you stop iterating before reaching the end.
  */
-ULIB_API
-void uiter_deinit(UIter *iter);
+ULIB_INLINE
+void uiter_deinit(UIter *iter) {
+    if (iter->_free) iter->_free(iter);
+    *iter = uiter_empty();
+}
 
 /**
  * Retrieves the next element from the iterator.
@@ -159,8 +168,12 @@ void uiter_deinit(UIter *iter);
  * @param iter Iterator.
  * @return Next element, or NULL if the iteration is finished or an error occurred.
  */
-ULIB_API
-void *uiter_next(UIter *iter);
+ULIB_INLINE
+void *uiter_next(UIter *iter) {
+    void *next = iter->_next(iter);
+    if (!next) uiter_deinit(iter);
+    return next;
+}
 
 /**
  * Retrieves the current state of the iterator.
