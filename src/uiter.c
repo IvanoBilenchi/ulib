@@ -23,6 +23,32 @@ UIter uiter(void const *data, void *(*next)(UIter *self), void (*free)(UIter *se
     };
 }
 
+void uiter_deinit(UIter *iter) {
+    if (iter->_free) iter->_free(iter);
+    if (iter->_data_type == P_UITER_DATA_ALLOC) ulib_free(iter->_data);
+    *iter = uiter_empty();
+}
+
+void *uiter_alloc_data(UIter *iter, size_t data_size) {
+    if (data_size == 0) return NULL;
+
+    if (data_size <= P_UITER_INLINE_SIZE) {
+        iter->_data_type = P_UITER_DATA_INLINE;
+        return &iter->_inline_data;
+    }
+
+    void *data = ulib_malloc(data_size);
+
+    if (!data) {
+        iter->_state = ULIB_ERR_MEM;
+        return NULL;
+    }
+
+    iter->_data_type = P_UITER_DATA_ALLOC;
+    iter->_data = data;
+    return data;
+}
+
 static void *empty_next(ulib_unused UIter *self) {
     return NULL;
 }

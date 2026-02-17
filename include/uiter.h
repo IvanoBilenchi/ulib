@@ -51,14 +51,34 @@ struct p_uiter_map {
     void *(*_map)(UIter *self, void *ctx, void *elem);
     void (*_free)(UIter *self, void *ctx);
 };
+
+struct p_uiter_sizing {
+    union {
+        struct p_uiter_buf _buf;
+        struct p_uiter_hash _hash;
+        struct p_uiter_join _join;
+        struct p_uiter_map _map;
+        void *_data;
+    };
+};
+
+enum p_uiter_data_type {
+    P_UITER_DATA_PTR = 0,
+    P_UITER_DATA_ALLOC,
+    P_UITER_DATA_INLINE,
+};
+
+#define P_UITER_INLINE_SIZE sizeof(struct p_uiter_sizing)
 /// @endcond
 
 struct UIter {
     /// @cond
+    enum p_uiter_data_type _data_type;
     ulib_ret _state;
     void *(*_next)(UIter *self);
     void (*_free)(UIter *self);
     union {
+        ulib_byte _inline_data[P_UITER_INLINE_SIZE];
         struct p_uiter_buf _buf;
         struct p_uiter_hash _hash;
         struct p_uiter_join _join;
@@ -86,6 +106,18 @@ struct UIter {
 ULIB_API
 ULIB_CONST
 UIter uiter(void const *data, void *(*next)(UIter *self), void (*free)(UIter *self));
+
+/**
+ * Allocates user-defined data for an iterator.
+ *
+ * @param iter Iterator.
+ * @param size Size of the user-defined data.
+ * @return Pointer to the allocated data, or NULL if the allocation failed or the size is zero.
+ *
+ * @note The allocated data is automatically deallocated when the iterator is deinitialized.
+ */
+ULIB_API
+void *uiter_alloc_data(UIter *iter, size_t size);
 
 /**
  * Creates an empty iterator.
@@ -156,11 +188,8 @@ ulib_ret uiter_map(UIter *iter, void *ctx, void *(*map)(UIter *self, void *ctx, 
  * @note Iterators are automatically deinitialized when exhausted. Calling this function
  *       is only necessary if you stop iterating before reaching the end.
  */
-ULIB_INLINE
-void uiter_deinit(UIter *iter) {
-    if (iter->_free) iter->_free(iter);
-    *iter = uiter_empty();
-}
+ULIB_API
+void uiter_deinit(UIter *iter);
 
 /**
  * Retrieves the next element from the iterator.
@@ -211,7 +240,7 @@ void uiter_set_state(UIter *iter, ulib_ret state) {
 ULIB_PURE
 ULIB_INLINE
 void *uiter_data(UIter const *iter) {
-    return iter->_data;
+    return iter->_data_type == P_UITER_DATA_INLINE ? (void *)&iter->_inline_data : iter->_data;
 }
 
 /**
