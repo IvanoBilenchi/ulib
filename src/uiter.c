@@ -68,6 +68,20 @@ static inline bool is_empty(UIter const *iter) {
     return iter->_next == empty_next;
 }
 
+static void *one_next(UIter *self) {
+    if (self->_one._used) return NULL;
+    self->_one._used = true;
+    return self->_one._elem;
+}
+
+UIter uiter_one(void const *elem, void (*free)(UIter *self)) {
+    return (UIter){
+        ._next = one_next,
+        ._free = free,
+        ._one = { ._elem = (void *)elem },
+    };
+}
+
 static void *buf_next(UIter *self) {
     struct p_uiter_buf *d = &self->_buf;
     ulib_byte *cur = d->_cur;

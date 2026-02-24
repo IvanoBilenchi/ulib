@@ -13,6 +13,15 @@ enum {
     ITEM_COUNT = 100,
 };
 
+void uiter_test_one(void) {
+    unsigned const data = 42;
+    UIter iter = uiter_one(&data, NULL);
+    unsigned *c = (unsigned *)uiter_next(&iter);
+    utest_assert(c);
+    utest_assert_uint(*c, ==, data);
+    utest_assert_null(uiter_next(&iter));
+}
+
 void uiter_test_buf(void) {
     char const data[] = "Hello, world!";
     size_t const len = sizeof(data) - 1;

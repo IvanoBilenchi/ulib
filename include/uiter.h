@@ -25,6 +25,11 @@ ULIB_BEGIN_DECLS
 typedef struct UIter UIter;
 
 /// @cond
+struct p_uiter_one {
+    bool _used;
+    void *_elem;
+};
+
 struct p_uiter_buf {
     size_t _elem_size;
     ulib_byte *_cur;
@@ -54,6 +59,7 @@ struct p_uiter_map {
 
 struct p_uiter_sizing {
     union {
+        struct p_uiter_one _one;
         struct p_uiter_buf _buf;
         struct p_uiter_hash _hash;
         struct p_uiter_join _join;
@@ -79,6 +85,7 @@ struct UIter {
     void (*_free)(UIter *self);
     union {
         ulib_byte _inline_data[P_UITER_INLINE_SIZE];
+        struct p_uiter_one _one;
         struct p_uiter_buf _buf;
         struct p_uiter_hash _hash;
         struct p_uiter_join _join;
@@ -96,7 +103,7 @@ struct UIter {
 /**
  * Creates a custom iterator.
  *
- * @param data Pointer to user-defined data.
+ * @param data Pointer to user-defined data, or NULL if no data is needed.
  * @param next Function that retrieves the next element from the iterator.
  * @param free Function that deinitializes the user-defined data.
  * @return Iterator.
@@ -114,7 +121,10 @@ UIter uiter(void const *data, void *(*next)(UIter *self), void (*free)(UIter *se
  * @param size Size of the user-defined data.
  * @return Pointer to the allocated data, or NULL if the allocation failed or the size is zero.
  *
+ * @note Should only be used with iterators created with @func{uiter} and NULL data.
  * @note The allocated data is automatically deallocated when the iterator is deinitialized.
+ * @note As an optimization, this function may choose to store small data directly in the iterator
+ *       without performing a separate allocation.
  */
 ULIB_API
 void *uiter_alloc_data(UIter *iter, size_t size);
@@ -129,6 +139,19 @@ void *uiter_alloc_data(UIter *iter, size_t size);
 ULIB_API
 ULIB_CONST
 UIter uiter_empty(void);
+
+/**
+ * Creates an iterator over a single element.
+ *
+ * @param elem Element to iterate over.
+ * @param free Function that deinitializes the element.
+ * @return Iterator.
+ *
+ * @destructor{uiter_deinit}
+ */
+ULIB_API
+ULIB_CONST
+UIter uiter_one(void const *elem, void (*free)(UIter *self));
 
 /**
  * Creates an iterator over a contiguous memory area.
