@@ -15,6 +15,7 @@
 #include "uattrs.h"
 #include "ulib_ret.h"
 #include "unumber.h"
+#include "uutils.h"
 #include "uwarning.h"
 #include <stddef.h>
 #include <stdint.h>
@@ -25,10 +26,10 @@ ULIB_BEGIN_DECLS
 typedef struct UIter UIter;
 
 /// @cond
-enum p_uiter_data_type {
+enum {
     P_UITER_DATA_PTR = 0,
-    P_UITER_DATA_ALLOC,
-    P_UITER_DATA_INLINE,
+    P_UITER_DATA_ALLOC = 1,
+    P_UITER_DATA_INLINE = 2,
 };
 
 #define P_UITER_INLINE_SIZE 32
@@ -36,7 +37,8 @@ enum p_uiter_data_type {
 
 struct UIter {
     /// @cond
-    enum p_uiter_data_type _data_type;
+    ulib_byte _data_type;
+    ulib_byte _util[3];
     ulib_ret _state;
     void *(*_next)(UIter *self);
     void (*_free)(UIter *self);
@@ -93,17 +95,41 @@ ULIB_CONST
 UIter uiter_empty(void);
 
 /**
- * Creates an iterator over a single element.
+ * Creates an iterator over multiple elements.
  *
- * @param elem Element to iterate over.
- * @param free Function that deinitializes the element.
+ * @param count Number of elements to iterate over.
+ * @param elems Array of pointers to the elements to iterate over.
  * @return Iterator.
  *
  * @destructor{uiter_deinit}
  */
 ULIB_API
-ULIB_CONST
-UIter uiter_one(void const *elem, void (*free)(UIter *self));
+UIter uiter_enum(size_t count, void const **elems);
+
+/**
+ * Creates an iterator over a single element.
+ *
+ * @param elem Pointer to element to iterate over.
+ * @return Iterator.
+ *
+ * @destructor{uiter_deinit}
+ */
+ULIB_INLINE
+UIter uiter_one(void const *elem) {
+    return uiter_enum(1, &elem);
+}
+
+/**
+ * Creates an iterator over the elements passed as arguments.
+ *
+ * @param ... Pointers to elements to iterate over.
+ * @return Iterator.
+ *
+ * @destructor{uiter_deinit}
+ * @alias UIter uiter_over(...);
+ */
+#define uiter_over(...)                                                                            \
+    uiter_enum(ulib_array_count(((void const *[]){ __VA_ARGS__ })), (void const *[]){ __VA_ARGS__ })
 
 /**
  * Creates an iterator over a contiguous memory area.

@@ -7,6 +7,7 @@
 
 #include "uiter.h"
 #include "ualloc.h"
+#include "udebug.h"
 #include "uhash.h"
 #include "ulib_ret.h"
 #include "unumber.h"
@@ -74,31 +75,11 @@ static inline bool is_empty(UIter const *iter) {
     return iter->_next == empty_next;
 }
 
-// One element iterator
-
-struct OneData {
-    bool used;
-    void *elem;
-};
-
-static void *one_next(UIter *self) {
-    struct OneData *d = inline_data(self);
-    if (d->used) return NULL;
-    d->used = true;
-    return d->elem;
-}
-
-UIter uiter_one(void const *elem, void (*free)(UIter *self)) {
-    UIter iter = (UIter){ ._data_type = P_UITER_DATA_INLINE, ._next = one_next, ._free = free };
-    struct OneData *d = inline_data(&iter);
-    *d = (struct OneData){ .elem = (void *)elem };
-    return iter;
-}
-
 // Buffer iterator
 
 struct BufData {
     size_t elem_size;
+    ulib_byte *buf;
     ulib_byte *cur;
     ulib_byte *oob;
 };
@@ -116,10 +97,54 @@ UIter uiter_buf(void const *buf, size_t count, size_t elem_size) {
     struct BufData *d = inline_data(&iter);
     *d = (struct BufData){
         .elem_size = elem_size,
+        .buf = (ulib_byte *)buf,
         .cur = (ulib_byte *)buf,
         .oob = (ulib_byte *)buf + (count * elem_size),
     };
     return iter;
+}
+
+// Enumeration iterator
+
+#define SOME_SIZE _util[0]
+#define SOME_CUR _util[1]
+
+static void buf_free(UIter *self) {
+    struct BufData *d = inline_data(self);
+    ulib_free(d->buf);
+}
+
+static void *enum_next(UIter *self) {
+    ulib_byte *d = inline_data(self);
+    if (self->SOME_CUR >= self->SOME_SIZE) return NULL;
+    void *ret = *(void **)(d + self->SOME_CUR);
+    self->SOME_CUR += sizeof(void *);
+    return ret;
+}
+
+static inline UIter enum_inline(void const **data, size_t size) {
+    UIter iter = { ._data_type = P_UITER_DATA_INLINE, ._next = enum_next };
+    iter.SOME_SIZE = (ulib_byte)size;
+    void *d = inline_data(&iter);
+    memcpy(d, (void const *)data, size);
+    return iter;
+}
+
+static inline UIter enum_alloc(void const **data, size_t size) {
+    size_t const count = size / sizeof(void *);
+    void *buf = ulib_malloc(size);
+    if (!buf) return empty_iter(ULIB_ERR_MEM);
+    memcpy(buf, (void const *)data, size);
+    UIter iter = uiter_buf(buf, count, sizeof(void *));
+    ulib_analyzer_assert(((struct BufData *)iter._inline_data)->buf == buf);
+    iter._free = buf_free;
+    return iter;
+}
+
+UIter uiter_enum(size_t count, void const **elems) {
+    if (count == 0) return uiter_empty();
+    size_t const size = count * sizeof(void *);
+    return size <= P_UITER_INLINE_SIZE ? enum_inline(elems, size) : enum_alloc(elems, size);
 }
 
 // Hash table iterator

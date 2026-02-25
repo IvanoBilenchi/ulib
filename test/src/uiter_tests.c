@@ -13,12 +13,27 @@ enum {
     ITEM_COUNT = 100,
 };
 
-void uiter_test_one(void) {
-    unsigned const data = 42;
-    UIter iter = uiter_one(&data, NULL);
+void uiter_test_many(void) {
+    unsigned const data[] = { 42, 43, 44 };
+    UIter iter = uiter_one(&data);
     unsigned *c = (unsigned *)uiter_next(&iter);
     utest_assert(c);
-    utest_assert_uint(*c, ==, data);
+    utest_assert_uint(*c, ==, data[0]);
+    utest_assert_null(uiter_next(&iter));
+
+#ifdef __cplusplus
+    void const *elems[] = { data, data + 1, data + 2 };
+    iter = uiter_enum(ulib_array_count(elems), elems);
+#else
+    iter = uiter_over(data, data + 1, data + 2);
+#endif
+
+    c = (unsigned *)uiter_next(&iter);
+    utest_assert_uint(*c, ==, data[0]);
+    c = (unsigned *)uiter_next(&iter);
+    utest_assert_uint(*c, ==, data[1]);
+    c = (unsigned *)uiter_next(&iter);
+    utest_assert_uint(*c, ==, data[2]);
     utest_assert_null(uiter_next(&iter));
 }
 
