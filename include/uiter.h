@@ -25,56 +25,13 @@ ULIB_BEGIN_DECLS
 typedef struct UIter UIter;
 
 /// @cond
-struct p_uiter_one {
-    bool _used;
-    void *_elem;
-};
-
-struct p_uiter_buf {
-    size_t _elem_size;
-    ulib_byte *_cur;
-    ulib_byte *_oob;
-};
-
-struct p_uiter_hash {
-    uint32_t const *_flags;
-    ulib_byte *_keys;
-    size_t _key_size;
-    ulib_uint _size;
-    ulib_uint _cur;
-};
-
-struct p_uiter_join {
-    ulib_uint _cur;
-    ulib_uint _count;
-    UIter *_iters;
-};
-
-struct p_uiter_map {
-    UIter *_iter;
-    void *_ctx;
-    void *(*_map)(UIter *self, void *ctx, void *elem);
-    void (*_free)(UIter *self, void *ctx);
-};
-
-struct p_uiter_sizing {
-    union {
-        struct p_uiter_one _one;
-        struct p_uiter_buf _buf;
-        struct p_uiter_hash _hash;
-        struct p_uiter_join _join;
-        struct p_uiter_map _map;
-        void *_data;
-    };
-};
-
 enum p_uiter_data_type {
     P_UITER_DATA_PTR = 0,
     P_UITER_DATA_ALLOC,
     P_UITER_DATA_INLINE,
 };
 
-#define P_UITER_INLINE_SIZE sizeof(struct p_uiter_sizing)
+#define P_UITER_INLINE_SIZE 32
 /// @endcond
 
 struct UIter {
@@ -85,11 +42,6 @@ struct UIter {
     void (*_free)(UIter *self);
     union {
         ulib_byte _inline_data[P_UITER_INLINE_SIZE];
-        struct p_uiter_one _one;
-        struct p_uiter_buf _buf;
-        struct p_uiter_hash _hash;
-        struct p_uiter_join _join;
-        struct p_uiter_map _map;
         void *_data;
     };
     /// @endcond
@@ -334,7 +286,7 @@ void *uiter_data(UIter const *iter) {
 // Private API
 
 ULIB_API
-UIter p_uiter_hash(void *keys, uint32_t const *flags, ulib_uint size, size_t key_size);
+UIter p_uiter_hash(void *h, ulib_uint size, size_t key_size);
 
 ULIB_END_DECLS
 

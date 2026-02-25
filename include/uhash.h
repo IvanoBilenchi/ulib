@@ -352,7 +352,7 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
     }                                                                                              \
                                                                                                    \
     ATTRS ULIB_PURE ULIB_INLINE UIter uhash_iter_##T(UHash_##T const *h) {                         \
-        return p_uiter_hash((void *)h->_keys, h->_flags, uhash_size_##T(h), sizeof(uh_key));       \
+        return p_uiter_hash((void *)h, uhash_size_##T(h), sizeof(uh_key));                         \
     }                                                                                              \
                                                                                                    \
     ATTRS ULIB_PURE ULIB_INLINE UHash_Loop_##T p_uhash_loop_##T(UHash_##T const *h) {              \
