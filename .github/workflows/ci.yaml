@@ -12,26 +12,26 @@ env:
 
 jobs:
   analyze:
-    name: Run analyzers
+    name: Analyze
     runs-on: ${{vars.ubuntu_runner || 'ubuntu-latest'}}
     strategy:
       fail-fast: false
       matrix:
         types: [normal, tiny, huge]
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 2
 
-      - name: Run pre-commit
+      - name: Pre-commit
         run: |
           python -m venv .venv
           source .venv/bin/activate
           pip install pre-commit
           pre-commit run --from-ref=HEAD~1 --to-ref=HEAD
 
-      - name: Configure CMake
+      - name: Configure
         run: >
           CC=clang cmake -B ${{env.build_dir}}
           -DULIB_CPP_TESTS=OFF
@@ -57,10 +57,10 @@ jobs:
         lib_type: [STATIC, SHARED]
         types: [normal, tiny, huge]
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configure CMake
+      - name: Configure
         run: >
           cmake -B ${{env.build_dir}}
           -DULIB_LIBRARY_TYPE=${{matrix.lib_type}}
@@ -76,7 +76,7 @@ jobs:
         run: >
           cmake --build ${{env.build_dir}} --config ${{env.config}}
 
-      - name: Configure tests (Windows)
+      - name: Prepare workdir (Windows)
         working-directory: ${{env.build_dir}}
         if: runner.os == 'Windows'
         run: |
@@ -87,7 +87,7 @@ jobs:
           fi
         shell: bash
 
-      - name: Run tests
+      - name: Run
         working-directory: ${{env.build_dir}}
         run: ctest --build-config ${{env.config}} --output-on-failure
 
@@ -102,10 +102,10 @@ jobs:
           - ${{vars.windows_runner || 'windows-latest'}}
           - ${{vars.macos_runner || 'macos-latest'}}
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configure CMake
+      - name: Configure
         run: >
           cmake -B ${{env.build_dir}}
           -DULIB_LTO=ON
@@ -116,7 +116,7 @@ jobs:
       - name: Build
         run: cmake --build ${{env.build_dir}} --config ${{env.config}} --target ulib-bench
 
-      - name: Configure (Windows)
+      - name: Prepare workdir (Windows)
         working-directory: ${{env.build_dir}}/bench
         if: runner.os == 'Windows'
         run: mv ${{env.config}}/*.exe ./
@@ -127,13 +127,13 @@ jobs:
         run: ./ulib-bench
 
   docs:
-    name: Generate the documentation
+    name: Documentation
     runs-on: ${{vars.ubuntu_runner || 'ubuntu-latest'}}
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build docs
+      - name: Build
         run: |
           sudo apt install doxygen
           python -m venv .venv
