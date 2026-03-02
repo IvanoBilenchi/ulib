@@ -34,7 +34,7 @@ ULIB_BEGIN_DECLS
 ULIB_CONST
 ULIB_INLINE
 bool ulib_ret_is_err(ulib_ret ret) {
-    return ret >= ULIB_ERR;
+    return ret < 0;
 }
 
 /**

@@ -34,20 +34,20 @@ enum ulib_ret_builtin {
     ULIB_NO = 1,
 
     /// The operation failed due to an unspecified error.
-    ULIB_ERR = 2,
+    ULIB_ERR = -1,
 
     /// The operation failed due to a memory allocation error.
-    ULIB_ERR_MEM = 3,
+    ULIB_ERR_MEM = -2,
 
     /// Buffer bounds exceeded, or value over/underflowed its type.
-    ULIB_ERR_BOUNDS = 4,
+    ULIB_ERR_BOUNDS = -3,
 
     /**
      * The operation failed due to an IO error.
      *
      * @note When this happens, @cval{errno} is sometimes set to a more meaningful value.
      */
-    ULIB_ERR_IO = 5,
+    ULIB_ERR_IO = -4,
 
 };
 
