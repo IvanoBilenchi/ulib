@@ -38,7 +38,7 @@ ULIB_BEGIN_DECLS
 #define ULOG_COLOR false
 #endif
 
-#define P_ULOG_LEVEL_MIN_EXP 8U
+enum { P_ULOG_LEVEL_MIN_EXP = 8U };
 #define p_ulog_event(level, data) p_ulog_event_f(level, data, ULIB_FILE_NAME, __func__, __LINE__)
 /// @endcond
 
@@ -52,6 +52,10 @@ typedef unsigned ulog_level;
 
 /// Builtin log levels.
 enum ulog_level_builtin {
+
+    /// Marker level for loggers that log everything.
+    ULOG_ALL = 0,
+
     /// Trace level.
     ULOG_TRACE = 1U << P_ULOG_LEVEL_MIN_EXP,
 
@@ -72,13 +76,11 @@ enum ulog_level_builtin {
 
     /// Fatal level.
     ULOG_FATAL = 1U << (P_ULOG_LEVEL_MIN_EXP + 6U),
+
+    // Marker level for disabled loggers.
+    ULOG_DISABLED = INT_MAX,
+
 };
-
-/// Marker level for loggers that log everything.
-#define ULOG_ALL 0
-
-/// Marker level for disabled loggers.
-#define ULOG_DISABLED UINT_MAX
 
 /// Log message.
 typedef struct ULogMsg {

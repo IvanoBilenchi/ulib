@@ -112,7 +112,7 @@ void *p_uleak_realloc_impl(void *ptr, size_t size, char const *file, char const 
     uintptr_t old = (uintptr_t)ptr;
     void *new_ptr = realloc(ptr, size);
 
-    if (new_ptr && old != (uintptr_t)(new_ptr)) {
+    if (new_ptr && old != (uintptr_t)new_ptr) {
         alloc_table_remove(old);
         alloc_table_add(new_ptr, file, fn, line);
     }

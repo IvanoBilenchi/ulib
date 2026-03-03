@@ -27,14 +27,14 @@
 #define NS_MAX (utime_ns)(-1)
 
 enum {
-    MILLIS_PER_SECOND = 1000,
-    MICROS_PER_SECOND = 1000000,
-    NANOS_PER_SECOND = 1000000000,
-    SECONDS_PER_MINUTE = 60,
-    MINUTES_PER_HOUR = 60,
-    HOURS_PER_DAY = 24,
-    DAYS_PER_YEAR = 365,
-    MONTHS_PER_YEAR = 12,
+    MILLIS_PER_SECOND = 1000U,
+    MICROS_PER_SECOND = 1000000U,
+    NANOS_PER_SECOND = 1000000000U,
+    SECONDS_PER_MINUTE = 60U,
+    MINUTES_PER_HOUR = 60U,
+    HOURS_PER_DAY = 24U,
+    DAYS_PER_YEAR = 365U,
+    MONTHS_PER_YEAR = 12U,
 };
 
 #define SECONDS_PER_HOUR (SECONDS_PER_MINUTE * MINUTES_PER_HOUR)
@@ -67,13 +67,13 @@ utime_stamp utime_to_timestamp(UTime const *time) {
 ULIB_INLINE
 void utime_days_to_ymd(long long days, long long *oy, unsigned *om, unsigned *od) {
     days += 719468;
-    long long const era = (long long)((days >= 0 ? days : days - 146096) / 146097);
+    long long const era = (days >= 0 ? days : days - 146096) / 146097;
     unsigned const doe = (unsigned)(days - (era * 146097));
-    unsigned const yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
-    long long const y = (long long)(yoe) + (era * 400);
-    unsigned const doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
-    unsigned const mp = (5 * doy + 2) / 153;
-    *od = doy - ((153 * mp + 2) / 5) + 1;
+    unsigned const yoe = (doe - (doe / 1460) + (doe / 36524) - (doe / 146096)) / 365;
+    long long const y = (long long)yoe + (era * 400);
+    unsigned const doy = doe - ((365 * yoe) + (yoe / 4) - (yoe / 100));
+    unsigned const mp = ((5 * doy) + 2) / 153;
+    *od = doy - (((153 * mp) + 2) / 5) + 1;
     *om = mp < 10 ? mp + 3 : mp - 9;
     *oy = y + (*om <= 2);
 }
@@ -168,8 +168,9 @@ void utime_to_timezone(UTime *time, int tz_hour, unsigned tz_minute) {
 
 long long utime_diff(UTime const *a, UTime const *b, utime_unit unit) {
     if (unit == UTIME_MONTHS || unit == UTIME_YEARS) {
-        long long months = (long long)a->month - (long long)b->month;
-        months += ((long long)a->year - (long long)b->year) * MONTHS_PER_YEAR;
+        long long const m_delta = (long long)a->month - (long long)b->month;
+        long long const y_delta = a->year - b->year;
+        long long const months = (y_delta * MONTHS_PER_YEAR) + m_delta;
         return unit == UTIME_MONTHS ? months : months / MONTHS_PER_YEAR;
     }
 

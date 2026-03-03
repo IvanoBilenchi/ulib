@@ -5,6 +5,7 @@
  * @copyright SPDX-License-Identifier: ISC
  */
 
+#include "uhash_bench.h"
 #include "khashl.h"
 #include "ulib.h"
 #include <stdint.h>

@@ -15,16 +15,16 @@
 // NOLINTBEGIN(clang-analyzer-security.insecureAPI.rand)
 
 #ifndef ULIB_RAND
-#define ULIB_RAND rand
+#define ULIB_RAND /* NOLINT(misc-predictable-rand) */ rand
 #endif
 
 #ifndef ULIB_SRAND
 #define ULIB_SRAND srand
 #endif
 
-char const default_charset_buf[] = "0123456789abcdefghijklmnopqrstuvwxyz";
-UString const default_charset = p_ustring_init_large(default_charset_buf,
-                                                     sizeof(default_charset_buf));
+static char const default_charset_buf[] = "0123456789abcdefghijklmnopqrstuvwxyz";
+static UString const default_charset = p_ustring_init_large(default_charset_buf,
+                                                            sizeof(default_charset_buf));
 
 UString const *urand_default_charset(void) {
     return &default_charset;

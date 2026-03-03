@@ -84,7 +84,7 @@ typedef uint8_t ulib_byte;
  */
 
 /// Minimum value of a @type{ulib_uint} variable.
-#define ULIB_UINT_MIN 0u
+#define ULIB_UINT_MIN 0U // NOLINT(modernize-macro-to-enum)
 
 /**
  * Maximum value of a @type{ulib_uint} variable.
@@ -271,38 +271,38 @@ typedef uint8_t ulib_byte;
 ULIB_CONST
 ULIB_INLINE
 uint16_t ulib_uint16_floor2(uint16_t x) {
-    return (uint16_t)1 << (sizeof(unsigned) * CHAR_BIT - __builtin_clz(x) - 1);
+    return (uint16_t)1 << ((sizeof(unsigned) * CHAR_BIT) - __builtin_clz(x) - 1);
 }
 
 ULIB_CONST
 ULIB_INLINE
 uint32_t ulib_uint32_floor2(uint32_t x) {
-    return (uint32_t)1 << (sizeof(unsigned long) * CHAR_BIT - __builtin_clzl(x) - 1);
+    return (uint32_t)1 << ((sizeof(unsigned long) * CHAR_BIT) - __builtin_clzl(x) - 1);
 }
 
 ULIB_CONST
 ULIB_INLINE
 uint64_t ulib_uint64_floor2(uint64_t x) {
-    return (uint64_t)1 << (sizeof(unsigned long long) * CHAR_BIT - __builtin_clzll(x) - 1);
+    return (uint64_t)1 << ((sizeof(unsigned long long) * CHAR_BIT) - __builtin_clzll(x) - 1);
 }
 
 ULIB_CONST
 ULIB_INLINE
 uint16_t ulib_uint16_ceil2(uint16_t x) {
-    return (uint16_t)1 << (sizeof(unsigned) * CHAR_BIT - __builtin_clz(x) - p_ulib_is_pow2_0(x));
+    return (uint16_t)1 << ((sizeof(unsigned) * CHAR_BIT) - __builtin_clz(x) - p_ulib_is_pow2_0(x));
 }
 
 ULIB_CONST
 ULIB_INLINE
 uint32_t ulib_uint32_ceil2(uint32_t x) {
-    return (uint32_t)1 << (sizeof(unsigned long) * CHAR_BIT - __builtin_clzl(x) -
+    return (uint32_t)1 << ((sizeof(unsigned long) * CHAR_BIT) - __builtin_clzl(x) -
                            p_ulib_is_pow2_0(x));
 }
 
 ULIB_CONST
 ULIB_INLINE
 uint64_t ulib_uint64_ceil2(uint64_t x) {
-    return (uint64_t)1 << (sizeof(unsigned long long) * CHAR_BIT - __builtin_clzll(x) -
+    return (uint64_t)1 << ((sizeof(unsigned long long) * CHAR_BIT) - __builtin_clzll(x) -
                            p_ulib_is_pow2_0(x));
 }
 

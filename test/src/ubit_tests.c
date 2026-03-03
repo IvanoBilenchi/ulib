@@ -5,11 +5,12 @@
  * @copyright SPDX-License-Identifier: ISC
  */
 
+#include "ubit_tests.h"
 #include "ulib.h"
 #include <stdint.h>
 
 #define ubit_test_impl(N)                                                                          \
-    void ubit_test_##N(void) {                                                                     \
+    do {                                                                                           \
         UBit(N) mask = ubit_none(N);                                                               \
         utest_assert_uint(mask, ==, 0);                                                            \
         utest_assert_uint(ubit_count_set(N, mask), ==, 0);                                         \
@@ -81,11 +82,20 @@
         mask = ubit_overwrite(N, 0x55, 0x20, 0x70);                                                \
         utest_assert_uint(mask, ==, 0x25);                                                         \
         utest_assert_uint(ubit_first_set(N, mask), ==, 0);                                         \
-    }
+    } while (0)
 
-// clang-format off
+void ubit_test_8(void) {
+    ubit_test_impl(8);
+}
 
-ubit_test_impl(8)
-ubit_test_impl(16)
-ubit_test_impl(32)
-ubit_test_impl(64)
+void ubit_test_16(void) {
+    ubit_test_impl(16);
+}
+
+void ubit_test_32(void) {
+    ubit_test_impl(32);
+}
+
+void ubit_test_64(void) {
+    ubit_test_impl(64);
+}

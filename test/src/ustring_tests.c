@@ -5,6 +5,7 @@
  * @copyright SPDX-License-Identifier: ISC
  */
 
+#include "ustring_tests.h"
 #include "ulib.h"
 #include <stddef.h>
 

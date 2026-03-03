@@ -367,7 +367,10 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
         loop->i = uhash_next_##T(h, loop->i);                                                      \
         if (loop->i >= loop->size) return false;                                                   \
         loop->key = h->_keys + loop->i;                                                            \
-        if (h->_is_map) loop->val = h->_vals + loop->i;                                            \
+        if (h->_is_map) {                                                                          \
+            ulib_assert(h->_vals);                                                                 \
+            loop->val = h->_vals + loop->i;                                                        \
+        }                                                                                          \
         return true;                                                                               \
     }                                                                                              \
     /** @endcond */

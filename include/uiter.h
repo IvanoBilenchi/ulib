@@ -30,9 +30,8 @@ enum {
     P_UITER_DATA_PTR = 0,
     P_UITER_DATA_ALLOC = 1,
     P_UITER_DATA_INLINE = 2,
+    P_UITER_INLINE_SIZE = 32,
 };
-
-#define P_UITER_INLINE_SIZE 32
 /// @endcond
 
 struct UIter {

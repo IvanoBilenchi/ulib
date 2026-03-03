@@ -5,6 +5,7 @@
  * @copyright SPDX-License-Identifier: ISC
  */
 
+#include "utime_tests.h"
 #include "ulib.h"
 #include <time.h>
 

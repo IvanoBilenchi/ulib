@@ -5,6 +5,7 @@
  * @copyright SPDX-License-Identifier: ISC
  */
 
+#include "uversion_tests.h"
 #include "ulib.h"
 
 void uversion_test(void) {

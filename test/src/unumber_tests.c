@@ -5,6 +5,7 @@
  * @copyright SPDX-License-Identifier: ISC
  */
 
+#include "unumber_tests.h"
 #include "ulib.h"
 
 void unumber_test_pow2(void) {
