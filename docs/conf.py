@@ -36,3 +36,6 @@ breathe_default_members = ("members", "undocmembers")
 breathe_domain_by_extension = {
     "h": "c",
 }
+breathe_show_define_initializer = False
+breathe_show_enumvalue_initializer = False
+breathe_show_include = False

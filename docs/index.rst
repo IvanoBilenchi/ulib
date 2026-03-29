@@ -24,5 +24,6 @@ Welcome to uLib's documentation!
    api/alloc
    api/macros
    api/logging
+   api/threading
    api/test
    api/version

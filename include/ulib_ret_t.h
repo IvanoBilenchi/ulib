@@ -48,7 +48,6 @@ enum ulib_ret_builtin {
      * @note When this happens, @cval{errno} is sometimes set to a more meaningful value.
      */
     ULIB_ERR_IO = -4,
-
 };
 
 ULIB_END_DECLS

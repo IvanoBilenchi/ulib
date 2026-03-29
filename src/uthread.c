@@ -1,0 +1,126 @@
+/**
+ * @author Davide Loconte <davide.loconte21@gmail.com>
+ * @author Ivano Bilenchi
+ *
+ * @copyright Copyright (c) 2026 Ivano Bilenchi <https://ivanobilenchi.com>
+ * @copyright SPDX-License-Identifier: ISC
+ */
+
+#include "uthread.h"
+#include "ulib_ret.h"
+#include "utime.h"
+
+#ifdef ULIB_THREADING
+
+#ifdef P_ULIB_HAS_PTHREADS
+
+#include <pthread.h>
+#include <stddef.h>
+
+static void *worker_func(void *arg) {
+    UThread *t = (UThread *)arg;
+    t->func(t->arg);
+    return NULL;
+}
+
+ulib_ret uthread(UThread *thread, void (*func)(void *), void *arg) {
+    *thread = (UThread){ .func = func, .arg = arg };
+    return ULIB_OK;
+}
+
+ulib_ret uthread_start(UThread *thread) {
+    return pthread_create(&thread->handle, NULL, worker_func, thread) ? ULIB_ERR : ULIB_OK;
+}
+
+ulib_ret uthread_join(UThread *thread) {
+    return pthread_join(thread->handle, NULL) ? ULIB_ERR : ULIB_OK;
+}
+
+ulib_ret uthread_detach(UThread *thread) {
+    return pthread_detach(thread->handle) ? ULIB_ERR : ULIB_OK;
+}
+
+#elif defined(_WIN32)
+
+#include <windows.h>
+
+static DWORD WINAPI worker_func(LPVOID arg) {
+    UThread *t = (UThread *)arg;
+    t->func(t->arg);
+    return 0;
+}
+
+ulib_ret uthread(UThread *thread, void (*func)(void *), void *arg) {
+    *thread = (UThread){ .func = func, .arg = arg };
+    return ULIB_OK;
+}
+
+ulib_ret uthread_start(UThread *thread) {
+    thread->handle = CreateThread(NULL, 0, worker_func, thread, 0, NULL);
+    return thread->handle ? ULIB_OK : ULIB_ERR;
+}
+
+ulib_ret uthread_join(UThread *thread) {
+    return WaitForSingleObject(thread->handle, INFINITE) ? ULIB_ERR : ULIB_OK;
+}
+
+ulib_ret uthread_detach(UThread *thread) {
+    return CloseHandle(thread->handle) ? ULIB_OK : ULIB_ERR;
+}
+
+#endif
+
+#else
+
+#include "uwarning.h"
+
+ulib_ret uthread(UThread *thread, void (*func)(void *), void *arg) {
+    *thread = (UThread){ .func = func, .arg = arg };
+    return ULIB_OK;
+}
+
+ulib_ret uthread_start(UThread *thread) {
+    thread->func(thread->arg);
+    return ULIB_OK;
+}
+
+ulib_ret uthread_join(ulib_unused UThread *thread) {
+    return ULIB_OK;
+}
+
+ulib_ret uthread_detach(ulib_unused UThread *thread) {
+    return ULIB_OK;
+}
+
+#endif // ULIB_THREADING
+
+#if defined(__unix__) || defined(__APPLE__)
+
+#ifndef _UNISTD_H_
+#include <unistd.h>
+#endif
+
+ulib_ret uthread_sleep(utime_ms millis) {
+    return usleep((useconds_t)(millis * 1000)) ? ULIB_ERR : ULIB_OK;
+}
+
+#elif defined(_WIN32)
+
+#ifndef _WINDOWS_
+#include <windows.h>
+#endif
+
+ulib_ret uthread_sleep(utime_ms millis) {
+    Sleep((DWORD)millis);
+    return ULIB_OK;
+}
+
+#else
+
+ulib_ret uthread_sleep(utime_ms millis) {
+    utime_ns start = utime_get_ns();
+    while (utime_get_ns() - start < millis * 1000000);
+    return ULIB_OK;
+}
+
+#endif
