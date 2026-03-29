@@ -38,6 +38,7 @@ option(ULIB_SANITIZERS "Enable sanitizers (keep OFF in production builds)" OFF)
 option(ULIB_TINY "Use small types" OFF)
 option(ULIB_HUGE "Use large types" OFF)
 option(ULIB_COLOR "Enable colored output" ON)
+option(ULIB_MULTITHREAD "Enable multithreading support" ON)
 set(ULIB_LOG_LEVEL "INFO" CACHE STRING "Default log level (unset to disable logging)")
 set(ULIB_LIBRARY_TYPE "STATIC" CACHE STRING "Type of library to build")
 set(ULIB_USER_HEADERS "" CACHE STRING "User-specified header files")
@@ -128,6 +129,10 @@ endif()
 
 if(CMAKE_C_BYTE_ORDER STREQUAL "LITTLE_ENDIAN")
     list(APPEND ULIB_PUBLIC_DEFINES ULIB_LITTLE_ENDIAN)
+endif()
+
+if(ULIB_MULTITHREAD)
+    list(APPEND ULIB_PUBLIC_DEFINES ULIB_MULTITHREAD)
 endif()
 
 if(ULIB_CLANG_TIDY)

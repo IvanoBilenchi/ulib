@@ -20,6 +20,10 @@ UString ulib_ret_to_name(ulib_ret ret) {
         [ret_to_idx(ULIB_ERR_MEM)] = "ULIB_ERR_MEM",
         [ret_to_idx(ULIB_ERR_BOUNDS)] = "ULIB_ERR_BOUNDS",
         [ret_to_idx(ULIB_ERR_IO)] = "ULIB_ERR_IO",
+        [ret_to_idx(ULIB_ERR_TIMEOUT)] = "ULIB_ERR_TIMEOUT",
+        [ret_to_idx(ULIB_ERR_UNSUPPORTED)] = "ULIB_ERR_UNSUPPORTED",
+        [ret_to_idx(ULIB_ERR_INVALID_ARGUMENT)] = "ULIB_ERR_INVALID_ARGUMENT",
+        [ret_to_idx(ULIB_ERR_INVALID_STATE)] = "ULIB_ERR_INVALID_STATE",
     };
     size_t const i = ret_to_idx(ret);
     return i < ulib_array_count(names) ? ustring_wrap_cstring(names[i]) : ustring_null;
@@ -33,6 +37,10 @@ UString ulib_ret_to_string(ulib_ret ret) {
         [ret_to_idx(ULIB_ERR_MEM)] = "memory allocation error",
         [ret_to_idx(ULIB_ERR_BOUNDS)] = "out-of-bounds error",
         [ret_to_idx(ULIB_ERR_IO)] = "input/output error",
+        [ret_to_idx(ULIB_ERR_TIMEOUT)] = "operation timed out",
+        [ret_to_idx(ULIB_ERR_UNSUPPORTED)] = "operation not supported on this platform",
+        [ret_to_idx(ULIB_ERR_INVALID_ARGUMENT)] = "invalid argument",
+        [ret_to_idx(ULIB_ERR_INVALID_STATE)] = "invalid state",
     };
     size_t const i = ret_to_idx(ret);
     return i < ulib_array_count(strings) ? ustring_wrap_cstring(strings[i]) : ustring_null;

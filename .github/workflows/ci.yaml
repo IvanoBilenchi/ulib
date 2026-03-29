@@ -21,6 +21,7 @@ jobs:
       fail-fast: false
       matrix:
         types: [normal, tiny, huge]
+        threading: [single, multi]
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -40,6 +41,7 @@ jobs:
           -DULIB_CPP_TESTS=OFF
           -DULIB_TINY=${{matrix.types == 'tiny' && 'ON' || 'OFF'}}
           -DULIB_HUGE=${{matrix.types == 'huge' && 'ON' || 'OFF'}}
+          -DULIB_MULTITHREAD=${{matrix.threading == 'multi' && 'ON' || 'OFF'}}
           -DULIB_LTO=OFF
           -DULIB_CLANG_TIDY=ON
           -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
@@ -60,6 +62,7 @@ jobs:
           - ${{vars.macos_runner || 'macos-latest'}}
         lib_type: [STATIC, SHARED]
         types: [normal, tiny, huge]
+        threading: [single, multi]
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -70,6 +73,7 @@ jobs:
           -DULIB_LIBRARY_TYPE=${{matrix.lib_type}}
           -DULIB_TINY=${{matrix.types == 'tiny' && 'ON' || 'OFF'}}
           -DULIB_HUGE=${{matrix.types == 'huge' && 'ON' || 'OFF'}}
+          -DULIB_MULTITHREAD=${{matrix.threading == 'multi' && 'ON' || 'OFF'}}
           -DULIB_LEAKS=ON
           -DULIB_SANITIZERS=ON
           -DCMAKE_SYSTEM_VERSION=''
@@ -105,6 +109,7 @@ jobs:
           - ${{vars.ubuntu_runner || 'ubuntu-latest'}}
           - ${{vars.windows_runner || 'windows-latest'}}
           - ${{vars.macos_runner || 'macos-latest'}}
+        threading: [single, multi]
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -116,6 +121,7 @@ jobs:
           -DULIB_OPTIMIZE_FOR_HOST=ON
           -DCMAKE_SYSTEM_VERSION=''
           -DCMAKE_BUILD_TYPE=${{env.config}}
+          -DULIB_MULTITHREAD=${{matrix.threading == 'multi' && 'ON' || 'OFF'}}
 
       - name: Build
         run: cmake --build build --config ${{env.config}} --target ulib-bench

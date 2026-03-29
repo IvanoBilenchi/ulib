@@ -26,3 +26,4 @@ Welcome to uLib's documentation!
    api/logging
    api/test
    api/version
+   api/threading

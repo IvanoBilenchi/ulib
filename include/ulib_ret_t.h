@@ -49,6 +49,17 @@ enum ulib_ret_builtin {
      */
     ULIB_ERR_IO = -4,
 
+    /** The operation timed out. */
+    ULIB_ERR_TIMEOUT = -5,
+
+    /** The operation is not supported on the current platform. */
+    ULIB_ERR_UNSUPPORTED = -6,
+
+    /** The operation failed due to an invalid argument. */
+    ULIB_ERR_INVALID_ARGUMENT = -7,
+
+    /** Invalid state. */
+    ULIB_ERR_INVALID_STATE = -8
 };
 
 ULIB_END_DECLS

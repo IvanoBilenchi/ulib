@@ -10,10 +10,12 @@
 #include "uiter_tests.h"
 #include "ulib.h"
 #include "ulog_tests.h"
+#include "umutex_tests.h"
 #include "unumber_tests.h"
 #include "urand_tests.h"
 #include "ustream_tests.h"
 #include "ustring_tests.h"
+#include "uthread_tests.h"
 #include "utime_tests.h"
 #include "uvec_tests.h"
 #include "uversion_tests.h"
@@ -29,5 +31,7 @@ utest_main({
     utest_run("ulog", ULOG_TESTS);
     utest_run("urand", URAND_TESTS);
     utest_run("utime", UTIME_TESTS);
+    utest_run("uthread", UTHREAD_TESTS);
+    utest_run("umutex", UMUTEX_TESTS);
     utest_run("uversion", UVERSION_TESTS);
 })
