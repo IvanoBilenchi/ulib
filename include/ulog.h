@@ -77,7 +77,7 @@ enum ulog_level_builtin {
     /// Fatal level.
     ULOG_FATAL = 1U << (P_ULOG_LEVEL_MIN_EXP + 6U),
 
-    // Marker level for disabled loggers.
+    /// Marker level for disabled loggers.
     ULOG_DISABLED = INT_MAX,
 
 };

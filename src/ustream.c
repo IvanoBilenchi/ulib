@@ -143,7 +143,7 @@ static ulib_ret ustream_buf_free(void *buf) {
 
 static ulib_ret ustream_strbuf_write(void *ctx, void const *buf, size_t count, size_t *written) {
     ulib_uint start_count = uvec_count(char, ctx);
-    ulib_ret ret = ustrbuf_append_string(ctx, buf, (ulib_uint)count);
+    ulib_ret ret = ustrbuf_append_buf(ctx, buf, (ulib_uint)count);
     *written = uvec_count(char, ctx) - start_count;
     return ret;
 }
@@ -451,16 +451,16 @@ ulib_ret uistream_from_buf(UIStream *stream, void const *buf, size_t size) {
     return state;
 }
 
-ulib_ret uistream_from_strbuf(UIStream *stream, UStrBuf const *buf) {
-    return uistream_from_buf(stream, ustrbuf_data(buf), ustrbuf_size(buf));
-}
-
-ulib_ret uistream_from_string(UIStream *stream, char const *string) {
+ulib_ret uistream_from_cstring(UIStream *stream, char const *string) {
     return uistream_from_buf(stream, string, strlen(string));
 }
 
-ulib_ret uistream_from_ustring(UIStream *stream, UString const *string) {
+ulib_ret uistream_from_string(UIStream *stream, UString const *string) {
     return uistream_from_buf(stream, ustring_data(*string), ustring_length(*string));
+}
+
+ulib_ret uistream_from_strbuf(UIStream *stream, UStrBuf const *buf) {
+    return uistream_from_buf(stream, ustrbuf_data(buf), ustrbuf_size(buf));
 }
 
 bool uistream_is_buf(UIStream const *stream) {
@@ -590,7 +590,7 @@ ulib_ret uostream_writef_list(UOStream *stream, size_t *written, char const *for
     return stream->state;
 }
 
-ulib_ret uostream_write_buf(UOStream *stream, char const *buf, size_t *written) {
+ulib_ret uostream_write_cstring(UOStream *stream, char const *buf, size_t *written) {
     return uostream_write(stream, buf, strlen(buf), written);
 }
 

@@ -149,7 +149,7 @@ ulib_uint p_ulib_hash_int64(uint64_t key) {
 /**
  * Hash function for strings.
  *
- * @param key Pointer to a NULL-terminated string.
+ * @param key Pointer to a null-terminated string.
  * @return Hash value.
  *
  * @alias ulib_uint ulib_hash_str(char const *key);
@@ -162,7 +162,7 @@ ulib_uint p_ulib_hash_int64(uint64_t key) {
  * Hash function for strings.
  * K&R 2nd edition hash function.
  *
- * @param key Pointer to a NULL-terminated string.
+ * @param key Pointer to a null-terminated string.
  * @return Hash value.
  */
 ULIB_PURE
@@ -195,7 +195,7 @@ ulib_uint ulib_hash_mem_kr2(ulib_uint init, void const *buf, size_t size) {
  * Hash function for strings.
  * Daniel J. Bernstein's "djb2" hash function.
  *
- * @param key Pointer to a NULL-terminated string.
+ * @param key Pointer to a null-terminated string.
  * @return Hash value.
  */
 ULIB_PURE

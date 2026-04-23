@@ -931,8 +931,8 @@ ULIB_CONST ULIB_INLINE ulib_uint p_uhash_upper_bound_default(ulib_uint buckets) 
 /**
  * Equality function for strings.
  *
- * @param a LHS of the equality relation (NULL-terminated string).
- * @param b RHS of the equality relation (NULL-terminated string).
+ * @param a LHS of the equality relation (null-terminated string).
+ * @param b RHS of the equality relation (null-terminated string).
  * @return True if a is equal to b, false otherwise.
  *
  * @deprecated Use @func{ulib_str_equals} instead.

@@ -16,6 +16,7 @@
 #include "ulib_ret_t.h"
 #include "unumber.h"
 #include "ustring_raw.h"
+#include "uwarning.h"
 #include <limits.h>
 #include <string.h>
 
@@ -235,49 +236,67 @@ char *ustring(UString *string, size_t length);
 #define ustring_literal(literal) ustring_wrap(literal, sizeof(literal) - 1)
 
 /**
- * Initializes a new string by taking ownership of the specified buffer,
+ * Initializes a new string by taking ownership of the specified null-terminated string,
  * which must have been dynamically allocated.
  *
- * @param buf String buffer.
+ * @param string null-terminated string.
  * @return New string.
  *
  * @destructor{ustring_deinit}
- * @note The buffer must be null-terminated.
- * @note Due to the internals of @type{UString}, you must not attempt to access the buffer
- *       after calling this function as it may have been deallocated.
+ * @note Due to the internals of @type{UString}, you must not attempt to access the underlying
+ *       string after calling this function as it may have been deallocated.
  */
 ULIB_INLINE
-UString ustring_assign_buf(char const *buf) {
-    return ustring_assign(buf, strlen(buf));
+UString ustring_assign_cstring(char const *string) {
+    return ustring_assign(string, strlen(string));
 }
 
 /**
- * Initializes a new string by copying the specified buffer.
+ * Initializes a new string by copying the specified null-terminated string.
  *
- * @param buf String buffer.
+ * @param string null-terminated string.
  * @return New string.
  *
  * @destructor{ustring_deinit}
- * @note The buffer must be null-terminated.
  */
 ULIB_INLINE
-UString ustring_copy_buf(char const *buf) {
-    return ustring_copy(buf, strlen(buf));
+UString ustring_copy_cstring(char const *string) {
+    return ustring_copy(string, strlen(string));
 }
 
 /**
- * Initializes a new string by wrapping the specified buffer.
+ * Initializes a new string by wrapping the specified null-terminated string.
  *
- * @param buf String buffer.
+ * @param string null-terminated string.
  * @return New string.
  *
- * @note The buffer must be null-terminated.
- * @note If the buffer has been dynamically allocated, you are responsible for its deallocation.
+ * @note If the string has been dynamically allocated, you are responsible for its deallocation.
  * @note You must not call @func{ustring_deinit} on a string initialized with this function.
  */
 ULIB_INLINE
-UString ustring_wrap_buf(char const *buf) {
-    return ustring_wrap(buf, strlen(buf));
+UString ustring_wrap_cstring(char const *string) {
+    return ustring_wrap(string, strlen(string));
+}
+
+/// @copydoc ustring_assign_cstring
+ULIB_DEPRECATED(Use @func{ustring_assign_cstring} instead.)
+ULIB_INLINE
+UString ustring_assign_buf(char const *string) {
+    return ustring_assign(string, strlen(string));
+}
+
+/// @copydoc ustring_copy_cstring
+ULIB_DEPRECATED(Use @func{ustring_copy_cstring} instead.)
+ULIB_INLINE
+UString ustring_copy_buf(char const *string) {
+    return ustring_copy(string, strlen(string));
+}
+
+/// @copydoc ustring_wrap_cstring
+ULIB_DEPRECATED(Use @func{ustring_wrap_cstring} instead.)
+ULIB_INLINE
+UString ustring_wrap_buf(char const *string) {
+    return ustring_wrap(string, strlen(string));
 }
 
 /**

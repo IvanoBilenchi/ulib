@@ -254,7 +254,7 @@ UString ustring_with_format_list(char const *format, va_list args) {
         return ustring_null;
     }
 
-    return ustrbuf_to_ustring(&buf);
+    return ustrbuf_to_string(&buf);
 }
 
 UString ustring_join(UString const *strings, ulib_uint count, UString sep) {
@@ -262,19 +262,19 @@ UString ustring_join(UString const *strings, ulib_uint count, UString sep) {
 
     UStrBuf buf = ustrbuf();
 
-    if (ustrbuf_append_ustring(&buf, strings[0])) {
+    if (ustrbuf_append_string(&buf, strings[0])) {
         ustrbuf_deinit(&buf);
         return ustring_null;
     }
 
     for (ulib_uint i = 1; i < count; ++i) {
-        if (ustrbuf_append_ustring(&buf, sep) || ustrbuf_append_ustring(&buf, strings[i])) {
+        if (ustrbuf_append_string(&buf, sep) || ustrbuf_append_string(&buf, strings[i])) {
             ustrbuf_deinit(&buf);
             return ustring_null;
         }
     }
 
-    return ustrbuf_to_ustring(&buf);
+    return ustrbuf_to_string(&buf);
 }
 
 UString ustring_concat(UString const *strings, ulib_uint count) {

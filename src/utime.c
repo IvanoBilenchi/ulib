@@ -197,7 +197,7 @@ UString utime_to_string(UTime const *time) {
         return ustring_null;
     }
 
-    return ustrbuf_to_ustring(&buf);
+    return ustrbuf_to_string(&buf);
 }
 
 bool utime_from_string(UTime *time, UString const *string) {
@@ -289,7 +289,7 @@ UString utime_interval_to_string(utime_ns t, utime_unit unit) {
         return ustring_null;
     }
 
-    return ustrbuf_to_ustring(&buf);
+    return ustrbuf_to_string(&buf);
 }
 
 utime_stamp utime_get_timestamp(void) {

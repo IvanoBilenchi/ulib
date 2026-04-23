@@ -14,8 +14,11 @@
 
 #include "uattrs.h"
 #include "ulib_ret_t.h"
+#include "unumber.h"
 #include "ustring.h"
 #include "uvec_builtin.h"
+#include "uwarning.h"
+#include <string.h>
 
 ULIB_BEGIN_DECLS
 
@@ -38,48 +41,54 @@ typedef struct UVec(char) UStrBuf;
  * @return Initialized string buffer.
  *
  * @destructor{ustrbuf_deinit}
- * @alias UStrBuf ustrbuf(void);
  */
-#define ustrbuf() uvec(char)
+ULIB_INLINE
+UStrBuf ustrbuf(void) {
+    return uvec(char);
+}
 
 /**
  * Deinitializes a string buffer previously initialized with @func{ustrbuf}.
  *
  * @param buf String buffer.
- *
- * @alias void ustrbuf_deinit(UStrBuf *buf);
  */
-#define ustrbuf_deinit(buf) uvec_deinit(char, buf)
+ULIB_INLINE
+void ustrbuf_deinit(UStrBuf *buf) {
+    uvec_deinit(char, buf);
+}
 
 /**
  * Returns the size of the string buffer.
  *
  * @param buf String buffer.
  * @return Size.
- *
- * @alias ulib_uint ustrbuf_size(UStrBuf const *buf);
  */
-#define ustrbuf_size(buf) uvec_size(char, buf)
+ULIB_INLINE
+ulib_uint ustrbuf_size(UStrBuf const *buf) {
+    return uvec_size(char, buf);
+}
 
 /**
  * Returns the number of characters in the string buffer.
  *
  * @param buf String buffer.
  * @return Number of characters.
- *
- * @alias ulib_uint ustrbuf_length(UStrBuf const *buf);
  */
-#define ustrbuf_length(buf) uvec_count(char, buf)
+ULIB_INLINE
+ulib_uint ustrbuf_length(UStrBuf const *buf) {
+    return uvec_count(char, buf);
+}
 
 /**
  * Returns a pointer to the first character of the string buffer.
  *
  * @param buf String buffer.
  * @return Pointer to the first character.
- *
- * @alias char const *ustrbuf_data(UStrBuf const *buf);
  */
-#define ustrbuf_data(buf) uvec_data(char, buf)
+ULIB_INLINE
+char const *ustrbuf_data(UStrBuf const *buf) {
+    return uvec_data(char, buf);
+}
 
 /**
  * Appends the specified formatted string to the string buffer.
@@ -113,17 +122,14 @@ ulib_ret ustrbuf_append_format_list(UStrBuf *buf, char const *format, va_list ar
  * @note After calling this function, the string buffer must not be used anymore.
  */
 ULIB_API
-UString ustrbuf_to_ustring(UStrBuf *buf);
+UString ustrbuf_to_string(UStrBuf *buf);
 
-/**
- * Appends the specified string literal to the string buffer.
- *
- * @param buf @ctype{#UStrBuf *} String buffer.
- * @param literal @ctype{char const []} String literal to append.
- * @return @type{ulib_ret} @val{ULIB_OK} on success, otherwise @val{ULIB_ERR_MEM}.
- */
-#define ustrbuf_append_literal(buf, literal)                                                       \
-    uvec_append_array(char, buf, literal, sizeof(literal) - 1)
+/// @copydoc ustrbuf_to_string
+ULIB_DEPRECATED(Use @func{ustrbuf_to_string} instead.)
+ULIB_INLINE
+UString ustrbuf_to_ustring(UStrBuf *buf) {
+    return ustrbuf_to_string(buf);
+}
 
 /**
  * Appends the specified string to the string buffer.
@@ -132,21 +138,45 @@ UString ustrbuf_to_ustring(UStrBuf *buf);
  * @param string String to append.
  * @param length Length of the string.
  * @return @val{ULIB_OK} on success, otherwise @val{ULIB_ERR_MEM}.
- *
- * @alias ulib_ret ustrbuf_append_string(UStrBuf *buf, char const *string, ulib_uint length);
  */
-#define ustrbuf_append_string(buf, string, length) uvec_append_array(char, buf, string, length)
+ULIB_INLINE
+ulib_ret ustrbuf_append_buf(UStrBuf *buf, char const *string, size_t length) {
+    return uvec_append_array(char, buf, string, (ulib_uint)length);
+}
 
 /**
- * Appends the specified uString to the string buffer.
+ * Appends the specified null-terminated string to the string buffer.
+ *
+ * @param buf String buffer.
+ * @param string null-terminated string to append.
+ * @return @val{ULIB_OK} on success, otherwise @val{ULIB_ERR_MEM}.
+ */
+ULIB_INLINE
+ulib_ret ustrbuf_append_cstring(UStrBuf *buf, char const *string) {
+    return ustrbuf_append_buf(buf, string, strlen(string));
+}
+
+/**
+ * Appends the specified string literal to the string buffer.
+ *
+ * @param buf String buffer.
+ * @param literal String literal to append.
+ * @return @val{ULIB_OK} on success, otherwise @val{ULIB_ERR_MEM}.
+ *
+ * @alias ulib_ret ustrbuf_append_literal(UStrBuf *buf, char const literal[]);
+ */
+#define ustrbuf_append_literal(buf, literal) ustrbuf_append_buf(buf, literal, sizeof(literal) - 1)
+
+/**
+ * Appends the specified string to the string buffer.
  *
  * @param buf String buffer.
  * @param string String to append.
  * @return @val{ULIB_OK} on success, otherwise @val{ULIB_ERR_MEM}.
  */
 ULIB_INLINE
-ulib_ret ustrbuf_append_ustring(UStrBuf *buf, UString string) {
-    return uvec_append_array(char, buf, ustring_data(string), ustring_length(string));
+ulib_ret ustrbuf_append_string(UStrBuf *buf, UString string) {
+    return ustrbuf_append_buf(buf, ustring_data(string), ustring_length(string));
 }
 
 /// @}

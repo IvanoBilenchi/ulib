@@ -30,5 +30,5 @@ UString uversion_to_string(UVersion const *version) {
         return ustring_null;
     }
 
-    return ustrbuf_to_ustring(&buf);
+    return ustrbuf_to_string(&buf);
 }

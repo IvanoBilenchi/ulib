@@ -16,14 +16,14 @@ void ustring_utils_test(void) {
     size_t const str_len = sizeof(str) - 1;
 
     ulib_str_reverse(str, str_len);
-    utest_assert_string(str, ==, "54321");
+    utest_assert_cstring(str, ==, "54321");
     ulib_str_reverse(str, str_len);
-    utest_assert_string(str, ==, "12345");
+    utest_assert_cstring(str, ==, "12345");
 
     char *string = ulib_str_dup(str, str_len);
     utest_assert_not_null(string);
     utest_assert(string != str);
-    utest_assert_string(string, ==, str);
+    utest_assert_cstring(string, ==, str);
     ulib_free(string);
 
     size_t const len = ulib_str_flength("%s", str);
@@ -99,13 +99,13 @@ void ustrbuf_test(void) {
     utest_assert_uint(cur_len, ==, str_len);
     utest_assert_buf(ustrbuf_data(&buf), ==, str, str_len);
 
-    utest_assert_ok(ustrbuf_append_string(&buf, str, str_len));
+    utest_assert_ok(ustrbuf_append_buf(&buf, str, str_len));
     cur_len = ustrbuf_length(&buf);
     utest_assert_uint(cur_len, ==, 2 * str_len);
     utest_assert_buf(ustrbuf_data(&buf) + cur_len - str_len, ==, str, str_len);
 
     UString string = ustring_wrap(str, str_len);
-    utest_assert_ok(ustrbuf_append_ustring(&buf, string));
+    utest_assert_ok(ustrbuf_append_string(&buf, string));
     cur_len = ustrbuf_length(&buf);
     utest_assert_uint(cur_len, ==, 3 * str_len);
     utest_assert_buf(ustrbuf_data(&buf) + cur_len - str_len, ==, str, str_len);
@@ -117,9 +117,9 @@ void ustrbuf_test(void) {
 
     char *raw_buf = ulib_str_dup(ustrbuf_data(&buf), cur_len);
     utest_assert_not_null(raw_buf);
-    string = ustrbuf_to_ustring(&buf);
+    string = ustrbuf_to_string(&buf);
     utest_assert_uint(ustring_length(string), ==, cur_len);
-    utest_assert_string(ustring_data(string), ==, raw_buf);
+    utest_assert_cstring(ustring_data(string), ==, raw_buf);
 
     ulib_free(raw_buf);
     ustring_deinit(&string);
@@ -138,7 +138,7 @@ void ustring_test_base(void) {
     utest_assert_false(ustring_is_empty(a));
     utest_assert_false(ustring_is_null(a));
     utest_assert_uint(ustring_length(a), ==, str_len);
-    utest_assert_string(ustring_data(a), ==, str);
+    utest_assert_cstring(ustring_data(a), ==, str);
     utest_assert_uint(ustring_index_of(a, '1'), ==, 0);
     utest_assert_uint(ustring_index_of(a, 'b'), ==, 4);
     utest_assert_uint(ustring_index_of(a, '9'), ==, 12);
@@ -172,12 +172,12 @@ void ustring_test_base(void) {
     utest_assert_uint(ustring_hash(a), !=, ustring_hash(ustring_literal("012345678")));
 
     UString b = ustring_dup(a);
-    utest_assert_ustring(a, ==, b);
+    utest_assert_string(a, ==, b);
     utest_assert_ptr(ustring_data(a), !=, ustring_data(b));
     ustring_deinit(&b);
 
     b = ustring_range(a, 5, 3);
-    utest_assert_ustring(b, ==, ustring_literal("456"));
+    utest_assert_string(b, ==, ustring_literal("456"));
     ustring_deinit(&b);
     b = ustring_range(a, 5, str_len - 4);
     utest_assert(ustring_is_null(b));
@@ -186,22 +186,22 @@ void ustring_test_base(void) {
 
     UString strings[] = { ustring_literal("123"), ustring_literal("4"), ustring_literal("567") };
     a = ustring_concat(strings, ulib_array_count(strings));
-    utest_assert_ustring(a, ==, ustring_literal("1234567"));
+    utest_assert_string(a, ==, ustring_literal("1234567"));
     ustring_deinit(&a);
 
     a = ustring_join(strings, ulib_array_count(strings), ustring_literal(" "));
-    utest_assert_ustring(a, ==, ustring_literal("123 4 567"));
+    utest_assert_string(a, ==, ustring_literal("123 4 567"));
     ustring_deinit(&a);
 
     a = ustring_repeating(ustring_literal("123"), 4);
-    utest_assert_ustring(a, ==, ustring_literal("123123123123"));
+    utest_assert_string(a, ==, ustring_literal("123123123123"));
     b = ustring_replacing_char(a, '3', '4');
-    utest_assert_ustring(b, ==, ustring_literal("124124124124"));
+    utest_assert_string(b, ==, ustring_literal("124124124124"));
     ustring_deinit(&a);
     ustring_deinit(&b);
 
     a = ustring_with_format("%d%d%d", 1, 2, 3);
-    utest_assert_ustring(a, ==, ustring_literal("123"));
+    utest_assert_string(a, ==, ustring_literal("123"));
 
     ustring_deinit(&a);
 }

@@ -210,13 +210,7 @@ void utime_to_utc(UTime *time, int tz_hour, unsigned tz_minute);
 ULIB_API
 void utime_to_timezone(UTime *time, int tz_hour, unsigned tz_minute);
 
-/**
- * Normalizes a date and time from the specified timezone to UTC.
- *
- * @param time Date and time to normalize.
- * @param tz_hour Timezone offset hours.
- * @param tz_minute Timezone offset minutes.
- */
+/// @copydoc utime_to_utc
 ULIB_DEPRECATED(Use @func{utime_to_utc} instead.)
 ULIB_INLINE
 void utime_normalize_to_utc(UTime *time, int tz_hour, unsigned tz_minute) {

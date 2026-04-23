@@ -195,18 +195,6 @@ ULIB_API
 ulib_ret uistream_from_buf(UIStream *stream, void const *buf, size_t size);
 
 /**
- * Initializes a stream that reads from the specified string buffer.
- *
- * @param stream Input stream.
- * @param buf String buffer.
- * @return Return code.
- *
- * @destructor{uistream_deinit}
- */
-ULIB_API
-ulib_ret uistream_from_strbuf(UIStream *stream, UStrBuf const *buf);
-
-/**
  * Initializes a stream that reads from the specified null-terminated string.
  *
  * @param stream Input stream.
@@ -216,7 +204,7 @@ ulib_ret uistream_from_strbuf(UIStream *stream, UStrBuf const *buf);
  * @destructor{uistream_deinit}
  */
 ULIB_API
-ulib_ret uistream_from_string(UIStream *stream, char const *string);
+ulib_ret uistream_from_cstring(UIStream *stream, char const *string);
 
 /**
  * Initializes a stream that reads from the specified string.
@@ -228,7 +216,19 @@ ulib_ret uistream_from_string(UIStream *stream, char const *string);
  * @destructor{uistream_deinit}
  */
 ULIB_API
-ulib_ret uistream_from_ustring(UIStream *stream, UString const *string);
+ulib_ret uistream_from_string(UIStream *stream, UString const *string);
+
+/**
+ * Initializes a stream that reads from the specified string buffer.
+ *
+ * @param stream Input stream.
+ * @param buf String buffer.
+ * @return Return code.
+ *
+ * @destructor{uistream_deinit}
+ */
+ULIB_API
+ulib_ret uistream_from_strbuf(UIStream *stream, UStrBuf const *buf);
 
 /**
  * Checks whether the input stream is buffered.
@@ -472,15 +472,29 @@ ULIB_API
 ulib_ret uostream_writef_list(UOStream *stream, size_t *written, char const *format, va_list args);
 
 /**
- * Writes a NULL-terminated string into the stream.
+ * Writes a null-terminated string into the stream.
  *
  * @param stream Output stream.
- * @param buf NULL-terminated string.
+ * @param buf null-terminated string.
  * @param[out] written Number of bytes written.
  * @return Return code.
  */
 ULIB_API
-ulib_ret uostream_write_buf(UOStream *stream, char const *buf, size_t *written);
+ulib_ret uostream_write_cstring(UOStream *stream, char const *buf, size_t *written);
+
+/**
+ * Writes a null-terminated string into the stream.
+ *
+ * @param stream Output stream.
+ * @param buf null-terminated string.
+ * @param[out] written Number of bytes written.
+ * @return Return code.
+ */
+ULIB_DEPRECATED(Use @func{uostream_write_cstring} instead.)
+ULIB_INLINE
+ulib_ret uostream_write_buf(UOStream *stream, char const *buf, size_t *written) {
+    return uostream_write_cstring(stream, buf, written);
+}
 
 /**
  * Writes a string into the stream.

@@ -41,6 +41,6 @@ void uversion_test(void) {
     utest_assert_int(uversion_compare(a, b), ==, 0);
 
     UString str = uversion_to_string(&a);
-    utest_assert_ustring(str, ==, ustring_literal("2.0.0"));
+    utest_assert_string(str, ==, ustring_literal("2.0.0"));
     ustring_deinit(&str);
 }

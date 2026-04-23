@@ -29,11 +29,11 @@ static char const *level_color[LEVEL_COUNT] = {
 };
 
 ULIB_INLINE ulib_ret begin_color(ULog *log, char const *color) {
-    return color && log->color ? uostream_write_buf(log->stream, color, NULL) : ULIB_OK;
+    return color && log->color ? uostream_write_cstring(log->stream, color, NULL) : ULIB_OK;
 }
 
 ULIB_INLINE ulib_ret end_color(ULog *log, char const *color) {
-    return color && log->color ? uostream_write_buf(log->stream, UCOLOR_RST, NULL) : ULIB_OK;
+    return color && log->color ? uostream_write_cstring(log->stream, UCOLOR_RST, NULL) : ULIB_OK;
 }
 
 ULIB_INLINE ulog_level builtin_level(unsigned index) {
@@ -58,14 +58,14 @@ ULIB_INLINE char const *level_str_padded(char const *str, char *padding, size_t 
 }
 
 UString ulog_level_to_string(ulog_level level) {
-    return ustring_wrap_buf(level_str[builtin_index(level)]);
+    return ustring_wrap_cstring(level_str[builtin_index(level)]);
 }
 
 ulog_level ulog_level_from_string(UString string) {
     UString it = ustring_to_upper(string);
     ulog_level ret = ULOG_DISABLED;
     for (unsigned i = 0; i < LEVEL_COUNT; ++i) {
-        if (ustring_starts_with(it, ustring_wrap_buf(level_str[i]))) {
+        if (ustring_starts_with(it, ustring_wrap_cstring(level_str[i]))) {
             ret = builtin_level(i);
             break;
         }

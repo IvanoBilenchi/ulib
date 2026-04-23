@@ -22,7 +22,7 @@ UString ulib_ret_to_name(ulib_ret ret) {
         [ret_to_idx(ULIB_ERR_IO)] = "ULIB_ERR_IO",
     };
     size_t const i = ret_to_idx(ret);
-    return i < ulib_array_count(names) ? ustring_wrap_buf(names[i]) : ustring_null;
+    return i < ulib_array_count(names) ? ustring_wrap_cstring(names[i]) : ustring_null;
 }
 
 UString ulib_ret_to_string(ulib_ret ret) {
@@ -35,5 +35,5 @@ UString ulib_ret_to_string(ulib_ret ret) {
         [ret_to_idx(ULIB_ERR_IO)] = "input/output error",
     };
     size_t const i = ret_to_idx(ret);
-    return i < ulib_array_count(strings) ? ustring_wrap_buf(strings[i]) : ustring_null;
+    return i < ulib_array_count(strings) ? ustring_wrap_cstring(strings[i]) : ustring_null;
 }

@@ -7,7 +7,6 @@
 
 #include "ustrbuf.h"
 #include "ualloc.h"
-#include "uattrs.h"
 #include "udebug.h"
 #include "ulib_ret_t.h"
 #include "unumber.h"
@@ -33,15 +32,14 @@ ulib_ret ustrbuf_append_format_list(UStrBuf *buf, char const *format, va_list ar
 
     if (ret == ULIB_OK) {
         ulib_uint old_length = ustrbuf_length(buf);
-        vsnprintf(ustrbuf_data(buf) + old_length, size, format, args);
+        vsnprintf((char *)ustrbuf_data(buf) + old_length, size, format, args);
         p_uvec_set_count_char(buf, old_length + (ulib_uint)length);
     }
 
     return ret;
 }
 
-ULIB_INLINE
-UString ustrbuf_to_ustring_copy(UStrBuf *buf, ulib_uint length) {
+static inline UString ustrbuf_to_string_copy(UStrBuf *buf, ulib_uint length) {
     UString ret;
     char *nbuf = ustring(&ret, length);
     if (nbuf) memcpy(nbuf, ustrbuf_data(buf), length);
@@ -50,8 +48,7 @@ UString ustrbuf_to_ustring_copy(UStrBuf *buf, ulib_uint length) {
     return ret;
 }
 
-ULIB_INLINE
-UString ustrbuf_to_ustring_reuse(UStrBuf *buf, ulib_uint length) {
+static inline UString ustrbuf_to_string_reuse(UStrBuf *buf, ulib_uint length) {
     char *nbuf = ulib_realloc(buf->_l._data, length + 1);
 
     if (!nbuf) {
@@ -66,12 +63,12 @@ UString ustrbuf_to_ustring_reuse(UStrBuf *buf, ulib_uint length) {
     return ret;
 }
 
-UString ustrbuf_to_ustring(UStrBuf *buf) {
+UString ustrbuf_to_string(UStrBuf *buf) {
     ulib_uint length = ustrbuf_length(buf);
 
     if (p_ustring_length_is_small(length) || p_uvec_is_small(char, buf)) {
-        return ustrbuf_to_ustring_copy(buf, length);
+        return ustrbuf_to_string_copy(buf, length);
     }
 
-    return ustrbuf_to_ustring_reuse(buf, length);
+    return ustrbuf_to_string_reuse(buf, length);
 }

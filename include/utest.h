@@ -308,7 +308,7 @@ bool utest_passed(void);
  * @param OP Comparison operator.
  * @param B @ctype{char const *} Second string.
  */
-#define utest_assert_string(A, OP, B)                                                              \
+#define utest_assert_cstring(A, OP, B)                                                             \
     do {                                                                                           \
         char const *utest_A = (A);                                                                 \
         char const *utest_B = (B);                                                                 \
@@ -335,7 +335,7 @@ bool utest_passed(void);
  * @param OP Comparison operator.
  * @param B @type{UString} Second string.
  */
-#define utest_assert_ustring(A, OP, B)                                                             \
+#define utest_assert_string(A, OP, B)                                                              \
     do {                                                                                           \
         UString utest_A = (A);                                                                     \
         UString utest_B = (B);                                                                     \

@@ -178,7 +178,7 @@ void uostream_buf_test(void) {
     utest_assert_buf(buf + TEST_DATA_SIZE, ==, test_data, TEST_DATA_SIZE);
 
     utest_assert_ok(uostream_reset(&stream));
-    utest_assert_ok(uostream_write_buf(&stream, test_data, &written));
+    utest_assert_ok(uostream_write_cstring(&stream, test_data, &written));
     utest_assert_uint(written, ==, TEST_DATA_SIZE);
     utest_assert_buf(buf, ==, test_data, TEST_DATA_SIZE);
 

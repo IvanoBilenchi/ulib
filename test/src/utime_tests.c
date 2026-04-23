@@ -33,7 +33,7 @@ void utime_test_ns(void) {
         utest_assert_uint(utime_interval_unit_auto(data.t), ==, data.unit);
 
         UString str = utime_interval_to_string(data.t, data.unit);
-        utest_assert_ustring(str, ==, ustring_wrap_buf(data.str));
+        utest_assert_string(str, ==, ustring_wrap_cstring(data.str));
         ustring_deinit(&str);
     }
 
@@ -103,7 +103,7 @@ void utime_test_date(void) {
     utest_assert(utime_equals(&a, &b));
 
     str = utime_to_string(&b);
-    utest_assert_ustring(str, ==, ustring_literal("1990/02/14-15:59:00"));
+    utest_assert_string(str, ==, ustring_literal("1990/02/14-15:59:00"));
     ustring_deinit(&str);
 
     a = utime_now();
