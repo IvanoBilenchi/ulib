@@ -48,13 +48,26 @@ typedef struct USrcLoc {
 #endif
 
 /**
+ * Enables assertions.
+ * @note uLib assertions are enabled only for analyzers, or if @val{ULIB_DEBUG} is defined.
+ * @def ULIB_ASSERT
+ */
+#ifndef ULIB_ASSERT
+#if defined(ULIB_DEBUG) || defined(__clang_analyzer__)
+#define ULIB_ASSERT 1
+#else
+#define ULIB_ASSERT 0
+#endif
+#endif
+
+/**
  * Asserts that `exp` is true. If the assertion fails, execution is aborted.
  *
  * @param exp @ctype{boolean expression} Boolean expression.
  *
- * @note uLib assertions are enabled only for analyzers, or if @val{ULIB_DEBUG} is defined.
+ * @see @val{ULIB_ASSERT}
  */
-#if defined(ULIB_DEBUG) || defined(__clang_analyzer__)
+#if ULIB_ASSERT
 #define ulib_assert(exp)                                                                           \
     (ulib_likely(exp) ? ulib_noop : p_ulib_assert(#exp, ULIB_FILE_NAME, __func__, __LINE__))
 #else

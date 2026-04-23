@@ -6,8 +6,11 @@ on:
       - dev
       - 'dev-*'
 
+defaults:
+  run:
+    shell: bash
+
 env:
-  build_dir: build
   config: Release
 
 jobs:
@@ -20,7 +23,7 @@ jobs:
         types: [normal, tiny, huge]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 2
 
@@ -33,16 +36,17 @@ jobs:
 
       - name: Configure
         run: >
-          CC=clang cmake -B ${{env.build_dir}}
+          CC=clang cmake -B build
           -DULIB_CPP_TESTS=OFF
           -DULIB_TINY=${{matrix.types == 'tiny' && 'ON' || 'OFF'}}
           -DULIB_HUGE=${{matrix.types == 'huge' && 'ON' || 'OFF'}}
           -DULIB_LTO=OFF
           -DULIB_CLANG_TIDY=ON
           -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
+          -DCMAKE_LINK_WARNING_AS_ERROR=ON
 
       - name: Build
-        run: cmake --build ${{env.build_dir}}
+        run: cmake --build build
 
   test:
     name: Test
@@ -58,11 +62,11 @@ jobs:
         types: [normal, tiny, huge]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Configure
         run: >
-          cmake -B ${{env.build_dir}}
+          cmake -B build
           -DULIB_LIBRARY_TYPE=${{matrix.lib_type}}
           -DULIB_TINY=${{matrix.types == 'tiny' && 'ON' || 'OFF'}}
           -DULIB_HUGE=${{matrix.types == 'huge' && 'ON' || 'OFF'}}
@@ -70,14 +74,15 @@ jobs:
           -DULIB_SANITIZERS=ON
           -DCMAKE_SYSTEM_VERSION=''
           -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
+          -DCMAKE_LINK_WARNING_AS_ERROR=ON
           -DCMAKE_BUILD_TYPE=${{env.config}}
+          -DCMAKE_C_FLAGS='-DULIB_ASSERT=1'
 
       - name: Build
-        run: >
-          cmake --build ${{env.build_dir}} --config ${{env.config}}
+        run: cmake --build build --config ${{env.config}}
 
       - name: Prepare workdir (Windows)
-        working-directory: ${{env.build_dir}}
+        working-directory: build
         if: runner.os == 'Windows'
         run: |
           if [ ${{matrix.lib_type}} == 'SHARED' ]; then
@@ -85,10 +90,9 @@ jobs:
               cp ${{env.config}}/*.dll ${exe_dir}/${{env.config}}
             done
           fi
-        shell: bash
 
       - name: Run
-        working-directory: ${{env.build_dir}}
+        working-directory: build
         run: ctest --build-config ${{env.config}} --output-on-failure
 
   bench:
@@ -103,27 +107,26 @@ jobs:
           - ${{vars.macos_runner || 'macos-latest'}}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Configure
         run: >
-          cmake -B ${{env.build_dir}}
+          cmake -B build
           -DULIB_LTO=ON
           -DULIB_OPTIMIZE_FOR_HOST=ON
           -DCMAKE_SYSTEM_VERSION=''
           -DCMAKE_BUILD_TYPE=${{env.config}}
 
       - name: Build
-        run: cmake --build ${{env.build_dir}} --config ${{env.config}} --target ulib-bench
+        run: cmake --build build --config ${{env.config}} --target ulib-bench
 
       - name: Prepare workdir (Windows)
-        working-directory: ${{env.build_dir}}/bench
+        working-directory: build/bench
         if: runner.os == 'Windows'
         run: mv ${{env.config}}/*.exe ./
-        shell: bash
 
       - name: Run
-        working-directory: ${{env.build_dir}}/bench
+        working-directory: build/bench
         run: ./ulib-bench
 
   docs:
@@ -131,13 +134,17 @@ jobs:
     runs-on: ${{vars.ubuntu_runner || 'ubuntu-latest'}}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
-      - name: Build
+      - name: Install dependencies
         run: |
           sudo apt install doxygen
           python -m venv .venv
           source .venv/bin/activate
           pip install Sphinx sphinx-rtd-theme breathe
-          cmake -B ${{env.build_dir}} -DULIB_DOCS=ON
-          cmake --build ${{env.build_dir}} --target ulib-docs
+
+      - name: Build
+        run: |
+          source .venv/bin/activate
+          cmake -B build -DULIB_DOCS=ON
+          cmake --build build --target ulib-docs

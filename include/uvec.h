@@ -124,8 +124,8 @@ typedef enum uvec_ret {
 #define p_uvec_large_exp_to_size(e) (ulib_uint_pow2(p_uvec_exp_large_exp(e)))
 #define p_uvec_size_min(s) (s)
 #else
-#define p_uvec_exp_is_large(e) 1
-#define p_uvec_count_is_small(T, c) 0
+#define p_uvec_exp_is_large(e) ((void)(e), 1)
+#define p_uvec_count_is_small(T, c) ((void)(c), 0)
 #define p_uvec_large_exp_to_size(e)                                                                \
     (p_uvec_exp_large_exp(e) ? ulib_uint_pow2(p_uvec_exp_large_exp(e)) : 0)
 #define p_uvec_size_min(s) ((s) < 2 ? 2 : (s))
