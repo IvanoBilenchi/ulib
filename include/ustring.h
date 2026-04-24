@@ -42,11 +42,13 @@ ULIB_INLINE
 ulib_uint p_ustring_large_size(struct p_ustring_large string) {
     ulib_uint size = 0;
     unsigned const offset = P_USTRING_FLAGS_SIZE - sizeof(size);
-
+#if ULIB_LITTLE_ENDIAN
+    size = *(ulib_uint *)(string._flags + offset);
+#else
     for (unsigned i = 0; i < sizeof(size); ++i) {
         size |= (ulib_uint)string._flags[offset + i] << (i * CHAR_BIT);
     }
-
+#endif
     return size & ((ulib_uint)-1 >> 1U);
 }
 

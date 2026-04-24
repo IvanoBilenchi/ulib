@@ -30,12 +30,16 @@ UString ustring_small(char const *buf, size_t length) {
 
 ULIB_INLINE
 UString ustring_large(char const *buf, size_t length) {
-    ulib_uint size = ((ulib_uint)length + 1) | ~((ulib_uint)-1 >> 1U);
+    ulib_uint const size = ((ulib_uint)length + 1) | ~((ulib_uint)-1 >> 1U);
     UString ret = { ._l = { ._data = buf, ._flags = { 0 } } };
     unsigned const offset = P_USTRING_FLAGS_SIZE - sizeof(ulib_uint);
+#if ULIB_LITTLE_ENDIAN
+    *(ulib_uint *)(ret._l._flags + offset) = size;
+#else
     for (unsigned i = 0; i < sizeof(size); ++i) {
         ret._l._flags[offset + i] = (ulib_byte)(size >> (i * CHAR_BIT));
     }
+#endif
     return ret;
 }
 
