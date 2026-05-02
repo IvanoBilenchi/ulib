@@ -7,6 +7,7 @@
 
 #include "ustream.h"
 #include "ualloc.h"
+#include "ulib_ret.h"
 #include "ulib_ret_t.h"
 #include "unumber.h"
 #include "ustrbuf.h"
@@ -409,7 +410,7 @@ ulib_ret uistream_reset(UIStream *stream) {
 ulib_ret uistream_read(UIStream *stream, void *buf, size_t count, size_t *read) {
     size_t read_bytes = 0;
 
-    if (!(count && stream->state)) {
+    if (count && ulib_is_ok(stream->state)) {
         stream->state = stream->read(stream->ctx, buf, count, &read_bytes);
         stream->read_bytes += read_bytes;
     }
@@ -428,7 +429,7 @@ ulib_ret uistream_from_path(UIStream *stream, char const *path) {
 ulib_ret uistream_from_file(UIStream *stream, FILE *file) {
     ulib_ret state = file ? ULIB_OK : ULIB_ERR_IO;
     *stream = (UIStream){ .state = state };
-    if (!state) {
+    if (ulib_is_ok(state)) {
         stream->ctx = file;
         stream->read = ustream_file_read;
         stream->reset = ustream_file_reset;
@@ -440,7 +441,7 @@ ulib_ret uistream_from_buf(UIStream *stream, void const *buf, size_t size) {
     UStreamBuf *raw_buf = ulib_alloc(raw_buf);
     ulib_ret state = raw_buf ? ULIB_OK : ULIB_ERR_MEM;
     *stream = (UIStream){ .state = state };
-    if (!state) {
+    if (ulib_is_ok(state)) {
         raw_buf->orig = raw_buf->cur = (void *)buf;
         raw_buf->size = size;
         stream->ctx = raw_buf;
@@ -539,7 +540,7 @@ ulib_ret uostream_reset(UOStream *stream) {
 ulib_ret uostream_write(UOStream *stream, void const *buf, size_t count, size_t *written) {
     size_t written_bytes = 0;
 
-    if (!(count && stream->state)) {
+    if (count && ulib_is_ok(stream->state)) {
         stream->state = stream->write(stream->ctx, buf, count, &written_bytes);
         stream->written_bytes += written_bytes;
     }
@@ -577,7 +578,7 @@ uostream_writef_list_fallback(UOStream *stream, size_t *written, char const *for
 ulib_ret uostream_writef_list(UOStream *stream, size_t *written, char const *format, va_list args) {
     size_t written_bytes = 0;
 
-    if (!stream->state) {
+    if (ulib_is_ok(stream->state)) {
         if (stream->writef) {
             stream->state = stream->writef(stream->ctx, &written_bytes, format, args);
         } else {
@@ -634,7 +635,7 @@ ulib_ret uostream_to_path(UOStream *stream, char const *path) {
 ulib_ret uostream_to_file(UOStream *stream, FILE *file) {
     *stream = (UOStream){ .state = file ? ULIB_OK : ULIB_ERR_IO };
 
-    if (!stream->state) {
+    if (ulib_is_ok(stream->state)) {
         stream->ctx = file;
         stream->write = ustream_file_write;
         stream->writef = ustream_file_writef;
@@ -649,7 +650,7 @@ ulib_ret uostream_to_buf(UOStream *stream, void *buf, size_t size) {
     UStreamBuf *raw_buf = ulib_alloc(raw_buf);
     *stream = (UOStream){ .state = raw_buf ? ULIB_OK : ULIB_ERR_MEM };
 
-    if (!stream->state) {
+    if (ulib_is_ok(stream->state)) {
         raw_buf->orig = raw_buf->cur = buf;
         raw_buf->size = size;
         stream->ctx = raw_buf;
@@ -674,7 +675,7 @@ ulib_ret uostream_to_strbuf(UOStream *stream, UStrBuf *buf) {
         }
     }
 
-    if (!stream->state) {
+    if (ulib_is_ok(stream->state)) {
         stream->ctx = buf;
         stream->write = ustream_strbuf_write;
         stream->writef = ustream_strbuf_writef;
