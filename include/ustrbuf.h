@@ -86,7 +86,7 @@ ulib_uint ustrbuf_length(UStrBuf const *buf) {
  * @return Pointer to the first character.
  */
 ULIB_INLINE
-char const *ustrbuf_data(UStrBuf const *buf) {
+char *ustrbuf_data(UStrBuf const *buf) {
     return uvec_data(char, buf);
 }
 

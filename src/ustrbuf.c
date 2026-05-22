@@ -32,7 +32,7 @@ ulib_ret ustrbuf_append_format_list(UStrBuf *buf, char const *format, va_list ar
 
     if (ret == ULIB_OK) {
         ulib_uint old_length = ustrbuf_length(buf);
-        vsnprintf((char *)ustrbuf_data(buf) + old_length, size, format, args);
+        vsnprintf(ustrbuf_data(buf) + old_length, size, format, args);
         p_uvec_set_count_char(buf, old_length + (ulib_uint)length);
     }
 
