@@ -6,7 +6,7 @@
  */
 
 #include "ustream_varint.h"
-#include "ulib_ret_t.h"
+#include "ulib_ret.h"
 #include "unumber.h"
 #include "ustream.h"
 #include <limits.h>
@@ -18,30 +18,33 @@ enum {
     VARINT_DATA_BITS = 7U,
 };
 
-ulib_ret uistream_read_varint(UIStream *stream, ulib_uint *value, size_t *read) {
-    ulib_uint val = 0;
-    ulib_uint i = 0;
+ulib_ret uistream_read_varint(UIStream *stream, ulib_varint *value, size_t *read) {
+    ulib_varint val = 0;
+    unsigned i = 0;
+    unsigned const max_i = ((sizeof(val) * CHAR_BIT) + VARINT_DATA_BITS - 1) / VARINT_DATA_BITS;
     ulib_ret ret;
     ulib_byte cur_byte;
 
     do {
-        if (i > sizeof(val)) {
-            ret = ULIB_ERR_BOUNDS;
-            goto err;
-        }
-        if ((ret = uistream_read(stream, &cur_byte, 1, NULL)) != ULIB_OK) goto err;
-        val |= (ulib_uint)(cur_byte & VARINT_VALUE_MASK) << (i++ * VARINT_DATA_BITS);
+        size_t read_bytes;
+        if (ulib_is_err((ret = uistream_read(stream, &cur_byte, 1, &read_bytes)))) goto end;
+        if (!read_bytes) goto encoding_err;
+        val |= (ulib_varint)(cur_byte & VARINT_VALUE_MASK) << (i * VARINT_DATA_BITS);
+        if (++i > max_i) goto encoding_err;
     } while (cur_byte & VARINT_HAS_MORE_MASK);
 
-    ret = ULIB_OK;
     if (value) *value = val;
+    goto end;
 
-err:
+encoding_err:
+    ret = ULIB_ERR;
+
+end:
     if (read) *read = i;
     return ret;
 }
 
-ulib_ret uostream_write_varint(UOStream *stream, ulib_uint value, size_t *written) {
+ulib_ret uostream_write_varint(UOStream *stream, ulib_varint value, size_t *written) {
     ulib_byte buffer[sizeof(value) + 1];
     ulib_byte *cur = buffer;
     for (; value >= VARINT_HAS_MORE_MASK; value >>= VARINT_DATA_BITS) {
@@ -51,15 +54,15 @@ ulib_ret uostream_write_varint(UOStream *stream, ulib_uint value, size_t *writte
     return uostream_write(stream, buffer, cur - buffer + 1, written);
 }
 
-ulib_ret uistream_read_svarint(UIStream *stream, ulib_int *value, size_t *read) {
-    ulib_uint zig_zagged;
-    ulib_ret ret = uistream_read_varint(stream, &zig_zagged, read);
-    if (ret == ULIB_OK) *value = (ulib_int)((zig_zagged >> 1U) ^ -(ulib_int)(zig_zagged & 1U));
+ulib_ret uistream_read_svarint(UIStream *stream, ulib_svarint *value, size_t *read) {
+    ulib_varint val;
+    ulib_ret ret = uistream_read_varint(stream, &val, read);
+    if (ret == ULIB_OK) *value = (ulib_svarint)((val >> 1U) ^ -(ulib_svarint)(val & 1U));
     return ret;
 }
 
-ulib_ret uostream_write_svarint(UOStream *stream, ulib_int value, size_t *written) {
-    ulib_uint const mask = ((ulib_uint)-1) >> 1U;
-    ulib_uint zig_zagged = value < 0 ? ~(((ulib_uint)value & mask) << 1U) : (ulib_uint)value << 1U;
-    return uostream_write_varint(stream, zig_zagged, written);
+ulib_ret uostream_write_svarint(UOStream *stream, ulib_svarint value, size_t *written) {
+    ulib_varint const mask = ((ulib_varint)-1) >> 1U;
+    ulib_varint val = value < 0 ? ~(((ulib_varint)value & mask) << 1U) : (ulib_varint)value << 1U;
+    return uostream_write_varint(stream, val, written);
 }

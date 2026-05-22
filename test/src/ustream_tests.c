@@ -245,9 +245,10 @@ void uostream_buffered_test(void) {
 }
 
 void ustream_varint_test(void) {
-    ulib_uint const max_value = ulib_min(ULIB_UINT_MAX >> 1U, 1000000);
-    ulib_uint const increment = 999;
-    ulib_uint value = 0;
+    ulib_varint const boundary = (ulib_varint)-1;
+    ulib_varint const max_value = ulib_min(boundary, 1000000);
+    ulib_varint const increment = 999;
+    ulib_varint value = 0;
     ulib_byte buffer[sizeof(value) + 1] = ulib_zero_init;
     size_t written = 0;
     size_t read = 0;
@@ -257,7 +258,7 @@ void ustream_varint_test(void) {
     UOStream ostream;
     uostream_to_buf(&ostream, buffer, sizeof(buffer));
 
-    for (ulib_uint i = 0; i < max_value; i += increment) {
+    for (ulib_varint i = 0; i < max_value; i += increment) {
         utest_assert_ok(uostream_write_varint(&ostream, i, &written));
         utest_assert_ok(uistream_read_varint(&istream, &value, &read));
         utest_assert_uint(value, ==, i);
@@ -266,14 +267,20 @@ void ustream_varint_test(void) {
         uostream_reset(&ostream);
     }
 
+    utest_assert_ok(uostream_write_varint(&ostream, boundary, &written));
+    utest_assert_ok(uistream_read_varint(&istream, &value, &read));
+    utest_assert_uint(value, ==, boundary);
+    utest_assert_uint(written, ==, read);
+
     uistream_deinit(&istream);
     uostream_deinit(&ostream);
 }
 
 void ustream_svarint_test(void) {
-    int32_t const max_value = ulib_min(ULIB_UINT_MAX >> 2U, 500000);
-    int32_t const increment = 999;
-    ulib_int value = 0;
+    ulib_svarint const boundary = ((ulib_varint)-1) >> 1U;
+    ulib_svarint const max_value = ulib_min(boundary, 500000);
+    ulib_svarint const increment = 999;
+    ulib_svarint value = 0;
     ulib_byte buffer[sizeof(value) + 1] = ulib_zero_init;
     size_t written = 0;
     size_t read = 0;
@@ -283,14 +290,19 @@ void ustream_svarint_test(void) {
     UOStream ostream;
     uostream_to_buf(&ostream, buffer, sizeof(buffer));
 
-    for (int32_t i = -max_value; i < max_value; i += increment) {
-        utest_assert_ok(uostream_write_svarint(&ostream, (ulib_int)i, &written));
+    for (ulib_svarint i = -max_value; i < max_value; i += increment) {
+        utest_assert_ok(uostream_write_svarint(&ostream, i, &written));
         utest_assert_ok(uistream_read_svarint(&istream, &value, &read));
         utest_assert_int(value, ==, i);
         utest_assert_uint(written, ==, read);
         uistream_reset(&istream);
         uostream_reset(&ostream);
     }
+
+    utest_assert_ok(uostream_write_svarint(&ostream, boundary, &written));
+    utest_assert_ok(uistream_read_svarint(&istream, &value, &read));
+    utest_assert_int(value, ==, boundary);
+    utest_assert_uint(written, ==, read);
 
     uistream_deinit(&istream);
     uostream_deinit(&ostream);
