@@ -61,12 +61,13 @@ typedef struct UIStream {
     void *ctx;
 
     /**
-     * Pointer to a function that reads `count` bytes from the stream and writes them into `buf`.
+     * Pointer to a function that reads up to `count` bytes from the stream
+     * and writes them into `buf`.
      *
-     * @param ctx Stream context.
-     * @param buf Buffer to write into.
+     * @param stream Input stream.
+     * @param buf Input buffer.
      * @param count Number of bytes to read.
-     * @param[out] read Number of bytes actually read.
+     * @param[out] read Number of bytes read.
      * @return Return code.
      */
     ulib_ret (*read)(void *ctx, void *buf, size_t count, size_t *read);
@@ -146,16 +147,38 @@ ULIB_API
 ulib_ret uistream_reset(UIStream *stream);
 
 /**
+ * Reads up to `count` bytes from the stream and writes them into `buf`.
+ *
+ * @param stream Input stream.
+ * @param buf Input buffer.
+ * @param count Number of bytes to read.
+ * @param[out] read Number of bytes read.
+ * @return Return code.
+ *
+ * @note The semantics of this function are similar to those of @cfunc{fread} and @cfunc{recv},
+ *       in that it may read fewer than `count` bytes even if no error occurs.
+ * @note The end of the stream is not considered an error, and is indicated by @val{ULIB_OK}
+ *       with `read` set to zero.
+ */
+ULIB_API
+ulib_ret uistream_read(UIStream *stream, void *buf, size_t count, size_t *read);
+
+/**
  * Reads `count` bytes from the stream and writes them into `buf`.
  *
  * @param stream Input stream.
  * @param buf Input buffer.
- * @param count Maximum number of bytes to read.
+ * @param count Number of bytes to read.
  * @param[out] read Number of bytes read.
  * @return Return code.
+ *
+ * @note This function repeatedly calls @func{uistream_read} until either `count` bytes
+ *       have been read, or an error occurs, or the end of the stream is reached.
+ * @note The end of the stream is not considered an error, and is indicated by @val{ULIB_OK}
+ *       with `read` set to the number of bytes actually read, which will be less than `count`.
  */
 ULIB_API
-ulib_ret uistream_read(UIStream *stream, void *buf, size_t count, size_t *read);
+ulib_ret uistream_read_all(UIStream *stream, void *buf, size_t count, size_t *read);
 
 /**
  * Initializes a stream that reads from the file at the specified path.
@@ -284,12 +307,13 @@ typedef struct UOStream {
     void *ctx;
 
     /**
-     * Pointer to a function that reads `count` bytes from `buf` and writes them into the stream.
+     * Pointer to a function that writes up to `count` bytes from `buf`
+     * into the specified output stream.
      *
      * @param ctx Stream context.
-     * @param buf Buffer to read from.
+     * @param buf Buffer.
      * @param count Number of bytes to write.
-     * @param[out] written Number of bytes actually written.
+     * @param[out] written Number of bytes written.
      * @return Return code.
      */
     ulib_ret (*write)(void *ctx, void const *buf, size_t count, size_t *written);
@@ -303,7 +327,7 @@ typedef struct UOStream {
      * @param args Format arguments.
      * @return Return code.
      *
-     * @note Can be NULL, in which case the stream will fallback to `write`.
+     * @note Can be NULL, in which case a default implementation is used.
      */
     ulib_ret (*writef)(void *ctx, size_t *written, char const *format, va_list args);
 
@@ -406,7 +430,7 @@ UOStream uostream(void *ctx, ulib_ret (*write_func)(void *, void const *, size_t
  * @return Return code.
  */
 #define uostream_write_literal(stream, literal, written)                                           \
-    uostream_write(stream, literal, sizeof(literal) - 1, written)
+    uostream_write_all(stream, literal, sizeof(literal) - 1, written)
 
 /**
  * Deinitializes the stream, releasing any reserved resource.
@@ -436,16 +460,34 @@ ULIB_API
 ulib_ret uostream_reset(UOStream *stream);
 
 /**
- * Writes `count` bytes from `buf` into the specified output stream.
+ * Writes up to `count` bytes from `buf` into the specified output stream.
  *
  * @param stream Output stream.
  * @param buf Buffer.
  * @param count Number of bytes to write.
  * @param[out] written Number of bytes written.
  * @return Return code.
+ *
+ * @note The semantics of this function are similar to those of @cfunc{fwrite} and @cfunc{send},
+ *       in that it may write fewer than `count` bytes even if no error occurs.
  */
 ULIB_API
 ulib_ret uostream_write(UOStream *stream, void const *buf, size_t count, size_t *written);
+
+/**
+ * Writes all `count` bytes from `buf` into the specified output stream.
+ *
+ * @param stream Output stream.
+ * @param buf Buffer.
+ * @param count Number of bytes to write.
+ * @param[out] written Number of bytes written.
+ * @return Return code.
+ *
+ * @note This function repeatedly calls @func{uostream_write} until either `count` bytes
+ *       have been written, or an error occurs.
+ */
+ULIB_API
+ulib_ret uostream_write_all(UOStream *stream, void const *buf, size_t count, size_t *written);
 
 /**
  * Writes a formatted string into the stream.
@@ -482,14 +524,7 @@ ulib_ret uostream_writef_list(UOStream *stream, size_t *written, char const *for
 ULIB_API
 ulib_ret uostream_write_cstring(UOStream *stream, char const *buf, size_t *written);
 
-/**
- * Writes a null-terminated string into the stream.
- *
- * @param stream Output stream.
- * @param buf null-terminated string.
- * @param[out] written Number of bytes written.
- * @return Return code.
- */
+/// @copydoc uostream_write_cstring
 ULIB_DEPRECATED(Use @func{uostream_write_cstring} instead.)
 ULIB_INLINE
 ulib_ret uostream_write_buf(UOStream *stream, char const *buf, size_t *written) {

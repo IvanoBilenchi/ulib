@@ -51,7 +51,7 @@ ulib_ret uostream_write_varint(UOStream *stream, ulib_varint value, size_t *writ
         *cur++ = (ulib_byte)(value | VARINT_HAS_MORE_MASK);
     }
     *cur = (ulib_byte)value;
-    return uostream_write(stream, buffer, cur - buffer + 1, written);
+    return uostream_write_all(stream, buffer, cur - buffer + 1, written);
 }
 
 ulib_ret uistream_read_svarint(UIStream *stream, ulib_svarint *value, size_t *read) {

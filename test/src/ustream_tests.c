@@ -1,7 +1,7 @@
 /**
  * @author Ivano Bilenchi
  *
- * @copyright Copyright (c) 2021 Ivano Bilenchi <https://ivanobilenchi.com>
+ * @copyright Copyright (c) 2021-2026 Ivano Bilenchi <https://ivanobilenchi.com>
  * @copyright SPDX-License-Identifier: ISC
  */
 
@@ -32,13 +32,18 @@ static void generate_test_data_file(void) {
 }
 
 static bool istream_check_test_data(UIStream *stream) {
-    char byte;
-    size_t read;
-    for (size_t i = 0; i < TEST_DATA_SIZE; ++i) {
-        ulib_ret ret = uistream_read(stream, &byte, 1, &read);
-        if (!(ret == ULIB_OK && read == 1 && byte == test_data[i])) return false;
+    char buf[32];
+    size_t cumulative_read = 0;
+
+    for (size_t count = 1; true; count = urand_range(1, sizeof(buf) - 1)) {
+        size_t read;
+        ulib_ret ret = uistream_read_all(stream, buf, count, &read);
+        if (ulib_is_err(ret) || memcmp(buf, test_data + cumulative_read, read) != 0) return false;
+        cumulative_read += read;
+        if (read < count) break;
     }
-    return true;
+
+    return cumulative_read == TEST_DATA_SIZE;
 }
 
 static void istream_test(UIStream *stream) {

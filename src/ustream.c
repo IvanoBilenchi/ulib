@@ -1,7 +1,7 @@
 /**
  * @author Ivano Bilenchi
  *
- * @copyright Copyright (c) 2021 Ivano Bilenchi <https://ivanobilenchi.com>
+ * @copyright Copyright (c) 2021-2026 Ivano Bilenchi <https://ivanobilenchi.com>
  * @copyright SPDX-License-Identifier: ISC
  */
 
@@ -93,7 +93,7 @@ static ulib_ret ustream_buf_write(void *ctx, void const *buf, size_t count, size
     UStreamBuf *ibuf = ctx;
     ulib_ret ret;
 
-    if (count > ibuf->size) {
+    if (ulib_unlikely(count > ibuf->size)) {
         ret = ULIB_ERR_BOUNDS;
         *written = ibuf->size;
     } else {
@@ -113,10 +113,10 @@ static ulib_ret ustream_buf_writef(void *ctx, size_t *written, char const *forma
     int pf_ret = vsnprintf(ibuf->cur, ibuf->size, format, args);
     ulib_ret ret;
 
-    if (pf_ret < 0) {
+    if (ulib_unlikely(pf_ret < 0)) {
         *written = 0;
         ret = ULIB_ERR_IO;
-    } else if ((size_t)pf_ret < ibuf->size) {
+    } else if (ulib_likely((size_t)pf_ret < ibuf->size)) {
         *written = (size_t)pf_ret;
         ret = ULIB_OK;
     } else {
@@ -188,7 +188,7 @@ static ulib_ret ustream_multi_write(void *ctx, void const *buf, size_t count, si
         size_t lwritten;
         ulib_ret lret = uostream_write(*stream.item, buf, count, &lwritten);
         if (*written < lwritten) *written = lwritten;
-        if (!ret) ret = lret;
+        if (ulib_is_ok(ret)) ret = lret;
     }
 
     return ret;
@@ -205,7 +205,7 @@ static ulib_ret ustream_multi_writef(void *ctx, size_t *written, char const *for
         ulib_ret lret = uostream_writef_list(*stream.item, &lwritten, format, cargs);
         va_end(cargs);
         if (*written < lwritten) *written = lwritten;
-        if (!ret) ret = lret;
+        if (ulib_is_ok(ret)) ret = lret;
     }
 
     return ret;
@@ -216,7 +216,7 @@ static ulib_ret ustream_multi_flush(void *ctx) {
 
     uvec_foreach (ulib_ptr, ctx, stream) {
         ulib_ret lret = uostream_flush(*stream.item);
-        if (!ret) ret = lret;
+        if (ulib_is_ok(ret)) ret = lret;
     }
 
     return ret;
@@ -227,7 +227,7 @@ static ulib_ret ustream_multi_reset(void *ctx) {
 
     uvec_foreach (ulib_ptr, ctx, stream) {
         ulib_ret lret = uostream_reset(*stream.item);
-        if (!ret) ret = lret;
+        if (ulib_is_ok(ret)) ret = lret;
     }
 
     return ret;
@@ -238,7 +238,7 @@ static ulib_ret ustream_multi_free(void *ctx) {
 
     uvec_foreach (ulib_ptr, ctx, stream) {
         ulib_ret lret = uostream_deinit(*stream.item);
-        if (!ret) ret = lret;
+        if (ulib_is_ok(ret)) ret = lret;
     }
 
     uvec_deinit(ulib_ptr, ctx);
@@ -315,7 +315,7 @@ static ulib_ret uostream_buffered_flush_impl(void *ctx) {
     if (!unflushed) return ULIB_OK;
 
     size_t flushed;
-    ulib_ret ret = uostream_write(&bs->raw_stream, bs->buf, unflushed, &flushed);
+    ulib_ret ret = uostream_write_all(&bs->raw_stream, bs->buf, unflushed, &flushed);
     bs->cur = bs->buf;
     unflushed -= flushed;
 
@@ -337,7 +337,7 @@ static ulib_ret uostream_buffered_write(void *ctx, void const *buf, size_t count
         ret = uostream_buffered_flush_impl(ctx);
 
         if (bs->cur != bs->buf) {
-            // Stream not fully flushed, don't write any data.
+            // End of stream or error, don't accept more data.
             count = 0;
             goto end;
         }
@@ -358,9 +358,10 @@ end:
 }
 
 static ulib_ret uostream_buffered_flush(void *ctx) {
-    ulib_ret write_ret = uostream_buffered_flush_impl(ctx);
-    ulib_ret flush_ret = uostream_flush(&((UOStreamBuffered *)ctx)->raw_stream);
-    return flush_ret ? flush_ret : write_ret;
+    UOStreamBuffered *bs = ctx;
+    ulib_ret write_ret = uostream_buffered_flush_impl(bs);
+    ulib_ret flush_ret = uostream_flush(&bs->raw_stream);
+    return ulib_is_err(flush_ret) ? flush_ret : write_ret;
 }
 
 static ulib_ret uostream_buffered_reset(void *ctx) {
@@ -383,7 +384,7 @@ static ulib_ret uostream_buffered_free(void *ctx) {
     ulib_ret flush_ret = uostream_buffered_flush(ctx);
     ulib_ret deinit_ret = uostream_deinit(&bs->raw_stream);
     ulib_free(bs);
-    return deinit_ret ? deinit_ret : flush_ret;
+    return ulib_is_err(deinit_ret) ? deinit_ret : flush_ret;
 }
 
 UIStream *uistream_std(void) {
@@ -410,13 +411,28 @@ ulib_ret uistream_reset(UIStream *stream) {
 ulib_ret uistream_read(UIStream *stream, void *buf, size_t count, size_t *read) {
     size_t read_bytes = 0;
 
-    if (count && ulib_is_ok(stream->state)) {
+    if (ulib_likely(count && ulib_ret_is_ok(stream->state))) {
         stream->state = stream->read(stream->ctx, buf, count, &read_bytes);
         stream->read_bytes += read_bytes;
     }
 
     if (read) *read = read_bytes;
     return stream->state;
+}
+
+ulib_ret uistream_read_all(UIStream *stream, void *buf, size_t count, size_t *read) {
+    ulib_ret ret = ULIB_OK;
+    size_t to_read = count;
+
+    while (to_read) {
+        size_t read_bytes;
+        ret = uistream_read(stream, buf, to_read, &read_bytes);
+        if (ulib_is_err(ret) || read_bytes == 0) break;
+        to_read -= read_bytes;
+    }
+
+    if (read) *read = count - to_read;
+    return ret;
 }
 
 ulib_ret uistream_from_path(UIStream *stream, char const *path) {
@@ -540,13 +556,28 @@ ulib_ret uostream_reset(UOStream *stream) {
 ulib_ret uostream_write(UOStream *stream, void const *buf, size_t count, size_t *written) {
     size_t written_bytes = 0;
 
-    if (count && ulib_is_ok(stream->state)) {
+    if (ulib_likely(count && ulib_ret_is_ok(stream->state))) {
         stream->state = stream->write(stream->ctx, buf, count, &written_bytes);
         stream->written_bytes += written_bytes;
     }
 
     if (written) *written = written_bytes;
     return stream->state;
+}
+
+ulib_ret uostream_write_all(UOStream *stream, void const *buf, size_t count, size_t *written) {
+    ulib_ret ret = ULIB_OK;
+    size_t to_write = count;
+
+    while (to_write) {
+        size_t written_bytes;
+        ret = uostream_write(stream, buf, to_write, &written_bytes);
+        if (ulib_is_err(ret)) break;
+        to_write -= written_bytes;
+    }
+
+    if (written) *written = count - to_write;
+    return ret;
 }
 
 ulib_ret uostream_writef(UOStream *stream, size_t *written, char const *format, ...) {
@@ -563,9 +594,9 @@ uostream_writef_list_fallback(UOStream *stream, size_t *written, char const *for
     size_t size = len + 1;
     char *buf = ulib_malloc(size);
 
-    if (buf) {
+    if (ulib_likely(buf)) {
         vsnprintf(buf, size, format, args);
-        stream->state = uostream_write(stream, buf, len, written);
+        stream->state = uostream_write_all(stream, buf, len, written);
         ulib_free(buf);
     } else {
         *written = 0;
@@ -592,11 +623,11 @@ ulib_ret uostream_writef_list(UOStream *stream, size_t *written, char const *for
 }
 
 ulib_ret uostream_write_cstring(UOStream *stream, char const *buf, size_t *written) {
-    return uostream_write(stream, buf, strlen(buf), written);
+    return uostream_write_all(stream, buf, strlen(buf), written);
 }
 
 ulib_ret uostream_write_string(UOStream *stream, UString const *string, size_t *written) {
-    return uostream_write(stream, ustring_data(*string), ustring_length(*string), written);
+    return uostream_write_all(stream, ustring_data(*string), ustring_length(*string), written);
 }
 
 ulib_ret uostream_write_time(UOStream *stream, UTime const *time, size_t *written) {
@@ -667,7 +698,8 @@ ulib_ret uostream_to_strbuf(UOStream *stream, UStrBuf *buf) {
     *stream = (UOStream){ .state = ULIB_OK };
 
     if (!buf) {
-        if ((buf = ulib_alloc(buf)) != NULL) {
+        buf = ulib_alloc(buf);
+        if (ulib_likely(buf)) {
             *buf = ustrbuf();
             stream->free = ustream_strbuf_free;
         } else {
@@ -688,7 +720,7 @@ ulib_ret uostream_to_strbuf(UOStream *stream, UStrBuf *buf) {
 ulib_ret uostream_to_multi(UOStream *stream) {
     UVec(ulib_ptr) *vec = ulib_alloc(vec);
 
-    if (vec) {
+    if (ulib_likely(vec)) {
         *vec = uvec(ulib_ptr);
         *stream = (UOStream){
             .state = ULIB_OK,
