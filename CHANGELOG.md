@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [Unreleased]
+
+
+## [0.3.2] - 2026-06-08
+### Added
+- Iterator type `UIter` and related API.
+- `uistream_read_all` and `uostream_write_all`.
+- `ulib_str_reverse`.
+- `utest_assert_null`.
+- Support for Zephyr RTOS.
+
+### Changed
+- `ulib_ret` error codes are now negative.
+- Input and output streams can now be buffered and unbuffered transparently rather than
+  requiring the creation of a new stream (see `uistream_buf`, `uistream_unbuf`, etc.).
+- Renamed `*_string`, `*_buf`, `*_cstring`, `*_ustring` functions for consistency.
+- `UHash` table type is now macro-expanded.
+
+### Fixed
+- Incorrect varint decoding at end of stream.
+
+
 ## [0.3.1] - 2025-07-06
 ### Added
 - `ulib_ret_is_ok`, `ulib_ret_is_err`, `ulib_is_ok`, and `ulib_is_err`.
@@ -292,6 +314,9 @@ uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Test utilities.
 - Miscellaneous helper macros.
 
+
+[unreleased]: https://github.com/ivanobilenchi/ulib/compare/stable...HEAD
+[0.3.2]: https://github.com/ivanobilenchi/ulib/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/ivanobilenchi/ulib/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/ivanobilenchi/ulib/compare/v0.2.6...v0.3.0
 [0.2.6]: https://github.com/ivanobilenchi/ulib/compare/v0.2.5...v0.2.6
@@ -305,4 +330,4 @@ uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 [0.1.3]: https://github.com/ivanobilenchi/ulib/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/ivanobilenchi/ulib/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/ivanobilenchi/ulib/compare/v0.1.0...v0.1.1
-[0.1.0]: https://github.com/ivanobilenchi/ulib/releases/tag/v0.1.0
+[0.1.0]: https://github.com/ivanobilenchi/ulib/compare/base...v0.1.0
