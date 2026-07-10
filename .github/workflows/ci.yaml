@@ -86,7 +86,7 @@ jobs:
           -DULIB_LIBRARY_TYPE=${{matrix.lib_type}}
           -DULIB_TINY=${{matrix.types == 'tiny' && 'ON' || 'OFF'}}
           -DULIB_HUGE=${{matrix.types == 'huge' && 'ON' || 'OFF'}}
-          -DULIB_THREADING=${{matrix.threading}}
+          -DULIB_THREADING=${{matrix.threading == 'on' && 'ON' || 'OFF'}}
           -DULIB_LEAKS=ON
           -DULIB_SANITIZERS=ON
           -DCMAKE_SYSTEM_VERSION=''
@@ -119,7 +119,6 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu, windows, macos]
-        threading: [off, on]
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -131,7 +130,7 @@ jobs:
           -DULIB_OPTIMIZE_FOR_HOST=ON
           -DCMAKE_SYSTEM_VERSION=''
           -DCMAKE_BUILD_TYPE=${{env.config}}
-          -DULIB_THREADING=${{matrix.threading}}
+          -DULIB_THREADING=ON
 
       - name: Build
         run: cmake --build build --config ${{env.config}} --target ulib-bench

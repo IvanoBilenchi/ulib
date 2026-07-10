@@ -15,6 +15,7 @@
 // IWYU pragma: begin_exports
 
 #include "ualloc.h"
+#include "uatomic.h"
 #include "uattrs.h"
 #include "ubit.h"
 #include "ucolor.h"

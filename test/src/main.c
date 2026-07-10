@@ -5,6 +5,7 @@
  * @copyright SPDX-License-Identifier: ISC
  */
 
+#include "uatomic_tests.h"
 #include "ubit_tests.h"
 #include "uhash_tests.h"
 #include "uiter_tests.h"
@@ -32,6 +33,7 @@ utest_main({
     utest_run("urand", URAND_TESTS);
     utest_run("utime", UTIME_TESTS);
     utest_run("uthread", UTHREAD_TESTS);
+    utest_run("uatomic", UATOMIC_TESTS);
     utest_run("ulock", ULOCK_TESTS);
     utest_run("uversion", UVERSION_TESTS);
 })

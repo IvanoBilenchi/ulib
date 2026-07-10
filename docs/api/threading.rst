@@ -10,6 +10,14 @@ Threads
 .. doxygengroup:: UThread_api
    :content-only:
 
+Atomic operations
+=================
+
+.. doxygengroup:: UAtomic_types
+   :content-only:
+.. doxygengroup:: UAtomic_api
+   :content-only:
+
 Synchronization
 ===============
 
