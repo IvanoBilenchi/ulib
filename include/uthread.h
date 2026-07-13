@@ -23,27 +23,27 @@ ULIB_BEGIN_DECLS
 
 /// @cond
 // clang-format off
-#ifdef ULIB_THREADING
+#ifdef ULIB_CONCURRENCY
     #if defined(__unix__) || defined(__APPLE__)
         #include <unistd.h> // IWYU pragma: keep, for _POSIX_THREADS
         #ifdef _POSIX_THREADS
-            #define P_ULIB_THREADING_SUPPORTED
+            #define P_ULIB_CONCURRENCY_SUPPORTED
             #define P_ULIB_HAS_PTHREADS
             #include <pthread.h> // IWYU pragma: keep, for pthread_t
             #define P_UTHREAD_HANDLE_FIELD pthread_t handle;
         #endif
     #elif defined(_WIN32)
-        #define P_ULIB_THREADING_SUPPORTED
+        #define P_ULIB_CONCURRENCY_SUPPORTED
         #include <windows.h>
         #define P_UTHREAD_HANDLE_FIELD HANDLE handle;
     #endif
-    #ifndef P_ULIB_THREADING_SUPPORTED
+    #ifndef P_ULIB_CONCURRENCY_SUPPORTED
         #error "Threading is not supported on this platform"
-        #undef ULIB_THREADING
+        #undef ULIB_CONCURRENCY
     #endif
 #endif
 
-#ifndef ULIB_THREADING
+#ifndef ULIB_CONCURRENCY
     #define P_UTHREAD_HANDLE_FIELD
 #endif
 // clang-format on

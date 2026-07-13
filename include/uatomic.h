@@ -13,15 +13,15 @@
 #define UATOMIC_H
 
 // clang-format off
-#ifdef ULIB_THREADING
+#ifdef ULIB_CONCURRENCY
     #if defined(__STDC_NO_ATOMICS__) && !defined(_WIN32)
         #error "Atomic operations are not supported on this platform"
-        #undef ULIB_THREADING
+        #undef ULIB_CONCURRENCY
     #endif
 #endif
 // clang-format on
 
-#ifdef ULIB_THREADING
+#ifdef ULIB_CONCURRENCY
 
 /**
  * @defgroup UAtomic_types Atomic types
@@ -631,6 +631,6 @@ P_UATOMIC_FUNCS_GEN_BASE(void *, ptr)
 
 /// @endcond
 
-#endif // ULIB_THREADING
+#endif // ULIB_CONCURRENCY
 
 #endif // UATOMIC_H

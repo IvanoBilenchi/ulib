@@ -24,7 +24,6 @@ PenaltyReturnTypeOnItsOwnLine: 0
 StatementMacros:
   - ULIB_BEGIN_DECLS
   - ULIB_END_DECLS
-  - ULIB_THREADING_IMPL
   - p_ubit_count_set_def
 TypenameMacros:
   - UBit

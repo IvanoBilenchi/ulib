@@ -6,7 +6,7 @@
  * @copyright SPDX-License-Identifier: ISC
  */
 
-#ifdef ULIB_THREADING
+#ifdef ULIB_CONCURRENCY
 
 #include "ulock.h"
 #include "ulib_ret.h"
@@ -209,4 +209,4 @@ void p_urwlock_write_unlock(URWLock *lock) {
 
 typedef int dummy; // Prevent empty translation unit warning.
 
-#endif // ULIB_THREADING
+#endif // ULIB_CONCURRENCY

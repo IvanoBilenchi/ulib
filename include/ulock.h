@@ -19,7 +19,7 @@
 ULIB_BEGIN_DECLS
 
 // clang-format off
-#ifdef ULIB_THREADING
+#ifdef ULIB_CONCURRENCY
     #ifdef __APPLE__
         #include <os/lock.h>
         #include <pthread.h> // IWYU pragma: keep
@@ -38,15 +38,15 @@ ULIB_BEGIN_DECLS
         #define P_ULIB_RWLOCK_HANDLE SRWLOCK
     #else
         #error "Threading is not supported on this platform"
-        #undef ULIB_THREADING
+        #undef ULIB_CONCURRENCY
     #endif
-#endif // ULIB_THREADING
+#endif // ULIB_CONCURRENCY
 
-#ifndef ULIB_THREADING
+#ifndef ULIB_CONCURRENCY
     typedef char P_ULIB_LOCK_HANDLE;
     typedef char P_ULIB_RLOCK_HANDLE;
     typedef char P_ULIB_RWLOCK_HANDLE;
-#endif // ULIB_THREADING
+#endif // ULIB_CONCURRENCY
 // clang-format on
 
 /**
@@ -122,7 +122,7 @@ URWRLock *ulock_read(URWLock *lock) {
 
 /// @}
 
-#ifdef ULIB_THREADING
+#ifdef ULIB_CONCURRENCY
 
 ULIB_API
 ulib_ret p_ulock_init(ULock *lock);
@@ -195,13 +195,13 @@ bool p_ulock_noop_true(ulib_unused void *lock) {
     return true;
 }
 
-#endif // ULIB_THREADING
+#endif // ULIB_CONCURRENCY
 
 ULIB_END_DECLS
 
 // Generic API
 
-#ifdef ULIB_THREADING
+#ifdef ULIB_CONCURRENCY
 
 #ifdef __cplusplus
 
@@ -410,6 +410,6 @@ void ulock_unlock(URWRLock *lock) {
 #define ulock_with(lock) for (unsigned p_##__LINE__ = 1; p_##__LINE__--; p_ulock_noop_void(lock))
 /// @endcond
 
-#endif // ULIB_THREADING
+#endif // ULIB_CONCURRENCY
 
 #endif // ULOCK_H

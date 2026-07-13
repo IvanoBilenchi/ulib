@@ -35,7 +35,7 @@ option(ULIB_OPTIMIZE_FOR_HOST "Enable host CPU optimizations (keep OFF for distr
 option(ULIB_CLANG_TIDY "Enable clang-tidy, if available" OFF)
 option(ULIB_LEAKS "Enable debugging of memory leaks (keep OFF in production builds)" OFF)
 option(ULIB_SANITIZERS "Enable sanitizers (keep OFF in production builds)" OFF)
-option(ULIB_THREADING "Enable threading support" OFF)
+option(ULIB_CONCURRENCY "Enable concurrency support" OFF)
 option(ULIB_TINY "Use small types" OFF)
 option(ULIB_HUGE "Use large types" OFF)
 option(ULIB_COLOR "Enable colored output" ON)
@@ -97,7 +97,7 @@ list(APPEND ULIB_PRIVATE_DEFINES
 
 if(MSVC)
     list(APPEND ULIB_PRIVATE_CFLAGS /W4 /wd4200 /wd4996)
-    if(ULIB_THREADING)
+    if(ULIB_CONCURRENCY)
         list(APPEND ULIB_PUBLIC_CFLAGS /experimental:c11atomics)
     endif()
 else()
@@ -136,8 +136,8 @@ if(CMAKE_C_BYTE_ORDER STREQUAL "LITTLE_ENDIAN")
     list(APPEND ULIB_PUBLIC_DEFINES ULIB_LITTLE_ENDIAN)
 endif()
 
-if(ULIB_THREADING)
-    list(APPEND ULIB_PUBLIC_DEFINES ULIB_THREADING)
+if(ULIB_CONCURRENCY)
+    list(APPEND ULIB_PUBLIC_DEFINES ULIB_CONCURRENCY)
 endif()
 
 if(ULIB_CLANG_TIDY)

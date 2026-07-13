@@ -69,14 +69,14 @@ void ulock_test_simple(void) {
     counter = 0;
     utest_assert_enum(ulock(&lock), ==, ULIB_OK);
     utest_assert(ulock_trylock(&lock));
-#ifdef ULIB_THREADING
+#ifdef ULIB_CONCURRENCY
     utest_assert_false(ulock_trylock(&lock));
 #else
     utest_assert(ulock_trylock(&lock));
 #endif
     ulock_unlock(&lock);
     ulock_lock(&lock);
-#ifdef ULIB_THREADING
+#ifdef ULIB_CONCURRENCY
     utest_assert_false(ulock_trylock(&lock));
 #else
     utest_assert(ulock_trylock(&lock));
@@ -105,7 +105,7 @@ void ulock_test_read_write(void) {
     counter = 0;
     utest_assert_enum(ulock(&rwlock), ==, ULIB_OK);
     utest_assert(ulock_trylock(ulock_write(&rwlock)));
-#ifdef ULIB_THREADING
+#ifdef ULIB_CONCURRENCY
     utest_assert_false(ulock_trylock(ulock_write(&rwlock)));
     utest_assert_false(ulock_trylock(ulock_read(&rwlock)));
 #else
@@ -115,7 +115,7 @@ void ulock_test_read_write(void) {
     ulock_unlock(ulock_write(&rwlock));
     utest_assert(ulock_trylock(ulock_read(&rwlock)));
     utest_assert(ulock_trylock(ulock_read(&rwlock)));
-#ifdef ULIB_THREADING
+#ifdef ULIB_CONCURRENCY
     utest_assert_false(ulock_trylock(ulock_write(&rwlock)));
 #else
     utest_assert(ulock_trylock(ulock_write(&rwlock)));

@@ -15,16 +15,16 @@ env:
 
 jobs:
   analyze:
-    name: "Analyze (types: ${{matrix.types}}, threading: ${{matrix.threading}})"
+    name: "Analyze (types: ${{matrix.types}}, concurrency: ${{matrix.concurrency}})"
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         types: [normal, tiny, huge]
-        threading: [off]
+        concurrency: [off]
         include:
           - types: normal
-            threading: on
+            concurrency: on
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -44,7 +44,7 @@ jobs:
           -DULIB_CPP_TESTS=OFF
           -DULIB_TINY=${{matrix.types == 'tiny' && 'ON' || 'OFF'}}
           -DULIB_HUGE=${{matrix.types == 'huge' && 'ON' || 'OFF'}}
-          -DULIB_THREADING=${{matrix.threading}}
+          -DULIB_CONCURRENCY=${{matrix.concurrency == 'on' && 'ON' || 'OFF'}}
           -DULIB_LTO=OFF
           -DULIB_CLANG_TIDY=ON
           -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
@@ -54,7 +54,7 @@ jobs:
         run: cmake --build build
 
   test:
-    name: "Test (os: ${{matrix.os}}, lib_type: ${{matrix.lib_type}}, types: ${{matrix.types}}, threading: ${{matrix.threading}})"
+    name: "Test (os: ${{matrix.os}}, lib_type: ${{matrix.lib_type}}, types: ${{matrix.types}}, concurrency: ${{matrix.concurrency}})"
     runs-on: ${{matrix.os}}-latest
     strategy:
       fail-fast: false
@@ -62,20 +62,20 @@ jobs:
         os: [ubuntu, windows, macos]
         lib_type: [STATIC]
         types: [normal, tiny, huge]
-        threading: [off]
+        concurrency: [off]
         include:
           - os: ubuntu
             lib_type: SHARED
             types: normal
-            threading: on
+            concurrency: on
           - os: windows
             lib_type: SHARED
             types: normal
-            threading: on
+            concurrency: on
           - os: macos
             lib_type: SHARED
             types: normal
-            threading: on
+            concurrency: on
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -86,7 +86,7 @@ jobs:
           -DULIB_LIBRARY_TYPE=${{matrix.lib_type}}
           -DULIB_TINY=${{matrix.types == 'tiny' && 'ON' || 'OFF'}}
           -DULIB_HUGE=${{matrix.types == 'huge' && 'ON' || 'OFF'}}
-          -DULIB_THREADING=${{matrix.threading == 'on' && 'ON' || 'OFF'}}
+          -DULIB_CONCURRENCY=${{matrix.concurrency == 'on' && 'ON' || 'OFF'}}
           -DULIB_LEAKS=ON
           -DULIB_SANITIZERS=ON
           -DCMAKE_SYSTEM_VERSION=''
@@ -113,7 +113,7 @@ jobs:
         run: ctest --build-config ${{env.config}} --output-on-failure
 
   bench:
-    name: "Benchmark (os: ${{matrix.os}}, threading: ${{matrix.threading}})"
+    name: "Benchmark (os: ${{matrix.os}})"
     runs-on: ${{matrix.os}}-latest
     strategy:
       fail-fast: false
@@ -130,7 +130,7 @@ jobs:
           -DULIB_OPTIMIZE_FOR_HOST=ON
           -DCMAKE_SYSTEM_VERSION=''
           -DCMAKE_BUILD_TYPE=${{env.config}}
-          -DULIB_THREADING=ON
+          -DULIB_CONCURRENCY=ON
 
       - name: Build
         run: cmake --build build --config ${{env.config}} --target ulib-bench
@@ -161,5 +161,5 @@ jobs:
       - name: Build
         run: |
           source .venv/bin/activate
-          cmake -B build -DULIB_THREADING=ON -DULIB_DOCS=ON
+          cmake -B build -DULIB_CONCURRENCY=ON -DULIB_DOCS=ON
           cmake --build build --target ulib-docs

@@ -10,7 +10,7 @@
 #include "ulib_ret.h"
 #include "utime.h"
 
-#ifdef ULIB_THREADING
+#ifdef ULIB_CONCURRENCY
 
 #ifdef P_ULIB_HAS_PTHREADS
 
@@ -92,7 +92,7 @@ ulib_ret uthread_detach(ulib_unused UThread *thread) {
     return ULIB_OK;
 }
 
-#endif // ULIB_THREADING
+#endif // ULIB_CONCURRENCY
 
 #if defined(__unix__) || defined(__APPLE__)
 
