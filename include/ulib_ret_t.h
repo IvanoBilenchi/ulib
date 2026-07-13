@@ -48,6 +48,13 @@ enum ulib_ret_builtin {
      * @note When this happens, @cval{errno} is sometimes set to a more meaningful value.
      */
     ULIB_ERR_IO = -4,
+
+    /// The operation failed for a temporary reason, and may succeed if retried.
+    ULIB_ERR_AGAIN = -5,
+
+    /// The operation failed because it is not supported on this platform.
+    ULIB_ERR_UNSUPPORTED = -6,
+
 };
 
 ULIB_END_DECLS

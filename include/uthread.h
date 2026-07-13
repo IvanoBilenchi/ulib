@@ -30,15 +30,14 @@ ULIB_BEGIN_DECLS
             #define P_ULIB_CONCURRENCY_SUPPORTED
             #define P_ULIB_HAS_PTHREADS
             #include <pthread.h> // IWYU pragma: keep, for pthread_t
-            #define P_UTHREAD_HANDLE_FIELD pthread_t handle;
+            #define P_UTHREAD_HANDLE_FIELD pthread_t _handle;
         #endif
     #elif defined(_WIN32)
         #define P_ULIB_CONCURRENCY_SUPPORTED
         #include <windows.h>
-        #define P_UTHREAD_HANDLE_FIELD HANDLE handle;
+        #define P_UTHREAD_HANDLE_FIELD HANDLE _handle;
     #endif
     #ifndef P_ULIB_CONCURRENCY_SUPPORTED
-        #error "Threading is not supported on this platform"
         #undef ULIB_CONCURRENCY
     #endif
 #endif
@@ -58,8 +57,8 @@ ULIB_BEGIN_DECLS
 typedef struct UThread {
     /// @cond
     P_UTHREAD_HANDLE_FIELD
-    void (*func)(void *);
-    void *arg;
+    void (*_fun)(void *);
+    void *_arg;
     /// @endcond
 } UThread;
 
@@ -119,6 +118,39 @@ ulib_ret uthread_detach(UThread *thread);
  */
 ULIB_API
 ulib_ret uthread_sleep(utime_ms millis);
+
+// clang-format off
+
+#ifdef _WIN32
+    #include <windows.h>
+    #define p_uthread_yield_cpu() YieldProcessor()
+#elif defined(__GNUC__) || defined(__clang__)
+    #if defined(__i386__) || defined(__x86_64__)
+        #include <immintrin.h>
+        #define p_uthread_yield_cpu() _mm_pause()
+    #elif defined(__arm__) || defined(__aarch64__)
+        #ifdef __ARM_ACLE
+            #include <arm_acle.h>
+            #define p_uthread_yield_cpu() __yield()
+        #else
+            #define p_uthread_yield_cpu() __asm__ __volatile__("yield" ::: "memory")
+        #endif
+    #elif defined(__powerpc__) || defined(__ppc__) || defined(__PPC__)
+        #define p_uthread_yield_cpu() __asm__ __volatile__("or 27,27,27" ::: "memory")
+    #else
+        #define p_uthread_yield_cpu() __asm__ __volatile__("" ::: "memory")
+    #endif
+#else
+    #define p_uthread_yield_cpu() ((void)0)
+#endif
+
+// clang-format on
+
+/// Cross-platform CPU yield instruction.
+ULIB_INLINE
+void uthread_yield_cpu(void) {
+    p_uthread_yield_cpu();
+}
 
 /// @}
 

@@ -25,3 +25,5 @@ Synchronization
    :content-only:
 .. doxygengroup:: ULock_api
    :content-only:
+.. doxygengroup:: UFutex
+   :content-only:

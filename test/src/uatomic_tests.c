@@ -21,7 +21,7 @@ void uatomic_test_base(void) {
     uatomic_init(&a, 42);
     utest_assert_uint(uatomic_load(&a), ==, 42);
     uatomic_store(&a, 43);
-    utest_assert_uint(uatomic_load(&a), ==, 43);
+    utest_assert_uint(uatomic_load_ex(&a, UMO_RELAXED), ==, 43);
     utest_assert_uint(uatomic_exchange(&a, 42), ==, 43);
     utest_assert_uint(a, ==, 42);
 
@@ -29,7 +29,7 @@ void uatomic_test_base(void) {
     utest_assert_false(uatomic_compare_exchange(&a, &b, 43));
     utest_assert_uint(a, ==, 42);
     utest_assert_uint(b, ==, 42);
-    utest_assert(uatomic_compare_exchange(&a, &b, 43));
+    utest_assert(uatomic_compare_exchange_ex(&a, &b, 43, UMO_ACQUIRE, UMO_RELAXED));
     utest_assert_uint(a, ==, 43);
     utest_assert_uint(b, ==, 42);
 

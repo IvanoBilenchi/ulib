@@ -19,25 +19,25 @@
 
 static void *worker_func(void *arg) {
     UThread *t = (UThread *)arg;
-    t->func(t->arg);
+    t->_fun(t->_arg);
     return NULL;
 }
 
 ulib_ret uthread(UThread *thread, void (*func)(void *), void *arg) {
-    *thread = (UThread){ .func = func, .arg = arg };
+    *thread = (UThread){ ._fun = func, ._arg = arg };
     return ULIB_OK;
 }
 
 ulib_ret uthread_start(UThread *thread) {
-    return pthread_create(&thread->handle, NULL, worker_func, thread) ? ULIB_ERR : ULIB_OK;
+    return pthread_create(&thread->_handle, NULL, worker_func, thread) ? ULIB_ERR : ULIB_OK;
 }
 
 ulib_ret uthread_join(UThread *thread) {
-    return pthread_join(thread->handle, NULL) ? ULIB_ERR : ULIB_OK;
+    return pthread_join(thread->_handle, NULL) ? ULIB_ERR : ULIB_OK;
 }
 
 ulib_ret uthread_detach(UThread *thread) {
-    return pthread_detach(thread->handle) ? ULIB_ERR : ULIB_OK;
+    return pthread_detach(thread->_handle) ? ULIB_ERR : ULIB_OK;
 }
 
 #elif defined(_WIN32)
@@ -46,26 +46,26 @@ ulib_ret uthread_detach(UThread *thread) {
 
 static DWORD WINAPI worker_func(LPVOID arg) {
     UThread *t = (UThread *)arg;
-    t->func(t->arg);
+    t->_fun(t->_arg);
     return 0;
 }
 
 ulib_ret uthread(UThread *thread, void (*func)(void *), void *arg) {
-    *thread = (UThread){ .func = func, .arg = arg };
+    *thread = (UThread){ ._fun = func, ._arg = arg };
     return ULIB_OK;
 }
 
 ulib_ret uthread_start(UThread *thread) {
-    thread->handle = CreateThread(NULL, 0, worker_func, thread, 0, NULL);
-    return thread->handle ? ULIB_OK : ULIB_ERR;
+    thread->_handle = CreateThread(NULL, 0, worker_func, thread, 0, NULL);
+    return thread->_handle ? ULIB_OK : ULIB_ERR;
 }
 
 ulib_ret uthread_join(UThread *thread) {
-    return WaitForSingleObject(thread->handle, INFINITE) ? ULIB_ERR : ULIB_OK;
+    return WaitForSingleObject(thread->_handle, INFINITE) ? ULIB_ERR : ULIB_OK;
 }
 
 ulib_ret uthread_detach(UThread *thread) {
-    return CloseHandle(thread->handle) ? ULIB_OK : ULIB_ERR;
+    return CloseHandle(thread->_handle) ? ULIB_OK : ULIB_ERR;
 }
 
 #endif
@@ -75,12 +75,12 @@ ulib_ret uthread_detach(UThread *thread) {
 #include "uwarning.h"
 
 ulib_ret uthread(UThread *thread, void (*func)(void *), void *arg) {
-    *thread = (UThread){ .func = func, .arg = arg };
+    *thread = (UThread){ ._fun = func, ._arg = arg };
     return ULIB_OK;
 }
 
 ulib_ret uthread_start(UThread *thread) {
-    thread->func(thread->arg);
+    thread->_fun(thread->_arg);
     return ULIB_OK;
 }
 

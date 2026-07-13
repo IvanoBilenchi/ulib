@@ -1,5 +1,5 @@
 /**
- * Synchronization primitives.
+ * Locking primitives.
  *
  * @author Davide Loconte <davide.loconte21@gmail.com>
  * @author Ivano Bilenchi
@@ -13,6 +13,7 @@
 #ifndef ULOCK_H
 #define ULOCK_H
 
+#include "uatomic.h"
 #include "uattrs.h"
 #include "ulib_ret.h"
 
@@ -20,24 +21,28 @@ ULIB_BEGIN_DECLS
 
 // clang-format off
 #ifdef ULIB_CONCURRENCY
-    #ifdef __APPLE__
-        #include <os/lock.h>
+    #ifndef ULIB_PLATFORM_LOCKS
+        #include "ufutex.h"
+        #include <stdint.h>
+        #define P_ULIB_LOCK_HANDLE UAtomic(ufutex_uint)
+        #define P_ULIB_RLOCK_HANDLE struct { UAtomic(void *) _owner; ULock _lock; uint32_t _count; }
+        #define P_ULIB_RWLOCK_HANDLE struct { ULock _seq; ULock _lock; UAtomic(uint32_t) _readers; }
+    #elif defined(__unix__) || defined(__APPLE__)
         #include <pthread.h> // IWYU pragma: keep
-        #define P_ULIB_LOCK_HANDLE os_unfair_lock
+        #ifdef __APPLE__
+            #include <os/lock.h>
+            #define P_ULIB_LOCK_HANDLE os_unfair_lock
+        #else
+            #define P_ULIB_LOCK_HANDLE pthread_mutex_t
+        #endif
         #define P_ULIB_RLOCK_HANDLE pthread_mutex_t
         #define P_ULIB_RWLOCK_HANDLE pthread_rwlock_t
-    #elif defined(__unix__)
-        #include <pthread.h> // IWYU pragma: keep
-        #define P_ULIB_LOCK_HANDLE pthread_mutex_t
-        #define P_ULIB_RLOCK_HANDLE pthread_mutex_t
-        #define P_ULIB_RWLOCK_HANDLE pthread_rwlock_t
-    #elif defined(_WIN32) || defined(_WIN64)
+    #elif defined(_WIN32)
         #include <windows.h>
         #define P_ULIB_LOCK_HANDLE SRWLOCK
         #define P_ULIB_RLOCK_HANDLE CRITICAL_SECTION
         #define P_ULIB_RWLOCK_HANDLE SRWLOCK
     #else
-        #error "Threading is not supported on this platform"
         #undef ULIB_CONCURRENCY
     #endif
 #endif // ULIB_CONCURRENCY
@@ -45,6 +50,7 @@ ULIB_BEGIN_DECLS
 #ifndef ULIB_CONCURRENCY
     typedef char P_ULIB_LOCK_HANDLE;
     typedef char P_ULIB_RLOCK_HANDLE;
+    typedef char P_ULIB_SLOCK_HANDLE;
     typedef char P_ULIB_RWLOCK_HANDLE;
 #endif // ULIB_CONCURRENCY
 // clang-format on
@@ -73,6 +79,13 @@ typedef struct URLock {
     P_ULIB_RLOCK_HANDLE _h;
     /// @endcond
 } URLock;
+
+/// A spin lock.
+typedef struct USLock {
+    /// @cond
+    uatomic_flag _flag;
+    /// @endcond
+} USLock;
 
 /// The "read" part of a read-write lock.
 typedef struct URWRLock {
@@ -121,6 +134,21 @@ URWRLock *ulock_read(URWLock *lock) {
 }
 
 /// @}
+
+ULIB_API
+ulib_ret p_uslock_init(USLock *lock);
+
+ULIB_API
+void p_uslock_deinit(USLock *lock);
+
+ULIB_API
+void p_uslock_lock(USLock *lock);
+
+ULIB_API
+bool p_uslock_trylock(USLock *lock);
+
+ULIB_API
+void p_uslock_unlock(USLock *lock);
 
 #ifdef ULIB_CONCURRENCY
 
@@ -207,95 +235,33 @@ ULIB_END_DECLS
 
 /// @cond
 
-ULIB_INLINE
-ulib_ret ulock(ULock *lock) {
-    return p_ulock_init(lock);
-}
+// clang-format off
 
-ULIB_INLINE
-ulib_ret ulock(URLock *lock) {
-    return p_urlock_init(lock);
-}
+ULIB_INLINE ulib_ret ulock(ULock *lock) { return p_ulock_init(lock); }
+ULIB_INLINE ulib_ret ulock(URLock *lock) { return p_urlock_init(lock); }
+ULIB_INLINE ulib_ret ulock(USLock *lock) { return p_uslock_init(lock); }
+ULIB_INLINE ulib_ret ulock(URWLock *lock) { return p_urwlock_init(lock); }
+ULIB_INLINE void ulock_deinit(ULock *lock) { p_ulock_deinit(lock); }
+ULIB_INLINE void ulock_deinit(URLock *lock) { p_urlock_deinit(lock); }
+ULIB_INLINE void ulock_deinit(USLock *lock) { p_uslock_deinit(lock); }
+ULIB_INLINE void ulock_deinit(URWLock *lock) { p_urwlock_deinit(lock); }
+ULIB_INLINE void ulock_lock(ULock *lock) { p_ulock_lock(lock); }
+ULIB_INLINE void ulock_lock(URLock *lock) { p_urlock_lock(lock); }
+ULIB_INLINE void ulock_lock(USLock *lock) { p_uslock_lock(lock); }
+ULIB_INLINE void ulock_lock(URWLock *lock) { p_urwlock_write_lock(lock); }
+ULIB_INLINE void ulock_lock(URWRLock *lock) { p_urwlock_read_lock(lock); }
+ULIB_INLINE bool ulock_trylock(ULock *lock) { return p_ulock_trylock(lock); }
+ULIB_INLINE bool ulock_trylock(URLock *lock) { return p_urlock_trylock(lock); }
+ULIB_INLINE bool ulock_trylock(USLock *lock) { return p_uslock_trylock(lock); }
+ULIB_INLINE bool ulock_trylock(URWLock *lock) { return p_urwlock_write_trylock(lock); }
+ULIB_INLINE bool ulock_trylock(URWRLock *lock) { return p_urwlock_read_trylock(lock); }
+ULIB_INLINE void ulock_unlock(ULock *lock) { p_ulock_unlock(lock); }
+ULIB_INLINE void ulock_unlock(URLock *lock) { p_urlock_unlock(lock); }
+ULIB_INLINE void ulock_unlock(USLock *lock) { p_uslock_unlock(lock); }
+ULIB_INLINE void ulock_unlock(URWLock *lock) { p_urwlock_write_unlock(lock); }
+ULIB_INLINE void ulock_unlock(URWRLock *lock) { p_urwlock_read_unlock(lock); }
 
-ULIB_INLINE
-ulib_ret ulock(URWLock *lock) {
-    return p_urwlock_init(lock);
-}
-
-ULIB_INLINE
-void ulock_deinit(ULock *lock) {
-    p_ulock_deinit(lock);
-}
-
-ULIB_INLINE
-void ulock_deinit(URLock *lock) {
-    p_urlock_deinit(lock);
-}
-
-ULIB_INLINE
-void ulock_deinit(URWLock *lock) {
-    p_urwlock_deinit(lock);
-}
-
-ULIB_INLINE
-void ulock_lock(ULock *lock) {
-    p_ulock_lock(lock);
-}
-
-ULIB_INLINE
-void ulock_lock(URLock *lock) {
-    p_urlock_lock(lock);
-}
-
-ULIB_INLINE
-void ulock_lock(URWLock *lock) {
-    p_urwlock_write_lock(lock);
-}
-
-ULIB_INLINE
-void ulock_lock(URWRLock *lock) {
-    p_urwlock_read_lock(lock);
-}
-
-ULIB_INLINE
-bool ulock_trylock(ULock *lock) {
-    return p_ulock_trylock(lock);
-}
-
-ULIB_INLINE
-bool ulock_trylock(URLock *lock) {
-    return p_urlock_trylock(lock);
-}
-
-ULIB_INLINE
-bool ulock_trylock(URWLock *lock) {
-    return p_urwlock_write_trylock(lock);
-}
-
-ULIB_INLINE
-bool ulock_trylock(URWRLock *lock) {
-    return p_urwlock_read_trylock(lock);
-}
-
-ULIB_INLINE
-void ulock_unlock(ULock *lock) {
-    p_ulock_unlock(lock);
-}
-
-ULIB_INLINE
-void ulock_unlock(URLock *lock) {
-    p_urlock_unlock(lock);
-}
-
-ULIB_INLINE
-void ulock_unlock(URWLock *lock) {
-    p_urwlock_write_unlock(lock);
-}
-
-ULIB_INLINE
-void ulock_unlock(URWRLock *lock) {
-    p_urwlock_read_unlock(lock);
-}
+// clang-format on
 
 /// @endcond
 
@@ -319,6 +285,7 @@ void ulock_unlock(URWRLock *lock) {
     _Generic((lock),                                                                               \
         ULock *: p_ulock_init,                                                                     \
         URLock *: p_urlock_init,                                                                   \
+        USLock *: p_uslock_init,                                                                   \
         URWLock *: p_urwlock_init)(lock)
 
 /**
@@ -332,6 +299,7 @@ void ulock_unlock(URWRLock *lock) {
     _Generic((lock),                                                                               \
         ULock *: p_ulock_deinit,                                                                   \
         URLock *: p_urlock_deinit,                                                                 \
+        USLock *: p_uslock_deinit,                                                                 \
         URWLock *: p_urwlock_deinit)(lock)
 
 /**
@@ -345,6 +313,7 @@ void ulock_unlock(URWRLock *lock) {
     _Generic((lock),                                                                               \
         ULock *: p_ulock_lock,                                                                     \
         URLock *: p_urlock_lock,                                                                   \
+        USLock *: p_uslock_lock,                                                                   \
         URWLock *: p_urwlock_write_lock,                                                           \
         URWRLock *: p_urwlock_read_lock)(lock)
 
@@ -363,6 +332,7 @@ void ulock_unlock(URWRLock *lock) {
     _Generic((lock),                                                                               \
         ULock *: p_ulock_trylock,                                                                  \
         URLock *: p_urlock_trylock,                                                                \
+        USLock *: p_uslock_trylock,                                                                \
         URWLock *: p_urwlock_write_trylock,                                                        \
         URWRLock *: p_urwlock_read_trylock)(lock)
 
@@ -377,6 +347,7 @@ void ulock_unlock(URWRLock *lock) {
     _Generic((lock),                                                                               \
         ULock *: p_ulock_unlock,                                                                   \
         URLock *: p_urlock_unlock,                                                                 \
+        USLock *: p_uslock_unlock,                                                                 \
         URWLock *: p_urwlock_write_unlock,                                                         \
         URWRLock *: p_urwlock_read_unlock)(lock)
 

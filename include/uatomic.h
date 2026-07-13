@@ -15,7 +15,6 @@
 // clang-format off
 #ifdef ULIB_CONCURRENCY
     #if defined(__STDC_NO_ATOMICS__) && !defined(_WIN32)
-        #error "Atomic operations are not supported on this platform"
         #undef ULIB_CONCURRENCY
     #endif
 #endif
@@ -40,22 +39,22 @@
 typedef enum UMemoryOrder {
 
     /// Relaxed memory order.
-    UMEMORY_ORDER_RELAXED = p_umemory_order(relaxed),
+    UMO_RELAXED = p_umemory_order(relaxed),
 
     /// Consume memory order.
-    UMEMORY_ORDER_CONSUME = p_umemory_order(consume),
+    UMO_CONSUME = p_umemory_order(consume),
 
     /// Acquire memory order.
-    UMEMORY_ORDER_ACQUIRE = p_umemory_order(acquire),
+    UMO_ACQUIRE = p_umemory_order(acquire),
 
     /// Release memory order.
-    UMEMORY_ORDER_RELEASE = p_umemory_order(release),
+    UMO_RELEASE = p_umemory_order(release),
 
     /// Acquire/release memory order.
-    UMEMORY_ORDER_ACQ_REL = p_umemory_order(acq_rel),
+    UMO_ACQ_REL = p_umemory_order(acq_rel),
 
     /// Sequentially consistent memory order.
-    UMEMORY_ORDER_SEQ_CST = p_umemory_order(seq_cst),
+    UMO_SEQ_CST = p_umemory_order(seq_cst),
 
 } UMemoryOrder;
 
@@ -95,7 +94,8 @@ typedef enum UMemoryOrder {
  *
  * @alias bool uatomic_flag_test_and_set_ex(uatomic_flag *flag, UMemoryOrder order);
  */
-#define uatomic_flag_test_and_set_ex(flag, order) atomic_flag_test_and_set_explicit(flag, order)
+#define uatomic_flag_test_and_set_ex(flag, order)                                                  \
+    atomic_flag_test_and_set_explicit(flag, (memory_order)order)
 
 /**
  * Clears an atomic flag.
@@ -114,7 +114,7 @@ typedef enum UMemoryOrder {
  *
  * @alias void uatomic_flag_clear_ex(uatomic_flag *flag, UMemoryOrder order);
  */
-#define uatomic_flag_clear_ex(flag, order) atomic_flag_clear_explicit(flag, order)
+#define uatomic_flag_clear_ex(flag, order) atomic_flag_clear_explicit(flag, (memory_order)order)
 
 /// Atomic type.
 #define UAtomic(T) _Atomic(T)
@@ -162,7 +162,7 @@ typedef enum UMemoryOrder {
  *
  * @alias T uatomic_load_ex(UAtomic(T) *obj, UMemoryOrder order);
  */
-#define uatomic_load_ex(obj, order) atomic_load_explicit(obj, order)
+#define uatomic_load_ex(obj, order) atomic_load_explicit(obj, (memory_order)order)
 
 /**
  * Stores a value into an atomic object.
@@ -183,7 +183,7 @@ typedef enum UMemoryOrder {
  *
  * @alias void uatomic_store_ex(UAtomic(T) *obj, T value, UMemoryOrder order);
  */
-#define uatomic_store_ex(obj, value, order) atomic_store_explicit(obj, value, order)
+#define uatomic_store_ex(obj, value, order) atomic_store_explicit(obj, value, (memory_order)order)
 
 /**
  * Replaces the value of the atomic object and returns the value it held previously.
@@ -206,7 +206,8 @@ typedef enum UMemoryOrder {
  *
  * @alias T uatomic_exchange_ex(UAtomic(T) *obj, T value, UMemoryOrder order);
  */
-#define uatomic_exchange_ex(obj, value, order) atomic_exchange_explicit(obj, value, order)
+#define uatomic_exchange_ex(obj, value, order)                                                     \
+    atomic_exchange_explicit(obj, value, (memory_order)order)
 
 /**
  * Compares the value of the atomic object with `expected` and replaces it with `desired` if they
@@ -237,7 +238,8 @@ typedef enum UMemoryOrder {
  *                                         UMemoryOrder success_order, UMemoryOrder failure_order);
  */
 #define uatomic_compare_exchange_ex(obj, expected, desired, success_order, failure_order)          \
-    atomic_compare_exchange_strong_explicit(obj, expected, desired, success_order, failure_order)
+    atomic_compare_exchange_strong_explicit(obj, expected, desired, (memory_order)success_order,   \
+                                            (memory_order)failure_order)
 
 /**
  * Compares the value of the atomic object with `expected` and replaces it with `desired` if they
@@ -273,7 +275,8 @@ typedef enum UMemoryOrder {
  *                                              failure_order);
  */
 #define uatomic_compare_exchange_weak_ex(obj, expected, desired, success_order, failure_order)     \
-    atomic_compare_exchange_weak_explicit(obj, expected, desired, success_order, failure_order)
+    atomic_compare_exchange_weak_explicit(obj, expected, desired, (memory_order)success_order,     \
+                                          (memory_order)failure_order)
 
 /**
  * Adds a value to the atomic object and returns the value it held previously.
@@ -296,7 +299,8 @@ typedef enum UMemoryOrder {
  *
  * @alias T uatomic_fetch_add_ex(UAtomic(T) *obj, T value, UMemoryOrder order);
  */
-#define uatomic_fetch_add_ex(obj, value, order) atomic_fetch_add_explicit(obj, value, order)
+#define uatomic_fetch_add_ex(obj, value, order)                                                    \
+    atomic_fetch_add_explicit(obj, value, (memory_order)order)
 
 /**
  * Subtracts a value from the atomic object and returns the value it held previously.
@@ -319,7 +323,8 @@ typedef enum UMemoryOrder {
  *
  * @alias T uatomic_fetch_sub_ex(UAtomic(T) *obj, T value, UMemoryOrder order);
  */
-#define uatomic_fetch_sub_ex(obj, value, order) atomic_fetch_sub_explicit(obj, value, order)
+#define uatomic_fetch_sub_ex(obj, value, order)                                                    \
+    atomic_fetch_sub_explicit(obj, value, (memory_order)order)
 
 /**
  * Performs a bitwise AND operation on the atomic object and returns the value it held previously.
@@ -342,7 +347,8 @@ typedef enum UMemoryOrder {
  *
  * @alias T uatomic_fetch_and_ex(UAtomic(T) *obj, T value, UMemoryOrder order);
  */
-#define uatomic_fetch_and_ex(obj, value, order) atomic_fetch_and_explicit(obj, value, order)
+#define uatomic_fetch_and_ex(obj, value, order)                                                    \
+    atomic_fetch_and_explicit(obj, value, (memory_order)order)
 
 /**
  * Performs a bitwise OR operation on the atomic object and returns the value it held previously.
@@ -365,7 +371,8 @@ typedef enum UMemoryOrder {
  *
  * @alias T uatomic_fetch_or_ex(UAtomic(T) *obj, T value, UMemoryOrder order);
  */
-#define uatomic_fetch_or_ex(obj, value, order) atomic_fetch_or_explicit(obj, value, order)
+#define uatomic_fetch_or_ex(obj, value, order)                                                     \
+    atomic_fetch_or_explicit(obj, value, (memory_order)order)
 
 /**
  * Performs a bitwise XOR operation on the atomic object and returns the value it held previously.
@@ -388,7 +395,8 @@ typedef enum UMemoryOrder {
  *
  * @alias T uatomic_fetch_xor_ex(UAtomic(T) *obj, T value, UMemoryOrder order);
  */
-#define uatomic_fetch_xor_ex(obj, value, order) atomic_fetch_xor_explicit(obj, value, order)
+#define uatomic_fetch_xor_ex(obj, value, order)                                                    \
+    atomic_fetch_xor_explicit(obj, value, (memory_order)order)
 
 /**
  * Establishes memory synchronization ordering without an associated atomic operation.
@@ -397,7 +405,7 @@ typedef enum UMemoryOrder {
  *
  * @alias void uatomic_thread_fence(UMemoryOrder order);
  */
-#define uatomic_thread_fence(order) atomic_thread_fence(order)
+#define uatomic_thread_fence(order) atomic_thread_fence((memory_order)order)
 
 /**
  * Creates fence between a thread and a signal handler executed in the same thread.
@@ -406,7 +414,7 @@ typedef enum UMemoryOrder {
  *
  * @alias void uatomic_signal_fence(UMemoryOrder order);
  */
-#define uatomic_signal_fence(order) atomic_signal_fence(order)
+#define uatomic_signal_fence(order) atomic_signal_fence((memory_order)order)
 
 /// @}
 

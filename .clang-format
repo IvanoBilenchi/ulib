@@ -26,6 +26,7 @@ StatementMacros:
   - ULIB_END_DECLS
   - p_ubit_count_set_def
 TypenameMacros:
+  - UAtomic
   - UBit
   - UHash
   - UVec
