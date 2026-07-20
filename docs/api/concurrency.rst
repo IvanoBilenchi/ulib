@@ -10,14 +10,6 @@ Threads
 .. doxygengroup:: UThread_api
    :content-only:
 
-Atomic operations
-=================
-
-.. doxygengroup:: UAtomic_types
-   :content-only:
-.. doxygengroup:: UAtomic_api
-   :content-only:
-
 Synchronization
 ===============
 
@@ -25,5 +17,31 @@ Synchronization
    :content-only:
 .. doxygengroup:: ULock_api
    :content-only:
-.. doxygengroup:: UFutex
+
+.. doxygengroup:: UCond_types
+   :content-only:
+.. doxygengroup:: UCond_api
+   :content-only:
+
+.. doxygengroup:: UEvent_types
+   :content-only:
+.. doxygengroup:: UEvent_api
+   :content-only:
+
+.. doxygengroup:: UBarrier_types
+   :content-only:
+.. doxygengroup:: UBarrier_api
+   :content-only:
+
+Low-level primitives
+====================
+
+.. doxygengroup:: UAtomic_types
+   :content-only:
+.. doxygengroup:: UAtomic_api
+   :content-only:
+
+.. doxygengroup:: UFutex_types
+   :content-only:
+.. doxygengroup:: UFutex_api
    :content-only:

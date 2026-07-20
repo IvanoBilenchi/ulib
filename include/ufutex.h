@@ -20,12 +20,19 @@
 ULIB_BEGIN_DECLS
 
 /**
- * @defgroup UFutex Futex API
+ * @defgroup UFutex_types Futex types
  * @{
  */
 
 /// Futex integer type.
 typedef uint32_t ufutex_uint;
+
+/// @}
+
+/**
+ * @defgroup UFutex_api Futex API
+ * @{
+ */
 
 /**
  * Reads a value from `addr`, compares it to `val`, and blocks the thread if the two are equal.

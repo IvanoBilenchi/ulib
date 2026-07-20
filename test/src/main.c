@@ -6,7 +6,10 @@
  */
 
 #include "uatomic_tests.h"
+#include "ubarrier_tests.h"
 #include "ubit_tests.h"
+#include "ucond_tests.h"
+#include "uevent_tests.h"
 #include "uhash_tests.h"
 #include "uiter_tests.h"
 #include "ulib.h"
@@ -35,5 +38,8 @@ utest_main({
     utest_run("uthread", UTHREAD_TESTS);
     utest_run("uatomic", UATOMIC_TESTS);
     utest_run("ulock", ULOCK_TESTS);
+    utest_run("uevent", UEVENT_TESTS);
+    utest_run("ucond", UCOND_TESTS);
+    utest_run("ubarrier", UBARRIER_TESTS);
     utest_run("uversion", UVERSION_TESTS);
 })
