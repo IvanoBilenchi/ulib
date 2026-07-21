@@ -110,7 +110,7 @@ jobs:
 
       - name: Run
         working-directory: build
-        run: ctest --build-config ${{env.config}} --output-on-failure
+        run: ctest -V --build-config ${{env.config}} --timeout 30
 
   bench:
     name: "Benchmark (os: ${{matrix.os}})"
@@ -126,6 +126,7 @@ jobs:
       - name: Configure
         run: >
           cmake -B build
+          -DULIB_TESTS=OFF
           -DULIB_LTO=ON
           -DULIB_OPTIMIZE_FOR_HOST=ON
           -DCMAKE_SYSTEM_VERSION=''
@@ -133,16 +134,11 @@ jobs:
           -DULIB_CONCURRENCY=ON
 
       - name: Build
-        run: cmake --build build --config ${{env.config}} --target ulib-bench
-
-      - name: Prepare workdir (Windows)
-        working-directory: build/bench
-        if: runner.os == 'Windows'
-        run: mv ${{env.config}}/*.exe ./
+        run: cmake --build build --config ${{env.config}}
 
       - name: Run
-        working-directory: build/bench
-        run: ./ulib-bench
+        working-directory: build
+        run: ctest -V --build-config ${{env.config}} --timeout 30
 
   docs:
     name: Documentation

@@ -18,11 +18,13 @@ set(ULIB_AUTHOR_URL "https://ivanobilenchi.com")
 set(ULIB_COPYRIGHT_YEAR "2018-2026")
 set(ULIB_GIT_URL "https://github.com/IvanoBilenchi/ulib")
 
-project(uLib
-        VERSION "${ULIB_VERSION}"
-        DESCRIPTION "A modern library for C applications."
-        HOMEPAGE_URL "${ULIB_GIT_URL}"
-        LANGUAGES C)
+project(
+    uLib
+    VERSION "${ULIB_VERSION}"
+    DESCRIPTION "A modern library for C applications."
+    HOMEPAGE_URL "${ULIB_GIT_URL}"
+    LANGUAGES C
+)
 
 # Cache variables
 
@@ -36,7 +38,7 @@ endif()
 
 option(ULIB_DOCS "Enable the documentation targets" OFF)
 option(ULIB_TESTS "Enable the test targets" ${PROJECT_IS_TOP_LEVEL})
-option(ULIB_CPP_TESTS "Enable the C++ test targets" ${PROJECT_IS_TOP_LEVEL})
+option(ULIB_CPP_TESTS "Enable the C++ test targets" ${ULIB_TESTS})
 option(ULIB_BENCHMARKS "Enable the benchmark targets" ${PROJECT_IS_TOP_LEVEL})
 option(ULIB_LTO "Enable link-time optimization, if available" ${ULIB_IS_RELEASE})
 option(ULIB_OPTIMIZE_FOR_HOST "Enable host CPU optimizations (keep OFF for distribution)" OFF)
@@ -121,6 +123,8 @@ endif()
 if(ULIB_LTO)
     include(CheckIPOSupported)
     check_ipo_supported(RESULT ULIB_LTO_ENABLED)
+else()
+    set(ULIB_LTO_ENABLED OFF)
 endif()
 
 if(ULIB_TINY)
@@ -164,20 +168,25 @@ list(APPEND ULIB_SOURCES ${ULIB_USER_SOURCES})
 ###########
 
 add_library(ulib ${ULIB_LIBRARY_TYPE})
-target_sources(ulib
-               PRIVATE ${ULIB_SOURCES}
-               PRIVATE FILE_SET private_headers
-                       TYPE HEADERS
-                       BASE_DIRS "${ULIB_PRIVATE_HEADERS_DIR}"
-                       FILES ${ULIB_PRIVATE_HEADERS}
-               PUBLIC FILE_SET public_headers
-                      TYPE HEADERS
-                      BASE_DIRS "${ULIB_PUBLIC_HEADERS_DIR}"
-                      FILES ${ULIB_PUBLIC_HEADERS})
-set_target_properties(ulib PROPERTIES
-                      PREFIX ""
-                      C_VISIBILITY_PRESET hidden
-                      VISIBILITY_INLINES_HIDDEN ON)
+target_sources(
+    ulib
+    PRIVATE ${ULIB_SOURCES}
+    PRIVATE FILE_SET private_headers
+        TYPE HEADERS
+        BASE_DIRS "${ULIB_PRIVATE_HEADERS_DIR}"
+        FILES ${ULIB_PRIVATE_HEADERS}
+    PUBLIC FILE_SET public_headers
+        TYPE HEADERS
+        BASE_DIRS "${ULIB_PUBLIC_HEADERS_DIR}"
+        FILES ${ULIB_PUBLIC_HEADERS}
+)
+set_target_properties(
+    ulib PROPERTIES
+    PREFIX ""
+    C_VISIBILITY_PRESET hidden
+    VISIBILITY_INLINES_HIDDEN ON
+    INTERPROCEDURAL_OPTIMIZATION ${ULIB_LTO_ENABLED}
+)
 target_compile_features(ulib PUBLIC ${ULIB_COMPILE_FEATURES})
 target_compile_options(ulib PUBLIC ${ULIB_PUBLIC_CFLAGS} PRIVATE ${ULIB_PRIVATE_CFLAGS})
 target_link_options(ulib PUBLIC ${ULIB_PUBLIC_LFLAGS} PRIVATE ${ULIB_PRIVATE_LFLAGS})
@@ -193,10 +202,6 @@ endif()
 
 if(ULIB_LIBRARY_TYPE STREQUAL "SHARED")
     target_compile_definitions(ulib PUBLIC ULIB_SHARED)
-endif()
-
-if(ULIB_LTO_ENABLED)
-    set_property(TARGET ulib PROPERTY INTERPROCEDURAL_OPTIMIZATION ON)
 endif()
 
 if(ULIB_CLANG_TIDY)
@@ -217,5 +222,6 @@ if(ULIB_TESTS)
 endif()
 
 if(ULIB_BENCHMARKS)
+    enable_testing()
     add_subdirectory("${ULIB_BENCH_DIR}")
 endif()

@@ -11,22 +11,19 @@ add_library(khashl INTERFACE)
 target_include_directories(khashl INTERFACE "${ULIB_BENCH_LIB_DIR}/khashl")
 
 add_executable(ulib-bench)
-target_sources(ulib-bench
-               PRIVATE ${ULIB_BENCH_SOURCES}
-               PRIVATE FILE_SET HEADERS
-                       BASE_DIRS "${ULIB_BENCH_SRC_DIR}"
-                       FILES ${ULIB_BENCH_HEADERS})
+target_sources(
+    ulib-bench
+    PRIVATE ${ULIB_BENCH_SOURCES}
+    PRIVATE FILE_SET HEADERS
+        BASE_DIRS "${ULIB_BENCH_SRC_DIR}"
+        FILES ${ULIB_BENCH_HEADERS}
+)
+set_target_properties(ulib-bench PROPERTIES INTERPROCEDURAL_OPTIMIZATION ${ULIB_LTO_ENABLED})
 target_compile_options(ulib-bench PRIVATE ${ULIB_PRIVATE_CFLAGS})
 target_link_libraries(ulib-bench PRIVATE ulib khashl)
-
-if(ULIB_LTO_ENABLED)
-    set_property(TARGET ulib-bench PROPERTY INTERPROCEDURAL_OPTIMIZATION ON)
-endif()
 
 if(ULIB_CLANG_TIDY)
     clang_tidy_check(ulib-bench)
 endif()
 
-if(ULIB_TESTS)
-    add_test(NAME "Benchmark" COMMAND ulib-bench)
-endif()
+add_test(NAME "Benchmark" COMMAND ulib-bench)

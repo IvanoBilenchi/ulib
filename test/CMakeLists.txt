@@ -7,17 +7,16 @@ file(GLOB ULIB_TEST_SOURCES CONFIGURE_DEPENDS "${ULIB_TEST_SRC_DIR}/*.c")
 # Test target
 
 add_executable(ulib-test)
-target_sources(ulib-test
-               PRIVATE ${ULIB_TEST_SOURCES}
-               PRIVATE FILE_SET HEADERS
-                       BASE_DIRS "${ULIB_TEST_SRC_DIR}"
-                       FILES ${ULIB_TEST_HEADERS})
+target_sources(
+    ulib-test
+    PRIVATE ${ULIB_TEST_SOURCES}
+    PRIVATE FILE_SET HEADERS
+        BASE_DIRS "${ULIB_TEST_SRC_DIR}"
+        FILES ${ULIB_TEST_HEADERS}
+)
+set_target_properties(ulib-test PROPERTIES INTERPROCEDURAL_OPTIMIZATION ${ULIB_LTO_ENABLED})
 target_compile_options(ulib-test PRIVATE ${ULIB_PRIVATE_CFLAGS})
 target_link_libraries(ulib-test PRIVATE ulib)
-
-if(ULIB_LTO_ENABLED)
-    set_property(TARGET ulib-test PROPERTY INTERPROCEDURAL_OPTIMIZATION ON)
-endif()
 
 if(ULIB_CLANG_TIDY)
     clang_tidy_check(ulib-test)
@@ -42,14 +41,16 @@ if(ULIB_CPP_TESTS)
     # Add target
     enable_language(CXX)
     add_executable(ulib-cpp-test)
-    target_sources(ulib-cpp-test
-                   PRIVATE ${ULIB_CPP_TEST_SOURCES}
-                   PRIVATE FILE_SET HEADERS
-                           BASE_DIRS "${ULIB_TEST_SRC_DIR}"
-                           FILES ${ULIB_TEST_HEADERS})
+    target_sources(
+        ulib-cpp-test
+        PRIVATE ${ULIB_CPP_TEST_SOURCES}
+        PRIVATE FILE_SET HEADERS
+            BASE_DIRS "${ULIB_TEST_SRC_DIR}"
+            FILES ${ULIB_TEST_HEADERS}
+    )
+    set_target_properties(ulib-cpp-test PROPERTIES EXPORT_COMPILE_COMMANDS OFF)
     target_compile_features(ulib-cpp-test PRIVATE cxx_std_23)
     target_link_libraries(ulib-cpp-test PRIVATE ulib)
-    set_target_properties(ulib-cpp-test PROPERTIES EXPORT_COMPILE_COMMANDS OFF)
 
     add_test(NAME "Test (C++)" COMMAND ulib-cpp-test)
 endif()
