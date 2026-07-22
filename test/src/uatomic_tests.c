@@ -2,6 +2,7 @@
  * @author Ivano Bilenchi
  *
  * @copyright Copyright (c) 2026 Ivano Bilenchi <https://ivanobilenchi.com>
+ * @copyright SPDX-License-Identifier: ISC
  */
 
 #include "uatomic_tests.h"

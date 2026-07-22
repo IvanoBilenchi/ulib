@@ -20,12 +20,25 @@
 #endif
 // clang-format on
 
-#ifdef ULIB_CONCURRENCY
-
 /**
  * @defgroup UAtomic_types Atomic types
  * @{
  */
+
+// NOLINTBEGIN(modernize-macro-to-enum)
+
+/// Specifies that atomic operations for a given type are never lock-free.
+#define UATOMIC_LOCK_FREE_NEVER 0
+
+/// Specifies that atomic operations for a given type are sometimes lock-free.
+#define UATOMIC_LOCK_FREE_SOMETIMES 1
+
+/// Specifies that atomic operations for a given type are always lock-free.
+#define UATOMIC_LOCK_FREE_ALWAYS 2
+
+// NOLINTEND(modernize-macro-to-enum)
+
+#ifdef ULIB_CONCURRENCY
 
 #include <stdatomic.h>
 
@@ -61,19 +74,49 @@ typedef enum UMemoryOrder {
 /// Atomic flag type.
 #define uatomic_flag atomic_flag
 
-/// Atomic flag initializer.
-#ifdef ATOMIC_FLAG_INIT
-#define UATOMIC_FLAG_INIT ATOMIC_FLAG_INIT
-#else
-#define UATOMIC_FLAG_INIT { 0 }
-#endif
-
 /// @}
 
 /**
  * @defgroup UAtomic_api Atomic operations
  * @{
  */
+
+// NOLINTBEGIN(misc-include-cleaner)
+
+/// Whether operations on @cval{bool} atomics are lock-free.
+#define UATOMIC_BOOL_LOCK_FREE ATOMIC_BOOL_LOCK_FREE
+
+/// Whether operations on @cval{char} atomics are lock-free.
+#define UATOMIC_CHAR_LOCK_FREE ATOMIC_CHAR_LOCK_FREE
+
+/// Whether operations on @cval{char16_t} atomics are lock-free.
+#define UATOMIC_CHAR16_T_LOCK_FREE ATOMIC_CHAR16_T_LOCK_FREE
+
+/// Whether operations on @cval{char32_t} atomics are lock-free.
+#define UATOMIC_CHAR32_T_LOCK_FREE ATOMIC_CHAR32_T_LOCK_FREE
+
+/// Whether operations on @cval{wchar_t} atomics are lock-free.
+#define UATOMIC_WCHAR_T_LOCK_FREE ATOMIC_WCHAR_T_LOCK_FREE
+
+/// Whether operations on @cval{short} atomics are lock-free.
+#define UATOMIC_SHORT_LOCK_FREE ATOMIC_SHORT_LOCK_FREE
+
+/// Whether operations on @cval{int} atomics are lock-free.
+#define UATOMIC_INT_LOCK_FREE ATOMIC_INT_LOCK_FREE
+
+/// Whether operations on @cval{long} atomics are lock-free.
+#define UATOMIC_LONG_LOCK_FREE ATOMIC_LONG_LOCK_FREE
+
+/// Whether operations on @cval{long long} atomics are lock-free.
+#define UATOMIC_LLONG_LOCK_FREE ATOMIC_LLONG_LOCK_FREE
+
+/// Whether operations on pointer atomics are lock-free.
+#define UATOMIC_POINTER_LOCK_FREE ATOMIC_POINTER_LOCK_FREE
+
+/// Atomic flag initializer.
+#define UATOMIC_FLAG_INIT ATOMIC_FLAG_INIT
+
+// NOLINTEND(misc-include-cleaner)
 
 /**
  * Tests and sets an atomic flag.
@@ -424,6 +467,17 @@ typedef enum UMemoryOrder {
 #include <stdbool.h>
 
 /// @cond
+
+#define UATOMIC_BOOL_LOCK_FREE ULF_ALWAYS
+#define UATOMIC_CHAR_LOCK_FREE ULF_ALWAYS
+#define UATOMIC_CHAR16_T_LOCK_FREE ULF_ALWAYS
+#define UATOMIC_CHAR32_T_LOCK_FREE ULF_ALWAYS
+#define UATOMIC_WCHAR_T_LOCK_FREE ULF_ALWAYS
+#define UATOMIC_SHORT_LOCK_FREE ULF_ALWAYS
+#define UATOMIC_INT_LOCK_FREE ULF_ALWAYS
+#define UATOMIC_LONG_LOCK_FREE ULF_ALWAYS
+#define UATOMIC_LLONG_LOCK_FREE ULF_ALWAYS
+#define UATOMIC_POINTER_LOCK_FREE ULF_ALWAYS
 
 typedef enum UMemoryOrder {
     UMEMORY_ORDER_RELAXED,

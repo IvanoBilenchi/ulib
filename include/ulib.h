@@ -35,6 +35,7 @@
 #include "umeta.h"
 #include "unumber.h"
 #include "urand.h"
+#include "usem.h"
 #include "ustrbuf.h"
 #include "ustream.h"
 #include "ustream_varint.h"

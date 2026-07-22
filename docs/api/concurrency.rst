@@ -18,6 +18,11 @@ Synchronization
 .. doxygengroup:: ULock_api
    :content-only:
 
+.. doxygengroup:: USem_types
+   :content-only:
+.. doxygengroup:: USem_api
+   :content-only:
+
 .. doxygengroup:: UCond_types
    :content-only:
 .. doxygengroup:: UCond_api

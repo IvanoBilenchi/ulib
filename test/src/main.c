@@ -17,6 +17,7 @@
 #include "ulog_tests.h"
 #include "unumber_tests.h"
 #include "urand_tests.h"
+#include "usem_tests.h"
 #include "ustream_tests.h"
 #include "ustring_tests.h"
 #include "uthread_tests.h"
@@ -41,5 +42,6 @@ utest_main({
     utest_run("uevent", UEVENT_TESTS);
     utest_run("ucond", UCOND_TESTS);
     utest_run("ubarrier", UBARRIER_TESTS);
+    utest_run("usem", USEM_TESTS);
     utest_run("uversion", UVERSION_TESTS);
 })

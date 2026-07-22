@@ -1,5 +1,5 @@
 /**
- * Cross-platform threading interface.
+ * Cross-platform threads.
  *
  * @author Davide Loconte <davide.loconte21@gmail.com>
  * @author Ivano Bilenchi

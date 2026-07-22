@@ -1,7 +1,7 @@
 /**
  * @author Davide Loconte
  *
- * @copyright Copyright (c) 2021 Ivano Bilenchi <https://ivanobilenchi.com>
+ * @copyright Copyright (c) 2026 Ivano Bilenchi <https://ivanobilenchi.com>
  * @copyright SPDX-License-Identifier: ISC
  */
 
