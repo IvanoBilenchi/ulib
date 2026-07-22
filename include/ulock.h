@@ -26,7 +26,7 @@ ULIB_BEGIN_DECLS
         #include <stdint.h>
         #define P_ULIB_LOCK_HANDLE UAtomic(ufutex_uint)
         #define P_ULIB_RLOCK_HANDLE struct { UAtomic(void *) _owner; ULock _lock; uint32_t _count; }
-        #define P_ULIB_RWLOCK_HANDLE struct { ULock _seq; ULock _lock; UAtomic(uint32_t) _readers; }
+        #define P_ULIB_RWLOCK_HANDLE struct { UAtomic(ufutex_uint) _state; UAtomic(ufutex_uint) _wnotify; }
     #elif defined(__unix__) || defined(__APPLE__)
         #include <pthread.h> // IWYU pragma: keep
         #ifdef __APPLE__
