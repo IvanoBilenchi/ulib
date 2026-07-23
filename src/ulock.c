@@ -72,7 +72,7 @@ void p_ulock_deinit(ulib_unused ULock *lock) {}
 static bool p_ulock_lock_impl(ULock *lock, bool trylock) {
     // Fast path, try to acquire the lock without contention.
     ufutex_uint val = UNLOCKED;
-    if (uatomic_compare_exchange_ex(&lock->_h, &val, LOCKED, UMO_ACQUIRE, UMO_RELAXED)) return true;
+    if (uatomic_cas_ex(&lock->_h, &val, LOCKED, UMO_ACQUIRE, UMO_RELAXED)) return true;
     if (trylock) return false;
 
     // Spin phase, try to acquire the lock with a limited number of spins.
@@ -80,7 +80,7 @@ static bool p_ulock_lock_impl(ULock *lock, bool trylock) {
         Spinner spinner = spinner_init();
         while (spinner_spin(&spinner)) {
             val = UNLOCKED;
-            if (uatomic_compare_exchange_ex(&lock->_h, &val, LOCKED, UMO_ACQUIRE, UMO_RELAXED)) {
+            if (uatomic_cas_ex(&lock->_h, &val, LOCKED, UMO_ACQUIRE, UMO_RELAXED)) {
                 return true;
             }
             if (val != LOCKED) break;
@@ -88,10 +88,10 @@ static bool p_ulock_lock_impl(ULock *lock, bool trylock) {
     }
 
     // Slow path, sleep until the lock is available.
-    if (val == LOCKED) val = uatomic_exchange_ex(&lock->_h, CONTENDED, UMO_ACQUIRE);
+    if (val == LOCKED) val = uatomic_swp_ex(&lock->_h, CONTENDED, UMO_ACQUIRE);
     while (val) {
         ufutex_wait(&lock->_h, CONTENDED);
-        val = uatomic_exchange_ex(&lock->_h, CONTENDED, UMO_ACQUIRE);
+        val = uatomic_swp_ex(&lock->_h, CONTENDED, UMO_ACQUIRE);
     }
     return true;
 }
@@ -105,7 +105,7 @@ bool p_ulock_trylock(ULock *lock) {
 }
 
 void p_ulock_unlock(ULock *lock) {
-    if (uatomic_fetch_sub_ex(&lock->_h, 1, UMO_RELEASE) == CONTENDED) {
+    if (uatomic_fas_ex(&lock->_h, 1, UMO_RELEASE) == CONTENDED) {
         uatomic_store_ex(&lock->_h, UNLOCKED, UMO_RELEASE);
         ufutex_wake_one(&lock->_h);
     }
@@ -209,7 +209,7 @@ static inline void rw_wake_writer(UAtomic(ufutex_uint) *wnotify) {
 static void rw_wake(UAtomic(ufutex_uint) *state, UAtomic(ufutex_uint) *wnotify, ufutex_uint s) {
     if (s == RW_WRITERS_WAITING) {
         ufutex_uint expected = s;
-        if (uatomic_compare_exchange_ex(state, &expected, 0, UMO_RELAXED, UMO_RELAXED)) {
+        if (uatomic_cas_ex(state, &expected, 0, UMO_RELAXED, UMO_RELAXED)) {
             rw_wake_writer(wnotify);
             return;
         }
@@ -219,8 +219,7 @@ static void rw_wake(UAtomic(ufutex_uint) *state, UAtomic(ufutex_uint) *wnotify, 
 
     if (s == (RW_READERS_WAITING | RW_WRITERS_WAITING)) {
         ufutex_uint expected = s;
-        if (!uatomic_compare_exchange_ex(state, &expected, RW_READERS_WAITING, UMO_RELAXED,
-                                         UMO_RELAXED)) {
+        if (!uatomic_cas_ex(state, &expected, RW_READERS_WAITING, UMO_RELAXED, UMO_RELAXED)) {
             // Lock got acquired elsewhere, bail out.
             return;
         }
@@ -231,23 +230,19 @@ static void rw_wake(UAtomic(ufutex_uint) *state, UAtomic(ufutex_uint) *wnotify, 
     }
 
     if (s == RW_READERS_WAITING) {
-        ufutex_uint expected = s;
-        if (uatomic_compare_exchange_ex(state, &expected, 0, UMO_RELAXED, UMO_RELAXED)) {
-            ufutex_wake_all(state);
-        }
+        if (uatomic_cas_ex(state, &s, 0, UMO_RELAXED, UMO_RELAXED)) ufutex_wake_all(state);
     }
 }
 
 static void p_urwlock_read_contended(URWRLock *lock) {
     Spinner spinner = spinner_init();
     ufutex_uint s = uatomic_load_ex(&lock->_h._state, UMO_RELAXED);
+
     for (;;) {
         // Fast path: acquire if read-lockable.
         if (rw_is_read_lockable(s)) {
-            if (uatomic_compare_exchange_weak_ex(&lock->_h._state, &s, s + RW_READER, UMO_ACQUIRE,
-                                                 UMO_RELAXED)) {
-                return;
-            }
+            uint32_t const new_val = s + RW_READER;
+            if (uatomic_wcas_ex(&lock->_h._state, &s, new_val, UMO_ACQUIRE, UMO_RELAXED)) return;
             spinner_backoff(&spinner);
             continue;
         }
@@ -260,10 +255,8 @@ static void p_urwlock_read_contended(URWRLock *lock) {
 
         // Flag readers-waiting and sleep.
         if (!rw_has_readers_waiting(s)) {
-            if (!uatomic_compare_exchange_ex(&lock->_h._state, &s, s | RW_READERS_WAITING,
-                                             UMO_RELAXED, UMO_RELAXED)) {
-                continue;
-            }
+            uint32_t const new_val = s | RW_READERS_WAITING;
+            if (!uatomic_cas_ex(&lock->_h._state, &s, new_val, UMO_RELAXED, UMO_RELAXED)) continue;
         }
         ufutex_wait(&lock->_h._state, s | RW_READERS_WAITING);
 
@@ -277,14 +270,12 @@ static void p_urwlock_write_contended(URWLock *lock) {
     Spinner spinner = spinner_init();
     ufutex_uint s = uatomic_load_ex(&lock->_h._state, UMO_RELAXED);
     ufutex_uint writers_waiting = 0;
+
     for (;;) {
         // Fast path: acquire if unlocked.
         if (rw_is_unlocked(s)) {
-            if (uatomic_compare_exchange_weak_ex(&lock->_h._state, &s,
-                                                 s | RW_WRITE_LOCKED | writers_waiting, UMO_ACQUIRE,
-                                                 UMO_RELAXED)) {
-                return;
-            }
+            uint32_t const new_val = s | RW_WRITE_LOCKED | writers_waiting;
+            if (uatomic_wcas_ex(&lock->_h._state, &s, new_val, UMO_ACQUIRE, UMO_RELAXED)) return;
             spinner_backoff(&spinner);
             continue;
         }
@@ -297,10 +288,8 @@ static void p_urwlock_write_contended(URWLock *lock) {
 
         // Flag writers-waiting and sleep.
         if (!rw_has_writers_waiting(s)) {
-            if (!uatomic_compare_exchange_ex(&lock->_h._state, &s, s | RW_WRITERS_WAITING,
-                                             UMO_RELAXED, UMO_RELAXED)) {
-                continue;
-            }
+            uint32_t const new_val = s | RW_WRITERS_WAITING;
+            if (!uatomic_cas_ex(&lock->_h._state, &s, new_val, UMO_RELAXED, UMO_RELAXED)) continue;
         }
         // This needs to be propagated to avoid lost wakeups.
         writers_waiting = RW_WRITERS_WAITING;
@@ -328,8 +317,7 @@ void p_urwlock_deinit(ulib_unused URWLock *lock) {}
 void p_urwlock_read_lock(URWRLock *lock) {
     ufutex_uint s = uatomic_load_ex(&lock->_h._state, UMO_RELAXED);
     if (!rw_is_read_lockable(s) ||
-        !uatomic_compare_exchange_weak_ex(&lock->_h._state, &s, s + RW_READER, UMO_ACQUIRE,
-                                          UMO_RELAXED)) {
+        !uatomic_wcas_ex(&lock->_h._state, &s, s + RW_READER, UMO_ACQUIRE, UMO_RELAXED)) {
         p_urwlock_read_contended(lock);
     }
 }
@@ -337,8 +325,7 @@ void p_urwlock_read_lock(URWRLock *lock) {
 bool p_urwlock_read_trylock(URWRLock *lock) {
     ufutex_uint s = uatomic_load_ex(&lock->_h._state, UMO_RELAXED);
     while (rw_is_read_lockable(s)) {
-        if (uatomic_compare_exchange_weak_ex(&lock->_h._state, &s, s + RW_READER, UMO_ACQUIRE,
-                                             UMO_RELAXED)) {
+        if (uatomic_wcas_ex(&lock->_h._state, &s, s + RW_READER, UMO_ACQUIRE, UMO_RELAXED)) {
             return true;
         }
     }
@@ -347,16 +334,14 @@ bool p_urwlock_read_trylock(URWRLock *lock) {
 
 void p_urwlock_read_unlock(URWRLock *lock) {
     ufutex_uint s = uatomic_fetch_sub_ex(&lock->_h._state, RW_READER, UMO_RELEASE) - RW_READER;
-    // A reader can only be the last one out with writers waiting. Wake one of them.
-    if (rw_is_unlocked(s) && rw_has_writers_waiting(s)) {
+    if (rw_is_unlocked(s) && rw_has_waiters(s)) {
         rw_wake(&lock->_h._state, &lock->_h._wnotify, s);
     }
 }
 
 void p_urwlock_write_lock(URWLock *lock) {
     ufutex_uint expected = 0;
-    if (!uatomic_compare_exchange_weak_ex(&lock->_h._state, &expected, RW_WRITE_LOCKED, UMO_ACQUIRE,
-                                          UMO_RELAXED)) {
+    if (!uatomic_wcas_ex(&lock->_h._state, &expected, RW_WRITE_LOCKED, UMO_ACQUIRE, UMO_RELAXED)) {
         p_urwlock_write_contended(lock);
     }
 }
@@ -364,20 +349,15 @@ void p_urwlock_write_lock(URWLock *lock) {
 bool p_urwlock_write_trylock(URWLock *lock) {
     ufutex_uint s = uatomic_load_ex(&lock->_h._state, UMO_RELAXED);
     while (rw_is_unlocked(s)) {
-        if (uatomic_compare_exchange_weak_ex(&lock->_h._state, &s, s | RW_WRITE_LOCKED, UMO_ACQUIRE,
-                                             UMO_RELAXED)) {
-            return true;
-        }
+        uint32_t const new_val = s | RW_WRITE_LOCKED;
+        if (uatomic_wcas_ex(&lock->_h._state, &s, new_val, UMO_ACQUIRE, UMO_RELAXED)) return true;
     }
     return false;
 }
 
 void p_urwlock_write_unlock(URWLock *lock) {
-    ufutex_uint s = uatomic_fetch_sub_ex(&lock->_h._state, RW_WRITE_LOCKED, UMO_RELEASE) -
-                    RW_WRITE_LOCKED;
-    if (rw_has_waiters(s)) {
-        rw_wake(&lock->_h._state, &lock->_h._wnotify, s);
-    }
+    uint32_t s = uatomic_fas_ex(&lock->_h._state, RW_WRITE_LOCKED, UMO_RELEASE) - RW_WRITE_LOCKED;
+    if (rw_has_waiters(s)) rw_wake(&lock->_h._state, &lock->_h._wnotify, s);
 }
 
 #elif defined(__unix__) || defined(__APPLE__)

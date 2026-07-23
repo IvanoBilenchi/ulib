@@ -695,4 +695,111 @@ P_UATOMIC_FUNCS_GEN_BASE(void *, ptr)
 
 #endif // ULIB_CONCURRENCY
 
+/**
+ * @addtogroup UAtomic_api
+ * @{
+ */
+
+/**
+ * @copydoc uatomic_exchange
+ * @alias T uatomic_swp(UAtomic(T) *obj, T value);
+ */
+#define uatomic_swp(obj, value) uatomic_exchange(obj, value)
+
+/**
+ * @copydoc uatomic_exchange_ex
+ * @alias T uatomic_swp_ex(UAtomic(T) *obj, T value, UMemoryOrder order);
+ */
+#define uatomic_swp_ex(obj, value, order) uatomic_exchange_ex(obj, value, order)
+
+/**
+ * @copydoc uatomic_compare_exchange
+ * @alias bool uatomic_cas(UAtomic(T) *obj, T *expected, T desired);
+ */
+#define uatomic_cas(obj, expected, desired) uatomic_compare_exchange(obj, expected, desired)
+
+/**
+ * @copydoc uatomic_compare_exchange_ex
+ * @alias bool uatomic_cas_ex(UAtomic(T) *obj, T *expected, T desired,
+ *                            UMemoryOrder success_order, UMemoryOrder failure_order);
+ */
+#define uatomic_cas_ex(obj, expected, desired, success_order, failure_order)                       \
+    uatomic_compare_exchange_ex(obj, expected, desired, success_order, failure_order)
+
+/**
+ * @copydoc uatomic_compare_exchange_weak
+ * @alias bool uatomic_wcas(UAtomic(T) *obj, T *expected, T desired);
+ */
+#define uatomic_wcas(obj, expected, desired) uatomic_compare_exchange_weak(obj, expected, desired)
+
+/**
+ * @copydoc uatomic_compare_exchange_weak_ex
+ * @alias bool uatomic_wcas_ex(UAtomic(T) *obj, T *expected, T desired,
+ *                             UMemoryOrder success_order, UMemoryOrder failure_order);
+ */
+#define uatomic_wcas_ex(obj, expected, desired, success_order, failure_order)                      \
+    uatomic_compare_exchange_weak_ex(obj, expected, desired, success_order, failure_order)
+
+/**
+ * @copydoc uatomic_fetch_add
+ * @alias T uatomic_faa(UAtomic(T) *obj, T value);
+ */
+#define uatomic_faa(obj, value) uatomic_fetch_add(obj, value)
+
+/**
+ * @copydoc uatomic_fetch_add_ex
+ * @alias T uatomic_faa_ex(UAtomic(T) *obj, T value, UMemoryOrder order);
+ */
+#define uatomic_faa_ex(obj, value, order) uatomic_fetch_add_ex(obj, value, order)
+
+/**
+ * @copydoc uatomic_fetch_sub
+ * @alias T uatomic_fas(UAtomic(T) *obj, T value);
+ */
+#define uatomic_fas(obj, value) uatomic_fetch_sub(obj, value)
+
+/**
+ * @copydoc uatomic_fetch_sub_ex
+ * @alias T uatomic_fas_ex(UAtomic(T) *obj, T value, UMemoryOrder order);
+ */
+#define uatomic_fas_ex(obj, value, order) uatomic_fetch_sub_ex(obj, value, order)
+
+/**
+ * @copydoc uatomic_fetch_and
+ * @alias T uatomic_fand(UAtomic(T) *obj, T value);
+ */
+#define uatomic_fand(obj, value) uatomic_fetch_and(obj, value)
+
+/**
+ * @copydoc uatomic_fetch_and_ex
+ * @alias T uatomic_fand_ex(UAtomic(T) *obj, T value, UMemoryOrder order);
+ */
+#define uatomic_fand_ex(obj, value, order) uatomic_fetch_and_ex(obj, value, order)
+
+/**
+ * @copydoc uatomic_fetch_or
+ * @alias T uatomic_for(UAtomic(T) *obj, T value);
+ */
+#define uatomic_for(obj, value) uatomic_fetch_or(obj, value)
+
+/**
+ * @copydoc uatomic_fetch_or_ex
+ * @alias T uatomic_for_ex(UAtomic(T) *obj, T value, UMemoryOrder order);
+ */
+#define uatomic_for_ex(obj, value, order) uatomic_fetch_or_ex(obj, value, order)
+
+/**
+ * @copydoc uatomic_fetch_xor
+ * @alias T uatomic_fxor(UAtomic(T) *obj, T value);
+ */
+#define uatomic_fxor(obj, value) uatomic_fetch_xor(obj, value)
+
+/**
+ * @copydoc uatomic_fetch_xor_ex
+ * @alias T uatomic_fxor_ex(UAtomic(T) *obj, T value, UMemoryOrder order);
+ */
+#define uatomic_fxor_ex(obj, value, order) uatomic_fetch_xor_ex(obj, value, order)
+
+/// @}
+
 #endif // UATOMIC_H

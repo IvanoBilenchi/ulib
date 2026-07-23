@@ -29,12 +29,12 @@ void ucond_wait(UCond *cond, ULock *lock) {
 }
 
 void ucond_signal(UCond *cond) {
-    uatomic_fetch_add_ex(&cond->_seq, 1, UMO_RELAXED);
+    uatomic_faa_ex(&cond->_seq, 1, UMO_RELAXED);
     ufutex_wake_one(&cond->_seq);
 }
 
 void ucond_broadcast(UCond *cond) {
-    uatomic_fetch_add_ex(&cond->_seq, 1, UMO_RELAXED);
+    uatomic_faa_ex(&cond->_seq, 1, UMO_RELAXED);
     ufutex_wake_all(&cond->_seq);
 }
 

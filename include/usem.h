@@ -49,7 +49,7 @@ typedef struct USem {
 #if USEM_USE_64BIT_ATOMICS
     UAtomic(uint64_t) _state;
 #else
-    UAtomic(ufutex_uint) _value;
+    UAtomic(ufutex_uint) _permits;
     UAtomic(ufutex_uint) _waiters;
 #endif
     /// @endcond
@@ -66,13 +66,13 @@ typedef struct USem {
  * Initializes a new semaphore with the given number of permits.
  *
  * @param sem Semaphore to initialize.
- * @param value Initial number of available permits.
+ * @param permits Initial number of available permits.
  * @return Return code.
  *
  * @destructor{usem_deinit}
  */
 ULIB_API
-ulib_ret usem_init(USem *sem, uint32_t value);
+ulib_ret usem_init(USem *sem, uint32_t permits);
 
 /**
  * Deinitializes a semaphore.

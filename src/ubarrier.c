@@ -36,7 +36,7 @@ static inline void barrier_wait(UBarrier *barrier) {
 
 static inline void barrier_wake(UBarrier *barrier) {
     barrier->_remaining = barrier->_count;
-    uatomic_fetch_add_ex(&barrier->_seq, 1, UMO_RELEASE);
+    uatomic_faa_ex(&barrier->_seq, 1, UMO_RELEASE);
     ufutex_wake_all(&barrier->_seq);
     ulock_unlock(&barrier->_lock);
 }
