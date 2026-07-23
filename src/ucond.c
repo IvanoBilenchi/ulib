@@ -13,6 +13,7 @@
 
 #include "uatomic.h"
 #include "ufutex.h"
+#include <stdint.h>
 
 ulib_ret ucond_init(UCond *cond) {
     uatomic_init(&cond->_seq, 0);
@@ -22,7 +23,7 @@ ulib_ret ucond_init(UCond *cond) {
 void ucond_deinit(ulib_unused UCond *cond) {}
 
 void ucond_wait(UCond *cond, ULock *lock) {
-    ufutex_uint seq = uatomic_load_ex(&cond->_seq, UMO_RELAXED);
+    uint32_t seq = uatomic_load_ex(&cond->_seq, UMO_RELAXED);
     ulock_unlock(lock);
     ufutex_wait(&cond->_seq, seq);
     ulock_lock(lock);

@@ -20,16 +20,6 @@
 ULIB_BEGIN_DECLS
 
 /**
- * @defgroup UFutex_types Futex types
- * @{
- */
-
-/// Futex integer type.
-typedef uint32_t ufutex_uint;
-
-/// @}
-
-/**
  * @defgroup UFutex_api Futex API
  * @{
  */
@@ -39,28 +29,36 @@ typedef uint32_t ufutex_uint;
  *
  * @param addr Address to wait on.
  * @param val Value to compare against.
- * @return Return code.
+ * @return - @val{ULIB_OK} on success.
+ *         - @val{ULIB_ERR_AGAIN} on errors that may be recoverable by retrying the operation.
+ *         - @val{ULIB_ERR} for unrecoverable errors.
  */
 ULIB_API
-ulib_ret ufutex_wait(UAtomic(ufutex_uint) *addr, ufutex_uint val);
+ulib_ret ufutex_wait(UAtomic(uint32_t) *addr, uint32_t val);
 
 /**
  * Wakes up one thread waiting on `addr`.
  *
  * @param addr Address to wake up threads on.
- * @return Return code.
+ * @return - @val{ULIB_OK} if a thread was woken up.
+ *         - @val{ULIB_NO} if no threads were waiting on `addr`.
+ *         - @val{ULIB_UNKNOWN} if it is unknown whether a thread was woken up or not.
+ *         - @val{ULIB_ERR} if an error occurred.
  */
 ULIB_API
-ulib_ret ufutex_wake_one(UAtomic(ufutex_uint) *addr);
+ulib_ret ufutex_wake_one(UAtomic(uint32_t) *addr);
 
 /**
  * Wakes up all threads waiting on `addr`.
  *
  * @param addr Address to wake up threads on.
- * @return Return code.
+ * @return - @val{ULIB_OK} if a thread was woken up.
+ *         - @val{ULIB_NO} if no threads were waiting on `addr`.
+ *         - @val{ULIB_UNKNOWN} if it is unknown whether a thread was woken up or not.
+ *         - @val{ULIB_ERR} if an error occurred.
  */
 ULIB_API
-ulib_ret ufutex_wake_all(UAtomic(ufutex_uint) *addr);
+ulib_ret ufutex_wake_all(UAtomic(uint32_t) *addr);
 
 /// @}
 

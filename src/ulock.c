@@ -71,7 +71,7 @@ void p_ulock_deinit(ulib_unused ULock *lock) {}
 
 static bool p_ulock_lock_impl(ULock *lock, bool trylock) {
     // Fast path, try to acquire the lock without contention.
-    ufutex_uint val = UNLOCKED;
+    uint32_t val = UNLOCKED;
     if (uatomic_cas_ex(&lock->_h, &val, LOCKED, UMO_ACQUIRE, UMO_RELAXED)) return true;
     if (trylock) return false;
 
@@ -176,39 +176,38 @@ void p_urlock_unlock(URLock *lock) {
 #define RW_READERS_WAITING (UINT32_C(1) << 30)
 #define RW_WRITERS_WAITING (UINT32_C(1) << 31)
 
-static inline bool rw_is_unlocked(ufutex_uint s) {
+static inline bool rw_is_unlocked(uint32_t s) {
     return !(s & RW_MASK);
 }
 
-static inline uint32_t rw_active(ufutex_uint s) {
+static inline uint32_t rw_active(uint32_t s) {
     return s & RW_MASK;
 }
 
-static inline bool rw_has_waiters(ufutex_uint s) {
+static inline bool rw_has_waiters(uint32_t s) {
     return !!(s & (RW_READERS_WAITING | RW_WRITERS_WAITING));
 }
 
-static inline bool rw_has_readers_waiting(ufutex_uint s) {
+static inline bool rw_has_readers_waiting(uint32_t s) {
     return !!(s & RW_READERS_WAITING);
 }
 
-static inline bool rw_has_writers_waiting(ufutex_uint s) {
+static inline bool rw_has_writers_waiting(uint32_t s) {
     return !!(s & RW_WRITERS_WAITING);
 }
 
-static inline bool rw_is_read_lockable(ufutex_uint s) {
+static inline bool rw_is_read_lockable(uint32_t s) {
     return rw_active(s) < RW_MAX_ACTIVE && !rw_has_waiters(s);
 }
 
-static inline void rw_wake_writer(UAtomic(ufutex_uint) *wnotify) {
+static inline ulib_ret rw_wake_writer(UAtomic(uint32_t) *wnotify) {
     uatomic_fetch_add_ex(wnotify, 1, UMO_RELEASE);
-    ufutex_wake_one(wnotify);
+    return ufutex_wake_one(wnotify);
 }
 
-// Wake a writer. If none is waiting, wake all readers.
-static void rw_wake(UAtomic(ufutex_uint) *state, UAtomic(ufutex_uint) *wnotify, ufutex_uint s) {
+static void rw_wake(UAtomic(uint32_t) *state, UAtomic(uint32_t) *wnotify, uint32_t s) {
     if (s == RW_WRITERS_WAITING) {
-        ufutex_uint expected = s;
+        uint32_t expected = s;
         if (uatomic_cas_ex(state, &expected, 0, UMO_RELAXED, UMO_RELAXED)) {
             rw_wake_writer(wnotify);
             return;
@@ -218,14 +217,14 @@ static void rw_wake(UAtomic(ufutex_uint) *state, UAtomic(ufutex_uint) *wnotify, 
     }
 
     if (s == (RW_READERS_WAITING | RW_WRITERS_WAITING)) {
-        ufutex_uint expected = s;
+        uint32_t expected = s;
         if (!uatomic_cas_ex(state, &expected, RW_READERS_WAITING, UMO_RELAXED, UMO_RELAXED)) {
             // Lock got acquired elsewhere, bail out.
             return;
         }
-        rw_wake_writer(wnotify);
-        // We don't know if we actually woke a writer (`ufutex_wake_one()` cannot return that info
-        // in a platform-independent way), so we also wake all readers to avoid lost wakeups.
+        // If a writer was definitely woken, it will wake readers once it unlocks.
+        // Otherwise, also wake all readers to avoid lost wakeups.
+        if (rw_wake_writer(wnotify) == ULIB_OK) return;
         s = RW_READERS_WAITING;
     }
 
@@ -236,7 +235,7 @@ static void rw_wake(UAtomic(ufutex_uint) *state, UAtomic(ufutex_uint) *wnotify, 
 
 static void p_urwlock_read_contended(URWRLock *lock) {
     Spinner spinner = spinner_init();
-    ufutex_uint s = uatomic_load_ex(&lock->_h._state, UMO_RELAXED);
+    uint32_t s = uatomic_load_ex(&lock->_h._state, UMO_RELAXED);
 
     for (;;) {
         // Fast path: acquire if read-lockable.
@@ -268,8 +267,8 @@ static void p_urwlock_read_contended(URWRLock *lock) {
 
 static void p_urwlock_write_contended(URWLock *lock) {
     Spinner spinner = spinner_init();
-    ufutex_uint s = uatomic_load_ex(&lock->_h._state, UMO_RELAXED);
-    ufutex_uint writers_waiting = 0;
+    uint32_t s = uatomic_load_ex(&lock->_h._state, UMO_RELAXED);
+    uint32_t writers_waiting = 0;
 
     for (;;) {
         // Fast path: acquire if unlocked.
@@ -294,7 +293,7 @@ static void p_urwlock_write_contended(URWLock *lock) {
         // This needs to be propagated to avoid lost wakeups.
         writers_waiting = RW_WRITERS_WAITING;
 
-        ufutex_uint seq = uatomic_load_ex(&lock->_h._wnotify, UMO_ACQUIRE);
+        uint32_t seq = uatomic_load_ex(&lock->_h._wnotify, UMO_ACQUIRE);
         // We re-check `_state` so we don't sleep through a wakeup that raced with us.
         s = uatomic_load_ex(&lock->_h._state, UMO_RELAXED);
         if (rw_is_unlocked(s) || !rw_has_writers_waiting(s)) continue;
@@ -315,7 +314,7 @@ ulib_ret p_urwlock_init(URWLock *lock) {
 void p_urwlock_deinit(ulib_unused URWLock *lock) {}
 
 void p_urwlock_read_lock(URWRLock *lock) {
-    ufutex_uint s = uatomic_load_ex(&lock->_h._state, UMO_RELAXED);
+    uint32_t s = uatomic_load_ex(&lock->_h._state, UMO_RELAXED);
     if (!rw_is_read_lockable(s) ||
         !uatomic_wcas_ex(&lock->_h._state, &s, s + RW_READER, UMO_ACQUIRE, UMO_RELAXED)) {
         p_urwlock_read_contended(lock);
@@ -323,7 +322,7 @@ void p_urwlock_read_lock(URWRLock *lock) {
 }
 
 bool p_urwlock_read_trylock(URWRLock *lock) {
-    ufutex_uint s = uatomic_load_ex(&lock->_h._state, UMO_RELAXED);
+    uint32_t s = uatomic_load_ex(&lock->_h._state, UMO_RELAXED);
     while (rw_is_read_lockable(s)) {
         if (uatomic_wcas_ex(&lock->_h._state, &s, s + RW_READER, UMO_ACQUIRE, UMO_RELAXED)) {
             return true;
@@ -333,21 +332,21 @@ bool p_urwlock_read_trylock(URWRLock *lock) {
 }
 
 void p_urwlock_read_unlock(URWRLock *lock) {
-    ufutex_uint s = uatomic_fetch_sub_ex(&lock->_h._state, RW_READER, UMO_RELEASE) - RW_READER;
+    uint32_t s = uatomic_fetch_sub_ex(&lock->_h._state, RW_READER, UMO_RELEASE) - RW_READER;
     if (rw_is_unlocked(s) && rw_has_waiters(s)) {
         rw_wake(&lock->_h._state, &lock->_h._wnotify, s);
     }
 }
 
 void p_urwlock_write_lock(URWLock *lock) {
-    ufutex_uint expected = 0;
+    uint32_t expected = 0;
     if (!uatomic_wcas_ex(&lock->_h._state, &expected, RW_WRITE_LOCKED, UMO_ACQUIRE, UMO_RELAXED)) {
         p_urwlock_write_contended(lock);
     }
 }
 
 bool p_urwlock_write_trylock(URWLock *lock) {
-    ufutex_uint s = uatomic_load_ex(&lock->_h._state, UMO_RELAXED);
+    uint32_t s = uatomic_load_ex(&lock->_h._state, UMO_RELAXED);
     while (rw_is_unlocked(s)) {
         uint32_t const new_val = s | RW_WRITE_LOCKED;
         if (uatomic_wcas_ex(&lock->_h._state, &s, new_val, UMO_ACQUIRE, UMO_RELAXED)) return true;

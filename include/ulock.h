@@ -22,11 +22,10 @@ ULIB_BEGIN_DECLS
 // clang-format off
 #ifdef ULIB_CONCURRENCY
     #ifndef ULIB_PLATFORM_LOCKS
-        #include "ufutex.h"
         #include <stdint.h>
-        #define P_ULIB_LOCK_HANDLE UAtomic(ufutex_uint)
+        #define P_ULIB_LOCK_HANDLE UAtomic(uint32_t)
         #define P_ULIB_RLOCK_HANDLE struct { UAtomic(void *) _owner; ULock _lock; uint32_t _count; }
-        #define P_ULIB_RWLOCK_HANDLE struct { UAtomic(ufutex_uint) _state; UAtomic(ufutex_uint) _wnotify; }
+        #define P_ULIB_RWLOCK_HANDLE struct { UAtomic(uint32_t) _state; UAtomic(uint32_t) _wnotify; }
     #elif defined(__unix__) || defined(__APPLE__)
         #include <pthread.h> // IWYU pragma: keep
         #ifdef __APPLE__

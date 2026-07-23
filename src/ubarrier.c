@@ -27,7 +27,7 @@ void ubarrier_deinit(UBarrier *barrier) {
 }
 
 static inline void barrier_wait(UBarrier *barrier) {
-    ufutex_uint seq = uatomic_load_ex(&barrier->_seq, UMO_RELAXED);
+    uint32_t seq = uatomic_load_ex(&barrier->_seq, UMO_RELAXED);
     ulock_unlock(&barrier->_lock);
     while (uatomic_load_ex(&barrier->_seq, UMO_ACQUIRE) == seq) {
         ufutex_wait(&barrier->_seq, seq);

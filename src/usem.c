@@ -23,10 +23,10 @@
 // race-free without needing a sequentially consistent fence.
 typedef union SemState {
     uint64_t whole;
-    ufutex_uint half[2];
+    uint32_t half[2];
 } SemState;
 
-static inline uint64_t state_pack(ufutex_uint permits, ufutex_uint waiters) {
+static inline uint64_t state_pack(uint32_t permits, uint32_t waiters) {
     SemState state;
     state.half[0] = permits;
     state.half[1] = waiters;
@@ -34,17 +34,17 @@ static inline uint64_t state_pack(ufutex_uint permits, ufutex_uint waiters) {
 }
 
 // The futex word is the permit count, which is the first half of the state.
-static inline UAtomic(ufutex_uint) *state_futex(UAtomic(uint64_t) *state) {
-    return (UAtomic(ufutex_uint) *)state;
+static inline UAtomic(uint32_t) *state_futex(UAtomic(uint64_t) *state) {
+    return (UAtomic(uint32_t) *)state;
 }
 
-static inline ufutex_uint state_permits(uint64_t const *state) {
+static inline uint32_t state_permits(uint64_t const *state) {
     SemState s;
     s.whole = *state;
     return s.half[0];
 }
 
-static inline ufutex_uint state_waiters(uint64_t const *state) {
+static inline uint32_t state_waiters(uint64_t const *state) {
     SemState s;
     s.whole = *state;
     return s.half[1];
@@ -112,7 +112,7 @@ ulib_ret usem_init(USem *sem, uint32_t permits) {
 void usem_deinit(ulib_unused USem *sem) {}
 
 bool usem_trywait(USem *sem) {
-    ufutex_uint val = uatomic_load_ex(&sem->_permits, UMO_RELAXED);
+    uint32_t val = uatomic_load_ex(&sem->_permits, UMO_RELAXED);
     while (val) {
         if (uatomic_wcas_ex(&sem->_permits, &val, val - 1, UMO_ACQUIRE, UMO_RELAXED)) return true;
     }
@@ -122,7 +122,7 @@ bool usem_trywait(USem *sem) {
 void usem_wait(USem *sem) {
     for (;;) {
         // Fast path: consume a permit if any are available.
-        ufutex_uint val = uatomic_load_ex(&sem->_permits, UMO_RELAXED);
+        uint32_t val = uatomic_load_ex(&sem->_permits, UMO_RELAXED);
         while (val) {
             if (uatomic_wcas_ex(&sem->_permits, &val, val - 1, UMO_ACQUIRE, UMO_RELAXED)) return;
         }

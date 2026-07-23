@@ -14,7 +14,6 @@
 
 #include "uatomic.h"
 #include "uattrs.h"
-#include "ufutex.h"
 #include "ulib_ret.h"
 #include "ulock.h"
 #include <stdint.h>
@@ -30,7 +29,7 @@ ULIB_BEGIN_DECLS
 typedef struct UBarrier {
     /// @cond
     ULock _lock;
-    UAtomic(ufutex_uint) _seq;
+    UAtomic(uint32_t) _seq;
     uint16_t _count;
     uint16_t _remaining;
     /// @endcond

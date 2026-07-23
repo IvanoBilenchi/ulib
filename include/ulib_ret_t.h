@@ -33,6 +33,14 @@ enum ulib_ret_builtin {
      */
     ULIB_NO = 1,
 
+    /**
+     * It is unknown whether the operation succeeded or not.
+     *
+     * @note This code is returned when an operation does not or cannot provide information about
+     *       its success or failure. It does not signal an error condition.
+     */
+    ULIB_UNKNOWN = 2,
+
     /// The operation failed due to an unspecified error.
     ULIB_ERR = -1,
 

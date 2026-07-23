@@ -14,7 +14,6 @@
 
 #include "uatomic.h"
 #include "uattrs.h"
-#include "ufutex.h" // IWYU pragma: keep, for ufutex_uint in the 32-bit fallback layout
 #include "ulib_ret.h"
 #include <stdbool.h>
 #include <stdint.h>
@@ -49,8 +48,8 @@ typedef struct USem {
 #if USEM_USE_64BIT_ATOMICS
     UAtomic(uint64_t) _state;
 #else
-    UAtomic(ufutex_uint) _permits;
-    UAtomic(ufutex_uint) _waiters;
+    UAtomic(uint32_t) _permits;
+    UAtomic(uint32_t) _waiters;
 #endif
     /// @endcond
 } USem;

@@ -14,8 +14,8 @@
 
 #include "uatomic.h"
 #include "uattrs.h"
-#include "ufutex.h"
 #include "ulib_ret.h"
+#include <stdint.h>
 
 ULIB_BEGIN_DECLS
 
@@ -27,7 +27,7 @@ ULIB_BEGIN_DECLS
 /// A synchronization primitive that blocks threads until it is signaled.
 typedef struct UEvent {
     /// @cond
-    UAtomic(ufutex_uint) _flag;
+    UAtomic(uint32_t) _flag;
     /// @endcond
 } UEvent;
 

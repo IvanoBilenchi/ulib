@@ -14,9 +14,9 @@
 
 #include "uatomic.h"
 #include "uattrs.h"
-#include "ufutex.h"
 #include "ulib_ret.h"
 #include "ulock.h"
+#include <stdint.h>
 
 ULIB_BEGIN_DECLS
 
@@ -28,7 +28,7 @@ ULIB_BEGIN_DECLS
 /// A synchronization primitive that allows threads to wait for a condition to become true.
 typedef struct UCond {
     /// @cond
-    UAtomic(ufutex_uint) _seq;
+    UAtomic(uint32_t) _seq;
     /// @endcond
 } UCond;
 
