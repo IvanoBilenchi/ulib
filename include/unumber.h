@@ -811,7 +811,7 @@ bool ulib_uint_is_pow2_or_zero(ulib_uint x) {
  *
  * @alias T ulib_clamp(T x, T xmin, T xmax);
  */
-#define ulib_clamp(x, xmin, xmax) (((x) > (xmax)) ? (xmax) : (((x) < (xmin)) ? (xmin) : (x)))
+#define ulib_clamp(x, xmin, xmax) (((x) >= (xmax)) ? (xmax) : (((x) <= (xmin)) ? (xmin) : (x)))
 
 /**
  * Returns the absolute difference between two numbers.

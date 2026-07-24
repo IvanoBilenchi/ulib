@@ -645,9 +645,8 @@ ulib_ret uostream_write_time_of_day(UOStream *stream, UTime const *time, size_t 
 ulib_ret uostream_write_time_interval(UOStream *stream, utime_ns interval, utime_unit unit,
                                       unsigned decimal_digits, size_t *written) {
     static char const *str[] = { "ns", "us", "ms", "s", "m", "h", "d" };
-    // Note: using >= or ulib_clamp causes a warning on platforms with unsigned enum types.
-    unit = (unit > UTIME_NANOSECONDS && unit <= UTIME_DAYS) ? unit : UTIME_NANOSECONDS;
-    double c_interval = utime_interval_convert(interval, unit);
+    unit = ulib_clamp(unit, UTIME_NS, UTIME_DAYS);
+    double c_interval = utime_interval_to(interval, unit);
     return uostream_writef(stream, written, "%.*f %s", decimal_digits, c_interval, str[unit]);
 }
 

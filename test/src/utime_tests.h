@@ -9,8 +9,9 @@
 #define UTIME_TESTS_H
 
 void utime_test_ns(void);
+void utime_test_interval(void);
 void utime_test_date(void);
 
-#define UTIME_TESTS utime_test_ns, utime_test_date
+#define UTIME_TESTS utime_test_ns, utime_test_interval, utime_test_date
 
 #endif // UTIME_TESTS_H

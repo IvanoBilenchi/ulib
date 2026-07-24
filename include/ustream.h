@@ -580,7 +580,7 @@ ulib_ret uostream_write_time_of_day(UOStream *stream, UTime const *time, size_t 
  *
  * @param stream Output stream.
  * @param interval Time interval.
- * @param unit Time unit.
+ * @param unit Time unit. Must be less than or equal to @val{UTIME_DAYS}.
  * @param decimal_digits Number of decimal digits to write.
  * @param[out] written Number of bytes written.
  * @return Return code.

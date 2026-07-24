@@ -14,17 +14,17 @@
 #include "ustream.h"
 #include "ustring.h"
 #include "uutils.h"
+#include <math.h>
 #include <stdlib.h>
 #include <time.h>
 
-#define NS_PER_NS (utime_ns)1
-#define NS_PER_US (utime_ns)1000
-#define NS_PER_MS (utime_ns)(NS_PER_US * 1000)
-#define NS_PER_S (utime_ns)(NS_PER_MS * 1000)
-#define NS_PER_M (utime_ns)(NS_PER_S * 60)
-#define NS_PER_H (utime_ns)(NS_PER_M * 60)
-#define NS_PER_D (utime_ns)(NS_PER_H * 24)
-#define NS_MAX (utime_ns)(-1)
+#define NS_PER_NS ((utime_ns)1)
+#define NS_PER_US ((utime_ns)1000)
+#define NS_PER_MS ((utime_ns)(NS_PER_US * 1000))
+#define NS_PER_S ((utime_ns)(NS_PER_MS * 1000))
+#define NS_PER_M ((utime_ns)(NS_PER_S * 60))
+#define NS_PER_H ((utime_ns)(NS_PER_M * 60))
+#define NS_PER_D ((utime_ns)(NS_PER_H * 24))
 
 enum {
     MILLIS_PER_SECOND = 1000U,
@@ -264,19 +264,43 @@ bool utime_from_string(UTime *time, UString const *string) {
 #define FMT_FDIGITS 2 // NOLINT(modernize-macro-to-enum)
 #define UNIT_DIV (utime_ns)(ULIB_MACRO_CONCAT(2e, FMT_FDIGITS))
 
-static utime_ns unit_ns[] = { NS_PER_NS, NS_PER_US, NS_PER_MS, NS_PER_S,
-                              NS_PER_M,  NS_PER_H,  NS_PER_D,  NS_MAX };
+static utime_ns unit_ns[] = {
+    [UTIME_NS] = NS_PER_NS,  [UTIME_US] = NS_PER_US,        [UTIME_MS] = NS_PER_MS,
+    [UTIME_S] = NS_PER_S,    [UTIME_MINUTES] = NS_PER_M,    [UTIME_HOURS] = NS_PER_H,
+    [UTIME_DAYS] = NS_PER_D, [UTIME_MONTHS] = UTIME_NS_MAX, [UTIME_YEARS] = UTIME_NS_MAX,
+};
+static utime_ns unit_max_ns[] = {
+    [UTIME_NS] = UTIME_NS_MAX / NS_PER_NS,
+    [UTIME_US] = UTIME_NS_MAX / NS_PER_US,
+    [UTIME_MS] = UTIME_NS_MAX / NS_PER_MS,
+    [UTIME_S] = UTIME_NS_MAX / NS_PER_S,
+    [UTIME_MINUTES] = UTIME_NS_MAX / NS_PER_M,
+    [UTIME_HOURS] = UTIME_NS_MAX / NS_PER_H,
+    [UTIME_DAYS] = UTIME_NS_MAX / NS_PER_D,
+    [UTIME_MONTHS] = 0,
+    [UTIME_YEARS] = 0
+};
 
 utime_unit utime_interval_unit_auto(utime_ns t) {
     utime_unit unit = UTIME_MICROSECONDS;
-    for (; t > unit_ns[unit] - (unit_ns[unit - 1] / UNIT_DIV) - 1; ++unit) {}
+    while (t > unit_ns[unit] - (unit_ns[unit - 1] / UNIT_DIV) - 1) ++unit;
     return (utime_unit)(unit - 1);
 }
 
-double utime_interval_convert(utime_ns t, utime_unit unit) {
-    // Note: using >= or ulib_clamp causes a warning on platforms with unsigned enum types.
-    double dt = (double)t;
-    return (unit > UTIME_NANOSECONDS && unit <= UTIME_DAYS) ? dt / (double)unit_ns[unit] : dt;
+utime_ns utime_interval(unsigned long long quantity, utime_unit unit) {
+    if (quantity > unit_max_ns[unit]) return UTIME_NS_MAX;
+    return (utime_ns)quantity * unit_ns[unit];
+}
+
+utime_ns utime_interval_from(double quantity, utime_unit unit) {
+    if (quantity > (double)unit_max_ns[unit]) return UTIME_NS_MAX;
+    return (utime_ns)(quantity * (double)unit_ns[unit]);
+}
+
+double utime_interval_to(utime_ns t, utime_unit unit) {
+    if (unit > UTIME_DAYS) return NAN;
+    if (unit <= UTIME_NANOSECONDS) return (double)t;
+    return (double)t / (double)unit_ns[unit];
 }
 
 UString utime_interval_to_string(utime_ns t, utime_unit unit) {

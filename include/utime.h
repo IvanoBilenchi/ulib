@@ -15,6 +15,7 @@
 #include "uattrs.h"
 #include "ustring.h"
 #include "uwarning.h"
+#include <limits.h>
 
 ULIB_BEGIN_DECLS
 
@@ -39,28 +40,40 @@ typedef enum utime_unit {
     UTIME_NANOSECONDS = 0,
 
     /// Microseconds.
-    UTIME_MICROSECONDS,
+    UTIME_MICROSECONDS = 1,
 
     /// Milliseconds.
-    UTIME_MILLISECONDS,
+    UTIME_MILLISECONDS = 2,
 
     /// Seconds.
-    UTIME_SECONDS,
+    UTIME_SECONDS = 3,
 
     /// Minutes.
-    UTIME_MINUTES,
+    UTIME_MINUTES = 4,
 
     /// Hours.
-    UTIME_HOURS,
+    UTIME_HOURS = 5,
 
     /// Days.
-    UTIME_DAYS,
+    UTIME_DAYS = 6,
 
     /// Months.
-    UTIME_MONTHS,
+    UTIME_MONTHS = 7,
 
     /// Years.
-    UTIME_YEARS
+    UTIME_YEARS = 8,
+
+    /// Alias for UTIME_NANOSECONDS.
+    UTIME_NS = UTIME_NANOSECONDS,
+
+    /// Alias for UTIME_MICROSECONDS.
+    UTIME_US = UTIME_MICROSECONDS,
+
+    /// Alias for UTIME_MILLISECONDS.
+    UTIME_MS = UTIME_MILLISECONDS,
+
+    /// Alias for UTIME_SECONDS.
+    UTIME_S = UTIME_SECONDS,
 
 } utime_unit;
 
@@ -93,6 +106,9 @@ typedef struct UTime {
  * @defgroup UTime UTime API
  * @{
  */
+
+/// Maximum value for @type{utime_ns}.
+#define UTIME_NS_MAX ULLONG_MAX
 
 /// Date format string.
 #ifndef UTIME_DATE_FMT
@@ -305,6 +321,17 @@ ULIB_API
 utime_ns utime_get_ns(void);
 
 /**
+ * Creates a time interval according to the specified quantity and time unit.
+ *
+ * @param quantity Quantity.
+ * @param unit Time unit.
+ * @return Time interval in nanoseconds.
+ */
+ULIB_API
+ULIB_CONST
+utime_ns utime_interval(unsigned long long quantity, utime_unit unit);
+
+/**
  * Returns an appropriate time unit for the specified time interval.
  *
  * @param t Time interval in nanoseconds.
@@ -314,16 +341,27 @@ ULIB_API
 ULIB_CONST
 utime_unit utime_interval_unit_auto(utime_ns t);
 
+/// @copydoc utime_interval
+ULIB_API
+ULIB_CONST
+utime_ns utime_interval_from(double quantity, utime_unit unit);
+
 /**
  * Converts a time interval according to the specified time unit.
  *
  * @param t Time interval.
- * @param unit Time unit.
- * @return Converted time interval.
+ * @param unit Time unit. Must be less than or equal to @val{UTIME_DAYS}.
+ * @return Converted time interval, or @cval{NAN} if `t > @val{UTIME_DAYS}`.
  */
 ULIB_API
 ULIB_CONST
-double utime_interval_convert(utime_ns t, utime_unit unit);
+double utime_interval_to(utime_ns t, utime_unit unit);
+
+/// @copydoc utime_interval_to
+ULIB_DEPRECATED(Use @func{utime_interval_to} instead.)
+ULIB_INLINE double utime_interval_convert(utime_ns t, utime_unit unit) {
+    return utime_interval_to(t, unit);
+}
 
 /**
  * Converts a time interval into a string formatted according to the specified time unit.
