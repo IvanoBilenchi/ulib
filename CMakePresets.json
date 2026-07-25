@@ -1,0 +1,164 @@
+{
+    "version": 5,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 24,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "base",
+            "hidden": true,
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_SYSTEM_VERSION": "",
+                "ULIB_CONCURRENCY": true
+            }
+        },
+        {
+            "name": "debug",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "ULIB_LTO": false
+            }
+        },
+        {
+            "name": "release",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "ULIB_LTO": true
+            }
+        },
+        {
+            "name": "assertions",
+            "hidden": true,
+            "cacheVariables": {
+                "ULIB_ASSERTIONS": "ON"
+            }
+        },
+        {
+            "name": "clang-tidy",
+            "inherits": "assertions",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "clang",
+                "CMAKE_CXX_COMPILER": "clang++",
+                "ULIB_CLANG_TIDY": true
+            }
+        },
+        {
+            "name": "sanitizers",
+            "hidden": true,
+            "cacheVariables": {
+                "ULIB_SANITIZERS": true
+            }
+        },
+        {
+            "name": "werror",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_COMPILE_WARNING_AS_ERROR": true,
+                "CMAKE_LINK_WARNING_AS_ERROR": true
+            }
+        },
+        {
+            "name": "dev",
+            "inherits": [
+                "base",
+                "debug",
+                "clang-tidy",
+                "sanitizers",
+                "werror"
+            ],
+            "displayName": "Development"
+        },
+        {
+            "name": "distribution",
+            "inherits": [
+                "base",
+                "release"
+            ],
+            "displayName": "Distribution"
+        },
+        {
+            "name": "bench",
+            "inherits": "distribution",
+            "displayName": "Benchmark",
+            "cacheVariables": {
+                "ULIB_OPTIMIZE_FOR_HOST": true
+            }
+        },
+        {
+            "name": "docs",
+            "inherits": "base",
+            "displayName": "Documentation",
+            "binaryDir": "${sourceDir}/build-docs",
+            "cacheVariables": {
+                "ULIB_DOCS": true
+            }
+        },
+        {
+            "name": "ci-analyze",
+            "inherits": [
+                "base",
+                "debug",
+                "clang-tidy",
+                "werror"
+            ],
+            "displayName": "CI (analyze)",
+            "cacheVariables": {
+                "ULIB_CPP_TESTS": false
+            }
+        },
+        {
+            "name": "ci-test",
+            "inherits": [
+                "base",
+                "assertions",
+                "sanitizers",
+                "werror"
+            ],
+            "displayName": "CI (test)"
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "build",
+            "displayName": "Build",
+            "configurePreset": "dev"
+        },
+        {
+            "name": "docs",
+            "displayName": "Documentation",
+            "configurePreset": "docs",
+            "targets": [
+                "ulib-docs"
+            ]
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "test",
+            "displayName": "Test",
+            "configurePreset": "dev",
+            "output": {
+                "verbosity": "verbose"
+            },
+            "execution": {
+                "timeout": 30
+            }
+        },
+        {
+            "name": "bench",
+            "inherits": "test",
+            "displayName": "Benchmark",
+            "filter": {
+                "include": {
+                    "name": "Benchmark"
+                }
+            }
+        }
+    ]
+}

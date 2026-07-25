@@ -40,18 +40,13 @@ jobs:
 
       - name: Configure
         run: >
-          CC=clang cmake -B build
-          -DULIB_CPP_TESTS=OFF
+          cmake --preset ci-analyze
           -DULIB_TINY=${{matrix.types == 'tiny' && 'ON' || 'OFF'}}
           -DULIB_HUGE=${{matrix.types == 'huge' && 'ON' || 'OFF'}}
           -DULIB_CONCURRENCY=${{matrix.concurrency == 'on' && 'ON' || 'OFF'}}
-          -DULIB_LTO=OFF
-          -DULIB_CLANG_TIDY=ON
-          -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
-          -DCMAKE_LINK_WARNING_AS_ERROR=ON
 
       - name: Build
-        run: cmake --build build
+        run: cmake --build --preset build
 
   test:
     name: "Test (os: ${{matrix.os}}, lib_type: ${{matrix.lib_type}}, types: ${{matrix.types}}, concurrency: ${{matrix.concurrency}})"
@@ -82,21 +77,15 @@ jobs:
 
       - name: Configure
         run: >
-          cmake -B build
+          cmake --preset ci-test
+          -DCMAKE_BUILD_TYPE=${{env.config}}
           -DULIB_LIBRARY_TYPE=${{matrix.lib_type}}
           -DULIB_TINY=${{matrix.types == 'tiny' && 'ON' || 'OFF'}}
           -DULIB_HUGE=${{matrix.types == 'huge' && 'ON' || 'OFF'}}
           -DULIB_CONCURRENCY=${{matrix.concurrency == 'on' && 'ON' || 'OFF'}}
-          -DULIB_LEAKS=ON
-          -DULIB_SANITIZERS=ON
-          -DCMAKE_SYSTEM_VERSION=''
-          -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
-          -DCMAKE_LINK_WARNING_AS_ERROR=ON
-          -DCMAKE_BUILD_TYPE=${{env.config}}
-          -DCMAKE_C_FLAGS='-DULIB_ASSERT=1'
 
       - name: Build
-        run: cmake --build build --config ${{env.config}}
+        run: cmake --build --preset build --config ${{env.config}}
 
       - name: Prepare workdir (Windows)
         working-directory: build
@@ -109,8 +98,7 @@ jobs:
           fi
 
       - name: Run
-        working-directory: build
-        run: ctest -V --build-config ${{env.config}} --timeout 30
+        run: ctest --preset test --build-config ${{env.config}}
 
   bench:
     name: "Benchmark (os: ${{matrix.os}})"
@@ -124,21 +112,13 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Configure
-        run: >
-          cmake -B build
-          -DULIB_TESTS=OFF
-          -DULIB_LTO=ON
-          -DULIB_OPTIMIZE_FOR_HOST=ON
-          -DCMAKE_SYSTEM_VERSION=''
-          -DCMAKE_BUILD_TYPE=${{env.config}}
-          -DULIB_CONCURRENCY=ON
+        run: cmake -B build --preset bench -DCMAKE_BUILD_TYPE=${{env.config}}
 
       - name: Build
-        run: cmake --build build --config ${{env.config}}
+        run: cmake --build --preset build --config ${{env.config}}
 
       - name: Run
-        working-directory: build
-        run: ctest -V --build-config ${{env.config}} --timeout 30
+        run: ctest --preset bench --build-config ${{env.config}}
 
   docs:
     name: Documentation
@@ -157,5 +137,5 @@ jobs:
       - name: Build
         run: |
           source .venv/bin/activate
-          cmake -B build -DULIB_CONCURRENCY=ON -DULIB_DOCS=ON
-          cmake --build build --target ulib-docs
+          cmake --preset docs
+          cmake --build --preset docs

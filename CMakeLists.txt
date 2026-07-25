@@ -28,27 +28,20 @@ project(
 
 # Cache variables
 
-if(CMAKE_BUILD_TYPE MATCHES "Rel")
-    set(ULIB_IS_DEBUG OFF)
-    set(ULIB_IS_RELEASE ON)
-else()
-    set(ULIB_IS_DEBUG ON)
-    set(ULIB_IS_RELEASE OFF)
-endif()
-
 option(ULIB_DOCS "Enable the documentation targets" OFF)
 option(ULIB_TESTS "Enable the test targets" ${PROJECT_IS_TOP_LEVEL})
 option(ULIB_CPP_TESTS "Enable the C++ test targets" ${ULIB_TESTS})
 option(ULIB_BENCHMARKS "Enable the benchmark targets" ${PROJECT_IS_TOP_LEVEL})
-option(ULIB_LTO "Enable link-time optimization, if available" ${ULIB_IS_RELEASE})
+option(ULIB_LTO "Enable link-time optimization, if available" ON)
 option(ULIB_OPTIMIZE_FOR_HOST "Enable host CPU optimizations (keep OFF for distribution)" OFF)
-option(ULIB_CLANG_TIDY "Enable clang-tidy, if available" ${ULIB_IS_DEBUG})
-option(ULIB_LEAKS "Enable debugging of memory leaks" ${ULIB_IS_DEBUG})
-option(ULIB_SANITIZERS "Enable sanitizers" ${ULIB_IS_DEBUG})
+option(ULIB_CLANG_TIDY "Enable clang-tidy, if available" OFF)
+option(ULIB_LEAKS "Enable debugging of memory leaks" OFF)
+option(ULIB_SANITIZERS "Enable sanitizers" OFF)
 option(ULIB_CONCURRENCY "Enable concurrency support" OFF)
 option(ULIB_TINY "Use small types" OFF)
 option(ULIB_HUGE "Use large types" OFF)
 option(ULIB_COLOR "Enable colored output" ON)
+set(ULIB_ASSERTIONS "AUTO" CACHE STRING "Enable assertions (ON, OFF, AUTO)")
 set(ULIB_LOG_LEVEL "INFO" CACHE STRING "Default log level (unset to disable logging)")
 set(ULIB_LIBRARY_TYPE "STATIC" CACHE STRING "Type of library to build")
 set(ULIB_USER_HEADERS "" CACHE STRING "User-specified header files")
@@ -82,6 +75,14 @@ list(APPEND CMAKE_MODULE_PATH "${ULIB_UTILS_DIR}/cmake")
 # Target settings
 
 set(ULIB_COMPILE_FEATURES c_std_11)
+
+if(NOT ULIB_ASSERTIONS STREQUAL "AUTO")
+    if(ULIB_ASSERTIONS)
+        list(APPEND ULIB_PRIVATE_DEFINES "ULIB_ASSERT=1")
+    else()
+        list(APPEND ULIB_PRIVATE_DEFINES "ULIB_ASSERT=0")
+    endif()
+endif()
 
 if(ULIB_LEAKS)
     set(ULIB_MALLOC p_uleak_malloc)
