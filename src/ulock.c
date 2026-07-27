@@ -10,6 +10,7 @@
 #include "uatomic.h"
 #include "ulib_ret.h"
 #include "uthread.h"
+#include "uwarning.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -44,15 +45,20 @@ static inline Spinner spinner_init(void) {
     return (Spinner){ .backoff = backoff_init(), .spin = 0 };
 }
 
-static inline void spinner_backoff(Spinner *spinner) {
+static inline void spinner_backoff(ulib_unused Spinner *spinner) {
+#ifndef ULIB_NO_MULTICORE
     backoff_yield(&spinner->backoff);
+#endif
 }
 
-static inline bool spinner_spin(Spinner *spinner) {
-    if (spinner->spin++ < MAX_SPIN) {
+static inline bool spinner_spin(ulib_unused Spinner *spinner) {
+#ifndef ULIB_NO_MULTICORE
+    if (spinner->spin < MAX_SPIN) {
         backoff_yield(&spinner->backoff);
+        spinner->spin++;
         return true;
     }
+#endif
     return false;
 }
 
@@ -361,7 +367,6 @@ void p_urwlock_write_unlock(URWLock *lock) {
 
 #elif defined(__unix__) || defined(__APPLE__)
 
-#include "uwarning.h"
 #include <pthread.h> // IWYU pragma: keep
 
 #ifdef __APPLE__ // ULock
@@ -474,7 +479,6 @@ void p_urwlock_write_unlock(URWLock *lock) {
 
 #elif defined(_WIN32)
 
-#include "uwarning.h"
 #include <windows.h>
 
 ulib_ret p_ulock_init(ULock *lock) {
