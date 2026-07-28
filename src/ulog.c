@@ -133,7 +133,7 @@ ulib_ret ulog_write_loc(ULog *log, USrcLoc loc) {
 }
 
 ulib_ret ulog_write_elapsed(ULog *log, utime_ns elapsed) {
-    utime_unit unit = utime_interval_unit_auto(elapsed);
+    utime_unit unit = utime_span_unit_auto(elapsed);
     begin_color(log, UCOLOR_DIM);
     uostream_write_literal(log->stream, "(", NULL);
     uostream_write_time_interval(log->stream, elapsed, unit, 2, NULL);

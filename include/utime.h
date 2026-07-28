@@ -27,7 +27,7 @@ ULIB_BEGIN_DECLS
 /// Timestamp expressed as seconds since January 1 1970, 00:00:00.
 typedef long long utime_stamp;
 
-/// Nanoseconds type, suitable for storing CPU time.
+/// Nanoseconds type, suitable for storing time spans.
 typedef unsigned long long utime_ns;
 
 /// Milliseconds type, suitable for storing wall clock time.
@@ -311,69 +311,61 @@ ULIB_API
 utime_stamp utime_get_timestamp(void);
 
 /**
- * Retrieves a timestamp in nanoseconds.
+ * Retrieves a monotonic timestamp in nanoseconds.
  *
- * @return Timestamp in nanoseconds.
- *
- * @note The timestamp is suitable for benchmarking purposes.
+ * @return Timestamp.
  */
 ULIB_API
 utime_ns utime_get_ns(void);
 
 /**
- * Creates a time interval according to the specified quantity and time unit.
+ * Creates a time span according to the specified quantity and time unit.
  *
  * @param quantity Quantity.
  * @param unit Time unit.
- * @return Time interval in nanoseconds.
+ * @return Time span.
  */
 ULIB_API
 ULIB_CONST
-utime_ns utime_interval(unsigned long long quantity, utime_unit unit);
+utime_ns utime_span(unsigned long long quantity, utime_unit unit);
 
 /**
- * Returns an appropriate time unit for the specified time interval.
+ * Returns an appropriate time unit for the specified time span.
  *
- * @param t Time interval in nanoseconds.
+ * @param t Time span.
  * @return Appropriate time unit.
  */
 ULIB_API
 ULIB_CONST
-utime_unit utime_interval_unit_auto(utime_ns t);
+utime_unit utime_span_unit_auto(utime_ns t);
 
-/// @copydoc utime_interval
+/// @copydoc utime_span
 ULIB_API
 ULIB_CONST
-utime_ns utime_interval_from(double quantity, utime_unit unit);
+utime_ns utime_span_from(double quantity, utime_unit unit);
 
 /**
- * Converts a time interval according to the specified time unit.
+ * Converts a time span according to the specified time unit.
  *
- * @param t Time interval.
+ * @param t Time span.
  * @param unit Time unit. Must be less than or equal to @val{UTIME_DAYS}.
- * @return Converted time interval, or @cval{NAN} if `t > @val{UTIME_DAYS}`.
+ * @return Converted time span, or @cval{NAN} if `unit` is greater than @val{UTIME_DAYS}.
  */
 ULIB_API
 ULIB_CONST
-double utime_interval_to(utime_ns t, utime_unit unit);
-
-/// @copydoc utime_interval_to
-ULIB_DEPRECATED(Use @func{utime_interval_to} instead.)
-ULIB_INLINE double utime_interval_convert(utime_ns t, utime_unit unit) {
-    return utime_interval_to(t, unit);
-}
+double utime_span_to(utime_ns t, utime_unit unit);
 
 /**
- * Converts a time interval into a string formatted according to the specified time unit.
+ * Converts a time span into a string formatted according to the specified time unit.
  *
- * @param t Time interval in nanoseconds.
+ * @param t Time span.
  * @param unit Time unit.
- * @return Time interval in string form.
+ * @return Time span in string form.
  *
  * @destructor{ustring_deinit}
  */
 ULIB_API
-UString utime_interval_to_string(utime_ns t, utime_unit unit);
+UString utime_span_to_string(utime_ns t, utime_unit unit);
 
 /// @}
 

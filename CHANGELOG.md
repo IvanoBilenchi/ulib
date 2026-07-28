@@ -12,7 +12,7 @@ uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `utime_interval`, `utime_interval_from` and `UTIME_NS_MAX`.
 
 ### Changed
-- Deprecated `utime_interval_convert` in favor of `utime_interval_to`.
+- Renamed `utime_interval_*` to `utime_span_*`.
 
 
 ## [0.3.2] - 2026-06-08

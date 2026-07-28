@@ -34,29 +34,29 @@ void utime_test_ns(void) {
 }
 
 void utime_test_interval(void) {
-    utest_assert_uint(utime_interval(999, UTIME_NANOSECONDS), ==, 999);
-    utest_assert_uint(utime_interval(1, UTIME_MICROSECONDS), ==, 1000);
-    utest_assert_uint(utime_interval(1, UTIME_MILLISECONDS), ==, 1000000);
-    utest_assert_uint(utime_interval(1, UTIME_SECONDS), ==, 1000000000);
-    utest_assert_uint(utime_interval(1, UTIME_MINUTES), ==, 60000000000);
-    utest_assert_uint(utime_interval(1, UTIME_HOURS), ==, 3600000000000);
-    utest_assert_uint(utime_interval(1, UTIME_DAYS), ==, 86400000000000);
-    utest_assert_uint(utime_interval(90, UTIME_MINUTES), ==, 5400000000000);
-    utest_assert_uint(utime_interval(UTIME_NS_MAX, UTIME_MICROSECONDS), ==, UTIME_NS_MAX);
-    utest_assert_uint(utime_interval(UTIME_NS_MAX, UTIME_DAYS), ==, UTIME_NS_MAX);
+    utest_assert_uint(utime_span(999, UTIME_NANOSECONDS), ==, 999);
+    utest_assert_uint(utime_span(1, UTIME_MICROSECONDS), ==, 1000);
+    utest_assert_uint(utime_span(1, UTIME_MILLISECONDS), ==, 1000000);
+    utest_assert_uint(utime_span(1, UTIME_SECONDS), ==, 1000000000);
+    utest_assert_uint(utime_span(1, UTIME_MINUTES), ==, 60000000000);
+    utest_assert_uint(utime_span(1, UTIME_HOURS), ==, 3600000000000);
+    utest_assert_uint(utime_span(1, UTIME_DAYS), ==, 86400000000000);
+    utest_assert_uint(utime_span(90, UTIME_MINUTES), ==, 5400000000000);
+    utest_assert_uint(utime_span(UTIME_NS_MAX, UTIME_MICROSECONDS), ==, UTIME_NS_MAX);
+    utest_assert_uint(utime_span(UTIME_NS_MAX, UTIME_DAYS), ==, UTIME_NS_MAX);
 
-    utest_assert_uint(utime_interval_from(1.5, UTIME_MICROSECONDS), ==, 1500);
-    utest_assert_uint(utime_interval_from(0.5, UTIME_SECONDS), ==, 500000000);
-    utest_assert_uint(utime_interval_from(2.0, UTIME_MINUTES), ==, 120000000000);
-    utest_assert_uint(utime_interval_from(1e30, UTIME_SECONDS), ==, UTIME_NS_MAX);
-    utest_assert_float(utime_interval_to(999, UTIME_NANOSECONDS), ==, 999.0);
-    utest_assert_float(utime_interval_to(1500, UTIME_MICROSECONDS), ==, 1.5);
-    utest_assert_float(utime_interval_to(500000000, UTIME_SECONDS), ==, 0.5);
-    utest_assert_float(utime_interval_to(86400000000000, UTIME_DAYS), ==, 1.0);
-    utest_assert(isnan(utime_interval_to(1, UTIME_MONTHS)));
-    utest_assert(isnan(utime_interval_to(1, UTIME_YEARS)));
-    utest_assert_float(utime_interval_to(utime_interval(90, UTIME_MINUTES), UTIME_HOURS), ==, 1.5);
-    utest_assert_float(utime_interval_to(utime_interval_from(2.5, UTIME_S), UTIME_S), ==, 2.5);
+    utest_assert_uint(utime_span_from(1.5, UTIME_MICROSECONDS), ==, 1500);
+    utest_assert_uint(utime_span_from(0.5, UTIME_SECONDS), ==, 500000000);
+    utest_assert_uint(utime_span_from(2.0, UTIME_MINUTES), ==, 120000000000);
+    utest_assert_uint(utime_span_from(1e30, UTIME_SECONDS), ==, UTIME_NS_MAX);
+    utest_assert_float(utime_span_to(999, UTIME_NANOSECONDS), ==, 999.0);
+    utest_assert_float(utime_span_to(1500, UTIME_MICROSECONDS), ==, 1.5);
+    utest_assert_float(utime_span_to(500000000, UTIME_SECONDS), ==, 0.5);
+    utest_assert_float(utime_span_to(86400000000000, UTIME_DAYS), ==, 1.0);
+    utest_assert(isnan(utime_span_to(1, UTIME_MONTHS)));
+    utest_assert(isnan(utime_span_to(1, UTIME_YEARS)));
+    utest_assert_float(utime_span_to(utime_span(90, UTIME_MINUTES), UTIME_HOURS), ==, 1.5);
+    utest_assert_float(utime_span_to(utime_span_from(2.5, UTIME_S), UTIME_S), ==, 2.5);
 
     struct utime_test_s test_data[] = {
         { 999, UTIME_NANOSECONDS, "999.00 ns" },        { 1000, UTIME_MICROSECONDS, "1.00 us" },
@@ -69,9 +69,9 @@ void utime_test_interval(void) {
 
     for (unsigned i = 0; i < ulib_array_count(test_data); ++i) {
         struct utime_test_s data = test_data[i];
-        utest_assert_uint(utime_interval_unit_auto(data.t), ==, data.unit);
+        utest_assert_uint(utime_span_unit_auto(data.t), ==, data.unit);
 
-        UString str = utime_interval_to_string(data.t, data.unit);
+        UString str = utime_span_to_string(data.t, data.unit);
         utest_assert_string(str, ==, ustring_wrap_cstring(data.str));
         ustring_deinit(&str);
     }

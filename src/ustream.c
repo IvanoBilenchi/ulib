@@ -646,7 +646,7 @@ ulib_ret uostream_write_time_interval(UOStream *stream, utime_ns interval, utime
                                       unsigned decimal_digits, size_t *written) {
     static char const *str[] = { "ns", "us", "ms", "s", "m", "h", "d" };
     unit = ulib_clamp(unit, UTIME_NS, UTIME_DAYS);
-    double c_interval = utime_interval_to(interval, unit);
+    double c_interval = utime_span_to(interval, unit);
     return uostream_writef(stream, written, "%.*f %s", decimal_digits, c_interval, str[unit]);
 }
 

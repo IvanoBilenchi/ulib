@@ -264,12 +264,13 @@ bool utime_from_string(UTime *time, UString const *string) {
 #define FMT_FDIGITS 2 // NOLINT(modernize-macro-to-enum)
 #define UNIT_DIV (utime_ns)(ULIB_MACRO_CONCAT(2e, FMT_FDIGITS))
 
-static utime_ns unit_ns[] = {
+static utime_ns const unit_ns[] = {
     [UTIME_NS] = NS_PER_NS,  [UTIME_US] = NS_PER_US,        [UTIME_MS] = NS_PER_MS,
     [UTIME_S] = NS_PER_S,    [UTIME_MINUTES] = NS_PER_M,    [UTIME_HOURS] = NS_PER_H,
     [UTIME_DAYS] = NS_PER_D, [UTIME_MONTHS] = UTIME_NS_MAX, [UTIME_YEARS] = UTIME_NS_MAX,
 };
-static utime_ns unit_max_ns[] = {
+
+static utime_ns const unit_max_ns[] = {
     [UTIME_NS] = UTIME_NS_MAX / NS_PER_NS,
     [UTIME_US] = UTIME_NS_MAX / NS_PER_US,
     [UTIME_MS] = UTIME_NS_MAX / NS_PER_MS,
@@ -281,29 +282,29 @@ static utime_ns unit_max_ns[] = {
     [UTIME_YEARS] = 0
 };
 
-utime_unit utime_interval_unit_auto(utime_ns t) {
+utime_unit utime_span_unit_auto(utime_ns t) {
     utime_unit unit = UTIME_MICROSECONDS;
     while (t > unit_ns[unit] - (unit_ns[unit - 1] / UNIT_DIV) - 1) ++unit;
     return (utime_unit)(unit - 1);
 }
 
-utime_ns utime_interval(unsigned long long quantity, utime_unit unit) {
+utime_ns utime_span(unsigned long long quantity, utime_unit unit) {
     if (quantity > unit_max_ns[unit]) return UTIME_NS_MAX;
     return (utime_ns)quantity * unit_ns[unit];
 }
 
-utime_ns utime_interval_from(double quantity, utime_unit unit) {
+utime_ns utime_span_from(double quantity, utime_unit unit) {
     if (quantity > (double)unit_max_ns[unit]) return UTIME_NS_MAX;
     return (utime_ns)(quantity * (double)unit_ns[unit]);
 }
 
-double utime_interval_to(utime_ns t, utime_unit unit) {
+double utime_span_to(utime_ns t, utime_unit unit) {
     if (unit > UTIME_DAYS) return NAN;
     if (unit <= UTIME_NANOSECONDS) return (double)t;
     return (double)t / (double)unit_ns[unit];
 }
 
-UString utime_interval_to_string(utime_ns t, utime_unit unit) {
+UString utime_span_to_string(utime_ns t, utime_unit unit) {
     UOStream stream;
     UStrBuf buf = ustrbuf();
 
