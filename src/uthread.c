@@ -96,12 +96,18 @@ ulib_ret uthread_detach(ulib_unused UThread *thread) {
 
 #if defined(__unix__) || defined(__APPLE__)
 
-#ifndef _UNISTD_H_
-#include <unistd.h>
-#endif
+#include <errno.h>
+#include <sys/errno.h>
+#include <time.h>
 
-ulib_ret uthread_sleep(utime_ms millis) {
-    return usleep((useconds_t)(millis * 1000)) ? ULIB_ERR : ULIB_OK;
+ulib_ret uthread_sleep(utime_ns t) {
+    struct timespec ts = {
+        .tv_sec = (time_t)(t / UTIME_NS_PER_S),
+        .tv_nsec = (long)(t % UTIME_NS_PER_S),
+    };
+    int ret;
+    while ((ret = nanosleep(&ts, &ts)) && errno == EINTR);
+    return ret ? ULIB_ERR : ULIB_OK;
 }
 
 #elif defined(_WIN32)
@@ -110,16 +116,16 @@ ulib_ret uthread_sleep(utime_ms millis) {
 #include <windows.h>
 #endif
 
-ulib_ret uthread_sleep(utime_ms millis) {
-    Sleep((DWORD)millis);
+ulib_ret uthread_sleep(utime_ns t) {
+    Sleep((DWORD)(t / UTIME_NS_PER_MS));
     return ULIB_OK;
 }
 
 #else
 
-ulib_ret uthread_sleep(utime_ms millis) {
+ulib_ret uthread_sleep(utime_ns t) {
     utime_ns start = utime_get_ns();
-    while (utime_get_ns() - start < millis * 1000000);
+    while (utime_get_ns() - start < t) uthread_yield_cpu();
     return ULIB_OK;
 }
 

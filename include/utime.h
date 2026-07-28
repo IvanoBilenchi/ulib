@@ -30,9 +30,6 @@ typedef long long utime_stamp;
 /// Nanoseconds type, suitable for storing time spans.
 typedef unsigned long long utime_ns;
 
-/// Milliseconds type, suitable for storing wall clock time.
-typedef unsigned long long utime_ms;
-
 /// Time units.
 typedef enum utime_unit {
 

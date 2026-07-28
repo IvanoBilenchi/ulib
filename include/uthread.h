@@ -111,13 +111,13 @@ ULIB_API
 ulib_ret uthread_detach(UThread *thread);
 
 /**
- * Sleeps for the specified number of milliseconds.
+ * Sleeps for the specified time span.
  *
- * @param millis Number of milliseconds to sleep.
+ * @param t Time span to sleep.
  * @return Return code.
  */
 ULIB_API
-ulib_ret uthread_sleep(utime_ms millis);
+ulib_ret uthread_sleep(utime_ns t);
 
 // clang-format off
 
