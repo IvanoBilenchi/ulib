@@ -9,7 +9,8 @@ uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
-- `utime_interval`, `utime_interval_from` and `UTIME_NS_MAX`.
+- `utime_stamp` and `utime_stamp_from`.
+- `UTIME_NS_MAX`, `UTIME_NS_PER_{US,MS,S,MINUTE,HOUR,DAY}`.
 
 ### Changed
 - Renamed `utime_interval_*` to `utime_span_*`.

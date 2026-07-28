@@ -110,6 +110,24 @@ typedef struct UTime {
 /// Maximum value for @type{utime_ns}.
 #define UTIME_NS_MAX ULLONG_MAX
 
+/// Nanoseconds per microsecond.
+#define UTIME_NS_PER_US ((utime_ns)1000)
+
+/// Nanoseconds per millisecond.
+#define UTIME_NS_PER_MS ((utime_ns)(UTIME_NS_PER_US * 1000))
+
+/// Nanoseconds per second.
+#define UTIME_NS_PER_S ((utime_ns)(UTIME_NS_PER_MS * 1000))
+
+/// Nanoseconds per minute.
+#define UTIME_NS_PER_MINUTE ((utime_ns)(UTIME_NS_PER_S * 60))
+
+/// Nanoseconds per hour.
+#define UTIME_NS_PER_HOUR ((utime_ns)(UTIME_NS_PER_MINUTE * 60))
+
+/// Nanoseconds per day.
+#define UTIME_NS_PER_DAY ((utime_ns)(UTIME_NS_PER_HOUR * 24))
+
 /// Date format string.
 #ifndef UTIME_DATE_FMT
 #define UTIME_DATE_FMT "%lld/%02u/%02u"

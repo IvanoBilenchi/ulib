@@ -18,14 +18,6 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define NS_PER_NS ((utime_ns)1)
-#define NS_PER_US ((utime_ns)1000)
-#define NS_PER_MS ((utime_ns)(NS_PER_US * 1000))
-#define NS_PER_S ((utime_ns)(NS_PER_MS * 1000))
-#define NS_PER_M ((utime_ns)(NS_PER_S * 60))
-#define NS_PER_H ((utime_ns)(NS_PER_M * 60))
-#define NS_PER_D ((utime_ns)(NS_PER_H * 24))
-
 enum {
     MILLIS_PER_SECOND = 1000U,
     MICROS_PER_SECOND = 1000000U,
@@ -265,19 +257,25 @@ bool utime_from_string(UTime *time, UString const *string) {
 #define UNIT_DIV (utime_ns)(ULIB_MACRO_CONCAT(2e, FMT_FDIGITS))
 
 static utime_ns const unit_ns[] = {
-    [UTIME_NS] = NS_PER_NS,  [UTIME_US] = NS_PER_US,        [UTIME_MS] = NS_PER_MS,
-    [UTIME_S] = NS_PER_S,    [UTIME_MINUTES] = NS_PER_M,    [UTIME_HOURS] = NS_PER_H,
-    [UTIME_DAYS] = NS_PER_D, [UTIME_MONTHS] = UTIME_NS_MAX, [UTIME_YEARS] = UTIME_NS_MAX,
+    [UTIME_NS] = 1,
+    [UTIME_US] = UTIME_NS_PER_US,
+    [UTIME_MS] = UTIME_NS_PER_MS,
+    [UTIME_S] = UTIME_NS_PER_S,
+    [UTIME_MINUTES] = UTIME_NS_PER_MINUTE,
+    [UTIME_HOURS] = UTIME_NS_PER_HOUR,
+    [UTIME_DAYS] = UTIME_NS_PER_DAY,
+    [UTIME_MONTHS] = UTIME_NS_MAX,
+    [UTIME_YEARS] = UTIME_NS_MAX,
 };
 
 static utime_ns const unit_max_ns[] = {
-    [UTIME_NS] = UTIME_NS_MAX / NS_PER_NS,
-    [UTIME_US] = UTIME_NS_MAX / NS_PER_US,
-    [UTIME_MS] = UTIME_NS_MAX / NS_PER_MS,
-    [UTIME_S] = UTIME_NS_MAX / NS_PER_S,
-    [UTIME_MINUTES] = UTIME_NS_MAX / NS_PER_M,
-    [UTIME_HOURS] = UTIME_NS_MAX / NS_PER_H,
-    [UTIME_DAYS] = UTIME_NS_MAX / NS_PER_D,
+    [UTIME_NS] = UTIME_NS_MAX,
+    [UTIME_US] = UTIME_NS_MAX / UTIME_NS_PER_US,
+    [UTIME_MS] = UTIME_NS_MAX / UTIME_NS_PER_MS,
+    [UTIME_S] = UTIME_NS_MAX / UTIME_NS_PER_S,
+    [UTIME_MINUTES] = UTIME_NS_MAX / UTIME_NS_PER_MINUTE,
+    [UTIME_HOURS] = UTIME_NS_MAX / UTIME_NS_PER_HOUR,
+    [UTIME_DAYS] = UTIME_NS_MAX / UTIME_NS_PER_DAY,
     [UTIME_MONTHS] = 0,
     [UTIME_YEARS] = 0
 };
@@ -340,7 +338,7 @@ utime_stamp utime_get_timestamp(void) {
             return 0;
         }
 
-        return (utime_ns)temp.QuadPart * NS_PER_S / clocks_per_sec;
+        return (utime_ns)temp.QuadPart * UTIME_NS_PER_S / clocks_per_sec;
     }
 #elif defined(ARDUINO)
     #include <Arduino.h>
@@ -375,7 +373,7 @@ utime_stamp utime_get_timestamp(void) {
     utime_ns utime_get_ns(void) {
         struct timespec ts;
         p_get_timespec(&ts);
-        return ((utime_ns)ts.tv_sec * NS_PER_S) + (utime_ns)ts.tv_nsec;
+        return ((utime_ns)ts.tv_sec * UTIME_NS_PER_S) + (utime_ns)ts.tv_nsec;
     }
 #else
     #include "uwarning.h"
