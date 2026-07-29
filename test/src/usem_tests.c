@@ -15,8 +15,6 @@ enum {
 };
 
 void usem_test_base(void) {
-    // Single-threaded semantics: trywait consumes permits, post produces them, wait on an
-    // available permit returns immediately.
     USem sem = ulib_zero_init;
     utest_assert_enum(usem_init(&sem, 2), ==, ULIB_OK);
 
@@ -28,7 +26,6 @@ void usem_test_base(void) {
     utest_assert(usem_trywait(&sem));
     utest_assert_false(usem_trywait(&sem));
 
-    // A permit is available, so a blocking wait must not block.
     usem_post(&sem);
     usem_wait(&sem);
     utest_assert_false(usem_trywait(&sem));
@@ -48,7 +45,6 @@ static void usem_wait_worker(void *arg) {
 }
 
 void usem_test_wait_post(void) {
-    // Threads pile up on an empty semaphore; each post releases exactly one of them.
     USem sem = ulib_zero_init;
     utest_assert_enum(usem_init(&sem, 0), ==, ULIB_OK);
 
@@ -61,7 +57,6 @@ void usem_test_wait_post(void) {
         utest_assert_enum(uthread_start(&threads[i]), ==, ULIB_OK);
     }
 
-    // No permits are available, so no worker should be able to proceed.
     uthread_sleep(50);
     utest_assert_uint(uatomic_load_ex(&counter, UMO_RELAXED), ==, 0);
 
@@ -86,7 +81,6 @@ static void usem_mutex_worker(void *arg) {
     MutexCtx *ctx = (MutexCtx *)arg;
     for (unsigned round = 0; round < MUTEX_ROUNDS; ++round) {
         usem_wait(ctx->sem);
-        // Only one thread may be inside the critical section at a time.
         if (uatomic_fetch_add_ex(ctx->in_cs, 1, UMO_ACQ_REL) != 0) {
             uatomic_fetch_add_ex(ctx->violations, 1, UMO_RELAXED);
         }
@@ -97,8 +91,6 @@ static void usem_mutex_worker(void *arg) {
 }
 
 void usem_test_mutex(void) {
-    // A semaphore initialized to 1 acts as a mutex: concurrent increments of a plain counter
-    // must not be lost, and the critical section must never be entered by two threads at once.
     USem sem = ulib_zero_init;
     utest_assert_enum(usem_init(&sem, 1), ==, ULIB_OK);
 

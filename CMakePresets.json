@@ -153,6 +153,7 @@
         {
             "name": "bench",
             "inherits": "test",
+            "configurePreset": "bench",
             "displayName": "Benchmark",
             "filter": {
                 "include": {

@@ -45,7 +45,6 @@ void ucond_test_signal(void) {
     utest_assert_enum(uthread(&thread, ucond_worker, &ctx), ==, ULIB_OK);
     utest_assert_enum(uthread_start(&thread), ==, ULIB_OK);
 
-    // The worker must still be blocked, since the predicate hasn't been signaled yet.
     uthread_sleep(50);
     utest_assert_uint(uatomic_load_ex(&counter, UMO_RELAXED), ==, 0);
 
@@ -77,7 +76,6 @@ void ucond_test_broadcast(void) {
         utest_assert_enum(uthread_start(&threads[i]), ==, ULIB_OK);
     }
 
-    // None of the workers should be able to proceed before the predicate is signaled.
     uthread_sleep(50);
     utest_assert_uint(uatomic_load_ex(&counter, UMO_RELAXED), ==, 0);
 

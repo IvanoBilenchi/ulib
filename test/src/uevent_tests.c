@@ -30,11 +30,9 @@ void uevent_test_base(void) {
     UEvent event = ulib_zero_init;
     utest_assert_enum(uevent_init(&event), ==, ULIB_OK);
 
-    // Waiting on an already-set event must return immediately, without blocking.
     uevent_set(&event);
     uevent_wait(&event);
 
-    // The event can be cleared and reused across multiple set/wait rounds.
     for (unsigned round = 0; round < RESET_ROUNDS; ++round) {
         uevent_clear(&event);
 
@@ -45,7 +43,6 @@ void uevent_test_base(void) {
         utest_assert_enum(uthread(&thread, uevent_worker, &ctx), ==, ULIB_OK);
         utest_assert_enum(uthread_start(&thread), ==, ULIB_OK);
 
-        // The event is clear, so the worker must still be blocked at this point.
         uthread_sleep(20);
         utest_assert_uint(uatomic_load_ex(&counter, UMO_RELAXED), ==, 0);
 
@@ -70,7 +67,6 @@ void uevent_test_wait_wake(void) {
         utest_assert_enum(uthread_start(&threads[i]), ==, ULIB_OK);
     }
 
-    // None of the workers should be able to proceed before the event is set.
     uthread_sleep(50);
     utest_assert_uint(uatomic_load_ex(&counter, UMO_RELAXED), ==, 0);
 

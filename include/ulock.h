@@ -134,93 +134,24 @@ URWRLock *ulock_read(URWLock *lock) {
 
 /// @}
 
-ULIB_API
-ulib_ret p_uslock_init(USLock *lock);
+#define P_ULOCK_DECL_LOCK(T)                                                                       \
+    ULIB_API void p_##T##_lock(T *lock);                                                           \
+    ULIB_API bool p_##T##_trylock(T *lock);                                                        \
+    ULIB_API void p_##T##_unlock(T *lock);
 
-ULIB_API
-void p_uslock_deinit(USLock *lock);
+#define P_ULOCK_DECL(T)                                                                            \
+    ULIB_API ulib_ret p_##T##_init(T *lock);                                                       \
+    ULIB_API void p_##T##_deinit(T *lock);                                                         \
+    P_ULOCK_DECL_LOCK(T)
 
-ULIB_API
-void p_uslock_lock(USLock *lock);
-
-ULIB_API
-bool p_uslock_trylock(USLock *lock);
-
-ULIB_API
-void p_uslock_unlock(USLock *lock);
+P_ULOCK_DECL(USLock)
 
 #ifdef ULIB_CONCURRENCY
 
-ULIB_API
-ulib_ret p_ulock_init(ULock *lock);
-
-ULIB_API
-void p_ulock_deinit(ULock *lock);
-
-ULIB_API
-void p_ulock_lock(ULock *lock);
-
-ULIB_API
-bool p_ulock_trylock(ULock *lock);
-
-ULIB_API
-void p_ulock_unlock(ULock *lock);
-
-ULIB_API
-ulib_ret p_urlock_init(URLock *lock);
-
-ULIB_API
-void p_urlock_deinit(URLock *lock);
-
-ULIB_API
-void p_urlock_lock(URLock *lock);
-
-ULIB_API
-bool p_urlock_trylock(URLock *lock);
-
-ULIB_API
-void p_urlock_unlock(URLock *lock);
-
-ULIB_API
-ulib_ret p_urwlock_init(URWLock *lock);
-
-ULIB_API
-void p_urwlock_deinit(URWLock *lock);
-
-ULIB_API
-void p_urwlock_read_lock(URWRLock *lock);
-
-ULIB_API
-bool p_urwlock_read_trylock(URWRLock *lock);
-
-ULIB_API
-void p_urwlock_read_unlock(URWRLock *lock);
-
-ULIB_API
-void p_urwlock_write_lock(URWLock *lock);
-
-ULIB_API
-bool p_urwlock_write_trylock(URWLock *lock);
-
-ULIB_API
-void p_urwlock_write_unlock(URWLock *lock);
-
-#else
-
-#include "uwarning.h"
-
-ULIB_INLINE
-void p_ulock_noop_void(ulib_unused void *lock) {}
-
-ULIB_INLINE
-ulib_ret p_ulock_noop_ok(ulib_unused void *lock) {
-    return ULIB_OK;
-}
-
-ULIB_INLINE
-bool p_ulock_noop_true(ulib_unused void *lock) {
-    return true;
-}
+P_ULOCK_DECL(ULock)
+P_ULOCK_DECL(URLock)
+P_ULOCK_DECL(URWLock)
+P_ULOCK_DECL_LOCK(URWRLock)
 
 #endif // ULIB_CONCURRENCY
 
@@ -233,35 +164,23 @@ ULIB_END_DECLS
 #ifdef __cplusplus
 
 /// @cond
-
 // clang-format off
+#define P_ULOCK_CPP_LOCK_IMPL(T)                                                                   \
+    ULIB_INLINE void ulock_lock(T *lock) { p_##T##_lock(lock); }                                   \
+    ULIB_INLINE bool ulock_trylock(T *lock) { return p_##T##_trylock(lock); }                      \
+    ULIB_INLINE void ulock_unlock(T *lock) { p_##T##_unlock(lock); }
 
-ULIB_INLINE ulib_ret ulock(ULock *lock) { return p_ulock_init(lock); }
-ULIB_INLINE ulib_ret ulock(URLock *lock) { return p_urlock_init(lock); }
-ULIB_INLINE ulib_ret ulock(USLock *lock) { return p_uslock_init(lock); }
-ULIB_INLINE ulib_ret ulock(URWLock *lock) { return p_urwlock_init(lock); }
-ULIB_INLINE void ulock_deinit(ULock *lock) { p_ulock_deinit(lock); }
-ULIB_INLINE void ulock_deinit(URLock *lock) { p_urlock_deinit(lock); }
-ULIB_INLINE void ulock_deinit(USLock *lock) { p_uslock_deinit(lock); }
-ULIB_INLINE void ulock_deinit(URWLock *lock) { p_urwlock_deinit(lock); }
-ULIB_INLINE void ulock_lock(ULock *lock) { p_ulock_lock(lock); }
-ULIB_INLINE void ulock_lock(URLock *lock) { p_urlock_lock(lock); }
-ULIB_INLINE void ulock_lock(USLock *lock) { p_uslock_lock(lock); }
-ULIB_INLINE void ulock_lock(URWLock *lock) { p_urwlock_write_lock(lock); }
-ULIB_INLINE void ulock_lock(URWRLock *lock) { p_urwlock_read_lock(lock); }
-ULIB_INLINE bool ulock_trylock(ULock *lock) { return p_ulock_trylock(lock); }
-ULIB_INLINE bool ulock_trylock(URLock *lock) { return p_urlock_trylock(lock); }
-ULIB_INLINE bool ulock_trylock(USLock *lock) { return p_uslock_trylock(lock); }
-ULIB_INLINE bool ulock_trylock(URWLock *lock) { return p_urwlock_write_trylock(lock); }
-ULIB_INLINE bool ulock_trylock(URWRLock *lock) { return p_urwlock_read_trylock(lock); }
-ULIB_INLINE void ulock_unlock(ULock *lock) { p_ulock_unlock(lock); }
-ULIB_INLINE void ulock_unlock(URLock *lock) { p_urlock_unlock(lock); }
-ULIB_INLINE void ulock_unlock(USLock *lock) { p_uslock_unlock(lock); }
-ULIB_INLINE void ulock_unlock(URWLock *lock) { p_urwlock_write_unlock(lock); }
-ULIB_INLINE void ulock_unlock(URWRLock *lock) { p_urwlock_read_unlock(lock); }
+#define P_ULOCK_CPP_IMPL(T)                                                                        \
+    ULIB_INLINE ulib_ret ulock(T *lock) { return p_##T##_init(lock); }                             \
+    ULIB_INLINE void ulock_deinit(T *lock) { p_##T##_deinit(lock); }                               \
+    P_ULOCK_CPP_LOCK_IMPL(T)
 
+P_ULOCK_CPP_IMPL(ULock)
+P_ULOCK_CPP_IMPL(URLock)
+P_ULOCK_CPP_IMPL(USLock)
+P_ULOCK_CPP_IMPL(URWLock)
+P_ULOCK_CPP_LOCK_IMPL(URWRLock)
 // clang-format on
-
 /// @endcond
 
 #else
@@ -282,10 +201,10 @@ ULIB_INLINE void ulock_unlock(URWRLock *lock) { p_urwlock_read_unlock(lock); }
  */
 #define ulock(lock)                                                                                \
     _Generic((lock),                                                                               \
-        ULock *: p_ulock_init,                                                                     \
-        URLock *: p_urlock_init,                                                                   \
-        USLock *: p_uslock_init,                                                                   \
-        URWLock *: p_urwlock_init)(lock)
+        ULock *: p_ULock_init,                                                                     \
+        URLock *: p_URLock_init,                                                                   \
+        USLock *: p_USLock_init,                                                                   \
+        URWLock *: p_URWLock_init)(lock)
 
 /**
  * Deinitializes a lock.
@@ -296,10 +215,10 @@ ULIB_INLINE void ulock_unlock(URWRLock *lock) { p_urwlock_read_unlock(lock); }
  */
 #define ulock_deinit(lock)                                                                         \
     _Generic((lock),                                                                               \
-        ULock *: p_ulock_deinit,                                                                   \
-        URLock *: p_urlock_deinit,                                                                 \
-        USLock *: p_uslock_deinit,                                                                 \
-        URWLock *: p_urwlock_deinit)(lock)
+        ULock *: p_ULock_deinit,                                                                   \
+        URLock *: p_URLock_deinit,                                                                 \
+        USLock *: p_USLock_deinit,                                                                 \
+        URWLock *: p_URWLock_deinit)(lock)
 
 /**
  * Locks a lock.
@@ -310,11 +229,11 @@ ULIB_INLINE void ulock_unlock(URWRLock *lock) { p_urwlock_read_unlock(lock); }
  */
 #define ulock_lock(lock)                                                                           \
     _Generic((lock),                                                                               \
-        ULock *: p_ulock_lock,                                                                     \
-        URLock *: p_urlock_lock,                                                                   \
-        USLock *: p_uslock_lock,                                                                   \
-        URWLock *: p_urwlock_write_lock,                                                           \
-        URWRLock *: p_urwlock_read_lock)(lock)
+        ULock *: p_ULock_lock,                                                                     \
+        URLock *: p_URLock_lock,                                                                   \
+        USLock *: p_USLock_lock,                                                                   \
+        URWLock *: p_URWLock_lock,                                                                 \
+        URWRLock *: p_URWRLock_lock)(lock)
 
 /**
  * Tries to lock a lock.
@@ -329,11 +248,11 @@ ULIB_INLINE void ulock_unlock(URWRLock *lock) { p_urwlock_read_unlock(lock); }
  */
 #define ulock_trylock(lock)                                                                        \
     _Generic((lock),                                                                               \
-        ULock *: p_ulock_trylock,                                                                  \
-        URLock *: p_urlock_trylock,                                                                \
-        USLock *: p_uslock_trylock,                                                                \
-        URWLock *: p_urwlock_write_trylock,                                                        \
-        URWRLock *: p_urwlock_read_trylock)(lock)
+        ULock *: p_ULock_trylock,                                                                  \
+        URLock *: p_URLock_trylock,                                                                \
+        USLock *: p_USLock_trylock,                                                                \
+        URWLock *: p_URWLock_trylock,                                                              \
+        URWRLock *: p_URWRLock_trylock)(lock)
 
 /**
  * Unlocks a lock.
@@ -344,11 +263,11 @@ ULIB_INLINE void ulock_unlock(URWRLock *lock) { p_urwlock_read_unlock(lock); }
  */
 #define ulock_unlock(lock)                                                                         \
     _Generic((lock),                                                                               \
-        ULock *: p_ulock_unlock,                                                                   \
-        URLock *: p_urlock_unlock,                                                                 \
-        USLock *: p_uslock_unlock,                                                                 \
-        URWLock *: p_urwlock_write_unlock,                                                         \
-        URWRLock *: p_urwlock_read_unlock)(lock)
+        ULock *: p_ULock_unlock,                                                                   \
+        URLock *: p_URLock_unlock,                                                                 \
+        USLock *: p_USLock_unlock,                                                                 \
+        URWLock *: p_URWLock_unlock,                                                               \
+        URWRLock *: p_URWRLock_unlock)(lock)
 
 /// @}
 
@@ -369,7 +288,19 @@ ULIB_INLINE void ulock_unlock(URWRLock *lock) { p_urwlock_read_unlock(lock); }
 
 /// @}
 
-#else
+#else // ULIB_CONCURRENCY
+
+#include "uwarning.h"
+
+ULIB_BEGIN_DECLS
+
+// clang-format off
+ULIB_INLINE void p_ulock_noop_void(ulib_unused void *lock) {}
+ULIB_INLINE ulib_ret p_ulock_noop_ok(ulib_unused void *lock) { return ULIB_OK; }
+ULIB_INLINE bool p_ulock_noop_true(ulib_unused void *lock) { return true; }
+// clang-format on
+
+ULIB_END_DECLS
 
 /// @cond
 #define ulock(lock) p_ulock_noop_ok(lock)

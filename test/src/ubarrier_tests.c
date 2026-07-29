@@ -26,8 +26,6 @@ static void ubarrier_worker(void *arg) {
 }
 
 void ubarrier_test_base(void) {
-    // The main thread is itself the last of the barrier's participants, so it controls
-    // when the workers piled up on the barrier are released.
     UBarrier barrier = ulib_zero_init;
     utest_assert_enum(ubarrier_init(&barrier, THREAD_COUNT + 1), ==, ULIB_OK);
 
@@ -40,7 +38,6 @@ void ubarrier_test_base(void) {
         utest_assert_enum(uthread_start(&threads[i]), ==, ULIB_OK);
     }
 
-    // None of the workers should be able to proceed until the main thread reaches the barrier.
     uthread_sleep(50);
     utest_assert_uint(uatomic_load_ex(&counter, UMO_RELAXED), ==, 0);
 
@@ -63,7 +60,6 @@ static void ubarrier_reuse_worker(void *arg) {
 }
 
 void ubarrier_test_reuse(void) {
-    // The barrier must be reusable across multiple rounds without being reinitialized.
     UBarrier barrier = ulib_zero_init;
     utest_assert_enum(ubarrier_init(&barrier, THREAD_COUNT + 1), ==, ULIB_OK);
 
