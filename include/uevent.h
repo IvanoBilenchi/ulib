@@ -49,7 +49,7 @@ typedef struct UEvent {
  * @destructor{uevent_deinit}
  */
 ULIB_API
-ulib_ret uevent_init(UEvent *event);
+ulib_ret uevent(UEvent *event);
 
 /**
  * Deinitializes an event.

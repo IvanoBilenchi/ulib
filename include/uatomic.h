@@ -168,12 +168,12 @@ typedef enum UMemoryOrder {
  * @param obj The atomic object.
  * @param value The value to initialize the object with.
  *
- * @alias void uatomic_init(UAtomic(T) *obj, T value);
+ * @alias void uatomic(UAtomic(T) *obj, T value);
  */
 #ifdef __cplusplus
-#define uatomic_init(obj, value) ((*obj) = (value))
+#define uatomic(obj, value) ((*obj) = (value))
 #else
-#define uatomic_init(obj, value) atomic_init(obj, value)
+#define uatomic(obj, value) atomic_init(obj, value)
 #endif
 
 /**
@@ -503,7 +503,7 @@ bool uatomic_flag_test_and_set(bool *flag) {
 #define uatomic_flag_clear(flag) (*(flag) = false)
 #define uatomic_flag_clear_ex(flag, order) uatomic_flag_clear(flag)
 
-#define uatomic_init(obj, value) (*(obj) = (value))
+#define uatomic(obj, value) (*(obj) = (value))
 #define uatomic_is_lock_free(obj) true
 #define uatomic_load(obj) (*(obj))
 #define uatomic_load_ex(obj, order) uatomic_load(obj)

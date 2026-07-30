@@ -18,8 +18,8 @@ enum {
     EVENT_SET = 1U,
 };
 
-ulib_ret uevent_init(UEvent *event) {
-    uatomic_init(&event->_flag, EVENT_CLEAR);
+ulib_ret uevent(UEvent *event) {
+    uatomic(&event->_flag, EVENT_CLEAR);
     return ULIB_OK;
 }
 
@@ -42,7 +42,7 @@ void uevent_clear(UEvent *event) {
 
 #else // ULIB_CONCURRENCY
 
-ulib_ret uevent_init(ulib_unused UEvent *event) {
+ulib_ret uevent(ulib_unused UEvent *event) {
     return ULIB_ERR_UNSUPPORTED;
 }
 

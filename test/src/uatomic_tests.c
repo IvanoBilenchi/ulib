@@ -19,7 +19,7 @@ void uatomic_test_flag(void) {
 void uatomic_test_base(void) {
     UAtomic(ulib_uint) a = 0;
     utest_assert(uatomic_is_lock_free(&a));
-    uatomic_init(&a, 42);
+    uatomic(&a, 42);
     utest_assert_uint(uatomic_load(&a), ==, 42);
     uatomic_store(&a, 43);
     utest_assert_uint(uatomic_load_ex(&a, UMO_RELAXED), ==, 43);

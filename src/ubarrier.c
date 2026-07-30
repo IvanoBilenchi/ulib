@@ -14,9 +14,9 @@
 #include "ufutex.h"
 #include "ulock.h"
 
-ulib_ret ubarrier_init(UBarrier *barrier, uint16_t count) {
+ulib_ret ubarrier(UBarrier *barrier, uint16_t count) {
     ulock(&barrier->_lock);
-    uatomic_init(&barrier->_seq, 0);
+    uatomic(&barrier->_seq, 0);
     barrier->_count = count;
     barrier->_remaining = count;
     return ULIB_OK;
@@ -54,7 +54,7 @@ void ubarrier_wait(UBarrier *barrier) {
 
 #include "uwarning.h"
 
-ulib_ret ubarrier_init(ulib_unused UBarrier *barrier, ulib_unused uint16_t count) {
+ulib_ret ubarrier(ulib_unused UBarrier *barrier, ulib_unused uint16_t count) {
     return ULIB_ERR_UNSUPPORTED;
 }
 

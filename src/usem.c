@@ -53,8 +53,8 @@ static inline uint32_t state_waiters(uint64_t const *state) {
 #define ONE_PERMIT state_pack(1, 0)
 #define ONE_WAITER state_pack(0, 1)
 
-ulib_ret usem_init(USem *sem, uint32_t permits) {
-    uatomic_init(&sem->_state, state_pack(permits, 0));
+ulib_ret usem(USem *sem, uint32_t permits) {
+    uatomic(&sem->_state, state_pack(permits, 0));
     return ULIB_OK;
 }
 
@@ -103,9 +103,9 @@ void usem_post(USem *sem) {
 // usem_post() reads them across two words, both the "register then re-check" step below and the
 // "increment then check waiters" step in usem_post() must be sequentially consistent.
 
-ulib_ret usem_init(USem *sem, uint32_t permits) {
-    uatomic_init(&sem->_permits, permits);
-    uatomic_init(&sem->_waiters, 0);
+ulib_ret usem(USem *sem, uint32_t permits) {
+    uatomic(&sem->_permits, permits);
+    uatomic(&sem->_waiters, 0);
     return ULIB_OK;
 }
 
@@ -146,7 +146,7 @@ void usem_post(USem *sem) {
 
 #include "uwarning.h"
 
-ulib_ret usem_init(ulib_unused USem *sem, ulib_unused uint32_t permits) {
+ulib_ret usem(ulib_unused USem *sem, ulib_unused uint32_t permits) {
     return ULIB_ERR_UNSUPPORTED;
 }
 

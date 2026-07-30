@@ -35,7 +35,7 @@ void ucond_test_signal(void) {
     ULock lock = ulib_zero_init;
     utest_assert_enum(ulock(&lock), ==, ULIB_OK);
     UCond cond = ulib_zero_init;
-    utest_assert_enum(ucond_init(&cond), ==, ULIB_OK);
+    utest_assert_enum(ucond(&cond), ==, ULIB_OK);
 
     bool ready = false;
     UAtomic(unsigned) counter = 0;
@@ -64,7 +64,7 @@ void ucond_test_broadcast(void) {
     ULock lock = ulib_zero_init;
     utest_assert_enum(ulock(&lock), ==, ULIB_OK);
     UCond cond = ulib_zero_init;
-    utest_assert_enum(ucond_init(&cond), ==, ULIB_OK);
+    utest_assert_enum(ucond(&cond), ==, ULIB_OK);
 
     bool ready = false;
     UAtomic(unsigned) counter = 0;
@@ -95,5 +95,5 @@ void ucond_test_broadcast(void) {
 
 void ucond_test_unsupported(void) {
     UCond cond = ulib_zero_init;
-    utest_assert_enum(ucond_init(&cond), ==, ULIB_ERR_UNSUPPORTED);
+    utest_assert_enum(ucond(&cond), ==, ULIB_ERR_UNSUPPORTED);
 }

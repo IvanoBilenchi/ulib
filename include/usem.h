@@ -43,16 +43,22 @@ ULIB_BEGIN_DECLS
  */
 
 /// A counting semaphore.
-typedef struct USem {
-    /// @cond
+typedef struct USem USem;
+
+/// @cond
+// clang-format off
 #if USEM_USE_64BIT_ATOMICS
-    UAtomic(uint64_t) _state;
+    struct USem {
+        UAtomic(uint64_t) _state;
+    };
 #else
-    UAtomic(uint32_t) _permits;
-    UAtomic(uint32_t) _waiters;
+    struct USem {
+        UAtomic(uint32_t) _permits;
+        UAtomic(uint32_t) _waiters;
+    };
 #endif
-    /// @endcond
-} USem;
+// clang-format on
+/// @endcond
 
 /// @}
 
@@ -71,7 +77,7 @@ typedef struct USem {
  * @destructor{usem_deinit}
  */
 ULIB_API
-ulib_ret usem_init(USem *sem, uint32_t permits);
+ulib_ret usem(USem *sem, uint32_t permits);
 
 /**
  * Deinitializes a semaphore.

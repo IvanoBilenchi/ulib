@@ -11,7 +11,7 @@ defaults:
     shell: bash
 
 env:
-  config: Release
+  config: Debug
 
 jobs:
   analyze:

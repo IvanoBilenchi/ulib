@@ -19,40 +19,76 @@
 
 ULIB_BEGIN_DECLS
 
+/// @cond
 // clang-format off
+
+struct USLock {
+    uatomic_flag _flag;
+};
+
 #ifdef ULIB_CONCURRENCY
     #ifndef ULIB_PLATFORM_LOCKS
         #include <stdint.h>
-        #define P_ULIB_LOCK_HANDLE UAtomic(uint32_t)
-        #define P_ULIB_RLOCK_HANDLE struct { UAtomic(void *) _owner; ULock _lock; uint32_t _count; }
-        #define P_ULIB_RWLOCK_HANDLE struct { UAtomic(uint32_t) _state; UAtomic(uint32_t) _wnotify; }
+        struct ULock {
+            UAtomic(uint32_t) _state;
+        };
+        struct URLock {
+            UAtomic(void *) _owner;
+            struct ULock _lock;
+            uint32_t _count;
+        };
+        struct URWLock {
+            UAtomic(uint32_t) _state;
+            UAtomic(uint32_t) _wnotify;
+        };
     #elif defined(__unix__) || defined(__APPLE__)
         #include <pthread.h> // IWYU pragma: keep
         #ifdef __APPLE__
             #include <os/lock.h>
-            #define P_ULIB_LOCK_HANDLE os_unfair_lock
+            struct ULock {
+                os_unfair_lock _h;
+            };
         #else
-            #define P_ULIB_LOCK_HANDLE pthread_mutex_t
+            struct ULock {
+                pthread_mutex_t _h;
+            };
         #endif
-        #define P_ULIB_RLOCK_HANDLE pthread_mutex_t
-        #define P_ULIB_RWLOCK_HANDLE pthread_rwlock_t
+        struct URLock {
+            pthread_mutex_t _h;
+        };
+        struct URWLock {
+            pthread_rwlock_t _h;
+        };
     #elif defined(_WIN32)
         #include <windows.h>
-        #define P_ULIB_LOCK_HANDLE SRWLOCK
-        #define P_ULIB_RLOCK_HANDLE CRITICAL_SECTION
-        #define P_ULIB_RWLOCK_HANDLE SRWLOCK
+        struct ULock {
+            SRWLOCK _h;
+        };
+        struct URLock {
+            CRITICAL_SECTION _h;
+        };
+        struct URWLock {
+            SRWLOCK _h;
+        };
     #else
         #undef ULIB_CONCURRENCY
     #endif
 #endif // ULIB_CONCURRENCY
 
 #ifndef ULIB_CONCURRENCY
-    typedef char P_ULIB_LOCK_HANDLE;
-    typedef char P_ULIB_RLOCK_HANDLE;
-    typedef char P_ULIB_SLOCK_HANDLE;
-    typedef char P_ULIB_RWLOCK_HANDLE;
+    struct ULock {
+        char _h;
+    };
+    struct URLock {
+        char _h;
+    };
+    struct URWLock {
+        char _h;
+    };
 #endif // ULIB_CONCURRENCY
+
 // clang-format on
+/// @endcond
 
 /**
  * @defgroup ULock_types Lock types
@@ -66,42 +102,23 @@ ULIB_BEGIN_DECLS
  */
 
 /// A mutex lock.
-typedef struct ULock {
-    /// @cond
-    P_ULIB_LOCK_HANDLE _h;
-    /// @endcond
-} ULock;
+typedef struct ULock ULock;
 
 /// A recursive mutex lock.
-typedef struct URLock {
-    /// @cond
-    P_ULIB_RLOCK_HANDLE _h;
-    /// @endcond
-} URLock;
+typedef struct URLock URLock;
 
 /// A spin lock.
-typedef struct USLock {
-    /// @cond
-    uatomic_flag _flag;
-    /// @endcond
-} USLock;
+typedef struct USLock USLock;
+
+/// A read-write lock.
+typedef struct URWLock URWLock;
 
 /// The "read" part of a read-write lock.
 typedef struct URWRLock {
     /// @cond
-    P_ULIB_RWLOCK_HANDLE _h;
+    URWLock _super;
     /// @endcond
 } URWRLock;
-
-/// A read-write lock.
-typedef struct URWLock {
-    /// @cond
-    union {
-        P_ULIB_RWLOCK_HANDLE _h;
-        URWRLock _r;
-    };
-    /// @endcond
-} URWLock;
 
 /// @}
 
@@ -129,10 +146,12 @@ URWLock *ulock_write(URWLock *lock) {
  */
 ULIB_INLINE
 URWRLock *ulock_read(URWLock *lock) {
-    return &lock->_r;
+    return (URWRLock *)lock;
 }
 
 /// @}
+
+#ifdef ULIB_CONCURRENCY
 
 #define P_ULOCK_DECL_LOCK(T)                                                                       \
     ULIB_API void p_##T##_lock(T *lock);                                                           \
@@ -140,16 +159,13 @@ URWRLock *ulock_read(URWLock *lock) {
     ULIB_API void p_##T##_unlock(T *lock);
 
 #define P_ULOCK_DECL(T)                                                                            \
-    ULIB_API ulib_ret p_##T##_init(T *lock);                                                       \
+    ULIB_API ulib_ret p_##T(T *lock);                                                              \
     ULIB_API void p_##T##_deinit(T *lock);                                                         \
     P_ULOCK_DECL_LOCK(T)
 
-P_ULOCK_DECL(USLock)
-
-#ifdef ULIB_CONCURRENCY
-
 P_ULOCK_DECL(ULock)
 P_ULOCK_DECL(URLock)
+P_ULOCK_DECL(USLock)
 P_ULOCK_DECL(URWLock)
 P_ULOCK_DECL_LOCK(URWRLock)
 
@@ -171,7 +187,7 @@ ULIB_END_DECLS
     ULIB_INLINE void ulock_unlock(T *lock) { p_##T##_unlock(lock); }
 
 #define P_ULOCK_CPP_IMPL(T)                                                                        \
-    ULIB_INLINE ulib_ret ulock(T *lock) { return p_##T##_init(lock); }                             \
+    ULIB_INLINE ulib_ret ulock(T *lock) { return p_##T(lock); }                                    \
     ULIB_INLINE void ulock_deinit(T *lock) { p_##T##_deinit(lock); }                               \
     P_ULOCK_CPP_LOCK_IMPL(T)
 
@@ -201,10 +217,10 @@ P_ULOCK_CPP_LOCK_IMPL(URWRLock)
  */
 #define ulock(lock)                                                                                \
     _Generic((lock),                                                                               \
-        ULock *: p_ULock_init,                                                                     \
-        URLock *: p_URLock_init,                                                                   \
-        USLock *: p_USLock_init,                                                                   \
-        URWLock *: p_URWLock_init)(lock)
+        ULock *: p_ULock,                                                                          \
+        URLock *: p_URLock,                                                                        \
+        USLock *: p_USLock,                                                                        \
+        URWLock *: p_URWLock)(lock)
 
 /**
  * Deinitializes a lock.

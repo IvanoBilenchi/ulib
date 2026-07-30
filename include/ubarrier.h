@@ -52,7 +52,7 @@ typedef struct UBarrier {
  * @destructor{ubarrier_deinit}
  */
 ULIB_API
-ulib_ret ubarrier_init(UBarrier *barrier, uint16_t count);
+ulib_ret ubarrier(UBarrier *barrier, uint16_t count);
 
 /**
  * Deinitializes a barrier.
@@ -63,7 +63,7 @@ ULIB_API
 void ubarrier_deinit(UBarrier *barrier);
 
 /**
- * Blocks the calling thread until `count` threads (as specified via @func{ubarrier_init})
+ * Blocks the calling thread until `count` threads (as specified via @func{ubarrier})
  * have called this function, then wakes up all of them and resets the barrier so that it can
  * be reused.
  *

@@ -15,8 +15,8 @@
 #include "ufutex.h"
 #include <stdint.h>
 
-ulib_ret ucond_init(UCond *cond) {
-    uatomic_init(&cond->_seq, 0);
+ulib_ret ucond(UCond *cond) {
+    uatomic(&cond->_seq, 0);
     return ULIB_OK;
 }
 
@@ -47,7 +47,7 @@ UCOND_WAIT_IMPL(URWLock)
 
 #else // ULIB_CONCURRENCY
 
-ulib_ret ucond_init(ulib_unused UCond *cond) {
+ulib_ret ucond(ulib_unused UCond *cond) {
     return ULIB_ERR_UNSUPPORTED;
 }
 

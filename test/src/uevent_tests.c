@@ -28,7 +28,7 @@ static void uevent_worker(void *arg) {
 
 void uevent_test_base(void) {
     UEvent event = ulib_zero_init;
-    utest_assert_enum(uevent_init(&event), ==, ULIB_OK);
+    utest_assert_enum(uevent(&event), ==, ULIB_OK);
 
     uevent_set(&event);
     uevent_wait(&event);
@@ -56,7 +56,7 @@ void uevent_test_base(void) {
 
 void uevent_test_wait_wake(void) {
     UEvent event = ulib_zero_init;
-    utest_assert_enum(uevent_init(&event), ==, ULIB_OK);
+    utest_assert_enum(uevent(&event), ==, ULIB_OK);
 
     UAtomic(unsigned) counter = 0;
     EventCtx ctx = { .event = &event, .counter = &counter };
@@ -81,5 +81,5 @@ void uevent_test_wait_wake(void) {
 
 void uevent_test_unsupported(void) {
     UEvent event = ulib_zero_init;
-    utest_assert_enum(uevent_init(&event), ==, ULIB_ERR_UNSUPPORTED);
+    utest_assert_enum(uevent(&event), ==, ULIB_ERR_UNSUPPORTED);
 }

@@ -16,7 +16,7 @@ enum {
 
 void usem_test_base(void) {
     USem sem = ulib_zero_init;
-    utest_assert_enum(usem_init(&sem, 2), ==, ULIB_OK);
+    utest_assert_enum(usem(&sem, 2), ==, ULIB_OK);
 
     utest_assert(usem_trywait(&sem));
     utest_assert(usem_trywait(&sem));
@@ -46,7 +46,7 @@ static void usem_wait_worker(void *arg) {
 
 void usem_test_wait_post(void) {
     USem sem = ulib_zero_init;
-    utest_assert_enum(usem_init(&sem, 0), ==, ULIB_OK);
+    utest_assert_enum(usem(&sem, 0), ==, ULIB_OK);
 
     UAtomic(unsigned) counter = 0;
     SemCtx ctx = { .sem = &sem, .counter = &counter };
@@ -92,7 +92,7 @@ static void usem_mutex_worker(void *arg) {
 
 void usem_test_mutex(void) {
     USem sem = ulib_zero_init;
-    utest_assert_enum(usem_init(&sem, 1), ==, ULIB_OK);
+    utest_assert_enum(usem(&sem, 1), ==, ULIB_OK);
 
     unsigned counter = 0;
     UAtomic(unsigned) in_cs = 0;
@@ -117,5 +117,5 @@ void usem_test_mutex(void) {
 
 void usem_test_unsupported(void) {
     USem sem = ulib_zero_init;
-    utest_assert_enum(usem_init(&sem, 0), ==, ULIB_ERR_UNSUPPORTED);
+    utest_assert_enum(usem(&sem, 0), ==, ULIB_ERR_UNSUPPORTED);
 }

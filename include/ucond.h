@@ -48,7 +48,7 @@ typedef struct UCond {
  * @destructor{ucond_deinit}
  */
 ULIB_API
-ulib_ret ucond_init(UCond *cond);
+ulib_ret ucond(UCond *cond);
 
 /**
  * Deinitializes a condition variable.

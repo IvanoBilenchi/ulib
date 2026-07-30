@@ -27,7 +27,7 @@ static void ubarrier_worker(void *arg) {
 
 void ubarrier_test_base(void) {
     UBarrier barrier = ulib_zero_init;
-    utest_assert_enum(ubarrier_init(&barrier, THREAD_COUNT + 1), ==, ULIB_OK);
+    utest_assert_enum(ubarrier(&barrier, THREAD_COUNT + 1), ==, ULIB_OK);
 
     UAtomic(unsigned) counter = 0;
     BarrierCtx ctx = { .barrier = &barrier, .counter = &counter };
@@ -61,7 +61,7 @@ static void ubarrier_reuse_worker(void *arg) {
 
 void ubarrier_test_reuse(void) {
     UBarrier barrier = ulib_zero_init;
-    utest_assert_enum(ubarrier_init(&barrier, THREAD_COUNT + 1), ==, ULIB_OK);
+    utest_assert_enum(ubarrier(&barrier, THREAD_COUNT + 1), ==, ULIB_OK);
 
     UAtomic(unsigned) counter = 0;
     BarrierCtx ctx = { .barrier = &barrier, .counter = &counter };
@@ -86,5 +86,5 @@ void ubarrier_test_reuse(void) {
 
 void ubarrier_test_unsupported(void) {
     UBarrier barrier = ulib_zero_init;
-    utest_assert_enum(ubarrier_init(&barrier, 1), ==, ULIB_ERR_UNSUPPORTED);
+    utest_assert_enum(ubarrier(&barrier, 1), ==, ULIB_ERR_UNSUPPORTED);
 }
