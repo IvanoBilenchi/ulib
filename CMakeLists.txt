@@ -26,36 +26,6 @@ project(
     LANGUAGES C
 )
 
-# Cache variables
-
-option(ULIB_DOCS "Enable the documentation targets" OFF)
-option(ULIB_TESTS "Enable the test targets" ${PROJECT_IS_TOP_LEVEL})
-option(ULIB_CPP_TESTS "Enable the C++ test targets" ${ULIB_TESTS})
-option(ULIB_BENCHMARKS "Enable the benchmark targets" ${PROJECT_IS_TOP_LEVEL})
-option(ULIB_LTO "Enable link-time optimization, if available" ON)
-option(ULIB_OPTIMIZE_FOR_HOST "Enable host CPU optimizations (keep OFF for distribution)" OFF)
-option(ULIB_CLANG_TIDY "Enable clang-tidy, if available" OFF)
-option(ULIB_LEAKS "Enable debugging of memory leaks" OFF)
-option(ULIB_SANITIZERS "Enable sanitizers" OFF)
-option(ULIB_CONCURRENCY "Enable concurrency support" OFF)
-option(ULIB_MULTICORE "Target system CPU has multiple cores" ${ULIB_CONCURRENCY})
-option(ULIB_TINY "Use small types" OFF)
-option(ULIB_HUGE "Use large types" OFF)
-option(ULIB_COLOR "Enable colored output" ON)
-set(ULIB_ASSERTIONS "AUTO" CACHE STRING "Enable assertions (ON, OFF, AUTO)")
-set(ULIB_LOG_LEVEL "INFO" CACHE STRING "Default log level (unset to disable logging)")
-set(ULIB_LIBRARY_TYPE "STATIC" CACHE STRING "Type of library to build")
-set(ULIB_USER_HEADERS "" CACHE STRING "User-specified header files")
-set(ULIB_USER_SOURCES "" CACHE STRING "User-specified source files")
-
-set(ULIB_MACRO_OVERRIDES
-    ULIB_MALLOC ULIB_CALLOC ULIB_REALLOC ULIB_FREE ULIB_STACKALLOC ULIB_STACKFREE)
-
-foreach(ULIB_MACRO ${ULIB_MACRO_OVERRIDES})
-    string(TOLOWER ${ULIB_MACRO} ULIB_MACRO_LOWER)
-    set(${ULIB_MACRO} "" CACHE STRING "${ULIB_MACRO_LOWER} override")
-endforeach()
-
 # Directories
 
 set(ULIB_PROJECT_DIR "${CMAKE_CURRENT_LIST_DIR}")
@@ -72,6 +42,49 @@ set(ULIB_UTILS_DIR "${ULIB_PROJECT_DIR}/utils")
 # CMake settings
 
 list(APPEND CMAKE_MODULE_PATH "${ULIB_UTILS_DIR}/cmake")
+include(CacheUtils)
+
+# Cache variables
+
+option(ULIB_DOCS "Enable the documentation targets" OFF)
+option(ULIB_TESTS "Enable the test targets" ${PROJECT_IS_TOP_LEVEL})
+option(ULIB_CPP_TESTS "Enable the C++ test targets" ${ULIB_TESTS})
+option(ULIB_BENCHMARKS "Enable the benchmark targets" ${PROJECT_IS_TOP_LEVEL})
+option(ULIB_LTO "Enable link-time optimization, if available" ON)
+option(ULIB_OPTIMIZE_FOR_HOST "Enable host CPU optimizations (keep OFF for distribution)" OFF)
+option(ULIB_CLANG_TIDY "Enable clang-tidy, if available" OFF)
+option(ULIB_LEAKS "Enable debugging of memory leaks" OFF)
+option(ULIB_SANITIZERS "Enable sanitizers" OFF)
+option(ULIB_CONCURRENCY "Enable concurrency support" OFF)
+option(ULIB_MULTICORE "Target system CPU has multiple cores" ${ULIB_CONCURRENCY})
+option(ULIB_COLOR "Enable colored output" ON)
+
+enum_option(
+    ULIB_ASSERTIONS "Enable assertions"
+    VALUES AUTO ON OFF
+)
+enum_option(
+    ULIB_LOG_LEVEL "Default log level"
+    VALUES TRACE DEBUG PERF INFO WARN ERROR FATAL OFF
+    DEFAULT INFO
+)
+enum_option(
+    ULIB_LIBRARY_TYPE "Type of library to build"
+    VALUES STATIC SHARED OBJECT
+)
+enum_option(
+    ULIB_TYPES "Size of types used in the library"
+    VALUES NORMAL TINY HUGE
+)
+
+string_option(ULIB_USER_HEADERS "User-specified header files")
+string_option(ULIB_USER_SOURCES "User-specified source files")
+
+set(ULIB_MACRO_OVERRIDES MALLOC CALLOC REALLOC FREE STACKALLOC STACKFREE)
+foreach(ULIB_MACRO ${ULIB_MACRO_OVERRIDES})
+    string(TOLOWER "ulib_${ULIB_MACRO}" ULIB_MACRO_LOWER)
+    string_option("ULIB_OVERRIDE_${ULIB_MACRO}" "${ULIB_MACRO_LOWER} override")
+endforeach()
 
 # Target settings
 
@@ -86,10 +99,10 @@ if(NOT ULIB_ASSERTIONS STREQUAL "AUTO")
 endif()
 
 if(ULIB_LEAKS)
-    set(ULIB_MALLOC p_uleak_malloc)
-    set(ULIB_CALLOC p_uleak_calloc)
-    set(ULIB_REALLOC p_uleak_realloc)
-    set(ULIB_FREE p_uleak_free)
+    set(ULIB_OVERRIDE_MALLOC p_uleak_malloc)
+    set(ULIB_OVERRIDE_CALLOC p_uleak_calloc)
+    set(ULIB_OVERRIDE_REALLOC p_uleak_realloc)
+    set(ULIB_OVERRIDE_FREE p_uleak_free)
     list(APPEND ULIB_PRIVATE_DEFINES ULIB_LEAKS)
     list(APPEND ULIB_USER_HEADERS "${ULIB_PUBLIC_HEADERS_DIR}/uleak.h")
 endif()
@@ -129,9 +142,9 @@ else()
     set(ULIB_LTO_ENABLED OFF)
 endif()
 
-if(ULIB_TINY)
+if(ULIB_TYPES STREQUAL "TINY")
     list(APPEND ULIB_PUBLIC_DEFINES ULIB_TINY)
-elseif(ULIB_HUGE)
+elseif(ULIB_TYPES STREQUAL "HUGE")
     list(APPEND ULIB_PUBLIC_DEFINES ULIB_HUGE)
 endif()
 
