@@ -12,6 +12,7 @@
 enum {
     THREAD_COUNT = 8,
     MUTEX_ROUNDS = 10000,
+    SLEEP_MS = 50,
 };
 
 void usem_test_base(void) {
@@ -57,7 +58,7 @@ void usem_test_wait_post(void) {
         utest_assert_enum(uthread_start(&threads[i]), ==, ULIB_OK);
     }
 
-    uthread_sleep(50);
+    uthread_sleep(utime_span(SLEEP_MS, UTIME_MS));
     utest_assert_uint(uatomic_load_ex(&counter, UMO_RELAXED), ==, 0);
 
     for (unsigned i = 0; i < THREAD_COUNT; ++i) usem_post(&sem);

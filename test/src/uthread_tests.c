@@ -14,10 +14,14 @@ enum {
     MAX_SLEEP_MS = 64,
 };
 
+static inline unsigned rand_ms(void) {
+    return (unsigned)urand_range(1, MAX_SLEEP_MS);
+}
+
 static void worker(void *v) {
     unsigned *a = (unsigned *)v;
     for (unsigned i = 0; i < ITERATIONS; ++i) {
-        uthread_sleep((utime_ns)urand_range(1, MAX_SLEEP_MS) * UTIME_NS_PER_MS);
+        uthread_sleep(utime_span(rand_ms(), UTIME_MS));
         *a += 1;
     }
 }

@@ -26,28 +26,36 @@ void ubarrier_deinit(UBarrier *barrier) {
     ulock_deinit(&barrier->_lock);
 }
 
-static inline void barrier_wait(UBarrier *barrier) {
-    uint32_t seq = uatomic_load_ex(&barrier->_seq, UMO_RELAXED);
-    ulock_unlock(&barrier->_lock);
-    while (uatomic_load_ex(&barrier->_seq, UMO_ACQUIRE) == seq) {
-        ufutex_wait(&barrier->_seq, seq);
+static inline UBarrierPhase barrier_arrive(UBarrier *barrier) {
+    UBarrierPhase phase = uatomic_load_ex(&barrier->_seq, UMO_RELAXED);
+    if (!--barrier->_remaining) {
+        barrier->_remaining = barrier->_count;
+        uatomic_faa_ex(&barrier->_seq, 1, UMO_RELEASE);
+        ufutex_wake_all(&barrier->_seq);
     }
-}
-
-static inline void barrier_wake(UBarrier *barrier) {
-    barrier->_remaining = barrier->_count;
-    uatomic_faa_ex(&barrier->_seq, 1, UMO_RELEASE);
-    ufutex_wake_all(&barrier->_seq);
     ulock_unlock(&barrier->_lock);
+    return phase;
 }
 
-void ubarrier_wait(UBarrier *barrier) {
+UBarrierPhase ubarrier_arrive(UBarrier *barrier) {
     ulock_lock(&barrier->_lock);
-    if (--barrier->_remaining) {
-        barrier_wait(barrier);
-    } else {
-        barrier_wake(barrier);
+    return barrier_arrive(barrier);
+}
+
+void ubarrier_wait(UBarrier *barrier, UBarrierPhase phase) {
+    while (uatomic_load_ex(&barrier->_seq, UMO_ACQUIRE) == phase) {
+        ufutex_wait(&barrier->_seq, phase);
     }
+}
+
+void ubarrier_arrive_and_wait(UBarrier *barrier) {
+    ubarrier_wait(barrier, ubarrier_arrive(barrier));
+}
+
+UBarrierPhase ubarrier_arrive_and_drop(UBarrier *barrier) {
+    ulock_lock(&barrier->_lock);
+    --barrier->_count;
+    return barrier_arrive(barrier);
 }
 
 #else // ULIB_CONCURRENCY
@@ -60,6 +68,16 @@ ulib_ret ubarrier(ulib_unused UBarrier *barrier, ulib_unused uint16_t count) {
 
 void ubarrier_deinit(ulib_unused UBarrier *barrier) {}
 
-void ubarrier_wait(ulib_unused UBarrier *barrier) {}
+UBarrierPhase ubarrier_arrive(ulib_unused UBarrier *barrier) {
+    return 0;
+}
+
+void ubarrier_wait(ulib_unused UBarrier *barrier, ulib_unused UBarrierPhase phase) {}
+
+void ubarrier_arrive_and_wait(ulib_unused UBarrier *barrier) {}
+
+UBarrierPhase ubarrier_arrive_and_drop(ulib_unused UBarrier *barrier) {
+    return 0;
+}
 
 #endif // ULIB_CONCURRENCY

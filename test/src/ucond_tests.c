@@ -12,6 +12,7 @@
 
 enum {
     THREAD_COUNT = 8,
+    SLEEP_MS = 50,
 };
 
 typedef struct CondCtx {
@@ -45,7 +46,7 @@ void ucond_test_signal(void) {
     utest_assert_enum(uthread(&thread, ucond_worker, &ctx), ==, ULIB_OK);
     utest_assert_enum(uthread_start(&thread), ==, ULIB_OK);
 
-    uthread_sleep(50);
+    uthread_sleep(utime_span(SLEEP_MS, UTIME_MS));
     utest_assert_uint(uatomic_load_ex(&counter, UMO_RELAXED), ==, 0);
 
     ulock_lock(&lock);
@@ -76,7 +77,7 @@ void ucond_test_broadcast(void) {
         utest_assert_enum(uthread_start(&threads[i]), ==, ULIB_OK);
     }
 
-    uthread_sleep(50);
+    uthread_sleep(utime_span(SLEEP_MS, UTIME_MS));
     utest_assert_uint(uatomic_load_ex(&counter, UMO_RELAXED), ==, 0);
 
     ulock_lock(&lock);
