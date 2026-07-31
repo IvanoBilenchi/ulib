@@ -331,10 +331,15 @@ void ulog_disable(ULog *log) {
  * @param log Logger object.
  * @param ... Format string and arguments.
  */
-#define ulog_elapsed(log, ...)                                                                     \
-    for (utime_ns p_##__LINE__ = utime_get_ns(), p_end_##__LINE__ = 1; p_end_##__LINE__--;         \
-         ((p_##__LINE__ = utime_get_ns() - p_##__LINE__),                                          \
-          ulog(log, ULOG_PERF, &p_##__LINE__, __VA_ARGS__)))
+#define ulog_elapsed(log, ...) p_ulog_elapsed(log, ULIB_UID(p_ulog_elapsed_), __VA_ARGS__)
+
+#define p_ulog_elapsed(log, var, ...)                                                              \
+    for (struct {                                                                                  \
+             utime_ns ns;                                                                          \
+             unsigned done;                                                                        \
+         } var = { utime_get_ns(), 1 };                                                            \
+         var.done--;                                                                               \
+         (var.ns = utime_get_ns() - var.ns, ulog(log, ULOG_PERF, &var.ns, __VA_ARGS__)))
 
 /**
  * Same as @func{ulog_elapsed}(@var{ulog_main}, `...`).

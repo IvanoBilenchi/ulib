@@ -74,6 +74,13 @@
 #define P_ULIB_MACRO_STRINGIZE(a) #a
 
 /**
+ * Generates a unique identifier by concatenating the `name` token with a unique number.
+ *
+ * @param name @ctype{token} Base name of the identifier.
+ */
+#define ULIB_UID(name) ULIB_MACRO_CONCAT(name, __LINE__)
+
+/**
  * Pragma directive that allows macro expansion.
  *
  * @param msg Pragma directive.

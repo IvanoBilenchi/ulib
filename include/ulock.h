@@ -16,6 +16,7 @@
 #include "uatomic.h"
 #include "uattrs.h"
 #include "ulib_ret.h"
+#include "uutils.h"
 
 ULIB_BEGIN_DECLS
 
@@ -299,8 +300,10 @@ P_ULOCK_CPP_LOCK_IMPL(URWRLock)
  *
  * @param lock @type{UAnyLock *} Lock to hold.
  */
-#define ulock_with(lock)                                                                           \
-    for (unsigned p_##__LINE__ = (ulock_lock(lock), 1); p_##__LINE__--; ulock_unlock(lock))
+#define ulock_with(lock) p_ulock_with(lock, ULIB_UID(p_ulock_with_))
+
+#define p_ulock_with(lock, var)                                                                    \
+    for (unsigned var = (ulock_lock(lock), 1); var--; ulock_unlock(lock))
 
 /// @}
 
@@ -324,7 +327,8 @@ ULIB_END_DECLS
 #define ulock_trylock(lock) p_ulock_noop_true(lock)
 #define ulock_unlock(lock) p_ulock_noop_void(lock)
 #define ulock_deinit(lock) p_ulock_noop_void(lock)
-#define ulock_with(lock) for (unsigned p_##__LINE__ = 1; p_##__LINE__--; p_ulock_noop_void(lock))
+#define ulock_with(lock) p_ulock_with(lock, ULIB_UID(p_ulock_with_))
+#define p_ulock_with(lock, var) for (unsigned var = 1; var--; p_ulock_noop_void(lock))
 /// @endcond
 
 #endif // ULIB_CONCURRENCY
