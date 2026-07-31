@@ -8,15 +8,15 @@
 #include "ulib_ret.h"
 #include "uwarning.h"
 
-#ifdef ULIB_CONCURRENCY
-
-#include "uatomic.h"
-#include "ufutex.h"
-
 enum {
     EVENT_CLEAR = 0U,
     EVENT_SET = 1U,
 };
+
+#ifdef ULIB_CONCURRENCY
+
+#include "uatomic.h"
+#include "ufutex.h"
 
 ulib_ret uevent(UEvent *event) {
     uatomic(&event->_flag, EVENT_CLEAR);
@@ -42,16 +42,25 @@ void uevent_clear(UEvent *event) {
 
 #else // ULIB_CONCURRENCY
 
-ulib_ret uevent(ulib_unused UEvent *event) {
-    return ULIB_ERR_UNSUPPORTED;
+#include "udebug.h"
+
+ulib_ret uevent(UEvent *event) {
+    event->_flag = EVENT_CLEAR;
+    return ULIB_OK;
 }
 
 void uevent_deinit(ulib_unused UEvent *event) {}
 
-void uevent_wait(ulib_unused UEvent *event) {}
+void uevent_wait(ulib_unused UEvent *event) {
+    ulib_assert(event->_flag == EVENT_SET);
+}
 
-void uevent_set(ulib_unused UEvent *event) {}
+void uevent_set(UEvent *event) {
+    event->_flag = EVENT_SET;
+}
 
-void uevent_clear(ulib_unused UEvent *event) {}
+void uevent_clear(UEvent *event) {
+    event->_flag = EVENT_CLEAR;
+}
 
 #endif // ULIB_CONCURRENCY

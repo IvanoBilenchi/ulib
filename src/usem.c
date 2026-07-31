@@ -144,20 +144,29 @@ void usem_post(USem *sem) {
 
 #else // ULIB_CONCURRENCY
 
+#include "udebug.h"
 #include "uwarning.h"
 
-ulib_ret usem(ulib_unused USem *sem, ulib_unused uint32_t permits) {
-    return ULIB_ERR_UNSUPPORTED;
+ulib_ret usem(USem *sem, uint32_t permits) {
+    sem->_permits = permits;
+    return ULIB_OK;
 }
 
 void usem_deinit(ulib_unused USem *sem) {}
 
-void usem_wait(ulib_unused USem *sem) {}
-
-bool usem_trywait(ulib_unused USem *sem) {
-    return false;
+bool usem_trywait(USem *sem) {
+    if (!sem->_permits) return false;
+    sem->_permits--;
+    return true;
 }
 
-void usem_post(ulib_unused USem *sem) {}
+void usem_wait(USem *sem) {
+    ulib_assert(sem->_permits);
+    usem_trywait(sem);
+}
+
+void usem_post(USem *sem) {
+    sem->_permits++;
+}
 
 #endif // ULIB_CONCURRENCY

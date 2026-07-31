@@ -10,12 +10,12 @@
 
 void uevent_test_base(void);
 void uevent_test_wait_wake(void);
-void uevent_test_unsupported(void);
+void uevent_test_signal(void);
 
 #ifdef ULIB_CONCURRENCY
-#define UEVENT_TESTS uevent_test_base, uevent_test_wait_wake
+#define UEVENT_TESTS uevent_test_base, uevent_test_wait_wake, uevent_test_signal
 #else
-#define UEVENT_TESTS uevent_test_unsupported
+#define UEVENT_TESTS uevent_test_signal
 #endif
 
 #endif // UEVENT_TESTS_H

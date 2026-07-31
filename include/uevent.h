@@ -65,6 +65,9 @@ void uevent_deinit(UEvent *event);
  * If the event is already set, returns immediately.
  *
  * @param event Event to wait on.
+ *
+ * @note If concurrency is disabled, the calling thread must not wait on an event that has not
+ *       been set, as no other thread could ever set it.
  */
 ULIB_API
 void uevent_wait(UEvent *event);

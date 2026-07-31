@@ -115,8 +115,3 @@ void usem_test_mutex(void) {
 
     usem_deinit(&sem);
 }
-
-void usem_test_unsupported(void) {
-    USem sem = ulib_zero_init;
-    utest_assert_enum(usem(&sem, 0), ==, ULIB_ERR_UNSUPPORTED);
-}

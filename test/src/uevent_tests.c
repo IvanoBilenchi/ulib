@@ -80,7 +80,27 @@ void uevent_test_wait_wake(void) {
     uevent_deinit(&event);
 }
 
-void uevent_test_unsupported(void) {
+static void uevent_setter(void *arg) {
+    EventCtx *ctx = (EventCtx *)arg;
+    uatomic_fetch_add_ex(ctx->counter, 1, UMO_RELAXED);
+    uevent_set(ctx->event);
+}
+
+void uevent_test_signal(void) {
     UEvent event = ulib_zero_init;
-    utest_assert_enum(uevent(&event), ==, ULIB_ERR_UNSUPPORTED);
+    utest_assert_enum(uevent(&event), ==, ULIB_OK);
+
+    UAtomic(unsigned) counter = 0;
+    EventCtx ctx = { .event = &event, .counter = &counter };
+
+    UThread thread;
+    utest_assert_enum(uthread(&thread, uevent_setter, &ctx), ==, ULIB_OK);
+    utest_assert_enum(uthread_start(&thread), ==, ULIB_OK);
+
+    uevent_wait(&event);
+    utest_assert_uint(uatomic_load_ex(&counter, UMO_RELAXED), ==, 1);
+
+    utest_assert_enum(uthread_join(&thread), ==, ULIB_OK);
+
+    uevent_deinit(&event);
 }

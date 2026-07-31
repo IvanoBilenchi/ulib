@@ -47,7 +47,11 @@ typedef struct USem USem;
 
 /// @cond
 // clang-format off
-#if USEM_USE_64BIT_ATOMICS
+#ifndef ULIB_CONCURRENCY
+    struct USem {
+        uint32_t _permits;
+    };
+#elif USEM_USE_64BIT_ATOMICS
     struct USem {
         UAtomic(uint64_t) _state;
     };
@@ -91,6 +95,9 @@ void usem_deinit(USem *sem);
  * Acquires a permit, blocking the calling thread until one becomes available.
  *
  * @param sem Semaphore to acquire a permit from.
+ *
+ * @note If concurrency is disabled, the calling thread must not wait on a semaphore that has no
+ *       available permits, as no other thread could ever post one.
  */
 ULIB_API
 void usem_wait(USem *sem);
