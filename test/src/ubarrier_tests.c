@@ -88,16 +88,16 @@ void ubarrier_test_reuse(void) {
 static void ubarrier_arrive_worker(void *arg) {
     BarrierCtx *ctx = (BarrierCtx *)arg;
     uatomic_fetch_add_ex(ctx->counter, 1, UMO_RELAXED);
-    ubarrier_arrive(ctx->barrier);
+    ubarrier_arrive(ctx->barrier, 1);
 }
 
 void ubarrier_test_arrive(void) {
     UBarrier barrier = ulib_zero_init;
-    utest_assert_enum(ubarrier(&barrier, THREAD_COUNT + 1), ==, ULIB_OK);
+    utest_assert_enum(ubarrier(&barrier, THREAD_COUNT + 2), ==, ULIB_OK);
 
     UAtomic(unsigned) counter = 0;
     BarrierCtx ctx = { .barrier = &barrier, .counter = &counter };
-    UBarrierPhase phase = ubarrier_arrive(&barrier);
+    UBarrierPhase phase = ubarrier_arrive(&barrier, 2);
 
     UThread threads[THREAD_COUNT];
     for (unsigned i = 0; i < THREAD_COUNT; ++i) {

@@ -11,6 +11,7 @@
 #ifdef ULIB_CONCURRENCY
 
 #include "uatomic.h"
+#include "udebug.h"
 #include "ufutex.h"
 #include "ulock.h"
 
@@ -26,9 +27,10 @@ void ubarrier_deinit(UBarrier *barrier) {
     ulock_deinit(&barrier->_lock);
 }
 
-static inline UBarrierPhase barrier_arrive(UBarrier *barrier) {
+static inline UBarrierPhase barrier_arrive(UBarrier *barrier, uint16_t count) {
     UBarrierPhase phase = uatomic_load_ex(&barrier->_seq, UMO_RELAXED);
-    if (!--barrier->_remaining) {
+    ulib_assert(count && count <= barrier->_remaining);
+    if (!(barrier->_remaining -= count)) {
         barrier->_remaining = barrier->_count;
         uatomic_faa_ex(&barrier->_seq, 1, UMO_RELEASE);
         ufutex_wake_all(&barrier->_seq);
@@ -37,9 +39,9 @@ static inline UBarrierPhase barrier_arrive(UBarrier *barrier) {
     return phase;
 }
 
-UBarrierPhase ubarrier_arrive(UBarrier *barrier) {
+UBarrierPhase ubarrier_arrive(UBarrier *barrier, uint16_t count) {
     ulock_lock(&barrier->_lock);
-    return barrier_arrive(barrier);
+    return barrier_arrive(barrier, count);
 }
 
 void ubarrier_wait(UBarrier *barrier, UBarrierPhase phase) {
@@ -49,13 +51,13 @@ void ubarrier_wait(UBarrier *barrier, UBarrierPhase phase) {
 }
 
 void ubarrier_arrive_and_wait(UBarrier *barrier) {
-    ubarrier_wait(barrier, ubarrier_arrive(barrier));
+    ubarrier_wait(barrier, ubarrier_arrive(barrier, 1));
 }
 
 UBarrierPhase ubarrier_arrive_and_drop(UBarrier *barrier) {
     ulock_lock(&barrier->_lock);
     --barrier->_count;
-    return barrier_arrive(barrier);
+    return barrier_arrive(barrier, 1);
 }
 
 #else // ULIB_CONCURRENCY
@@ -68,7 +70,7 @@ ulib_ret ubarrier(ulib_unused UBarrier *barrier, ulib_unused uint16_t count) {
 
 void ubarrier_deinit(ulib_unused UBarrier *barrier) {}
 
-UBarrierPhase ubarrier_arrive(ulib_unused UBarrier *barrier) {
+UBarrierPhase ubarrier_arrive(ulib_unused UBarrier *barrier, ulib_unused uint16_t count) {
     return 0;
 }
 

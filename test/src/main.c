@@ -12,6 +12,7 @@
 #include "uevent_tests.h"
 #include "uhash_tests.h"
 #include "uiter_tests.h"
+#include "ulatch_tests.h"
 #include "ulib.h"
 #include "ulock_tests.h"
 #include "ulog_tests.h"
@@ -42,6 +43,7 @@ utest_main({
     utest_run("uevent", UEVENT_TESTS);
     utest_run("ucond", UCOND_TESTS);
     utest_run("ubarrier", UBARRIER_TESTS);
+    utest_run("ulatch", ULATCH_TESTS);
     utest_run("usem", USEM_TESTS);
     utest_run("uversion", UVERSION_TESTS);
 })

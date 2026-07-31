@@ -101,6 +101,11 @@ ULIB_INLINE void ucond_wait(UCond *cond, URWLock *lock) { p_ucond_wait_URWLock(c
 #else // __cplusplus
 
 /**
+ * @addtogroup UCond_api
+ * @{
+ */
+
+/**
  * Atomically unlocks `lock` and blocks the calling thread on `cond`, then locks `lock` again
  * before returning.
  *
@@ -119,6 +124,8 @@ ULIB_INLINE void ucond_wait(UCond *cond, URWLock *lock) { p_ucond_wait_URWLock(c
         URLock *: p_ucond_wait_URLock,                                                             \
         USLock *: p_ucond_wait_USLock,                                                             \
         URWLock *: p_ucond_wait_URWLock)(cond, lock)
+
+/// @}
 
 #endif // __cplusplus
 

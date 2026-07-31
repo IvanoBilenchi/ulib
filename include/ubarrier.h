@@ -25,7 +25,14 @@ ULIB_BEGIN_DECLS
  * @{
  */
 
-/// A synchronization primitive that blocks threads until a fixed number of them all reach it.
+/**
+ * A synchronization primitive that repeatedly blocks a group of threads until they all arrive.
+ *
+ * Barriers operate in phases: a phase completes when the expected number of arrivals has been
+ * registered, at which point all the threads waiting on it are woken up and the barrier moves
+ * on to the next phase. Unlike @type{ULatch}, a barrier is reusable, but the number of threads
+ * participating in it must be known in advance.
+ */
 typedef struct UBarrier {
     /// @cond
     ULock _lock;
@@ -35,12 +42,7 @@ typedef struct UBarrier {
     /// @endcond
 } UBarrier;
 
-/**
- * Identifies one of the phases a barrier goes through.
- *
- * A phase completes when all the threads that are expected to arrive at the barrier have done so,
- * after which the barrier moves on to the next phase.
- */
+/// Identifies one of the phases a barrier goes through.
 typedef uint32_t UBarrierPhase;
 
 /// @}
@@ -74,13 +76,18 @@ void ubarrier_deinit(UBarrier *barrier);
  * Arrives at the barrier without blocking the calling thread.
  *
  * @param barrier Barrier to arrive at.
+ * @param count Number of arrivals to register, allowing the calling thread to arrive
+ *              on behalf of as many threads.
  * @return Phase the calling thread arrived at.
  *
  * @note The returned phase can be passed to @func{ubarrier_wait} in order to block
  *       until the phase completes.
+ *
+ * @warning `count` must be greater than zero, and it must not exceed the number of threads
+ *          that still have to arrive at the current phase.
  */
 ULIB_API
-UBarrierPhase ubarrier_arrive(UBarrier *barrier);
+UBarrierPhase ubarrier_arrive(UBarrier *barrier, uint16_t count);
 
 /**
  * Blocks the calling thread until the specified phase completes.

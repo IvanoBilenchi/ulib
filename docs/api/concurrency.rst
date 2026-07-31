@@ -45,6 +45,14 @@ Conditions
 .. doxygengroup:: UCond_api
    :content-only:
 
+Latches
+-------
+
+.. doxygengroup:: ULatch_types
+   :content-only:
+.. doxygengroup:: ULatch_api
+   :content-only:
+
 Barriers
 --------
 
