@@ -100,7 +100,7 @@ void ulatch_wait(ULatch *latch);
  * @return True if the latch is open, false otherwise.
  */
 ULIB_API
-bool ulatch_trywait(ULatch *latch);
+bool ulatch_is_open(ULatch *latch);
 
 /**
  * Registers the specified number of arrivals, then blocks the calling thread until the latch opens.

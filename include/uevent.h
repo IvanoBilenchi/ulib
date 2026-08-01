@@ -15,6 +15,7 @@
 #include "uatomic.h"
 #include "uattrs.h"
 #include "ulib_ret.h"
+#include <stdbool.h>
 #include <stdint.h>
 
 ULIB_BEGIN_DECLS
@@ -73,6 +74,15 @@ ULIB_API
 void uevent_wait(UEvent *event);
 
 /**
+ * Checks whether the event is set without blocking the calling thread.
+ *
+ * @param event Event to check.
+ * @return True if the event is set, false otherwise.
+ */
+ULIB_API
+bool uevent_is_set(UEvent *event);
+
+/**
  * Sets the event, waking up all the threads currently waiting on it.
  *
  * @param event Event to set.
@@ -87,6 +97,10 @@ void uevent_set(UEvent *event);
  * Clears the event, so that subsequent calls to @func{uevent_wait} will block again.
  *
  * @param event Event to clear.
+ *
+ * @warning Clearing an event that other threads may be waiting on is unsafe, as waiters that
+ *          have not observed the preceding @func{uevent_set} yet keep blocking until the next one,
+ *          silently missing a signal.
  */
 ULIB_API
 void uevent_clear(UEvent *event);

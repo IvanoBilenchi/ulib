@@ -30,12 +30,15 @@ static void uevent_worker(void *arg) {
 void uevent_test_base(void) {
     UEvent event = ulib_zero_init;
     utest_assert_enum(uevent(&event), ==, ULIB_OK);
+    utest_assert_false(uevent_is_set(&event));
 
     uevent_set(&event);
+    utest_assert(uevent_is_set(&event));
     uevent_wait(&event);
 
     for (unsigned round = 0; round < RESET_ROUNDS; ++round) {
         uevent_clear(&event);
+        utest_assert_false(uevent_is_set(&event));
 
         UAtomic(unsigned) counter = 0;
         EventCtx ctx = { .event = &event, .counter = &counter };
@@ -98,6 +101,7 @@ void uevent_test_signal(void) {
     utest_assert_enum(uthread_start(&thread), ==, ULIB_OK);
 
     uevent_wait(&event);
+    utest_assert(uevent_is_set(&event));
     utest_assert_uint(uatomic_load_ex(&counter, UMO_RELAXED), ==, 1);
 
     utest_assert_enum(uthread_join(&thread), ==, ULIB_OK);

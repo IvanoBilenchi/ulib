@@ -40,7 +40,7 @@ void ulatch_wait(ULatch *latch) {
     }
 }
 
-bool ulatch_trywait(ULatch *latch) {
+bool ulatch_is_open(ULatch *latch) {
     return !uatomic_load_ex(&latch->_count, UMO_ACQUIRE);
 }
 
@@ -68,7 +68,7 @@ void ulatch_wait(ulib_unused ULatch *latch) {
     ulib_assert(!latch->_count);
 }
 
-bool ulatch_trywait(ULatch *latch) {
+bool ulatch_is_open(ULatch *latch) {
     return !latch->_count;
 }
 

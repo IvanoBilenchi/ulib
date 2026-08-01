@@ -7,6 +7,7 @@
 #include "uevent.h"
 #include "ulib_ret.h"
 #include "uwarning.h"
+#include <stdbool.h>
 
 enum {
     EVENT_CLEAR = 0U,
@@ -31,6 +32,10 @@ void uevent_wait(UEvent *event) {
     }
 }
 
+bool uevent_is_set(UEvent *event) {
+    return uatomic_load_ex(&event->_flag, UMO_ACQUIRE) == EVENT_SET;
+}
+
 void uevent_set(UEvent *event) {
     uatomic_store_ex(&event->_flag, EVENT_SET, UMO_RELEASE);
     ufutex_wake_all(&event->_flag);
@@ -53,6 +58,10 @@ void uevent_deinit(ulib_unused UEvent *event) {}
 
 void uevent_wait(ulib_unused UEvent *event) {
     ulib_assert(event->_flag == EVENT_SET);
+}
+
+bool uevent_is_set(UEvent *event) {
+    return event->_flag == EVENT_SET;
 }
 
 void uevent_set(UEvent *event) {

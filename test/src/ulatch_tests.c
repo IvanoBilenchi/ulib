@@ -23,15 +23,15 @@ void ulatch_test_base(void) {
     ULatch latch = ulib_zero_init;
     utest_assert_enum(ulatch(&latch, 3), ==, ULIB_OK);
 
-    utest_assert_false(ulatch_trywait(&latch));
+    utest_assert_false(ulatch_is_open(&latch));
     ulatch_arrive(&latch, 1);
-    utest_assert_false(ulatch_trywait(&latch));
+    utest_assert_false(ulatch_is_open(&latch));
     ulatch_arrive(&latch, 2);
-    utest_assert(ulatch_trywait(&latch));
+    utest_assert(ulatch_is_open(&latch));
 
     ulatch_wait(&latch);
     ulatch_arrive(&latch, THREAD_COUNT);
-    utest_assert(ulatch_trywait(&latch));
+    utest_assert(ulatch_is_open(&latch));
 
     ulatch_deinit(&latch);
 }
