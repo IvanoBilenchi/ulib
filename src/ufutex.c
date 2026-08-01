@@ -13,15 +13,20 @@
 
 #ifdef ULIB_CONCURRENCY
 
+#include "udebug.h"
+#include "uthread.h"
+#include "utime.h"
+#include "uutils.h"
+
 #ifdef __APPLE__ // Cross-platform futex implementation.
 
 #include <errno.h>
 #include <os/os_sync_wait_on_address.h>
 #include <sys/errno.h>
 
-ulib_ret ufutex_wait(UAtomic(uint32_t) *addr, uint32_t val) {
-    if (!os_sync_wait_on_address(addr, val, sizeof(val), 0)) return ULIB_OK;
-    return (errno == EINTR || errno == EFAULT) ? ULIB_ERR_AGAIN : ULIB_ERR;
+static inline ulib_ret futex_wait(UAtomic(uint32_t) *addr, uint32_t val) {
+    if (os_sync_wait_on_address(addr, val, sizeof(val), 0) >= 0) return ULIB_OK;
+    return (errno == EINTR || errno == EFAULT || errno == ENOMEM) ? ULIB_ERR_AGAIN : ULIB_ERR;
 }
 
 ulib_ret ufutex_wake_one(UAtomic(uint32_t) *addr) {
@@ -54,7 +59,7 @@ static inline ulib_ret futex_wake(UAtomic(uint32_t) *addr, int count) {
     return ret ? ULIB_OK : ULIB_NO;
 }
 
-ulib_ret ufutex_wait(UAtomic(uint32_t) *addr, uint32_t val) {
+static inline ulib_ret futex_wait(UAtomic(uint32_t) *addr, uint32_t val) {
     if (!futex(addr, FUTEX_WAIT_PRIVATE, val)) return ULIB_OK;
     return (errno == EINTR || errno == EAGAIN) ? ULIB_ERR_AGAIN : ULIB_ERR;
 }
@@ -71,7 +76,7 @@ ulib_ret ufutex_wake_all(UAtomic(uint32_t) *addr) {
 
 #include <windows.h>
 
-ulib_ret ufutex_wait(UAtomic(uint32_t) *addr, uint32_t val) {
+static inline ulib_ret futex_wait(UAtomic(uint32_t) *addr, uint32_t val) {
     return WaitOnAddress((void *)addr, &val, sizeof(val), INFINITE) ? ULIB_OK : ULIB_ERR;
 }
 
@@ -87,10 +92,9 @@ ulib_ret ufutex_wake_all(UAtomic(uint32_t) *addr) {
 
 #else
 
-#include "uthread.h"
 #include "uwarning.h"
 
-ulib_ret ufutex_wait(UAtomic(uint32_t) *addr, uint32_t val) {
+static inline ulib_ret futex_wait(UAtomic(uint32_t) *addr, uint32_t val) {
     while (uatomic_load_ex(addr, UMEMORY_ORDER_RELAXED) == val) uthread_yield_cpu();
     return ULIB_OK;
 }
@@ -104,6 +108,13 @@ ulib_ret ufutex_wake_all(ulib_unused UAtomic(uint32_t) *addr) {
 }
 
 #endif // Cross-platform futex implementation.
+
+ulib_ret ufutex_wait(UAtomic(uint32_t) *addr, uint32_t val) {
+    ulib_ret const ret = futex_wait(addr, val);
+    ulib_assert(ret != ULIB_ERR);
+    if (ulib_unlikely(ret == ULIB_ERR)) uthread_sleep(UTIME_NS_PER_MS);
+    return ret;
+}
 
 #else // ULIB_CONCURRENCY
 
