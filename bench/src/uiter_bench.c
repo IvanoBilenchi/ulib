@@ -5,9 +5,9 @@
  * @copyright SPDX-License-Identifier: ISC
  */
 
-#include "uiter_bench.h"
 #include "ulib.h"
 #include <stddef.h>
+#include <stdlib.h>
 
 static inline ulib_uint compute_str(UString *str) {
     return *ustring_data(*str);
@@ -16,7 +16,7 @@ static inline ulib_uint compute_str(UString *str) {
 static ulib_uint
 bench(char const *name, UVec(UString) const *vec, ulib_uint (*func)(UVec(UString) const *)) {
     ulib_uint ret = func(vec); // Warm-up
-    ulog_perf("%s", name) {
+    ulog_elapsed("%s", name) {
         ret = func(vec);
     }
     return ret;
@@ -121,7 +121,8 @@ static void bench_uiter_param(unsigned str_len, unsigned count) {
     uvec_deinit(UString, &vec);
 }
 
-void bench_uiter(void) {
+int main(void) {
+    ulog_main->level = ULOG_PERF;
     ulog_info("==[ UIter ]==");
     unsigned const counts[] = { 100, 10000, ulib_min(ULIB_UINT_MAX / 2, 1000000) };
     unsigned const lengths[] = { 8, 16, 32, 64 };
@@ -130,4 +131,5 @@ void bench_uiter(void) {
             bench_uiter_param(lengths[i], counts[j]);
         }
     }
+    return EXIT_SUCCESS;
 }

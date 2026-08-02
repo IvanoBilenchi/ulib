@@ -9,6 +9,7 @@
 #include "ualloc.h"
 #include "ulib_ret.h"
 #include "ulib_ret_t.h"
+#include "umetrics.h"
 #include "unumber.h"
 #include "ustrbuf.h"
 #include "ustring.h"
@@ -642,12 +643,61 @@ ulib_ret uostream_write_time_of_day(UOStream *stream, UTime const *time, size_t 
     return uostream_writef(stream, written, UTIME_TIME_FMT, utime_time_fmt_args(*time));
 }
 
-ulib_ret uostream_write_time_interval(UOStream *stream, utime_ns interval, utime_unit unit,
-                                      unsigned decimal_digits, size_t *written) {
+ulib_ret uostream_write_time_span(UOStream *stream, utime_ns span, utime_unit unit,
+                                  unsigned decimal_digits, size_t *written) {
     static char const *str[] = { "ns", "us", "ms", "s", "m", "h", "d" };
     unit = ulib_clamp(unit, UTIME_NS, UTIME_DAYS);
-    double c_interval = utime_span_to(interval, unit);
-    return uostream_writef(stream, written, "%.*f %s", decimal_digits, c_interval, str[unit]);
+    double c_span = utime_span_to(span, unit);
+    return uostream_writef(stream, written, "%.*f %s", decimal_digits, c_span, str[unit]);
+}
+
+static ulib_ret write_metric_uint(UOStream *stream, char const *sep, char const *name,
+                                  unsigned long long value, char const *unit, size_t *tot) {
+    size_t written = 0;
+    ulib_ret ret = uostream_writef(stream, &written, "%s%s %llu%s", sep, name, value, unit);
+    *tot += written;
+    return ret;
+}
+
+static ulib_ret write_metric_double(UOStream *stream, char const *sep, char const *name,
+                                    double value, char const *unit, size_t *tot) {
+    size_t written = 0;
+    ulib_ret ret = uostream_writef(stream, &written, "%s%s %.2f%s", sep, name, value, unit);
+    *tot += written;
+    return ret;
+}
+
+ulib_ret uostream_write_metrics(UOStream *stream, UMetrics const *metrics, size_t *written) {
+    umetrics_flags const available = metrics->available;
+    char const *sep = "";
+    size_t tot = 0;
+    ulib_ret ret = ULIB_OK;
+
+    if (available & UMETRICS_CPU_USER) {
+        double const ms = utime_span_to(metrics->cpu_user, UTIME_MS);
+        ret = write_metric_double(stream, sep, "user", ms, " ms", &tot);
+        sep = ", ";
+    }
+    if (available & UMETRICS_CPU_SYSTEM) {
+        double const ms = utime_span_to(metrics->cpu_system, UTIME_MS);
+        ret = write_metric_double(stream, sep, "sys", ms, " ms", &tot);
+        sep = ", ";
+    }
+    if (available & UMETRICS_MEM_PEAK) {
+        double const kb = (double)metrics->mem_peak / 1024.0;
+        ret = write_metric_double(stream, sep, "mem peak", kb, " KB", &tot);
+        sep = ", ";
+    }
+    if (available & UMETRICS_CTX_VOLUNTARY) {
+        ret = write_metric_uint(stream, sep, "vol ctx", metrics->ctx_voluntary, "", &tot);
+        sep = ", ";
+    }
+    if (available & UMETRICS_CTX_INVOLUNTARY) {
+        ret = write_metric_uint(stream, sep, "invol ctx", metrics->ctx_involuntary, "", &tot);
+    }
+
+    if (written) *written = tot;
+    return ret;
 }
 
 ulib_ret uostream_write_version(UOStream *stream, UVersion const *version, size_t *written) {

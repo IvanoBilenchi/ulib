@@ -20,6 +20,7 @@ Welcome to uLib's documentation!
    api/stream
    api/compression
    api/time
+   api/metrics
    api/rand
    api/alloc
    api/macros

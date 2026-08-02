@@ -26,11 +26,11 @@ void utime_test_ns(void) {
     time(&start);
     do {
         time(&end);
-    } while (difftime(end, start) <= 1.0);
+    } while (difftime(end, start) < 1.5);
     t = utime_get_ns() - t;
 
     utest_assert_uint(t, >, 1000000000);
-    utest_assert_uint(t, <, 10000000000);
+    utest_assert_uint(t, <, 2000000000);
 }
 
 void utime_test_interval(void) {

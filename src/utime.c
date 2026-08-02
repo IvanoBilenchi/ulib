@@ -307,7 +307,7 @@ UString utime_span_to_string(utime_ns t, utime_unit unit) {
     UStrBuf buf = ustrbuf();
 
     if (uostream_to_strbuf(&stream, &buf) ||
-        uostream_write_time_interval(&stream, t, unit, FMT_FDIGITS, NULL)) {
+        uostream_write_time_span(&stream, t, unit, FMT_FDIGITS, NULL)) {
         ustrbuf_deinit(&buf);
         return ustring_null;
     }

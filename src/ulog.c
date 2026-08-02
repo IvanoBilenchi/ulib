@@ -10,6 +10,7 @@
 #include "ucolor.h"
 #include "udebug.h"
 #include "ulib_ret_t.h"
+#include "umetrics.h"
 #include "unumber.h"
 #include "ustream.h"
 #include "ustring.h"
@@ -102,8 +103,14 @@ ulib_ret ulog_write_footer(ULog *log, ULogEvent const *event) {
     }
     ulog_write_msg(log, event->msg);
     if (event->level == ULOG_PERF && event->data) {
-        ulog_write_space(log);
-        ulog_write_elapsed(log, *((utime_ns *)event->data));
+        ULogPerfData const *data = event->data;
+        if (data->type == ULOG_PERF_SPAN) {
+            ulog_write_space(log);
+            ulog_write_span(log, data->as.span);
+        } else if (data->as.metrics && data->as.metrics->available) {
+            ulog_write_space(log);
+            ulog_write_metrics(log, data->as.metrics);
+        }
     }
     return ulog_write_newline(log);
 }
@@ -132,11 +139,19 @@ ulib_ret ulog_write_loc(ULog *log, USrcLoc loc) {
     return ulog_write_color(log, UCOLOR_DIM, "(%s:%d)", loc.file, loc.line);
 }
 
-ulib_ret ulog_write_elapsed(ULog *log, utime_ns elapsed) {
-    utime_unit unit = utime_span_unit_auto(elapsed);
+ulib_ret ulog_write_span(ULog *log, utime_ns span) {
+    utime_unit unit = utime_span_unit_auto(span);
     begin_color(log, UCOLOR_DIM);
     uostream_write_literal(log->stream, "(", NULL);
-    uostream_write_time_interval(log->stream, elapsed, unit, 2, NULL);
+    uostream_write_time_span(log->stream, span, unit, 2, NULL);
+    uostream_write_literal(log->stream, ")", NULL);
+    return end_color(log, UCOLOR_DIM);
+}
+
+ulib_ret ulog_write_metrics(ULog *log, UMetrics const *metrics) {
+    begin_color(log, UCOLOR_DIM);
+    uostream_write_literal(log->stream, "(", NULL);
+    uostream_write_metrics(log->stream, metrics, NULL);
     uostream_write_literal(log->stream, ")", NULL);
     return end_color(log, UCOLOR_DIM);
 }
@@ -166,6 +181,21 @@ ULog *p_ulog_main(void) {
 
 ulib_ret p_ulog(ULog *log, ULogEvent event, char const *fmt, ...) {
     if (!log->handler) return ULIB_OK;
+    event.msg.fmt = fmt ? fmt : "";
+    va_start(event.msg.args, fmt);
+    ulib_ret ret = log->handler(log, &event);
+    va_end(event.msg.args);
+    return ret;
+}
+
+ulib_ret p_ulog_metrics(ULog *log, ULogEvent event, umetrics_flags flags, char const *fmt, ...) {
+    if (!log->handler) return ULIB_OK;
+
+    UMetrics metrics;
+    umetrics(&metrics, flags);
+    ULogPerfData const data = ulog_perf_data_metrics(&metrics);
+
+    event.data = &data;
     event.msg.fmt = fmt ? fmt : "";
     va_start(event.msg.args, fmt);
     ulib_ret ret = log->handler(log, &event);

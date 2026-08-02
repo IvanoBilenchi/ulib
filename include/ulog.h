@@ -16,6 +16,7 @@
 #include "ucolor.h" // IWYU pragma: export
 #include "udebug.h"
 #include "ulib_ret_t.h"
+#include "umetrics.h"
 #include "ustream.h"
 #include "ustring.h"
 #include "utime.h"
@@ -104,6 +105,36 @@ typedef struct ULogTag {
 
 } ULogTag;
 
+/// Type of the data carried by performance log events.
+typedef enum ULogPerfType {
+
+    /// Time span.
+    ULOG_PERF_SPAN,
+
+    /// Runtime metrics.
+    ULOG_PERF_METRICS,
+
+} ULogPerfType;
+
+/// Data carried by performance log events.
+typedef struct ULogPerfData {
+
+    /// Type of the data.
+    ULogPerfType type;
+
+    /// Data.
+    union {
+
+        /// Time span, only valid if `type` is @val{ULOG_PERF_SPAN}.
+        utime_ns span;
+
+        /// Runtime metrics, only valid if `type` is @val{ULOG_PERF_METRICS}.
+        UMetrics const *metrics;
+
+    } as;
+
+} ULogPerfData;
+
 /// Log event.
 typedef struct ULogEvent {
 
@@ -116,7 +147,12 @@ typedef struct ULogEvent {
     /// Event message.
     ULogMsg msg;
 
-    /// Event data.
+    /**
+     * Event data.
+     *
+     * @note When logging at the @val{ULOG_PERF} level using the default logger, this
+     *       must be the address of a valid @type{ULogPerfData} structure.
+     */
     void const *data;
 
 } ULogEvent;
@@ -307,23 +343,85 @@ void ulog_disable(ULog *log) {
 #define ulog_fatal(...) ulog(ulog_main, ULOG_FATAL, NULL, __VA_ARGS__)
 
 /**
- * Same as @func{ulog}(@var{ulog_main}, @val{ULOG_PERF}, `nanos`, `fmt`, `...`).
+ * Returns a performance data object for the specified time span.
  *
- * @param nanos Elapsed time in nanoseconds.
+ * @param span Time span.
+ * @return Performance data.
+ */
+ULIB_CONST
+ULIB_INLINE
+ULogPerfData ulog_perf_data_span(utime_ns span) {
+    ULogPerfData data = ulib_zero_init;
+    data.type = ULOG_PERF_SPAN;
+    data.as.span = span;
+    return data;
+}
+
+/**
+ * Returns a performance data object for the specified runtime metrics.
+ *
+ * @param metrics Runtime metrics.
+ * @return Performance data.
+ *
+ * @note The metrics are referenced, not copied, so they must outlive the returned data.
+ */
+ULIB_CONST
+ULIB_INLINE
+ULogPerfData ulog_perf_data_metrics(UMetrics const *metrics) {
+    ULogPerfData data = ulib_zero_init;
+    data.type = ULOG_PERF_METRICS;
+    data.as.metrics = metrics;
+    return data;
+}
+
+/**
+ * Same as @func{ulog}(@var{ulog_main}, @val{ULOG_PERF}, `data`, `fmt`, `...`).
+ *
+ * @param data Performance data.
  * @param fmt Message format string.
  * @param ... Message format arguments.
  * @return Return code.
  *
- * @alias ulib_ret ulog_ns(utime_ns const *nanos, char const *fmt, ...);
+ * @alias ulib_ret ulog_perf(ULogPerfData const *data, char const *fmt, ...);
  */
-#define ulog_ns(nanos, ...) ulog(ulog_main, ULOG_PERF, nanos, __VA_ARGS__)
+#define ulog_perf(data, ...) ulog(ulog_main, ULOG_PERF, data, __VA_ARGS__)
 
 /**
- * Measures and logs the time elapsed between the start and end of a block of code.
+ * Retrieves the specified runtime metrics and logs them
+ * at the @val{ULOG_PERF} level via the specified logger.
+ *
+ * @param log Logger object.
+ * @param flags Metrics to retrieve.
+ * @param fmt Message format string.
+ * @param ... Message format arguments.
+ * @return Return code.
+ *
+ * @alias ulib_ret ulog_metrics_to(ULog *log, umetrics_flags flags, char const *fmt, ...);
+ */
+#define ulog_metrics_to(log, flags, ...)                                                           \
+    (ulog_enabled(log, ULOG_PERF)                                                                  \
+         ? p_ulog_metrics(log, p_ulog_event(ULOG_PERF, NULL), flags, __VA_ARGS__)                  \
+         : ULIB_OK)
+
+/**
+ * Same as @func{ulog_metrics_to}(@var{ulog_main}, `flags`, `fmt`, `...`).
+ *
+ * @param flags Metrics to retrieve.
+ * @param fmt Message format string.
+ * @param ... Message format arguments.
+ * @return Return code.
+ *
+ * @alias ulib_ret ulog_metrics(umetrics_flags flags, char const *fmt, ...);
+ */
+#define ulog_metrics(flags, ...) ulog_metrics_to(ulog_main, flags, __VA_ARGS__)
+
+/**
+ * Measures the time elapsed between the start and end of a block of code,
+ * and logs it via the specified logger.
  *
  * Usage example:
  * @code
- * ulog_elapsed(ulog_main, "Block time") {
+ * ulog_elapsed_to(my_log, "Block time") {
  *     // Code to measure.
  * }
  * @endcode
@@ -331,29 +429,29 @@ void ulog_disable(ULog *log) {
  * @param log Logger object.
  * @param ... Format string and arguments.
  */
-#define ulog_elapsed(log, ...) p_ulog_elapsed(log, ULIB_UID(p_ulog_elapsed_), __VA_ARGS__)
+#define ulog_elapsed_to(log, ...) p_ulog_elapsed(log, ULIB_UID(p_ulog_elapsed_), __VA_ARGS__)
 
 #define p_ulog_elapsed(log, var, ...)                                                              \
     for (struct {                                                                                  \
-             utime_ns ns;                                                                          \
+             ULogPerfData data;                                                                    \
              unsigned done;                                                                        \
-         } var = { utime_get_ns(), 1 };                                                            \
-         var.done--;                                                                               \
-         (var.ns = utime_get_ns() - var.ns, ulog(log, ULOG_PERF, &var.ns, __VA_ARGS__)))
+         } var = { ulog_perf_data_span(utime_get_ns()), 1 };                                       \
+         var.done--; (var.data.as.span = utime_get_ns() - var.data.as.span,                        \
+                     ulog(log, ULOG_PERF, &var.data, __VA_ARGS__)))
 
 /**
- * Same as @func{ulog_elapsed}(@var{ulog_main}, `...`).
+ * Same as @func{ulog_elapsed_to}(@var{ulog_main}, `...`).
  *
  * Usage example:
  * @code
- * ulog_perf("Block time") {
+ * ulog_elapsed("Block time") {
  *     // Code to measure.
  * }
  * @endcode
  *
  * @param ... Format string and arguments.
  */
-#define ulog_perf(...) ulog_elapsed(ulog_main, __VA_ARGS__)
+#define ulog_elapsed(...) ulog_elapsed_to(ulog_main, __VA_ARGS__)
 
 /**
  * Writes the specified event to the logger's output stream.
@@ -439,14 +537,26 @@ ULIB_API
 ulib_ret ulog_write_loc(ULog *log, USrcLoc loc);
 
 /**
- * Writes elapsed time to the logger's output stream.
+ * Writes the specified time span to the logger's output stream.
  *
  * @param log Logger object.
- * @param elapsed Elapsed time.
+ * @param span Time span.
  * @return Return code.
  */
 ULIB_API
-ulib_ret ulog_write_elapsed(ULog *log, utime_ns elapsed);
+ulib_ret ulog_write_span(ULog *log, utime_ns span);
+
+/**
+ * Writes the specified runtime metrics to the logger's output stream.
+ *
+ * @param log Logger object.
+ * @param metrics Runtime metrics.
+ * @return Return code.
+ *
+ * @note Only the metrics that were actually retrieved are written.
+ */
+ULIB_API
+ulib_ret ulog_write_metrics(ULog *log, UMetrics const *metrics);
 
 /**
  * Writes a formatted string in the specified color to the logger's output stream.
@@ -488,6 +598,9 @@ ULog *p_ulog_main(void);
 
 ULIB_API
 ulib_ret p_ulog(ULog *log, ULogEvent event, char const *fmt, ...);
+
+ULIB_API
+ulib_ret p_ulog_metrics(ULog *log, ULogEvent event, umetrics_flags flags, char const *fmt, ...);
 
 ULIB_CONST
 ULIB_INLINE

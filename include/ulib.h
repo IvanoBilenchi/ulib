@@ -34,6 +34,7 @@
 #include "ulock.h"
 #include "ulog.h"
 #include "umeta.h"
+#include "umetrics.h"
 #include "unumber.h"
 #include "urand.h"
 #include "usem.h"

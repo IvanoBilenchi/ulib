@@ -16,6 +16,7 @@
 #include "ulib.h"
 #include "ulock_tests.h"
 #include "ulog_tests.h"
+#include "umetrics_tests.h"
 #include "unumber_tests.h"
 #include "urand_tests.h"
 #include "usem_tests.h"
@@ -37,6 +38,7 @@ utest_main({
     utest_run("ulog", ULOG_TESTS);
     utest_run("urand", URAND_TESTS);
     utest_run("utime", UTIME_TESTS);
+    utest_run("umetrics", UMETRICS_TESTS);
     utest_run("uthread", UTHREAD_TESTS);
     utest_run("uatomic", UATOMIC_TESTS);
     utest_run("ulock", ULOCK_TESTS);

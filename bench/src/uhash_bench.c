@@ -5,10 +5,10 @@
  * @copyright SPDX-License-Identifier: ISC
  */
 
-#include "uhash_bench.h"
 #include "khashl.h"
 #include "ulib.h"
 #include <stdint.h>
+#include <stdlib.h>
 
 UHASH_INIT(uint, uint32_t, UHASH_VAL_IGNORE, ulib_hash_int32, ulib_eq)
 KHASHL_SET_INIT(KH_LOCAL, kh_uint_t, kh_uint, uint32_t, kh_hash_uint32, ulib_eq)
@@ -119,7 +119,7 @@ static void bench_hash(HashTable *table, ulib_uint size) {
     urand_set_seed(SEED);
 
     ulib_uint count = 0;
-    ulog_perf("insert") {
+    ulog_elapsed("insert") {
         for (ulib_uint i = 0; i < size; ++i) {
             uint32_t key = (uint32_t)urand_range(0, size >> 1);
             if (table->insert(h, key)) count++;
@@ -128,7 +128,7 @@ static void bench_hash(HashTable *table, ulib_uint size) {
     ulog_debug("Inserted: %" ULIB_UINT_FMT, count);
 
     count = 0;
-    ulog_perf("get") {
+    ulog_elapsed("get") {
         for (ulib_uint i = 0; i < size; ++i) {
             uint32_t key = (uint32_t)urand_range(0, size >> 1);
             if (table->contains(h, key)) count++;
@@ -136,7 +136,7 @@ static void bench_hash(HashTable *table, ulib_uint size) {
     }
     ulog_debug("Found: %" ULIB_UINT_FMT, count);
 
-    ulog_perf("remove") {
+    ulog_elapsed("remove") {
         for (ulib_uint i = 0; i < size; ++i) {
             uint32_t key = (uint32_t)urand_range(0, size >> 1);
             if (table->remove(h, key)) count++;
@@ -147,7 +147,8 @@ static void bench_hash(HashTable *table, ulib_uint size) {
     table->deinit(h);
 }
 
-void bench_uhash(void) {
+int main(void) {
+    ulog_main->level = ULOG_PERF;
     ulog_info("==[ UHash ]==");
 
     HashTable h[] = {
@@ -160,4 +161,6 @@ void bench_uhash(void) {
         bench_hash(&h[i], COUNT_SMALL);
         bench_hash(&h[i], COUNT_LARGE);
     }
+
+    return EXIT_SUCCESS;
 }

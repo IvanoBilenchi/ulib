@@ -14,6 +14,7 @@
 
 #include "uattrs.h"
 #include "ulib_ret_t.h"
+#include "umetrics.h"
 #include "ustrbuf.h"
 #include "ustring.h"
 #include "utime.h"
@@ -576,18 +577,29 @@ ULIB_API
 ulib_ret uostream_write_time_of_day(UOStream *stream, UTime const *time, size_t *written);
 
 /**
- * Writes the specified time interval into the stream.
+ * Writes the specified time span into the stream.
  *
  * @param stream Output stream.
- * @param interval Time interval.
+ * @param span Time span.
  * @param unit Time unit. Must be less than or equal to @val{UTIME_DAYS}.
  * @param decimal_digits Number of decimal digits to write.
  * @param[out] written Number of bytes written.
  * @return Return code.
  */
 ULIB_API
-ulib_ret uostream_write_time_interval(UOStream *stream, utime_ns interval, utime_unit unit,
-                                      unsigned decimal_digits, size_t *written);
+ulib_ret uostream_write_time_span(UOStream *stream, utime_ns span, utime_unit unit,
+                                  unsigned decimal_digits, size_t *written);
+
+/**
+ * Writes the specified runtime metrics into the stream.
+ *
+ * @param stream Output stream.
+ * @param metrics Runtime metrics.
+ * @param[out] written Number of bytes written.
+ * @return Return code.
+ */
+ULIB_API
+ulib_ret uostream_write_metrics(UOStream *stream, UMetrics const *metrics, size_t *written);
 
 /**
  * Writes the specified version into the stream.

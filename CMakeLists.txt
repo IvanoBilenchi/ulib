@@ -211,8 +211,11 @@ target_compile_options(ulib PUBLIC ${ULIB_PUBLIC_CFLAGS} PRIVATE ${ULIB_PRIVATE_
 target_link_options(ulib PUBLIC ${ULIB_PUBLIC_LFLAGS} PRIVATE ${ULIB_PRIVATE_LFLAGS})
 target_compile_definitions(ulib PUBLIC ${ULIB_PUBLIC_DEFINES} PRIVATE ${ULIB_PRIVATE_DEFINES})
 
-if (ULIB_CONCURRENCY AND MSVC)
-    target_link_libraries(ulib PRIVATE Synchronization)
+if(WIN32)
+    target_link_libraries(ulib PRIVATE psapi)
+    if (ULIB_CONCURRENCY)
+        target_link_libraries(ulib PRIVATE Synchronization)
+    endif()
 endif()
 
 if(ULIB_USER_HEADERS)

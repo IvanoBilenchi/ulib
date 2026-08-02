@@ -249,6 +249,45 @@ void uostream_buffered_test(void) {
     utest_assert_ok(uostream_deinit(&stream));
 }
 
+static void metrics_to_buf(UMetrics const *metrics, char *buf, size_t size, size_t *written) {
+    UOStream stream;
+    memset(buf, 0, size);
+    utest_assert_ok(uostream_to_buf(&stream, buf, size - 1));
+    utest_assert_ok(uostream_write_metrics(&stream, metrics, written));
+    utest_assert_ok(uostream_deinit(&stream));
+}
+
+void uostream_metrics_test(void) {
+    char buf[256];
+    size_t written;
+    UMetrics metrics = ulib_zero_init;
+
+    metrics.cpu_user = utime_span(15, UTIME_MS);
+    metrics.cpu_system = utime_span(10, UTIME_MS);
+    metrics.mem_peak = 4096;
+    metrics.ctx_voluntary = 7;
+    metrics.ctx_involuntary = 9;
+
+    metrics_to_buf(&metrics, buf, sizeof(buf), &written);
+    utest_assert_uint(written, ==, 0);
+    utest_assert_cstring(buf, ==, "");
+
+    metrics.available = UMETRICS_CPU_USER | UMETRICS_CTX_INVOLUNTARY;
+    metrics_to_buf(&metrics, buf, sizeof(buf), &written);
+    utest_assert_cstring(buf, ==, "user 15.00 ms, invol ctx 9");
+    utest_assert_uint(written, ==, strlen(buf));
+
+    metrics.available = UMETRICS_MEM_PEAK;
+    metrics_to_buf(&metrics, buf, sizeof(buf), &written);
+    utest_assert_cstring(buf, ==, "mem peak 4.00 KB");
+
+    metrics.available = UMETRICS_ALL;
+    metrics_to_buf(&metrics, buf, sizeof(buf), &written);
+    utest_assert_cstring(buf, ==,
+                         "user 15.00 ms, sys 10.00 ms, mem peak 4.00 KB, vol ctx 7, invol ctx 9");
+    utest_assert_uint(written, ==, strlen(buf));
+}
+
 void ustream_varint_test(void) {
     ulib_varint const boundary = (ulib_varint)-1;
     ulib_varint const max_value = ulib_min(boundary, 1000000);

@@ -9,12 +9,24 @@ uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- `UMetrics` and related API.
+- `ULogPerfData`, `ULogPerfType`, `ulog_perf_data_span` and `ulog_perf_data_metrics`.
+- `ulog_metrics` and `ulog_write_metrics`.
 - `utime_stamp` and `utime_stamp_from`.
 - `UTIME_NS_MAX`, `UTIME_NS_PER_{US,MS,S,MINUTE,HOUR,DAY}`.
 - `ULIB_UID`.
 
 ### Changed
 - Renamed `utime_interval_*` to `utime_span_*`.
+- Renamed `uostream_write_time_interval` to `uostream_write_time_span`.
+- Renamed `ulog_write_elapsed` to `ulog_write_span`.
+- Renamed `ulog_elapsed` to `ulog_elapsed_to`, and the former `ulog_perf` to `ulog_elapsed`.
+- `ulog_perf` is now the `ULOG_PERF` counterpart of `ulog_info` and friends,
+  accepting a `ULogPerfData` pointer as its data argument.
+- `ULOG_PERF` events now carry a `ULogPerfData` pointer rather than a `utime_ns` pointer.
+
+### Removed
+- `ulog_ns`, superseded by `ulog_perf` and `ulog_perf_data_span`.
 
 
 ## [0.3.2] - 2026-06-08

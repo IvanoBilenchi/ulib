@@ -5,7 +5,6 @@
  * @copyright SPDX-License-Identifier: ISC
  */
 
-#include "uvec_bench.h"
 #include "ulib.h"
 #include <stdlib.h>
 
@@ -36,7 +35,7 @@ static void bench_uvec_sort_small(void) {
     ulog_info("- Sort: small");
 
     urand_set_seed(SEED);
-    ulog_perf("qsort") {
+    ulog_elapsed("qsort") {
         for (unsigned i = 0; i < SORT_COUNT_LARGE; ++i) {
             for (unsigned j = 0; j < SORT_COUNT_SMALL; ++j) {
                 array[j] = (ulib_int)urand();
@@ -46,7 +45,7 @@ static void bench_uvec_sort_small(void) {
     }
 
     urand_set_seed(SEED);
-    ulog_perf("uvec_sort") {
+    ulog_elapsed("uvec_sort") {
         for (unsigned i = 0; i < SORT_COUNT_LARGE; ++i) {
             for (unsigned j = 0; j < SORT_COUNT_SMALL; ++j) {
                 uvec_push(ulib_int, &v, (ulib_int)urand());
@@ -70,19 +69,19 @@ static void bench_uvec_sort_large(void) {
     uvec_append_array(ulib_int, &v, array, SORT_COUNT_LARGE);
 
     ulog_info("- Sort: unique, unsorted");
-    ulog_perf("qsort") {
+    ulog_elapsed("qsort") {
         qsort(array, SORT_COUNT_LARGE, sizeof(*array), int_compare);
     }
-    ulog_perf("uvec_sort") {
+    ulog_elapsed("uvec_sort") {
         uvec_sort(ulib_int, &v);
     }
 
     // Large array with mostly unique elements, already sorted
     ulog_info("- Sort: unique, sorted");
-    ulog_perf("qsort") {
+    ulog_elapsed("qsort") {
         qsort(array, SORT_COUNT_LARGE, sizeof(*array), int_compare);
     }
-    ulog_perf("uvec_sort") {
+    ulog_elapsed("uvec_sort") {
         uvec_sort(ulib_int, &v);
     }
 
@@ -100,19 +99,19 @@ static void bench_uvec_sort_large_repeated(void) {
     uvec_append_array(ulib_int, &v, array, SORT_COUNT_LARGE);
 
     ulog_info("- Sort: repeated, unsorted");
-    ulog_perf("qsort") {
+    ulog_elapsed("qsort") {
         qsort(array, SORT_COUNT_LARGE, sizeof(*array), int_compare);
     }
-    ulog_perf("uvec_sort") {
+    ulog_elapsed("uvec_sort") {
         uvec_sort(ulib_int, &v);
     }
 
     // Large array with repeated elements, already sorted
     ulog_info("- Sort: repeated, sorted");
-    ulog_perf("qsort") {
+    ulog_elapsed("qsort") {
         qsort(array, SORT_COUNT_LARGE, sizeof(*array), int_compare);
     }
-    ulog_perf("uvec_sort") {
+    ulog_elapsed("uvec_sort") {
         uvec_sort(ulib_int, &v);
     }
 
@@ -125,7 +124,7 @@ static void bench_uvec_sorted_insertion(void) {
 
     ulog_info("- Sorted insertion");
 
-    ulog_perf("small") {
+    ulog_elapsed("small") {
         for (unsigned i = 0; i < (INSERT_COUNT_LARGE / INSERT_COUNT_SMALL); ++i) {
             for (unsigned j = 0; j < INSERT_COUNT_SMALL; ++j) {
                 uvec_sorted_insert(ulib_int, &v, (ulib_int)urand(), NULL);
@@ -137,7 +136,7 @@ static void bench_uvec_sorted_insertion(void) {
     uvec_clear(ulib_int, &v);
     uvec_reserve(ulib_int, &v, INSERT_COUNT_LARGE);
 
-    ulog_perf("large") {
+    ulog_elapsed("large") {
         for (unsigned i = 0; i < INSERT_COUNT_LARGE; ++i) {
             uvec_sorted_insert(ulib_int, &v, (ulib_int)urand(), NULL);
         }
@@ -161,24 +160,24 @@ static void bench_uvec_heap_queue(void) {
     uvec_shuffle(ulib_int, &items);
 
     ulog_info("- Heap queue");
-    ulog_perf("push") {
+    ulog_elapsed("push") {
         uvec_foreach (ulib_int, &items, e) {
             uvec_min_heapq_push(ulib_int, &heap, *e.item);
         }
     }
-    ulog_perf("pop") {
+    ulog_elapsed("pop") {
         for (unsigned i = 0; i < HEAP_QUEUE_COUNT; ++i) {
             uvec_min_heapq_pop(ulib_int, &heap, NULL);
         }
     }
 
     ulog_info("- Sorted vector");
-    ulog_perf("push") {
+    ulog_elapsed("push") {
         uvec_foreach (ulib_int, &items, e) {
             uvec_sorted_insert(ulib_int, &sorted, *e.item, NULL);
         }
     }
-    ulog_perf("pop") {
+    ulog_elapsed("pop") {
         for (unsigned i = 0; i < HEAP_QUEUE_COUNT; ++i) {
             uvec_pop(ulib_int, &sorted, NULL);
         }
@@ -189,11 +188,13 @@ static void bench_uvec_heap_queue(void) {
     uvec_deinit(ulib_int, &sorted);
 }
 
-void bench_uvec(void) {
+int main(void) {
+    ulog_main->level = ULOG_PERF;
     ulog_info("==[ UVec ]==");
     bench_uvec_sort_small();
     bench_uvec_sort_large();
     bench_uvec_sort_large_repeated();
     bench_uvec_sorted_insertion();
     bench_uvec_heap_queue();
+    return EXIT_SUCCESS;
 }

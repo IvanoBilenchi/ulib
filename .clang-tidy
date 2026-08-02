@@ -20,6 +20,6 @@ Checks: >
   -readability-implicit-bool-conversion,
   -readability-magic-numbers
 CheckOptions:
-  misc-include-cleaner.IgnoreHeaders: /_[^/]+\.h$;^_[^/]+\.h$;^bits/[^/]+\.h$;bits/pthreadtypes\.h$
+  misc-include-cleaner.IgnoreHeaders: /_[^/]+\.h$;bits/.*\.h$
   readability-braces-around-statements.ShortStatementLines: 2
   readability-function-cognitive-complexity.IgnoreMacros: true
