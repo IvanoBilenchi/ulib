@@ -29,13 +29,14 @@ struct USLock {
 
 #ifdef ULIB_CONCURRENCY
     #ifndef ULIB_PLATFORM_LOCKS
+        #include "uthread.h"
         #include <stdint.h>
         struct ULock {
             UAtomic(uint32_t) _state;
         };
         struct URLock {
-            UAtomic(void *) _owner;
             struct ULock _lock;
+            UAtomic(UThreadId) _owner;
             uint32_t _count;
         };
         struct URWLock {

@@ -94,6 +94,35 @@ ulib_ret uthread_detach(ulib_unused UThread *thread) {
 
 #endif // ULIB_CONCURRENCY
 
+#ifdef ULIB_CONCURRENCY
+
+#include "uatomic.h"
+#include "uutils.h"
+
+static UThreadId next_thread_id(void) {
+    static UAtomic(UThreadId) next = UTHREAD_ID_NULL;
+    UThreadId cur = uatomic_load_ex(&next, UMO_RELAXED);
+    UThreadId id;
+    do {
+        if ((id = cur + 1) == UTHREAD_ID_NULL) id = 1;
+    } while (!uatomic_wcas_ex(&next, &cur, id, UMO_RELAXED, UMO_RELAXED));
+    return id;
+}
+
+UThreadId uthread_id(void) {
+    static _Thread_local UThreadId id = UTHREAD_ID_NULL;
+    if (ulib_unlikely(!id)) id = next_thread_id();
+    return id;
+}
+
+#else
+
+UThreadId uthread_id(void) {
+    return 1;
+}
+
+#endif // ULIB_CONCURRENCY
+
 #if defined(__unix__) || defined(__APPLE__)
 
 #include <errno.h>

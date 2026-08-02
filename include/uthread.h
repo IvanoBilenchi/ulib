@@ -18,6 +18,7 @@
 #include "utime.h"
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
 ULIB_BEGIN_DECLS
 
@@ -62,12 +63,18 @@ typedef struct UThread {
     /// @endcond
 } UThread;
 
+/// Thread identifier type.
+typedef uint32_t UThreadId;
+
 /// @}
 
 /**
  * @defgroup UThread_api Threading API
  * @{
  */
+
+/// Null thread identifier, never assigned to any thread.
+#define UTHREAD_ID_NULL ((UThreadId)0)
 
 /**
  * Creates a new thread that will run `func(arg)` when started.
@@ -109,6 +116,17 @@ ulib_ret uthread_join(UThread *thread);
  */
 ULIB_API
 ulib_ret uthread_detach(UThread *thread);
+
+/**
+ * Returns an identifier for the calling thread.
+ *
+ * The identifier is assigned on first use, is never @val{UTHREAD_ID_NULL}, and is distinct from
+ * that of any other thread running at the same time.
+ *
+ * @return Identifier of the calling thread.
+ */
+ULIB_API
+UThreadId uthread_id(void);
 
 /**
  * Sleeps for the specified time span.

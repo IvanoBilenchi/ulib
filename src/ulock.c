@@ -128,15 +128,13 @@ bool p_ULock_trylock(ULock *lock) {
 void p_ULock_unlock(ULock *lock) {
     if (uatomic_fas_ex(&lock->_state, 1, UMO_RELEASE) == CONTENDED) {
         uatomic_store_ex(&lock->_state, UNLOCKED, UMO_RELEASE);
-        ufutex_wake_one(&lock->_state);
+        (void)ufutex_wake_one(&lock->_state);
     }
 }
 
-static _Thread_local char rlock_self;
-
 ulib_ret p_URLock(URLock *lock) {
     ulock(&lock->_lock);
-    uatomic(&lock->_owner, NULL);
+    uatomic(&lock->_owner, UTHREAD_ID_NULL);
     lock->_count = 0;
     return ULIB_OK;
 }
@@ -144,7 +142,8 @@ ulib_ret p_URLock(URLock *lock) {
 void p_URLock_deinit(ulib_unused URLock *lock) {}
 
 static bool p_URLock_lock_impl(URLock *lock, bool trylock) {
-    if (uatomic_load_ex(&lock->_owner, UMO_RELAXED) == &rlock_self) {
+    UThreadId const thread_id = uthread_id();
+    if (uatomic_load_ex(&lock->_owner, UMO_RELAXED) == thread_id) {
         ++lock->_count;
         return true;
     }
@@ -153,7 +152,7 @@ static bool p_URLock_lock_impl(URLock *lock, bool trylock) {
     } else {
         ulock_lock(&lock->_lock);
     }
-    uatomic_store_ex(&lock->_owner, &rlock_self, UMO_RELAXED);
+    uatomic_store_ex(&lock->_owner, thread_id, UMO_RELAXED);
     lock->_count = 1;
     return true;
 }
@@ -168,7 +167,7 @@ bool p_URLock_trylock(URLock *lock) {
 
 void p_URLock_unlock(URLock *lock) {
     if (--lock->_count) return;
-    uatomic_store_ex(&lock->_owner, NULL, UMO_RELEASE);
+    uatomic_store_ex(&lock->_owner, UTHREAD_ID_NULL, UMO_RELEASE);
     ulock_unlock(&lock->_lock);
 }
 
