@@ -17,6 +17,7 @@
 #include "uattrs.h"
 #include "ulib_ret.h"
 #include "uutils.h"
+#include <stdbool.h>
 
 ULIB_BEGIN_DECLS
 
@@ -31,8 +32,10 @@ struct USLock {
     #ifndef ULIB_PLATFORM_LOCKS
         #include "uthread.h"
         #include <stdint.h>
+        typedef uint16_t p_ulib_spin_t;
         struct ULock {
             UAtomic(uint32_t) _state;
+            UAtomic(p_ulib_spin_t) _spins;
         };
         struct URLock {
             struct ULock _lock;
@@ -42,6 +45,8 @@ struct USLock {
         struct URWLock {
             UAtomic(uint32_t) _state;
             UAtomic(uint32_t) _wnotify;
+            UAtomic(p_ulib_spin_t) _rspins;
+            UAtomic(p_ulib_spin_t) _wspins;
         };
     #elif defined(__unix__) || defined(__APPLE__)
         #include <pthread.h> // IWYU pragma: keep

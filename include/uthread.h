@@ -162,6 +162,17 @@ ulib_ret uthread_sleep(utime_ns t);
     #define p_uthread_yield_cpu() ((void)0)
 #endif
 
+/// Cost of @func{uthread_yield_cpu}, relative to the cheapest instruction it maps to.
+#ifndef UTHREAD_YIELD_CPU_COST
+    #if defined(_M_IX86) || defined(_M_X64) || defined(__i386__) || defined(__x86_64__)
+        #define UTHREAD_YIELD_CPU_COST 32
+    #else
+        #define UTHREAD_YIELD_CPU_COST 1
+    #endif
+#elif UTHREAD_YIELD_CPU_COST < 1
+    #error "Invalid value for UTHREAD_YIELD_CPU_COST"
+#endif
+
 // clang-format on
 
 /// Cross-platform CPU yield instruction.

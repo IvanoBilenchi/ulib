@@ -69,6 +69,20 @@
 #define ULIB_INLINE static inline
 
 /**
+ * Marks functions that must not be inlined.
+ *
+ * @note Useful to keep a cold path out of a hot caller, so that the caller does not pay for
+ *       the register spills that the cold path needs.
+ */
+#if defined(__GNUC__) || defined(__clang__)
+    #define ULIB_NOINLINE __attribute__((__noinline__))
+#elif defined(_MSC_VER)
+    #define ULIB_NOINLINE __declspec(noinline)
+#else
+    #define ULIB_NOINLINE
+#endif
+
+/**
  * Marks pure functions.
  *
  * A pure function is a function that has no effect on the state of the program

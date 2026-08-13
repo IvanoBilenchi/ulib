@@ -49,10 +49,24 @@
             }
         },
         {
+            "name": "clang-tidy-off",
+            "hidden": true,
+            "cacheVariables": {
+                "ULIB_CLANG_TIDY": false
+            }
+        },
+        {
             "name": "sanitizers",
             "hidden": true,
             "cacheVariables": {
-                "ULIB_SANITIZERS": true
+                "ULIB_SANITIZERS": "undefined;address"
+            }
+        },
+        {
+            "name": "sanitizers-off",
+            "hidden": true,
+            "cacheVariables": {
+                "ULIB_SANITIZERS": ""
             }
         },
         {
@@ -78,7 +92,9 @@
             "name": "distribution",
             "inherits": [
                 "base",
-                "release"
+                "release",
+                "clang-tidy-off",
+                "sanitizers-off"
             ],
             "displayName": "Distribution"
         },

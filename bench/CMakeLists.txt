@@ -66,7 +66,12 @@ set(REGIMES
     "oversubscribed 2x + load|${THREADS_OVERSUBSCRIBED_2X}|${CORES}|100|100|15000"
 )
 
-set(LOCKS ulock urlock uslock urwlock urwlock-read urwlock-mixed)
+set(LOCKS ulock urlock urwlock urwlock-read urwlock-mixed)
+
+# Thread sanitizer livelocks in the oversubscribed regimes when using spinlocks.
+if(NOT "thread" IN_LIST ULIB_SANITIZERS)
+    list(INSERT LOCKS 2 uslock)
+endif()
 
 ulib_add_bench_test("Benchmark: ULock (pause cost)" ulib-bench-ulock --pause)
 

@@ -54,7 +54,6 @@ option(ULIB_LTO "Enable link-time optimization, if available" ON)
 option(ULIB_OPTIMIZE_FOR_HOST "Enable host CPU optimizations (keep OFF for distribution)" OFF)
 option(ULIB_CLANG_TIDY "Enable clang-tidy, if available" OFF)
 option(ULIB_LEAKS "Enable debugging of memory leaks" OFF)
-option(ULIB_SANITIZERS "Enable sanitizers" OFF)
 option(ULIB_CONCURRENCY "Enable concurrency support" OFF)
 option(ULIB_MULTICORE "Target system CPU has multiple cores" ${ULIB_CONCURRENCY})
 option(ULIB_COLOR "Enable colored output" ON)
@@ -77,8 +76,11 @@ enum_option(
     VALUES NORMAL TINY HUGE
 )
 
-string_option(ULIB_USER_HEADERS "User-specified header files")
-string_option(ULIB_USER_SOURCES "User-specified source files")
+list_option(ULIB_SANITIZERS "Enabled sanitizers"
+            VALUES address undefined thread)
+
+list_option(ULIB_USER_HEADERS "User-specified header files")
+list_option(ULIB_USER_SOURCES "User-specified source files")
 
 set(ULIB_MACRO_OVERRIDES MALLOC CALLOC REALLOC FREE STACKALLOC STACKFREE)
 foreach(ULIB_MACRO ${ULIB_MACRO_OVERRIDES})
@@ -127,8 +129,9 @@ if(MSVC)
 else()
     list(APPEND ULIB_PRIVATE_CFLAGS -Wall -Wextra -Wpedantic)
     if(ULIB_SANITIZERS)
-        list(APPEND ULIB_PUBLIC_CFLAGS "-fsanitize=address,undefined")
-        list(APPEND ULIB_PUBLIC_LFLAGS "-fsanitize=address,undefined")
+        string(REPLACE ";" "," ULIB_SANITIZER_LIST "${ULIB_SANITIZERS}")
+        list(APPEND ULIB_PUBLIC_CFLAGS "-fsanitize=${ULIB_SANITIZER_LIST}")
+        list(APPEND ULIB_PUBLIC_LFLAGS "-fsanitize=${ULIB_SANITIZER_LIST}")
     endif()
     if(ULIB_OPTIMIZE_FOR_HOST)
         list(APPEND ULIB_PRIVATE_CFLAGS "-march=native")

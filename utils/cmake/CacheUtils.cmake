@@ -45,3 +45,26 @@ function(string_option STRING_VAR STRING_DOCSTRING)
     # Create the cache variable.
     set("${STRING_VAR}" "${STRING_DEFAULT}" CACHE STRING "${STRING_DOCSTRING}")
 endfunction()
+
+function(list_option LIST_VAR LIST_DOCSTRING)
+    # Parse function arguments.
+    list(LENGTH ARGN INDEX)
+    math(EXPR INDEX "${ARGC} - ${INDEX}")
+    cmake_parse_arguments(PARSE_ARGV "${INDEX}" LIST "" "" "DEFAULT;VALUES")
+
+    # Check that all values are valid.
+    if(LIST_VALUES)
+        foreach(VALUE ${${LIST_VAR}})
+            if(NOT "${VALUE}" IN_LIST LIST_VALUES)
+                string(CONCAT ERR_MSG
+                    "Invalid value \"${VALUE}\" for variable ${LIST_VAR}. "
+                    "Possible values: ${LIST_VALUES}"
+                )
+                message(FATAL_ERROR "${ERR_MSG}")
+            endif()
+        endforeach()
+    endif()
+
+    # Create the cache variable.
+    set("${LIST_VAR}" "${LIST_DEFAULT}" CACHE STRING "${LIST_DOCSTRING}")
+endfunction()

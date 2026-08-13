@@ -53,20 +53,31 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu, windows, macos]
+        os: [ubuntu, macos, windows]
         lib_type: [STATIC]
         types: [NORMAL, TINY, HUGE]
         concurrency: [OFF]
+        sanitizers: [undefined;address]
         include:
           - os: ubuntu
             lib_type: SHARED
             types: NORMAL
             concurrency: ON
-          - os: windows
+          - os: ubuntu
+            lib_type: SHARED
+            types: NORMAL
+            concurrency: ON
+            sanitizers: thread
+          - os: macos
             lib_type: SHARED
             types: NORMAL
             concurrency: ON
           - os: macos
+            lib_type: SHARED
+            types: NORMAL
+            concurrency: ON
+            sanitizers: thread
+          - os: windows
             lib_type: SHARED
             types: NORMAL
             concurrency: ON
@@ -81,6 +92,7 @@ jobs:
           -DULIB_LIBRARY_TYPE=${{matrix.lib_type}}
           -DULIB_TYPES=${{matrix.types}}
           -DULIB_CONCURRENCY=${{matrix.concurrency}}
+          -DULIB_SANITIZERS="${{matrix.sanitizers}}"
 
       - name: Build
         run: cmake --build --preset build --config ${{env.config}}
@@ -104,7 +116,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu, windows, macos]
+        os: [ubuntu, macos, windows]
     steps:
       - name: Checkout
         uses: actions/checkout@v6
