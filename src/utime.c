@@ -10,6 +10,7 @@
 #include "utime.h"
 #include "uattrs.h"
 #include "unumber.h"
+#include "uplatform.h"
 #include "ustrbuf.h"
 #include "ustream.h"
 #include "ustring.h"
@@ -321,7 +322,7 @@ utime_stamp utime_get_timestamp(void) {
 
 // clang-format off
 
-#ifdef _WIN32
+#if ULIB_OS_IS_WIN
     #include <windows.h>
 
     utime_ns utime_get_ns(void) {
@@ -340,13 +341,13 @@ utime_stamp utime_get_timestamp(void) {
 
         return (utime_ns)temp.QuadPart * UTIME_NS_PER_S / clocks_per_sec;
     }
-#elif defined(ARDUINO)
+#elif ULIB_OS_IS_ARDUINO
     #include <Arduino.h>
 
     utime_ns utime_get_ns(void) {
         return (utime_ns)micros() * 1000;
     }
-#elif defined(__ZEPHYR__)
+#elif ULIB_OS_IS_ZEPHYR
     #include <zephyr/drivers/timer/system_timer.h>
     #include <zephyr/kernel.h>
     #include <zephyr/sys/time_units.h>

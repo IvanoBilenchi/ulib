@@ -6,9 +6,10 @@
 
 #include "ubarrier.h"
 #include "ulib_ret.h"
+#include "uplatform.h"
 #include <stdint.h>
 
-#ifdef ULIB_CONCURRENCY
+#if ULIB_CONCURRENCY
 
 #include "uatomic.h"
 #include "udebug.h"

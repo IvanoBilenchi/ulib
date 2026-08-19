@@ -14,6 +14,7 @@
 
 #include "uattrs.h"
 #include "udebug.h"
+#include "uplatform.h"
 
 #include <float.h>
 #include <inttypes.h>
@@ -266,7 +267,7 @@ typedef uint8_t ulib_byte;
 
 /// @}
 
-#if !defined(ULIB_NO_BUILTINS) && defined(__GNUC__)
+#if ULIB_CC_HAS_BUILTINS
 
 ULIB_CONST
 ULIB_INLINE

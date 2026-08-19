@@ -15,6 +15,7 @@
 #include "uatomic.h"
 #include "uattrs.h"
 #include "ulib_ret.h"
+#include "uplatform.h"
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -47,7 +48,7 @@ typedef struct USem USem;
 
 /// @cond
 // clang-format off
-#ifndef ULIB_CONCURRENCY
+#if !ULIB_CONCURRENCY
     struct USem {
         uint32_t _permits;
     };

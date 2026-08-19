@@ -11,6 +11,7 @@
 #include "udebug.h"
 #include "ulib_ret_t.h"
 #include "unumber.h"
+#include "uplatform.h"
 #include "ustrbuf.h"
 #include "ustring_raw.h"
 #include "uwarning.h"
@@ -33,7 +34,7 @@ UString ustring_large(char const *buf, size_t length) {
     ulib_uint const size = ((ulib_uint)length + 1) | ~((ulib_uint)-1 >> 1U);
     UString ret = { ._l = { ._data = buf, ._flags = { 0 } } };
     unsigned const offset = P_USTRING_FLAGS_SIZE - sizeof(ulib_uint);
-#if ULIB_LITTLE_ENDIAN
+#if ULIB_CPU_BYTE_ORDER == ULIB_CPU_ORDER_LITTLE
     *(ulib_uint *)(ret._l._flags + offset) = size;
 #else
     for (unsigned i = 0; i < sizeof(size); ++i) {

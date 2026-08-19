@@ -16,6 +16,7 @@
 #include "uattrs.h"
 #include "ulib_ret.h"
 #include "ulock.h"
+#include "uplatform.h"
 #include <stdint.h>
 
 ULIB_BEGIN_DECLS
@@ -87,7 +88,7 @@ ULIB_END_DECLS
 
 // Generic API
 
-#ifdef __cplusplus
+#if ULIB_LANG_IS_CPP
 
 /// @cond
 // clang-format off
@@ -98,7 +99,7 @@ ULIB_INLINE void ucond_wait(UCond *cond, URWLock *lock) { p_ucond_wait_URWLock(c
 // clang-format on
 /// @endcond
 
-#else // __cplusplus
+#else // ULIB_LANG_IS_CPP
 
 /**
  * @addtogroup UCond_api
@@ -127,6 +128,6 @@ ULIB_INLINE void ucond_wait(UCond *cond, URWLock *lock) { p_ucond_wait_URWLock(c
 
 /// @}
 
-#endif // __cplusplus
+#endif // ULIB_LANG_IS_CPP
 
 #endif // UCOND_H

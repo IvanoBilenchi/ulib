@@ -15,6 +15,7 @@
 
 #include "uattrs.h"
 #include "ulib_ret.h"
+#include "uplatform.h"
 #include "utime.h"
 #include <stdbool.h>
 #include <stddef.h>
@@ -24,26 +25,15 @@ ULIB_BEGIN_DECLS
 
 /// @cond
 // clang-format off
-#ifdef ULIB_CONCURRENCY
-    #if defined(__unix__) || defined(__APPLE__)
-        #include <unistd.h> // IWYU pragma: keep, for _POSIX_THREADS
-        #ifdef _POSIX_THREADS
-            #define P_ULIB_CONCURRENCY_SUPPORTED
-            #define P_ULIB_HAS_PTHREADS
-            #include <pthread.h> // IWYU pragma: keep, for pthread_t
-            #define P_UTHREAD_HANDLE_FIELD pthread_t _handle;
-        #endif
-    #elif defined(_WIN32)
-        #define P_ULIB_CONCURRENCY_SUPPORTED
+#if ULIB_CONCURRENCY
+    #if ULIB_OS_HAS_PTHREADS
+        #include <pthread.h> // IWYU pragma: keep, for pthread_t
+        #define P_UTHREAD_HANDLE_FIELD pthread_t _handle;
+    #else
         #include <windows.h>
         #define P_UTHREAD_HANDLE_FIELD HANDLE _handle;
     #endif
-    #ifndef P_ULIB_CONCURRENCY_SUPPORTED
-        #undef ULIB_CONCURRENCY
-    #endif
-#endif
-
-#ifndef ULIB_CONCURRENCY
+#else
     #define P_UTHREAD_HANDLE_FIELD
 #endif
 // clang-format on
@@ -139,21 +129,21 @@ ulib_ret uthread_sleep(utime_ns t);
 
 // clang-format off
 
-#ifdef _WIN32
+#if ULIB_OS_IS_WIN
     #include <windows.h>
     #define p_uthread_yield_cpu() YieldProcessor()
-#elif defined(__GNUC__) || defined(__clang__)
-    #if defined(__i386__) || defined(__x86_64__)
+#elif ULIB_CC_IS_GNU
+    #if ULIB_CPU_IS_X86
         #include <immintrin.h>
         #define p_uthread_yield_cpu() _mm_pause()
-    #elif defined(__arm__) || defined(__aarch64__)
-        #ifdef __ARM_ACLE
+    #elif ULIB_CPU_HAS_ARM_YIELD
+        #if ULIB_CC_HAS_ACLE
             #include <arm_acle.h>
             #define p_uthread_yield_cpu() __yield()
         #else
             #define p_uthread_yield_cpu() __asm__ __volatile__("yield" ::: "memory")
         #endif
-    #elif defined(__powerpc__) || defined(__ppc__) || defined(__PPC__)
+    #elif ULIB_CPU_IS_PPC
         #define p_uthread_yield_cpu() __asm__ __volatile__("or 27,27,27" ::: "memory")
     #else
         #define p_uthread_yield_cpu() __asm__ __volatile__("" ::: "memory")
@@ -164,7 +154,7 @@ ulib_ret uthread_sleep(utime_ns t);
 
 /// Cost of @func{uthread_yield_cpu}, relative to the cheapest instruction it maps to.
 #ifndef UTHREAD_YIELD_CPU_COST
-    #if defined(_M_IX86) || defined(_M_X64) || defined(__i386__) || defined(__x86_64__)
+    #if ULIB_CPU_IS_X86
         #define UTHREAD_YIELD_CPU_COST 32
     #else
         #define UTHREAD_YIELD_CPU_COST 1

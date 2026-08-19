@@ -74,11 +74,6 @@ typedef enum uvec_ret {
  * @{
  */
 
-/// Cache line size (B).
-#ifndef UVEC_CACHE_LINE_SIZE
-#define UVEC_CACHE_LINE_SIZE 64
-#endif
-
 /**
  * Quicksort stack size.
  *

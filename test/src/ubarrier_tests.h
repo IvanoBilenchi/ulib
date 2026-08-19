@@ -8,13 +8,15 @@
 #ifndef UBARRIER_TESTS_H
 #define UBARRIER_TESTS_H
 
+#include "uplatform.h"
+
 void ubarrier_test_base(void);
 void ubarrier_test_reuse(void);
 void ubarrier_test_arrive(void);
 void ubarrier_test_drop(void);
 void ubarrier_test_unsupported(void);
 
-#ifdef ULIB_CONCURRENCY
+#if ULIB_CONCURRENCY
 #define UBARRIER_TESTS                                                                             \
     ubarrier_test_base, ubarrier_test_reuse, ubarrier_test_arrive, ubarrier_test_drop
 #else

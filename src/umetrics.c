@@ -8,6 +8,7 @@
 #include "umetrics.h"
 #include "uattrs.h"
 #include "ulib_ret.h"
+#include "uplatform.h"
 #include "ustrbuf.h"
 #include "ustream.h"
 #include "ustring.h"
@@ -15,7 +16,7 @@
 #include "uutils.h"
 #include <stddef.h>
 
-#if defined(__unix__) || defined(__APPLE__)
+#if ULIB_OS_IS_UNIX
 
 #include <sys/resource.h>
 
@@ -26,7 +27,7 @@ ULIB_CONST ULIB_INLINE utime_ns timeval_ns(struct timeval t) {
 }
 
 ULIB_CONST ULIB_INLINE size_t maxrss_bytes(long maxrss) {
-#ifdef __APPLE__
+#if ULIB_OS_IS_APPLE
     return (size_t)maxrss;
 #else
     return (size_t)maxrss * 1024;
@@ -45,7 +46,7 @@ static ulib_ret umetrics_fill(UMetrics *metrics, umetrics_flags flags) {
     return ULIB_OK;
 }
 
-#elif defined(_WIN32)
+#elif ULIB_OS_IS_WIN
 
 // clang-format off
 #include <windows.h>

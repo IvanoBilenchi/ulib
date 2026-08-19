@@ -12,6 +12,8 @@
 #ifndef UUTILS_H
 #define UUTILS_H
 
+#include "uplatform.h"
+
 /**
  * @defgroup utils Utils
  * @{
@@ -42,7 +44,7 @@
 
 /// C and C++ compatible zero initializer.
 // clang-format off
-#ifdef __cplusplus
+#if ULIB_LANG_IS_CPP
 #define ulib_zero_init {}
 #else
 #define ulib_zero_init { 0 }
@@ -102,7 +104,7 @@
  *
  * @param exp @ctype{boolean expression} Boolean expression.
  */
-#if defined(__GNUC__) || defined(__clang__)
+#if ULIB_CC_IS_GNU
 #define ulib_likely(exp) __builtin_expect(!!(exp), 1)
 #else
 #define ulib_likely(exp) (exp)
@@ -113,7 +115,7 @@
  *
  * @param exp @ctype{boolean expression} Boolean expression.
  */
-#if defined(__GNUC__) || defined(__clang__)
+#if ULIB_CC_IS_GNU
 #define ulib_unlikely(exp) __builtin_expect(!!(exp), 0)
 #else
 #define ulib_unlikely(exp) (exp)

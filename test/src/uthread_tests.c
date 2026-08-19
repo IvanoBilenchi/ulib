@@ -54,7 +54,7 @@ void uthread_test_base(void) {
     utest_assert_uint(t3_state, ==, ITERATIONS);
 }
 
-#ifdef ULIB_CONCURRENCY
+#if ULIB_CONCURRENCY
 
 static void id_worker(void *v) {
     UThreadId *out = (UThreadId *)v;
@@ -69,7 +69,7 @@ void uthread_test_id(void) {
     utest_assert_uint(self, !=, UTHREAD_ID_NULL);
     utest_assert_uint(uthread_id(), ==, self);
 
-#ifdef ULIB_CONCURRENCY
+#if ULIB_CONCURRENCY
     UThread t[ID_THREADS];
     UThreadId ids[ID_THREADS][2] = { { UTHREAD_ID_NULL } };
 

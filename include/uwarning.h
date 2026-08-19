@@ -12,6 +12,7 @@
 #ifndef UWARNING_H
 #define UWARNING_H
 
+#include "uplatform.h"
 #include "uutils.h"
 
 /**
@@ -26,9 +27,9 @@
  *
  * @param msg Warning message.
  */
-#if defined(__GNUC__) || defined(__clang__)
+#if ULIB_CC_IS_GNU
     #define ULIB_WARNING(msg) P_ULIB_PRAGMA(GCC warning #msg)
-#elif defined(_MSC_VER)
+#elif ULIB_CC_IS_MSVC
     #define ULIB_WARNING(msg)                                                                      \
         __pragma(message(__FILE__ ":" ULIB_MACRO_STRINGIZE(__LINE__) ": warning: " #msg))
 #else
@@ -40,9 +41,9 @@
  *
  * @param msg Error message.
  */
-#if defined(__GNUC__) || defined(__clang__)
+#if ULIB_CC_IS_GNU
     #define ULIB_ERROR(msg) P_ULIB_PRAGMA(GCC error #msg)
-#elif defined(__cplusplus)
+#elif ULIB_LANG_IS_CPP
     #define ULIB_ERROR(msg) static_assert(false, #msg);
 #else
     #define ULIB_ERROR(msg) _Static_assert(0, #msg);
@@ -83,11 +84,11 @@
 #define ULIB_DEPRECATED_MACRO                                                                      \
     ULIB_WARNING(Deprecated. See the docstring for a possible replacement.)
 
-#if defined(__GNUC__) || defined(__clang__)
+#if ULIB_CC_IS_GNU
     #define ULIB_DEPRECATED(msg) __attribute__((__deprecated__(#msg)))
     #define ULIB_DEPRECATED_ENUM(old_val, new_val)                                                 \
         old_val __attribute__((__deprecated__("Use " #new_val " instead."))) = new_val
-#elif defined(_MSC_VER)
+#elif ULIB_CC_IS_MSVC
     #define ULIB_DEPRECATED(msg) __declspec(deprecated(#msg))
     #define ULIB_DEPRECATED_ENUM(old_val, new_val) old_val = new_val
 #else
@@ -102,15 +103,15 @@
 #endif // ULIB_NO_DEPRECATED
 
 /// Suppresses unused variable warnings.
-#if defined(__GNUC__) || defined(__clang__)
+#if ULIB_CC_IS_GNU
     #define ulib_unused __attribute__((__unused__))
-#elif defined(_MSC_VER)
+#elif ULIB_CC_IS_MSVC
     #define ulib_unused __pragma(warning(suppress : 4100))
 #else
     #define ulib_unused
 #endif
 
-#if defined(__GNUC__) && !defined(__clang__)
+#if ULIB_CC_IS_GCC
     #define P_ULIB_GCC_SUPPRESS_BEGIN _Pragma("GCC diagnostic push")
     #define P_ULIB_GCC_SUPPRESS(warning) ULIB_PRAGMA(GCC diagnostic ignored warning)
     #define P_ULIB_GCC_SUPPRESS_END _Pragma("GCC diagnostic pop")
@@ -120,7 +121,7 @@
     #define P_ULIB_GCC_SUPPRESS_END
 #endif
 
-#ifdef __clang__
+#if ULIB_CC_IS_CLANG
     #define P_ULIB_CLANG_SUPPRESS_BEGIN _Pragma("clang diagnostic push")
     #define P_ULIB_CLANG_SUPPRESS(warning) ULIB_PRAGMA(clang diagnostic ignored warning)
     #define P_ULIB_CLANG_SUPPRESS_END _Pragma("clang diagnostic pop")
@@ -130,7 +131,7 @@
     #define P_ULIB_CLANG_SUPPRESS_END
 #endif
 
-#ifdef _MSC_VER
+#if ULIB_CC_IS_MSVC
     #define P_ULIB_MSVC_SUPPRESS_BEGIN __pragma(warning(push))
     #define P_ULIB_MSVC_SUPPRESS(warning) __pragma(warning(disable : warnings))
     #define P_ULIB_MSVC_SUPPRESS_END __pragma(warning(pop))
@@ -140,11 +141,11 @@
     #define P_ULIB_MSVC_SUPPRESS_END
 #endif
 
-#ifdef __clang__
+#if ULIB_CC_IS_CLANG
     #define P_ULIB_GNUC_SUPPRESS_BEGIN P_ULIB_CLANG_SUPPRESS_BEGIN
     #define P_ULIB_GNUC_SUPPRESS(warning) P_ULIB_CLANG_SUPPRESS(warning)
     #define P_ULIB_GNUC_SUPPRESS_END P_ULIB_CLANG_SUPPRESS_END
-#elif defined(__GNUC__)
+#elif ULIB_CC_IS_GCC
     #define P_ULIB_GNUC_SUPPRESS_BEGIN P_ULIB_GCC_SUPPRESS_BEGIN
     #define P_ULIB_GNUC_SUPPRESS(warning) P_ULIB_GCC_SUPPRESS(warning)
     #define P_ULIB_GNUC_SUPPRESS_END P_ULIB_GCC_SUPPRESS_END

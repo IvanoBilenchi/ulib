@@ -183,17 +183,13 @@ void ulock_test_simple(void) {
     ULock lock = ulib_zero_init;
     utest_assert_enum(ulock(&lock), ==, ULIB_OK);
     utest_assert(ulock_trylock(&lock));
-#ifdef ULIB_CONCURRENCY
+#if ULIB_CONCURRENCY
     utest_assert_false(ulock_trylock(&lock));
-#else
-    utest_assert(ulock_trylock(&lock));
 #endif
     ulock_unlock(&lock);
     ulock_lock(&lock);
-#ifdef ULIB_CONCURRENCY
+#if ULIB_CONCURRENCY
     utest_assert_false(ulock_trylock(&lock));
-#else
-    utest_assert(ulock_trylock(&lock));
 #endif
     ulock_unlock(&lock);
 
@@ -235,17 +231,13 @@ void ulock_test_spin(void) {
     USLock lock = ulib_zero_init;
     utest_assert_enum(ulock(&lock), ==, ULIB_OK);
     utest_assert(ulock_trylock(&lock));
-#ifdef ULIB_CONCURRENCY
+#if ULIB_CONCURRENCY
     utest_assert_false(ulock_trylock(&lock));
-#else
-    utest_assert(ulock_trylock(&lock));
 #endif
     ulock_unlock(&lock);
     ulock_lock(&lock);
-#ifdef ULIB_CONCURRENCY
+#if ULIB_CONCURRENCY
     utest_assert_false(ulock_trylock(&lock));
-#else
-    utest_assert(ulock_trylock(&lock));
 #endif
     ulock_unlock(&lock);
 
@@ -264,20 +256,15 @@ void ulock_test_read_write(void) {
     URWLock lock = ulib_zero_init;
     utest_assert_enum(ulock(&lock), ==, ULIB_OK);
     utest_assert(ulock_trylock(ulock_write(&lock)));
-#ifdef ULIB_CONCURRENCY
+#if ULIB_CONCURRENCY
     utest_assert_false(ulock_trylock(ulock_write(&lock)));
     utest_assert_false(ulock_trylock(ulock_read(&lock)));
-#else
-    utest_assert(ulock_trylock(ulock_write(&lock)));
-    utest_assert(ulock_trylock(ulock_read(&lock)));
 #endif
     ulock_unlock(ulock_write(&lock));
     utest_assert(ulock_trylock(ulock_read(&lock)));
     utest_assert(ulock_trylock(ulock_read(&lock)));
-#ifdef ULIB_CONCURRENCY
+#if ULIB_CONCURRENCY
     utest_assert_false(ulock_trylock(ulock_write(&lock)));
-#else
-    utest_assert(ulock_trylock(ulock_write(&lock)));
 #endif
     ulock_unlock(ulock_read(&lock));
     ulock_unlock(ulock_read(&lock));

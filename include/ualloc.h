@@ -12,6 +12,8 @@
 #ifndef UALLOC_H
 #define UALLOC_H
 
+#include "uplatform.h"
+
 /// Pointer type.
 typedef void *ulib_ptr;
 
@@ -28,9 +30,9 @@ typedef void *ulib_ptr;
  */
 #ifndef ULIB_MALLOC_ALIGN
 #include <stdalign.h>
-#ifdef _WIN32
+#if ULIB_OS_IS_WIN
 #define ULIB_MALLOC_ALIGN alignof(long double)
-#elif defined(__APPLE__) && defined(__aarch64__)
+#elif ULIB_OS_IS_APPLE && ULIB_CPU_IS_ARM64
 #define ULIB_MALLOC_ALIGN ((size_t)16U)
 #else
 #define ULIB_MALLOC_ALIGN alignof(max_align_t)
@@ -116,23 +118,23 @@ typedef void *ulib_ptr;
  * @destructor{ulib_stackfree}
  * @alias void *ulib_stackalloc(size_t size);
  */
-#if defined(__GLIBC__) || defined(__sun) || defined(__CYGWIN__)
+#if ULIB_LIBC_IS_GLIBC || ULIB_OS_IS_SOLARIS || ULIB_OS_IS_CYGWIN
 #include <alloca.h>
-#define P_ULIB_FOUND_ALLOCA alloca
-#elif defined(_WIN32)
+#define P_ULIB_ALLOCA alloca
+#elif ULIB_OS_IS_WIN
 #include <malloc.h>
-#define P_ULIB_FOUND_ALLOCA _alloca
+#define P_ULIB_ALLOCA _alloca
 #else
 #include <stdlib.h> // IWYU pragma: keep, required for alloca on some platforms
 #ifdef alloca
-#define P_ULIB_FOUND_ALLOCA alloca
+#define P_ULIB_ALLOCA alloca
 #endif
 #endif
 
 #ifdef ULIB_STACKALLOC
 #define ulib_stackalloc ULIB_STACKALLOC
-#elif defined(P_ULIB_FOUND_ALLOCA)
-#define ulib_stackalloc P_ULIB_FOUND_ALLOCA
+#elif defined(P_ULIB_ALLOCA)
+#define ulib_stackalloc P_ULIB_ALLOCA
 #else
 #define ulib_stackalloc ulib_malloc
 #endif
@@ -148,7 +150,7 @@ typedef void *ulib_ptr;
  */
 #ifdef ULIB_STACKFREE
 #define ulib_stackfree ULIB_STACKFREE
-#elif defined(P_ULIB_FOUND_ALLOCA)
+#elif defined(P_ULIB_ALLOCA)
 #include "uutils.h"
 #define ulib_stackfree ulib_noop_func
 #else

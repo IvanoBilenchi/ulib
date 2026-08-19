@@ -7,9 +7,10 @@
 #include "ucond.h"
 #include "ulib_ret.h"
 #include "ulock.h"
+#include "uplatform.h"
 #include "uwarning.h"
 
-#ifdef ULIB_CONCURRENCY
+#if ULIB_CONCURRENCY
 
 #include "uatomic.h"
 #include "ufutex.h"

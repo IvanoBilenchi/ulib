@@ -8,11 +8,13 @@
 #ifndef USEM_TESTS_H
 #define USEM_TESTS_H
 
+#include "uplatform.h"
+
 void usem_test_base(void);
 void usem_test_wait_post(void);
 void usem_test_mutex(void);
 
-#ifdef ULIB_CONCURRENCY
+#if ULIB_CONCURRENCY
 #define USEM_TESTS usem_test_base, usem_test_wait_post, usem_test_mutex
 #else
 #define USEM_TESTS usem_test_base, usem_test_mutex

@@ -22,7 +22,7 @@ void uiter_test_many(void) {
     utest_assert_uint(*c, ==, data[0]);
     utest_assert_null(uiter_next(&iter));
 
-#ifdef __cplusplus
+#if ULIB_LANG_IS_CPP
     void const *elems[] = { data, data + 1, data + 2 };
     iter = uiter_enum(ulib_array_count(elems), elems);
 #else

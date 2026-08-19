@@ -7,18 +7,19 @@
 #include "ufutex.h"
 #include "uatomic.h"
 #include "ulib_ret.h"
+#include "uplatform.h" // IWYU pragma: keep, for the platform futex implementations
 #include <stdint.h>
 
 // NOLINTBEGIN(readability-non-const-parameter)
 
-#ifdef ULIB_CONCURRENCY
+#if ULIB_CONCURRENCY
 
 #include "udebug.h"
 #include "uthread.h"
 #include "utime.h"
 #include "uutils.h"
 
-#ifdef __APPLE__ // Cross-platform futex implementation.
+#if ULIB_OS_IS_APPLE // Cross-platform futex implementation.
 
 #include <errno.h>
 #include <os/os_sync_wait_on_address.h>
@@ -39,7 +40,7 @@ ulib_ret ufutex_wake_all(UAtomic(uint32_t) *addr) {
     return errno == ENOENT ? ULIB_NO : ULIB_ERR;
 }
 
-#elif defined(__linux__)
+#elif ULIB_OS_IS_LINUX
 
 #include <errno.h>
 #include <limits.h>
@@ -72,7 +73,7 @@ ulib_ret ufutex_wake_all(UAtomic(uint32_t) *addr) {
     return futex_wake(addr, INT_MAX);
 }
 
-#elif defined(_WIN32)
+#elif ULIB_OS_IS_WIN
 
 #include <windows.h>
 

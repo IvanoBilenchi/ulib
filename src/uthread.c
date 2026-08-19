@@ -8,11 +8,12 @@
 
 #include "uthread.h"
 #include "ulib_ret.h"
+#include "uplatform.h"
 #include "utime.h"
 
-#ifdef ULIB_CONCURRENCY
+#if ULIB_CONCURRENCY
 
-#ifdef P_ULIB_HAS_PTHREADS
+#if ULIB_OS_HAS_PTHREADS
 
 #include <pthread.h>
 #include <stddef.h>
@@ -40,7 +41,7 @@ ulib_ret uthread_detach(UThread *thread) {
     return pthread_detach(thread->_handle) ? ULIB_ERR : ULIB_OK;
 }
 
-#elif defined(_WIN32)
+#elif ULIB_OS_IS_WIN
 
 #include <windows.h>
 
@@ -94,7 +95,7 @@ ulib_ret uthread_detach(ulib_unused UThread *thread) {
 
 #endif // ULIB_CONCURRENCY
 
-#ifdef ULIB_CONCURRENCY
+#if ULIB_CONCURRENCY
 
 #include "uatomic.h"
 #include "uutils.h"
@@ -123,7 +124,7 @@ UThreadId uthread_id(void) {
 
 #endif // ULIB_CONCURRENCY
 
-#if defined(__unix__) || defined(__APPLE__)
+#if ULIB_OS_IS_POSIX
 
 #include <errno.h>
 #include <sys/errno.h>
@@ -139,7 +140,7 @@ ulib_ret uthread_sleep(utime_ns t) {
     return ret ? ULIB_ERR : ULIB_OK;
 }
 
-#elif defined(_WIN32)
+#elif ULIB_OS_IS_WIN
 
 #ifndef _WINDOWS_
 #include <windows.h>

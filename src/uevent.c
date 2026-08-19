@@ -6,6 +6,7 @@
 
 #include "uevent.h"
 #include "ulib_ret.h"
+#include "uplatform.h"
 #include "uwarning.h"
 #include <stdbool.h>
 
@@ -14,7 +15,7 @@ enum {
     EVENT_SET = 1U,
 };
 
-#ifdef ULIB_CONCURRENCY
+#if ULIB_CONCURRENCY
 
 #include "uatomic.h"
 #include "ufutex.h"

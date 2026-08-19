@@ -12,6 +12,7 @@
 #ifndef UBIT_H
 #define UBIT_H
 
+#include "uplatform.h"
 #include "uutils.h"
 
 /**
@@ -280,7 +281,7 @@
  */
 #define ubit_first_set(N, mask) ULIB_MACRO_CONCAT(p_ubit_first_set_, N)(mask)
 
-#if !defined(ULIB_NO_BUILTINS) && defined(__GNUC__)
+#if ULIB_CC_HAS_BUILTINS
 
 #define p_ubit_count_set_8(mask) __builtin_popcount(mask)
 #define p_ubit_count_set_16(mask) __builtin_popcount(mask)

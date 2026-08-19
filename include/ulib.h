@@ -36,6 +36,7 @@
 #include "umeta.h"
 #include "umetrics.h"
 #include "unumber.h"
+#include "uplatform.h"
 #include "urand.h"
 #include "usem.h"
 #include "ustrbuf.h"

@@ -6,11 +6,13 @@
  * @copyright SPDX-License-Identifier: ISC
  */
 
-#ifdef ULIB_CONCURRENCY
+#include "uplatform.h"
 
-#include "ulock.h"
+#if ULIB_CONCURRENCY
+
 #include "uatomic.h"
 #include "ulib_ret.h"
+#include "ulock.h"
 #include "unumber.h"
 #include "uthread.h"
 #include "uwarning.h"
@@ -447,11 +449,11 @@ void p_URWRLock_unlock(URWRLock *lock) {
 
 // MARK: - Platform
 
-#elif defined(__unix__) || defined(__APPLE__)
+#elif ULIB_OS_HAS_PTHREADS
 
 #include <pthread.h> // IWYU pragma: keep
 
-#ifdef __APPLE__ // ULock
+#if ULIB_OS_IS_APPLE // ULock
 
 #include <os/lock.h>
 
@@ -559,7 +561,7 @@ void p_URWRLock_unlock(URWRLock *lock) {
     pthread_rwlock_unlock(&lock->_super._h);
 }
 
-#elif defined(_WIN32)
+#elif ULIB_OS_IS_WIN
 
 #include <windows.h>
 

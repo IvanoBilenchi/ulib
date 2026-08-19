@@ -7,10 +7,11 @@
 
 #include "usem.h"
 #include "ulib_ret.h"
+#include "uplatform.h"
 #include <stdbool.h>
 #include <stdint.h>
 
-#ifdef ULIB_CONCURRENCY
+#if ULIB_CONCURRENCY
 
 #include "uatomic.h"
 #include "ufutex.h"

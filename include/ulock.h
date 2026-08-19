@@ -16,6 +16,7 @@
 #include "uatomic.h"
 #include "uattrs.h"
 #include "ulib_ret.h"
+#include "uplatform.h" // IWYU pragma: keep, for the platform lock declarations
 #include "uutils.h"
 #include <stdbool.h>
 
@@ -28,7 +29,7 @@ struct USLock {
     uatomic_flag _flag;
 };
 
-#ifdef ULIB_CONCURRENCY
+#if ULIB_CONCURRENCY
     #ifndef ULIB_PLATFORM_LOCKS
         #include "uthread.h"
         #include <stdint.h>
@@ -48,9 +49,9 @@ struct USLock {
             UAtomic(p_ulib_spin_t) _rspins;
             UAtomic(p_ulib_spin_t) _wspins;
         };
-    #elif defined(__unix__) || defined(__APPLE__)
+    #elif ULIB_OS_HAS_PTHREADS
         #include <pthread.h> // IWYU pragma: keep
-        #ifdef __APPLE__
+        #if ULIB_OS_IS_APPLE
             #include <os/lock.h>
             struct ULock {
                 os_unfair_lock _h;
@@ -66,7 +67,7 @@ struct USLock {
         struct URWLock {
             pthread_rwlock_t _h;
         };
-    #elif defined(_WIN32)
+    #else
         #include <windows.h>
         struct ULock {
             SRWLOCK _h;
@@ -77,12 +78,8 @@ struct USLock {
         struct URWLock {
             SRWLOCK _h;
         };
-    #else
-        #undef ULIB_CONCURRENCY
     #endif
-#endif // ULIB_CONCURRENCY
-
-#ifndef ULIB_CONCURRENCY
+#else // ULIB_CONCURRENCY
     struct ULock {
         char _h;
     };
@@ -158,7 +155,7 @@ URWRLock *ulock_read(URWLock *lock) {
 
 /// @}
 
-#ifdef ULIB_CONCURRENCY
+#if ULIB_CONCURRENCY
 
 #define P_ULOCK_DECL_LOCK(T)                                                                       \
     ULIB_API void p_##T##_lock(T *lock);                                                           \
@@ -182,9 +179,9 @@ ULIB_END_DECLS
 
 // Generic API
 
-#ifdef ULIB_CONCURRENCY
+#if ULIB_CONCURRENCY
 
-#ifdef __cplusplus
+#if ULIB_LANG_IS_CPP
 
 /// @cond
 // clang-format off
@@ -206,7 +203,7 @@ P_ULOCK_CPP_LOCK_IMPL(URWRLock)
 // clang-format on
 /// @endcond
 
-#else
+#else // ULIB_LANG_IS_CPP
 
 /**
  * @addtogroup ULock_api
@@ -294,7 +291,7 @@ P_ULOCK_CPP_LOCK_IMPL(URWRLock)
 
 /// @}
 
-#endif // __cplusplus
+#endif // ULIB_LANG_IS_CPP
 
 /**
  * @addtogroup ULock_api

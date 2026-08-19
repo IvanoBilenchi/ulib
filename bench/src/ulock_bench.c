@@ -426,7 +426,7 @@ int main(int argc, char **argv) {
 
     if (!config.work_threads) fail("at least one thread is required");
 
-#ifndef ULIB_CONCURRENCY
+#if !ULIB_CONCURRENCY
     config.load_threads = 0;
 #endif
 

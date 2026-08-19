@@ -12,6 +12,8 @@
 #ifndef UATTRS_H
 #define UATTRS_H
 
+#include "uplatform.h"
+
 /**
  * @defgroup attributes API attributes
  * @{
@@ -29,7 +31,7 @@
  * @def ULIB_END_DECLS
  */
 
-#ifdef __cplusplus
+#if ULIB_LANG_IS_CPP
     #define ULIB_BEGIN_DECLS extern "C" {
     #define ULIB_END_DECLS }
 #else
@@ -42,14 +44,14 @@
  * @def ULIB_API
  */
 
-#if defined(_WIN32) || defined(__CYGWIN__)
+#if ULIB_OS_IS_WIN || ULIB_OS_IS_CYGWIN
     #ifdef ULIB_SHARED
         #ifdef ULIB_BUILDING
             #define ULIB_DLL_SPEC dllexport
         #else
             #define ULIB_DLL_SPEC dllimport
         #endif
-        #ifdef __GNUC__
+        #if ULIB_CC_IS_GNU
             #define ULIB_API __attribute__((ULIB_DLL_SPEC))
         #else
             #define ULIB_API __declspec(ULIB_DLL_SPEC)
@@ -58,7 +60,7 @@
         #define ULIB_API
     #endif
 #else
-    #if __GNUC__ >= 4
+    #if ULIB_CC_HAS_VISIBILITY
         #define ULIB_API __attribute__((__visibility__("default")))
     #else
         #define ULIB_API
@@ -74,9 +76,9 @@
  * @note Useful to keep a cold path out of a hot caller, so that the caller does not pay for
  *       the register spills that the cold path needs.
  */
-#if defined(__GNUC__) || defined(__clang__)
+#if ULIB_CC_IS_GNU
     #define ULIB_NOINLINE __attribute__((__noinline__))
-#elif defined(_MSC_VER)
+#elif ULIB_CC_IS_MSVC
     #define ULIB_NOINLINE __declspec(noinline)
 #else
     #define ULIB_NOINLINE
@@ -90,7 +92,7 @@
  *
  * @note This lets the compiler sometimes produce more optimized code.
  */
-#if defined(__GNUC__) || defined(__clang__)
+#if ULIB_CC_IS_GNU
     #define ULIB_PURE __attribute__((__pure__))
 #else
     #define ULIB_PURE
@@ -106,16 +108,16 @@
  * @warning Should not be used on functions that accept pointer arguments, unless the contents
  *          of the pointed-to memory never change between successive invocations.
  */
-#if defined(__GNUC__) || defined(__clang__)
+#if ULIB_CC_IS_GNU
     #define ULIB_CONST __attribute__((__const__))
 #else
     #define ULIB_CONST
 #endif
 
 /// Marks functions that do not return.
-#if defined(__GNUC__) || defined(__clang__)
+#if ULIB_CC_IS_GNU
     #define ULIB_NORETURN __attribute__((__noreturn__))
-#elif defined(_MSC_VER)
+#elif ULIB_CC_IS_MSVC
     #define ULIB_NORETURN __declspec(noreturn)
 #else
     #define ULIB_NORETURN

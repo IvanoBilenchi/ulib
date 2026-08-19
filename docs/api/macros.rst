@@ -2,6 +2,12 @@
 Macros
 ======
 
+Platform
+========
+
+.. doxygengroup:: platform
+   :content-only:
+
 API attributes
 ==============
 

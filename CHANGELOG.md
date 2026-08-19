@@ -9,6 +9,7 @@ uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- `uplatform.h`, providing platform, compiler, architecture and language detection macros.
 - `UMetrics` and related API.
 - `ULogPerfData`, `ULogPerfType`, `ulog_perf_data_span` and `ulog_perf_data_metrics`.
 - `ulog_metrics` and `ulog_write_metrics`.
@@ -26,6 +27,7 @@ uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `ULOG_PERF` events now carry a `ULogPerfData` pointer rather than a `utime_ns` pointer.
 
 ### Removed
+- `ULIB_LITTLE_ENDIAN`, superseded by `ULIB_CPU_BYTE_ORDER`.
 - `ulog_ns`, superseded by `ulog_perf` and `ulog_perf_data_span`.
 
 

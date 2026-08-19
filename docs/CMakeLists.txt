@@ -29,7 +29,7 @@ set(DOXYGEN_PREDEFINED
     "ULIB_DEPRECATED(msg)=/** @@deprecated msg */"
     "ULIB_DEPRECATED_ENUM(old,new)=/** @@deprecated Use @@val{##new##} instead. */ old = new"
     "ULIB_INLINE="
-    "ULIB_CONCURRENCY="
+    "ULIB_CONCURRENCY=1"
     "UAtomic(T)=T"
 )
 set(DOXYGEN_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/doxygen")

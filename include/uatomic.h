@@ -12,13 +12,7 @@
 #ifndef UATOMIC_H
 #define UATOMIC_H
 
-// clang-format off
-#ifdef ULIB_CONCURRENCY
-    #if defined(__STDC_NO_ATOMICS__) && !defined(_WIN32)
-        #undef ULIB_CONCURRENCY
-    #endif
-#endif
-// clang-format on
+#include "uplatform.h"
 
 /**
  * @defgroup UAtomic_types Atomic types
@@ -38,11 +32,11 @@
 
 // NOLINTEND(modernize-macro-to-enum)
 
-#ifdef ULIB_CONCURRENCY
+#if ULIB_CONCURRENCY
 
 #include <stdatomic.h>
 
-#ifdef __cplusplus
+#if ULIB_LANG_IS_CPP
 #define p_umemory_order(order) ((int)memory_order_##order)
 #else
 #define p_umemory_order(order) memory_order_##order
@@ -170,7 +164,7 @@ typedef enum UMemoryOrder {
  *
  * @alias void uatomic(UAtomic(T) *obj, T value);
  */
-#ifdef __cplusplus
+#if ULIB_LANG_IS_CPP
 #define uatomic(obj, value) ((*obj) = (value))
 #else
 #define uatomic(obj, value) atomic_init(obj, value)
@@ -523,7 +517,7 @@ bool uatomic_flag_test_and_set(bool *flag) {
 #define uatomic_thread_fence(order) ((void)(order))
 #define uatomic_signal_fence(order) ((void)(order))
 
-#ifdef __cplusplus
+#if ULIB_LANG_IS_CPP
 #define p_uatomic_fun(T, name) uatomic_##name
 #else
 #define p_uatomic_fun(T, name) p_uatomic_##T##_##name
@@ -594,7 +588,7 @@ P_UATOMIC_FUNCS_GEN(long long, llong)
 P_UATOMIC_FUNCS_GEN(unsigned long long, ullong)
 P_UATOMIC_FUNCS_GEN_BASE(void *, ptr)
 
-#ifndef __cplusplus
+#if ULIB_LANG_IS_C
 
 #define uatomic_exchange(obj, value)                                                               \
     _Generic((obj),                                                                                \
@@ -689,7 +683,7 @@ P_UATOMIC_FUNCS_GEN_BASE(void *, ptr)
         long long *: p_uatomic_fun(llong, fetch_xor),                                              \
         unsigned long long *: p_uatomic_fun(ullong, fetch_xor))(obj, value)
 
-#endif // __cplusplus
+#endif // ULIB_LANG_IS_C
 
 /// @endcond
 

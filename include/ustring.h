@@ -15,6 +15,7 @@
 #include "uattrs.h"
 #include "ulib_ret_t.h"
 #include "unumber.h"
+#include "uplatform.h"
 #include "ustring_raw.h"
 #include "uwarning.h"
 #include <limits.h>
@@ -42,7 +43,7 @@ ULIB_INLINE
 ulib_uint p_ustring_large_size(struct p_ustring_large string) {
     ulib_uint size = 0;
     unsigned const offset = P_USTRING_FLAGS_SIZE - sizeof(size);
-#if ULIB_LITTLE_ENDIAN
+#if ULIB_CPU_BYTE_ORDER == ULIB_CPU_ORDER_LITTLE
     size = *(ulib_uint *)(string._flags + offset);
 #else
     for (unsigned i = 0; i < sizeof(size); ++i) {
