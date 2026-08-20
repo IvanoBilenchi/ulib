@@ -33,7 +33,7 @@ static utime_ns burn_cpu(utime_ns span) {
 
 void umetrics_test_supported(void) {
     umetrics_flags const supported = umetrics_supported();
-    utest_assert_uint(supported & ~(umetrics_flags)UMETRICS_ALL, ==, UMETRICS_NONE);
+    utest_assert_uint(ubit_sub(supported, UMETRICS_ALL), ==, UMETRICS_NONE);
     utest_assert_uint(umetrics_supported(), ==, supported);
 }
 
@@ -54,7 +54,7 @@ void umetrics_test_get(void) {
         utest_assert_uint(metrics.available, ==, UMETRICS_NONE);
     }
 
-    utest_assert_uint(non_zero_metrics(&metrics) & ~metrics.available, ==, UMETRICS_NONE);
+    utest_assert_uint(ubit_sub(non_zero_metrics(&metrics), metrics.available), ==, UMETRICS_NONE);
 }
 
 void umetrics_test_flags(void) {
@@ -76,7 +76,7 @@ void umetrics_test_flags(void) {
 
         utest_assert_ok(ret);
         utest_assert_uint(metrics.available, ==, flags[i]);
-        utest_assert_uint(non_zero_metrics(&metrics) & ~flags[i], ==, UMETRICS_NONE);
+        utest_assert_uint(ubit_sub(non_zero_metrics(&metrics), flags[i]), ==, UMETRICS_NONE);
     }
 }
 

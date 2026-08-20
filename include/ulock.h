@@ -1,8 +1,8 @@
 /**
  * Locking primitives.
  *
- * @author Davide Loconte <davide.loconte21@gmail.com>
  * @author Ivano Bilenchi
+ * @author Davide Loconte <davide.loconte21@gmail.com>
  *
  * @copyright Copyright (c) 2026 Ivano Bilenchi <https://ivanobilenchi.com>
  * @copyright SPDX-License-Identifier: ISC
@@ -16,7 +16,7 @@
 #include "uatomic.h"
 #include "uattrs.h"
 #include "ulib_ret.h"
-#include "uplatform.h" // IWYU pragma: keep, for the platform lock declarations
+#include "uplatform.h"
 #include "uutils.h"
 #include <stdbool.h>
 
@@ -183,7 +183,6 @@ ULIB_END_DECLS
 
 #if ULIB_LANG_IS_CPP
 
-/// @cond
 // clang-format off
 #define P_ULOCK_CPP_LOCK_IMPL(T)                                                                   \
     ULIB_INLINE void ulock_lock(T *lock) { p_##T##_lock(lock); }                                   \
@@ -201,9 +200,23 @@ P_ULOCK_CPP_IMPL(USLock)
 P_ULOCK_CPP_IMPL(URWLock)
 P_ULOCK_CPP_LOCK_IMPL(URWRLock)
 // clang-format on
-/// @endcond
 
 #else // ULIB_LANG_IS_CPP
+
+#define p_ulock_generic_xtor(xtor, lock)                                                           \
+    _Generic((lock),                                                                               \
+        ULock *: p_ULock##xtor,                                                                    \
+        URLock *: p_URLock##xtor,                                                                  \
+        USLock *: p_USLock##xtor,                                                                  \
+        URWLock *: p_URWLock##xtor)
+
+#define p_ulock_generic(op, lock)                                                                  \
+    _Generic((lock),                                                                               \
+        ULock *: p_ULock##op,                                                                      \
+        URLock *: p_URLock##op,                                                                    \
+        USLock *: p_USLock##op,                                                                    \
+        URWLock *: p_URWLock##op,                                                                  \
+        URWRLock *: p_URWRLock##op)
 
 /**
  * @addtogroup ULock_api
@@ -219,12 +232,7 @@ P_ULOCK_CPP_LOCK_IMPL(URWRLock)
  * @destructor{ulock_deinit}
  * @alias ulib_ret ulock(UAnyLock *lock);
  */
-#define ulock(lock)                                                                                \
-    _Generic((lock),                                                                               \
-        ULock *: p_ULock,                                                                          \
-        URLock *: p_URLock,                                                                        \
-        USLock *: p_USLock,                                                                        \
-        URWLock *: p_URWLock)(lock)
+#define ulock(lock) p_ulock_generic_xtor(, lock)(lock)
 
 /**
  * Deinitializes a lock.
@@ -233,12 +241,7 @@ P_ULOCK_CPP_LOCK_IMPL(URWRLock)
  *
  * @alias void ulock_deinit(UAnyLock *lock);
  */
-#define ulock_deinit(lock)                                                                         \
-    _Generic((lock),                                                                               \
-        ULock *: p_ULock_deinit,                                                                   \
-        URLock *: p_URLock_deinit,                                                                 \
-        USLock *: p_USLock_deinit,                                                                 \
-        URWLock *: p_URWLock_deinit)(lock)
+#define ulock_deinit(lock) p_ulock_generic_xtor(_deinit, lock)(lock)
 
 /**
  * Locks a lock.
@@ -247,13 +250,7 @@ P_ULOCK_CPP_LOCK_IMPL(URWRLock)
  *
  * @alias void ulock_lock(UAnyLock *lock);
  */
-#define ulock_lock(lock)                                                                           \
-    _Generic((lock),                                                                               \
-        ULock *: p_ULock_lock,                                                                     \
-        URLock *: p_URLock_lock,                                                                   \
-        USLock *: p_USLock_lock,                                                                   \
-        URWLock *: p_URWLock_lock,                                                                 \
-        URWRLock *: p_URWRLock_lock)(lock)
+#define ulock_lock(lock) p_ulock_generic(_lock, lock)(lock)
 
 /**
  * Tries to lock a lock.
@@ -266,13 +263,7 @@ P_ULOCK_CPP_LOCK_IMPL(URWRLock)
  *
  * @alias bool ulock_trylock(UAnyLock *lock);
  */
-#define ulock_trylock(lock)                                                                        \
-    _Generic((lock),                                                                               \
-        ULock *: p_ULock_trylock,                                                                  \
-        URLock *: p_URLock_trylock,                                                                \
-        USLock *: p_USLock_trylock,                                                                \
-        URWLock *: p_URWLock_trylock,                                                              \
-        URWRLock *: p_URWRLock_trylock)(lock)
+#define ulock_trylock(lock) p_ulock_generic(_trylock, lock)(lock)
 
 /**
  * Unlocks a lock.
@@ -281,13 +272,7 @@ P_ULOCK_CPP_LOCK_IMPL(URWRLock)
  *
  * @alias void ulock_unlock(UAnyLock *lock);
  */
-#define ulock_unlock(lock)                                                                         \
-    _Generic((lock),                                                                               \
-        ULock *: p_ULock_unlock,                                                                   \
-        URLock *: p_URLock_unlock,                                                                 \
-        USLock *: p_USLock_unlock,                                                                 \
-        URWLock *: p_URWLock_unlock,                                                               \
-        URWRLock *: p_URWRLock_unlock)(lock)
+#define ulock_unlock(lock) p_ulock_generic(_unlock, lock)(lock)
 
 /// @}
 

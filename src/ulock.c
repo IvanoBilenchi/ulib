@@ -11,6 +11,7 @@
 #if ULIB_CONCURRENCY
 
 #include "uatomic.h"
+#include "ubit.h"
 #include "ulib_ret.h"
 #include "ulock.h"
 #include "unumber.h"
@@ -69,7 +70,7 @@ void p_USLock_unlock(USLock *lock) {
 
 // MARK: - Adaptive spin
 
-// Adaptive spin budget, in backoff ladder steps: spinning is worth it when it is either short,
+// Adaptive spin budget, in backoff steps: spinning is worth it when it is either short,
 // meaning the wait ended within GOOD_SPIN steps, or rare, meaning the acquisitions that never
 // wait at all pay for the occasional long one.
 enum {
@@ -232,30 +233,30 @@ void p_URLock_unlock(URLock *lock) {
 // `_wnotify`: monotonic event counter futex to park and wake writers.
 
 #define RW_READER UINT32_C(1)
-#define RW_MASK ((UINT32_C(1) << 30) - 1)
+#define RW_MASK ubit32_range(0, 30)
 #define RW_WRITE_LOCKED RW_MASK
 #define RW_MAX_ACTIVE (RW_MASK - 1)
-#define RW_READERS_WAITING (UINT32_C(1) << 30)
-#define RW_WRITERS_WAITING (UINT32_C(1) << 31)
+#define RW_R_WAIT ubit32_bit(30)
+#define RW_W_WAIT ubit32_bit(31)
 
 static inline bool rw_is_unlocked(uint32_t s) {
-    return !(s & RW_MASK);
+    return !ubit_any(s, RW_MASK);
 }
 
 static inline uint32_t rw_active(uint32_t s) {
-    return s & RW_MASK;
+    return ubit_and(s, RW_MASK);
 }
 
 static inline bool rw_has_waiters(uint32_t s) {
-    return !!(s & (RW_READERS_WAITING | RW_WRITERS_WAITING));
+    return ubit_any(s, RW_R_WAIT | RW_W_WAIT);
 }
 
 static inline bool rw_has_readers_waiting(uint32_t s) {
-    return !!(s & RW_READERS_WAITING);
+    return ubit_any(s, RW_R_WAIT);
 }
 
 static inline bool rw_has_writers_waiting(uint32_t s) {
-    return !!(s & RW_WRITERS_WAITING);
+    return ubit_any(s, RW_W_WAIT);
 }
 
 static inline bool rw_is_read_lockable(uint32_t s) {
@@ -273,7 +274,7 @@ static inline ulib_ret rw_wake_readers(UAtomic(uint32_t) *state) {
 
 static void rw_wake(UAtomic(uint32_t) *state, UAtomic(uint32_t) *wnotify, uint32_t s) {
     while (rw_has_writers_waiting(s)) {
-        if (!uatomic_wcas_ex(state, &s, s & ~RW_WRITERS_WAITING, UMO_RELAXED, UMO_RELAXED)) {
+        if (!uatomic_wcas_ex(state, &s, ubit_sub(s, RW_W_WAIT), UMO_RELAXED, UMO_RELAXED)) {
             // Someone else acquired the lock, bail out.
             if (!rw_is_unlocked(s)) return;
             continue;
@@ -281,11 +282,11 @@ static void rw_wake(UAtomic(uint32_t) *state, UAtomic(uint32_t) *wnotify, uint32
         // If we really woke a writer, it will wake readers once it unlocks.
         if (rw_wake_writer(wnotify) == ULIB_OK) return;
         // Otherwise, wake all readers.
-        s &= ~RW_WRITERS_WAITING;
+        s = ubit_sub(s, RW_W_WAIT);
         break;
     }
 
-    if (s == RW_READERS_WAITING) {
+    if (s == RW_R_WAIT) {
         // Losing this CAS means that either a writer acquired the lock, or another thread
         // already woke the readers. In either case, there's nothing to do.
         if (uatomic_cas_ex(state, &s, 0, UMO_RELAXED, UMO_RELAXED)) rw_wake_readers(state);
@@ -317,10 +318,10 @@ ULIB_NOINLINE static void rw_read_contended(URWLock *lock, uint16_t budget) {
 
         // Flag readers-waiting and sleep.
         if (!rw_has_readers_waiting(s)) {
-            uint32_t const new_s = s | RW_READERS_WAITING;
+            uint32_t const new_s = s | RW_R_WAIT;
             if (!uatomic_cas_ex(&lock->_state, &s, new_s, UMO_RELAXED, UMO_RELAXED)) continue;
         }
-        ufutex_wait(&lock->_state, s | RW_READERS_WAITING);
+        ufutex_wait(&lock->_state, s | RW_R_WAIT);
 
         // Reset state.
         budget = uatomic_load_ex(&lock->_rspins, UMO_RELAXED);
@@ -355,11 +356,11 @@ ULIB_NOINLINE static void rw_write_contended(URWLock *lock, p_ulib_spin_t budget
 
         // Flag writers-waiting and sleep.
         if (!rw_has_writers_waiting(s)) {
-            uint32_t const new_s = s | RW_WRITERS_WAITING;
+            uint32_t const new_s = s | RW_W_WAIT;
             if (!uatomic_cas_ex(&lock->_state, &s, new_s, UMO_RELAXED, UMO_RELAXED)) continue;
         }
         // This needs to be propagated to avoid lost wakeups.
-        writers_waiting = RW_WRITERS_WAITING;
+        writers_waiting = RW_W_WAIT;
 
         uint32_t seq = uatomic_load_ex(&lock->_wnotify, UMO_ACQUIRE);
         // Re-check _state so we don't sleep through a wakeup that raced with us.

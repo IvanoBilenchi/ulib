@@ -18,6 +18,7 @@ uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `ULIB_UID`.
 
 ### Changed
+- Reworked `ubit_*` and `ulib_uint_*` APIs to be generic.
 - Renamed `utime_interval_*` to `utime_span_*`.
 - Renamed `uostream_write_time_interval` to `uostream_write_time_span`.
 - Renamed `ulog_write_elapsed` to `ulog_write_span`.
@@ -29,6 +30,7 @@ uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Removed
 - `ULIB_LITTLE_ENDIAN`, superseded by `ULIB_CPU_BYTE_ORDER`.
 - `ulog_ns`, superseded by `ulog_perf` and `ulog_perf_data_span`.
+- `ulib_float_prev` and `ulib_float_next` (use standard `<tgmath.h>` functions).
 
 
 ## [0.3.2] - 2026-06-08

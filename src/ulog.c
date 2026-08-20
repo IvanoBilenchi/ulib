@@ -46,7 +46,7 @@ ULIB_INLINE ulog_level builtin_level(unsigned index) {
 ULIB_INLINE unsigned builtin_index(ulog_level level) {
     if (level < ULOG_TRACE) return 0;
     if (level >= ULOG_FATAL) return LEVEL_COUNT - 1;
-    return ulib_uint32_log2(level) - P_ULOG_LEVEL_MIN_EXP + 1;
+    return ulib_uint_log2(level) - P_ULOG_LEVEL_MIN_EXP + 1;
 }
 
 // `padding` must be already filled with spaces.

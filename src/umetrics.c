@@ -7,6 +7,7 @@
 
 #include "umetrics.h"
 #include "uattrs.h"
+#include "ubit.h"
 #include "ulib_ret.h"
 #include "uplatform.h"
 #include "ustrbuf.h"
@@ -34,15 +35,15 @@ ULIB_CONST ULIB_INLINE size_t maxrss_bytes(long maxrss) {
 #endif
 }
 
-static ulib_ret umetrics_fill(UMetrics *metrics, umetrics_flags flags) {
+static ulib_ret umetrics_fill(UMetrics *m, umetrics_flags f) {
     struct rusage usage;
     if (getrusage(RUSAGE_SELF, &usage)) return ULIB_ERR;
-    if (flags & UMETRICS_CPU_USER) metrics->cpu_user = timeval_ns(usage.ru_utime);
-    if (flags & UMETRICS_CPU_SYSTEM) metrics->cpu_system = timeval_ns(usage.ru_stime);
-    if (flags & UMETRICS_MEM_PEAK) metrics->mem_peak = maxrss_bytes(usage.ru_maxrss);
-    if (flags & UMETRICS_CTX_VOLUNTARY) metrics->ctx_voluntary = (unsigned long)usage.ru_nvcsw;
-    if (flags & UMETRICS_CTX_INVOLUNTARY) metrics->ctx_involuntary = (unsigned long)usage.ru_nivcsw;
-    metrics->available = flags;
+    if (ubit_any(f, UMETRICS_CPU_USER)) m->cpu_user = timeval_ns(usage.ru_utime);
+    if (ubit_any(f, UMETRICS_CPU_SYSTEM)) m->cpu_system = timeval_ns(usage.ru_stime);
+    if (ubit_any(f, UMETRICS_MEM_PEAK)) m->mem_peak = maxrss_bytes(usage.ru_maxrss);
+    if (ubit_any(f, UMETRICS_CTX_VOLUNTARY)) m->ctx_voluntary = (unsigned long)usage.ru_nvcsw;
+    if (ubit_any(f, UMETRICS_CTX_INVOLUNTARY)) m->ctx_involuntary = (unsigned long)usage.ru_nivcsw;
+    m->available = f;
     return ULIB_OK;
 }
 
@@ -62,26 +63,26 @@ ULIB_CONST ULIB_INLINE utime_ns filetime_ns(FILETIME t) {
     return (utime_ns)ret.QuadPart * 100;
 }
 
-static ulib_ret umetrics_fill(UMetrics *metrics, umetrics_flags flags) {
+static ulib_ret umetrics_fill(UMetrics *m, umetrics_flags f) {
     HANDLE self = GetCurrentProcess();
-    if (flags & UMETRICS_CPU_TIME) {
+    if (ubit_any(f, UMETRICS_CPU_TIME)) {
         FILETIME creation;
         FILETIME exit;
         FILETIME kernel;
         FILETIME user;
         if (!GetProcessTimes(self, &creation, &exit, &kernel, &user)) return ULIB_ERR;
-        if (flags & UMETRICS_CPU_USER) metrics->cpu_user = filetime_ns(user);
-        if (flags & UMETRICS_CPU_SYSTEM) metrics->cpu_system = filetime_ns(kernel);
+        if (ubit_any(f, UMETRICS_CPU_USER)) m->cpu_user = filetime_ns(user);
+        if (ubit_any(f, UMETRICS_CPU_SYSTEM)) m->cpu_system = filetime_ns(kernel);
     }
 
-    if (flags & UMETRICS_MEM_PEAK) {
+    if (ubit_any(f, UMETRICS_MEM_PEAK)) {
         PROCESS_MEMORY_COUNTERS counters;
         counters.cb = sizeof(counters);
         if (!GetProcessMemoryInfo(self, &counters, sizeof(counters))) return ULIB_ERR;
-        metrics->mem_peak = (size_t)counters.PeakWorkingSetSize;
+        m->mem_peak = (size_t)counters.PeakWorkingSetSize;
     }
 
-    metrics->available = flags;
+    m->available = f;
     return ULIB_OK;
 }
 
@@ -91,7 +92,7 @@ static ulib_ret umetrics_fill(UMetrics *metrics, umetrics_flags flags) {
 
 #define P_UMETRICS_SUPPORTED UMETRICS_NONE
 
-static ulib_ret umetrics_fill(ulib_unused UMetrics *metrics, ulib_unused umetrics_flags flags) {
+static ulib_ret umetrics_fill(ulib_unused UMetrics *m, ulib_unused umetrics_flags f) {
     return ULIB_ERR_UNSUPPORTED;
 }
 
@@ -104,7 +105,7 @@ umetrics_flags umetrics_supported(void) {
 ulib_ret umetrics(UMetrics *metrics, umetrics_flags flags) {
     *metrics = (UMetrics)ulib_zero_init;
     if (!flags) return ULIB_OK;
-    if (!(flags &= (umetrics_flags)P_UMETRICS_SUPPORTED)) return ULIB_ERR_UNSUPPORTED;
+    if (!(flags = ubit_and(flags, P_UMETRICS_SUPPORTED))) return ULIB_ERR_UNSUPPORTED;
     return umetrics_fill(metrics, flags);
 }
 

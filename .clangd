@@ -4,6 +4,4 @@ Diagnostics:
   Includes:
     IgnoreHeader:
       - /_[^/]+\.h$
-      - ^_[^/]+\.h$
-      - ^bits/[^/]+\.h$
-      - bits/pthreadtypes\.h$
+      - bits/.*\.h$

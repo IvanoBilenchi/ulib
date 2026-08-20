@@ -13,6 +13,7 @@
 #define UMETRICS_H
 
 #include "uattrs.h"
+#include "ubit.h"
 #include "ulib_ret.h"
 #include "unumber.h"
 #include "ustring.h"
@@ -27,7 +28,26 @@ ULIB_BEGIN_DECLS
  */
 
 /// Metric flags.
-typedef unsigned umetrics_flags;
+typedef UBit(8) umetrics_flags;
+
+/// Matric flags bit offsets.
+enum umetrics_flags_bits {
+
+    /// CPU time spent executing program code.
+    UMETRICS_BIT_CPU_USER = 0,
+
+    /// CPU time spent executing system code.
+    UMETRICS_BIT_CPU_SYSTEM = 1,
+
+    /// Peak physical memory usage.
+    UMETRICS_BIT_MEM_PEAK = 2,
+
+    /// Voluntary context switches.
+    UMETRICS_BIT_CTX_VOLUNTARY = 3,
+
+    /// Involuntary context switches.
+    UMETRICS_BIT_CTX_INVOLUNTARY = 4,
+};
 
 /// Metric flags bitmask values.
 enum umetrics_flags_values {
@@ -36,19 +56,19 @@ enum umetrics_flags_values {
     UMETRICS_NONE = 0,
 
     /// CPU time spent executing program code.
-    UMETRICS_CPU_USER = 1U << 0U,
+    UMETRICS_CPU_USER = 1U << UMETRICS_BIT_CPU_USER,
 
     /// CPU time spent executing system code.
-    UMETRICS_CPU_SYSTEM = 1U << 1U,
+    UMETRICS_CPU_SYSTEM = 1U << UMETRICS_BIT_CPU_SYSTEM,
 
     /// Peak physical memory usage.
-    UMETRICS_MEM_PEAK = 1U << 2U,
+    UMETRICS_MEM_PEAK = 1U << UMETRICS_BIT_MEM_PEAK,
 
     /// Voluntary context switches.
-    UMETRICS_CTX_VOLUNTARY = 1U << 3U,
+    UMETRICS_CTX_VOLUNTARY = 1U << UMETRICS_BIT_CTX_VOLUNTARY,
 
     /// Involuntary context switches.
-    UMETRICS_CTX_INVOLUNTARY = 1U << 4U,
+    UMETRICS_CTX_INVOLUNTARY = 1U << UMETRICS_BIT_CTX_INVOLUNTARY,
 
     /// All CPU time metrics.
     UMETRICS_CPU_TIME = UMETRICS_CPU_USER | UMETRICS_CPU_SYSTEM,
