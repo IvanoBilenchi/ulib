@@ -11,7 +11,6 @@
 #if ULIB_CONCURRENCY
 
 #include "uatomic.h"
-#include "ubit.h"
 #include "ulib_ret.h"
 #include "ulock.h"
 #include "unumber.h"
@@ -63,9 +62,10 @@ void p_USLock_unlock(USLock *lock) {
     uatomic_flag_clear_ex(&lock->_flag, UMO_RELEASE);
 }
 
-#ifndef ULIB_PLATFORM_LOCKS
+#ifndef ULIB_PLATFORM_SYNC
 
 #include "uattrs.h"
+#include "ubit.h"
 #include "ufutex.h"
 
 // MARK: - Adaptive spin
@@ -458,7 +458,7 @@ void p_URWRLock_unlock(URWRLock *lock) {
 
 // MARK: - Platform
 
-#elif ULIB_OS_HAS_PTHREADS // ULIB_PLATFORM_LOCKS
+#elif ULIB_OS_HAS_PTHREADS // ULIB_PLATFORM_SYNC
 
 #include <pthread.h> // IWYU pragma: keep
 
@@ -570,7 +570,7 @@ void p_URWRLock_unlock(URWRLock *lock) {
     pthread_rwlock_unlock(&lock->_super._h);
 }
 
-#elif ULIB_OS_IS_WIN // ULIB_PLATFORM_LOCKS
+#elif ULIB_OS_IS_WIN // ULIB_PLATFORM_SYNC
 
 #include <windows.h>
 
@@ -645,7 +645,7 @@ void p_URWRLock_unlock(URWRLock *lock) {
     ReleaseSRWLockShared(&lock->_super._h);
 }
 
-#endif // ULIB_PLATFORM_LOCKS
+#endif // ULIB_PLATFORM_SYNC
 
 #else // ULIB_CONCURRENCY
 

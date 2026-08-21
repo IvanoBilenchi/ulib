@@ -48,39 +48,32 @@ jobs:
         run: cmake --build --preset build
 
   test:
-    name: "Test (os: ${{matrix.os}}, lib_type: ${{matrix.lib_type}}, types: ${{matrix.types}}, concurrency: ${{matrix.concurrency}})"
+    name: "Test (os: ${{matrix.os}}, variant: ${{matrix.variant}})"
     runs-on: ${{matrix.os}}-latest
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu, macos, windows]
-        lib_type: [STATIC]
-        types: [NORMAL, TINY, HUGE]
-        concurrency: [OFF]
-        sanitizers: [undefined;address]
+        variant: [normal, tiny, huge, concurrency, platform-sync, shared-tsan]
         include:
-          - os: ubuntu
-            lib_type: SHARED
+          - lib_type: STATIC
             types: NORMAL
+            concurrency: OFF
+            platform_sync: OFF
+            sanitizers: address;undefined
+          - variant: tiny
+            types: TINY
+          - variant: huge
+            types: HUGE
+          - variant: concurrency
             concurrency: ON
-          - os: ubuntu
+          - variant: platform-sync
+            concurrency: ON
+            platform_sync: ON
+          - variant: shared-tsan
             lib_type: SHARED
-            types: NORMAL
             concurrency: ON
             sanitizers: thread
-          - os: macos
-            lib_type: SHARED
-            types: NORMAL
-            concurrency: ON
-          - os: macos
-            lib_type: SHARED
-            types: NORMAL
-            concurrency: ON
-            sanitizers: thread
-          - os: windows
-            lib_type: SHARED
-            types: NORMAL
-            concurrency: ON
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -92,6 +85,7 @@ jobs:
           -DULIB_LIBRARY_TYPE=${{matrix.lib_type}}
           -DULIB_TYPES=${{matrix.types}}
           -DULIB_CONCURRENCY=${{matrix.concurrency}}
+          -DULIB_PLATFORM_SYNC=${{matrix.platform_sync}}
           -DULIB_SANITIZERS="${{matrix.sanitizers}}"
 
       - name: Build

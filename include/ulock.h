@@ -30,7 +30,7 @@ struct USLock {
 };
 
 #if ULIB_CONCURRENCY
-    #ifndef ULIB_PLATFORM_LOCKS
+    #ifndef ULIB_PLATFORM_SYNC
         #include "uthread.h"
         #include <stdint.h>
 

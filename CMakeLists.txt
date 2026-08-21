@@ -57,6 +57,7 @@ option(ULIB_LEAKS "Enable debugging of memory leaks" OFF)
 option(ULIB_CONCURRENCY "Enable concurrency support" OFF)
 option(ULIB_LOCK_ADAPTIVE_SPIN "Enable adaptive spinning in locks" ${ULIB_CONCURRENCY})
 option(ULIB_LARGE_THREAD_ID "Use 64 bit thread identifiers" OFF)
+option(ULIB_PLATFORM_SYNC "Use platform synchronization primitives" OFF)
 option(ULIB_COLOR "Enable colored output" ON)
 
 enum_option(
@@ -172,6 +173,10 @@ endif()
 
 if(ULIB_LARGE_THREAD_ID)
     list(APPEND ULIB_PUBLIC_DEFINES ULIB_LARGE_THREAD_ID)
+endif()
+
+if(ULIB_PLATFORM_SYNC)
+    list(APPEND ULIB_PUBLIC_DEFINES ULIB_PLATFORM_SYNC)
 endif()
 
 if(ULIB_CLANG_TIDY)

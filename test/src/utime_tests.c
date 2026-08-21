@@ -26,7 +26,7 @@ void utime_test_ns(void) {
     time(&start);
     do {
         time(&end);
-    } while (difftime(end, start) < 1.5);
+    } while (difftime(end, start) < 1.1);
     t = utime_get_ns() - t;
 
     utest_assert_uint(t, >, 1000000000);
