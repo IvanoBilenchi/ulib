@@ -53,17 +53,18 @@ ulib_bench_threads(THREADS_SATURATED 1)
 ulib_bench_threads(THREADS_OVERSUBSCRIBED_2X 2)
 ulib_bench_threads(THREADS_OVERSUBSCRIBED_4X 4)
 
-# name|work_threads|load_threads|cs_rounds|nc_rounds|acquisitions
+# name|work_threads|load_threads|cs_rounds|nc_rounds|acquisitions|locks
 # acquisitions = 3000000 / (cs_rounds + nc_rounds)
 set(REGIMES
-    "uncontended|1|0|5|5|300000"
-    "saturated, convoy|${THREADS_SATURATED}|0|10|0|300000"
-    "saturated, short cs|${THREADS_SATURATED}|0|100|100|15000"
-    "saturated, long cs|${THREADS_SATURATED}|0|2000|500|1200"
-    "saturated, low duty|${THREADS_SATURATED}|0|50|950|3000"
-    "oversubscribed 4x|${THREADS_OVERSUBSCRIBED_4X}|0|100|100|15000"
-    "saturated + load|${THREADS_SATURATED}|${CORES}|100|100|15000"
-    "oversubscribed 2x + load|${THREADS_OVERSUBSCRIBED_2X}|${CORES}|100|100|15000"
+    "uncontended|1|0|5|5|300000|1"
+    "cold|${THREADS_SATURATED}|0|20000|500|2000|100"
+    "saturated, convoy|${THREADS_SATURATED}|0|10|0|300000|1"
+    "saturated, short cs|${THREADS_SATURATED}|0|100|100|15000|1"
+    "saturated, long cs|${THREADS_SATURATED}|0|2000|500|1200|1"
+    "saturated, low duty|${THREADS_SATURATED}|0|50|950|3000|1"
+    "oversubscribed 4x|${THREADS_OVERSUBSCRIBED_4X}|0|100|100|15000|1"
+    "saturated + load|${THREADS_SATURATED}|${CORES}|100|100|15000|1"
+    "oversubscribed 2x + load|${THREADS_OVERSUBSCRIBED_2X}|${CORES}|100|100|15000|1"
 )
 
 set(LOCKS ulock urlock urwlock urwlock-read urwlock-mixed)
@@ -84,6 +85,7 @@ foreach(LOCK ${LOCKS})
         list(GET FIELDS 3 CS)
         list(GET FIELDS 4 NC)
         list(GET FIELDS 5 ACQUISITIONS)
+        list(GET FIELDS 6 LOCK_COUNT)
         ulib_add_bench_test(
             "Benchmark: ULock (${LOCK}, ${NAME})" ulib-bench-ulock
             --lock "${LOCK}"
@@ -92,6 +94,7 @@ foreach(LOCK ${LOCKS})
             --cs "${CS}"
             --nc "${NC}"
             --acquisitions "${ACQUISITIONS}"
+            --locks "${LOCK_COUNT}"
         )
     endforeach()
 endforeach()

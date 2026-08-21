@@ -18,11 +18,6 @@ enum {
     METRICS = UMETRICS_CPU_TIME | UMETRICS_CTX_SWITCHES,
 };
 
-static UAtomic(uint32_t) sink = 0;
-static uint32_t shared_state = 1;
-static UAtomic(uint32_t) load_stop = 0;
-static ULatch load_ready;
-
 #define fail(...) (ulog_error(__VA_ARGS__), exit(EXIT_FAILURE))
 #define check(exp) p_check(exp, #exp)
 
@@ -39,14 +34,14 @@ static inline uint32_t work_step(uint32_t state) {
     return state;
 }
 
-static inline void critical_work(uint32_t rounds) {
-    uint32_t state = shared_state;
+static inline void critical_work(uint32_t rounds, uint32_t *guarded) {
+    uint32_t state = *guarded;
     for (uint32_t i = 0; i < rounds; ++i) state = work_step(state);
-    shared_state = state;
+    *guarded = state;
 }
 
-static inline uint32_t shared_work(uint32_t rounds, uint32_t state) {
-    state ^= shared_state;
+static inline uint32_t shared_work(uint32_t rounds, uint32_t state, uint32_t const *guarded) {
+    state ^= *guarded;
     for (uint32_t i = 0; i < rounds; ++i) state = work_step(state);
     return state;
 }
@@ -75,7 +70,16 @@ typedef union AnyLock {
     URWRLock rwr;
 } AnyLock;
 
-static AnyLock the_lock;
+ULIB_SUPPRESS_ONE(MSVC, 4324)
+typedef struct LockSlot {
+    _Alignas(ULIB_CPU_CACHE_LINE_SIZE) AnyLock lock;
+    _Alignas(ULIB_CPU_CACHE_LINE_SIZE) uint32_t state;
+} LockSlot;
+ULIB_SUPPRESS_END(MSVC)
+
+static LockSlot *slots;
+static unsigned long lock_count;
+static UAtomic(unsigned long) lock_cursor = 0;
 
 typedef struct LockWrapper {
     char const *name;
@@ -87,19 +91,23 @@ typedef struct LockWrapper {
 } LockWrapper;
 
 static inline ulib_ret lw_init(LockWrapper const *wrapper) {
-    return wrapper->init_func(&the_lock);
+    for (unsigned long i = 0; i < lock_count; ++i) {
+        ulib_ret const ret = wrapper->init_func(&slots[i].lock);
+        if (ret) return ret;
+    }
+    return ULIB_OK;
 }
 
 static inline void lw_deinit(LockWrapper const *wrapper) {
-    wrapper->deinit_func(&the_lock);
+    for (unsigned long i = 0; i < lock_count; ++i) wrapper->deinit_func(&slots[i].lock);
 }
 
-static inline void lw_lock(LockWrapper const *wrapper) {
-    wrapper->lock_func(&the_lock);
+static inline void lw_lock(LockWrapper const *wrapper, unsigned long idx) {
+    wrapper->lock_func(&slots[idx].lock);
 }
 
-static inline void lw_unlock(LockWrapper const *wrapper) {
-    wrapper->unlock_func(&the_lock);
+static inline void lw_unlock(LockWrapper const *wrapper, unsigned long idx) {
+    wrapper->unlock_func(&slots[idx].lock);
 }
 
 // clang-format off
@@ -175,6 +183,7 @@ typedef struct Config {
     unsigned long cs_rounds;
     unsigned long nc_rounds;
     unsigned long acquisitions;
+    unsigned long locks;
 } Config;
 
 typedef struct Worker {
@@ -184,18 +193,33 @@ typedef struct Worker {
     unsigned long acquisitions;
 } Worker;
 
+static UAtomic(uint32_t) sink = 0;
+static UAtomic(bool) load_stop = 0;
+static ULatch load_ready;
+
+static inline unsigned long lock_index(unsigned long locks, unsigned long per_lock) {
+    if (locks <= 1) return 0;
+    unsigned long const n = uatomic_fetch_add_ex(&lock_cursor, 1, UMO_RELAXED);
+    return ulib_min(n / per_lock, locks - 1);
+}
+
 static void worker(void *arg) {
     Worker *w = (Worker *)arg;
     uint32_t state = SEED;
+
     bool const shared = w->lw->shared;
+    unsigned long const locks = w->config->locks;
+    unsigned long const per_lock = ulib_max(1, w->config->acquisitions / locks);
+
     for (unsigned long i = 0; i < w->acquisitions; ++i) {
-        lw_lock(w->lw);
+        unsigned long const idx = lock_index(locks, per_lock);
+        lw_lock(w->lw, idx);
         if (shared) {
-            state = shared_work(w->config->cs_rounds, state);
+            state = shared_work(w->config->cs_rounds, state, &slots[idx].state);
         } else {
-            critical_work(w->config->cs_rounds);
+            critical_work(w->config->cs_rounds, &slots[idx].state);
         }
-        lw_unlock(w->lw);
+        lw_unlock(w->lw, idx);
         state = local_work(w->config->nc_rounds, state);
     }
     uatomic_fetch_add_ex(&sink, state, UMO_RELAXED);
@@ -252,7 +276,7 @@ static void start_and_join_workers(Worker *workers, unsigned long count) {
 
 static UThread *create_and_start_loads(unsigned long count) {
     UThread *loads = bench_alloc(ulib_max(1, count) * sizeof(*loads));
-    uatomic_store_ex(&load_stop, 0, UMO_RELAXED);
+    uatomic_store_ex(&load_stop, false, UMO_RELAXED);
     check(ulatch(&load_ready, count));
     for (unsigned long i = 0; i < count; ++i) {
         check(uthread(loads + i, load_worker, NULL));
@@ -263,18 +287,30 @@ static UThread *create_and_start_loads(unsigned long count) {
 }
 
 static void stop_and_join_loads(UThread *loads, unsigned long count) {
-    uatomic_store_ex(&load_stop, 1, UMO_RELAXED);
+    uatomic_store_ex(&load_stop, true, UMO_RELAXED);
     for (unsigned long i = 0; i < count; ++i) {
         check(uthread_join(&loads[i]));
     }
     ulatch_deinit(&load_ready);
 }
 
+static void *alloc_slots(void) {
+    char *const raw = bench_alloc((lock_count * sizeof(*slots)) + ULIB_CPU_CACHE_LINE_SIZE);
+    size_t const pad = (ULIB_CPU_CACHE_LINE_SIZE - ((uintptr_t)raw % ULIB_CPU_CACHE_LINE_SIZE)) %
+                       ULIB_CPU_CACHE_LINE_SIZE;
+    slots = (LockSlot *)(raw + pad);
+    for (unsigned long i = 0; i < lock_count; ++i) slots[i].state = 1;
+    return raw;
+}
+
 static void bench_run(Config cfg) {
     LockWrapper const *lw = &lw_all[cfg.lock];
-    ulog_perf(NULL, "%s (threads=%lu, load=%lu, cs=%lu, nc=%lu, acquisitions=%lu)", lw->name,
-              cfg.work_threads, cfg.load_threads, cfg.cs_rounds, cfg.nc_rounds, cfg.acquisitions);
+    ulog_perf(NULL, "%s (threads=%lu, load=%lu, cs=%lu, nc=%lu, acquisitions=%lu, locks=%lu)",
+              lw->name, cfg.work_threads, cfg.load_threads, cfg.cs_rounds, cfg.nc_rounds,
+              cfg.acquisitions, cfg.locks);
 
+    lock_count = cfg.locks;
+    void *const raw_slots = alloc_slots();
     check(lw_init(lw));
 
     Worker *workers = create_workers(&cfg, lw);
@@ -302,6 +338,7 @@ static void bench_run(Config cfg) {
     ulib_free(loads);
     ulib_free(workers);
     lw_deinit(lw);
+    ulib_free(raw_slots);
 }
 
 static void bench_pause_cost(void) {
@@ -349,6 +386,7 @@ static void print_usage(char const *program) {
            "  -c, --cs <n>           work rounds performed while holding the lock\n"
            "  -n, --nc <n>           work rounds performed after releasing it\n"
            "  -a, --acquisitions <n> lock acquisitions, split across the contending threads\n"
+           "  -k, --locks <n>        distinct locks, swept in turn (default: 1)\n"
            "  -p, --pause            measure the cost of the CPU pause instruction and exit\n"
            "  -h, --help             print this message and exit\n\n"
            "Lock types: ",
@@ -378,6 +416,7 @@ static Action parse_args(int argc, char *const *argv, Config *config) {
         { "--cs", "-c", &config->cs_rounds },
         { "--nc", "-n", &config->nc_rounds },
         { "--acquisitions", "-a", &config->acquisitions },
+        { "--locks", "-k", &config->locks },
     };
 
     for (int i = 1; i < argc; ++i) {
@@ -416,6 +455,7 @@ int main(int argc, char **argv) {
         .cs_rounds = 100,
         .nc_rounds = 100,
         .acquisitions = 15000,
+        .locks = 1,
     };
 
     switch (parse_args(argc, argv, &config)) {
@@ -425,6 +465,7 @@ int main(int argc, char **argv) {
     }
 
     if (!config.work_threads) fail("at least one thread is required");
+    if (!config.locks) fail("at least one lock is required");
 
 #if !ULIB_CONCURRENCY
     config.load_threads = 0;

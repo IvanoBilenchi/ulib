@@ -150,6 +150,7 @@ $RECYCLE.BIN/
 /.cache
 /.idea
 /.vscode
+/bench/tools
 /build
 /build-*
 /cmake-build-*

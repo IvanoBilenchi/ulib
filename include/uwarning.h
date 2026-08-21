@@ -132,9 +132,9 @@
 #endif
 
 #if ULIB_CC_IS_MSVC
-    #define P_ULIB_MSVC_SUPPRESS_BEGIN __pragma(warning(push))
-    #define P_ULIB_MSVC_SUPPRESS(warning) __pragma(warning(disable : warnings))
-    #define P_ULIB_MSVC_SUPPRESS_END __pragma(warning(pop))
+    #define P_ULIB_MSVC_SUPPRESS_BEGIN _Pragma("warning(push)")
+    #define P_ULIB_MSVC_SUPPRESS(warnings) ULIB_PRAGMA(warning(disable : warnings))
+    #define P_ULIB_MSVC_SUPPRESS_END _Pragma("warning(pop)")
 #else
     #define P_ULIB_MSVC_SUPPRESS_BEGIN
     #define P_ULIB_MSVC_SUPPRESS(warning)

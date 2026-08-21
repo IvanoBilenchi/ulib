@@ -22,11 +22,11 @@
 
 // MARK: - Backoff
 
-typedef uint16_t backoff_t;
+typedef uint32_t backoff_t;
 
 enum {
-    MIN_BACKOFF = (1U << 4U) / UTHREAD_YIELD_CPU_COST,
-    MAX_BACKOFF = ulib_min((1U << 16U) / UTHREAD_YIELD_CPU_COST, UINT16_MAX),
+    MIN_BACKOFF = ulib_max((1U << 4U) / UTHREAD_YIELD_CPU_COST, 1U),
+    MAX_BACKOFF = ulib_max((1U << 16U) / UTHREAD_YIELD_CPU_COST, MIN_BACKOFF),
 };
 
 static inline backoff_t backoff(void) {
@@ -35,7 +35,7 @@ static inline backoff_t backoff(void) {
 
 static inline void backoff_yield(backoff_t *backoff) {
     for (backoff_t i = 0; i < *backoff; ++i) uthread_yield_cpu();
-    if (*backoff < MAX_BACKOFF) *backoff <<= 1;
+    if (*backoff <= MAX_BACKOFF / 2) *backoff <<= 1;
 }
 
 // MARK: - Spinlock
@@ -88,9 +88,13 @@ static inline Spinner spinner(void) {
     return (Spinner){ .backoff = backoff(), .i = 0 };
 }
 
+static inline void spinner_backoff(Spinner *spinner) {
+    backoff_yield(&spinner->backoff);
+}
+
 static inline bool spinner_spin(Spinner *spinner, p_ulib_spin_t budget) {
     if (spinner->i >= budget) return false;
-    backoff_yield(&spinner->backoff);
+    spinner_backoff(spinner);
     spinner->i++;
     return true;
 }
@@ -122,7 +126,7 @@ p_spin_update(UAtomic(p_ulib_spin_t) *budget, p_ulib_spin_t prev_budget, p_ulib_
     }
 }
 
-#define spin_init(field) uatomic(field, MAX_BUDGET)
+#define spin_init(field) uatomic(field, MIN_BUDGET)
 #define spin_load(field) uatomic_load_ex(field, UMO_RELAXED)
 #define spin_rewarded(field, prev) p_spin_rewarded(field, prev)
 #define spin_wasted(field, prev) p_spin_wasted(field, prev)
@@ -146,11 +150,9 @@ ulib_ret p_ULock(ULock *lock) {
 
 void p_ULock_deinit(ulib_unused ULock *lock) {}
 
-static inline bool lock_tryacquire(ULock *lock, p_ulib_spin_t budget) {
+static inline bool lock_tryacquire(ULock *lock) {
     uint32_t val = UNLOCKED;
-    if (!uatomic_cas_ex(&lock->_state, &val, LOCKED, UMO_ACQUIRE, UMO_RELAXED)) return false;
-    spin_rewarded(&lock->_spins, budget);
-    return true;
+    return uatomic_cas_ex(&lock->_state, &val, LOCKED, UMO_ACQUIRE, UMO_RELAXED);
 }
 
 static inline bool lock_tryacquire_spin(ULock *lock, p_ulib_spin_t budget) {
@@ -174,11 +176,15 @@ ULIB_NOINLINE static void lock_contended(ULock *lock, p_ulib_spin_t budget) {
 
 void p_ULock_lock(ULock *lock) {
     p_ulib_spin_t const budget = spin_load(&lock->_spins);
-    if (!lock_tryacquire(lock, budget)) lock_contended(lock, budget);
+    if (lock_tryacquire(lock)) {
+        spin_rewarded(&lock->_spins, budget);
+        return;
+    }
+    lock_contended(lock, budget);
 }
 
 bool p_ULock_trylock(ULock *lock) {
-    return lock_tryacquire(lock, spin_load(&lock->_spins));
+    return lock_tryacquire(lock);
 }
 
 void p_ULock_unlock(ULock *lock) {
@@ -313,7 +319,7 @@ ULIB_NOINLINE static void rw_read_contended(URWLock *lock, uint16_t budget) {
                 spin_update(&lock->_rspins, budget, spin.i);
                 return;
             }
-            uthread_yield_cpu();
+            spinner_backoff(&spin);
             continue;
         }
 
@@ -351,7 +357,7 @@ ULIB_NOINLINE static void rw_write_contended(URWLock *lock, p_ulib_spin_t budget
                 spin_update(&lock->_wspins, budget, spin.i);
                 return;
             }
-            uthread_yield_cpu();
+            spinner_backoff(&spin);
             continue;
         }
 
