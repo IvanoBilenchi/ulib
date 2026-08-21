@@ -98,15 +98,13 @@ ulib_ret uthread_detach(ulib_unused UThread *thread) {
 #if ULIB_CONCURRENCY
 
 #include "uatomic.h"
+#include "udebug.h"
 #include "uutils.h"
 
 static UThreadId next_thread_id(void) {
-    static UAtomic(UThreadId) next = UTHREAD_ID_NULL;
-    UThreadId cur = uatomic_load_ex(&next, UMO_RELAXED);
-    UThreadId id;
-    do {
-        if ((id = cur + 1) == UTHREAD_ID_NULL) id = 1;
-    } while (!uatomic_wcas_ex(&next, &cur, id, UMO_RELAXED, UMO_RELAXED));
+    static UAtomic(UThreadId) next = 1;
+    UThreadId id = uatomic_faa_ex(&next, 1, UMO_RELAXED);
+    ulib_assert(id != UTHREAD_ID_NULL);
     return id;
 }
 

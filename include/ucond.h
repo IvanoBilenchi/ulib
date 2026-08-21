@@ -77,12 +77,10 @@ void ucond_broadcast(UCond *cond);
 
 /// @}
 
-/// @cond
 ULIB_API void p_ucond_wait_ULock(UCond *cond, ULock *lock);
 ULIB_API void p_ucond_wait_URLock(UCond *cond, URLock *lock);
 ULIB_API void p_ucond_wait_USLock(UCond *cond, USLock *lock);
 ULIB_API void p_ucond_wait_URWLock(UCond *cond, URWLock *lock);
-/// @endcond
 
 ULIB_END_DECLS
 

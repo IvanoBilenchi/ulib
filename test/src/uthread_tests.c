@@ -9,6 +9,7 @@
 #include "ulib.h"
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 
 enum {
     ITERATIONS = 10,
@@ -68,6 +69,14 @@ void uthread_test_id(void) {
     UThreadId const self = uthread_id();
     utest_assert_uint(self, !=, UTHREAD_ID_NULL);
     utest_assert_uint(uthread_id(), ==, self);
+
+    utest_assert_uint(UTHREAD_ID_MAX, ==, (UThreadId)-1);
+
+    char buf[32];
+    char ref[32];
+    utest_assert_int(snprintf(buf, sizeof(buf), "%" UTHREAD_ID_FMT, self), >, 0);
+    utest_assert_int(snprintf(ref, sizeof(ref), "%ju", (uintmax_t)self), >, 0);
+    utest_assert_cstring(buf, ==, ref);
 
 #if ULIB_CONCURRENCY
     UThread t[ID_THREADS];

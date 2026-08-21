@@ -56,6 +56,7 @@ option(ULIB_CLANG_TIDY "Enable clang-tidy, if available" OFF)
 option(ULIB_LEAKS "Enable debugging of memory leaks" OFF)
 option(ULIB_CONCURRENCY "Enable concurrency support" OFF)
 option(ULIB_MULTICORE "Target system CPU has multiple cores" ${ULIB_CONCURRENCY})
+option(ULIB_LARGE_THREAD_ID "Use 64 bit thread identifiers" OFF)
 option(ULIB_COLOR "Enable colored output" ON)
 
 enum_option(
@@ -153,6 +154,10 @@ endif()
 
 if(NOT ULIB_COLOR)
     list(APPEND ULIB_PUBLIC_DEFINES ULIB_NO_COLOR)
+endif()
+
+if(ULIB_LARGE_THREAD_ID)
+    list(APPEND ULIB_PUBLIC_DEFINES ULIB_LARGE_THREAD_ID)
 endif()
 
 if(ULIB_LOG_LEVEL)
