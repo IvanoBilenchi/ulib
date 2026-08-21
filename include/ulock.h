@@ -33,21 +33,31 @@ struct USLock {
     #ifndef ULIB_PLATFORM_LOCKS
         #include "uthread.h"
         #include <stdint.h>
+
         typedef uint16_t p_ulib_spin_t;
+
+        #ifdef ULIB_LOCK_NO_SPIN
+            #define P_ULOCK_SPIN_FIELD(name)
+        #else
+            #define P_ULOCK_SPIN_FIELD(name) UAtomic(p_ulib_spin_t) name;
+        #endif
+
         struct ULock {
             UAtomic(uint32_t) _state;
-            UAtomic(p_ulib_spin_t) _spins;
+            P_ULOCK_SPIN_FIELD(_spins)
         };
+
         struct URLock {
             struct ULock _lock;
             UAtomic(UThreadId) _owner;
             uint32_t _count;
         };
+
         struct URWLock {
             UAtomic(uint32_t) _state;
             UAtomic(uint32_t) _wnotify;
-            UAtomic(p_ulib_spin_t) _rspins;
-            UAtomic(p_ulib_spin_t) _wspins;
+            P_ULOCK_SPIN_FIELD(_rspins)
+            P_ULOCK_SPIN_FIELD(_wspins)
         };
     #elif ULIB_OS_HAS_PTHREADS
         #include <pthread.h> // IWYU pragma: keep

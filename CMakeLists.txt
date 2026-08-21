@@ -55,7 +55,7 @@ option(ULIB_OPTIMIZE_FOR_HOST "Enable host CPU optimizations (keep OFF for distr
 option(ULIB_CLANG_TIDY "Enable clang-tidy, if available" OFF)
 option(ULIB_LEAKS "Enable debugging of memory leaks" OFF)
 option(ULIB_CONCURRENCY "Enable concurrency support" OFF)
-option(ULIB_MULTICORE "Target system CPU has multiple cores" ${ULIB_CONCURRENCY})
+option(ULIB_LOCK_ADAPTIVE_SPIN "Enable adaptive spinning in locks" ${ULIB_CONCURRENCY})
 option(ULIB_LARGE_THREAD_ID "Use 64 bit thread identifiers" OFF)
 option(ULIB_COLOR "Enable colored output" ON)
 
@@ -73,7 +73,7 @@ enum_option(
     VALUES STATIC SHARED OBJECT
 )
 enum_option(
-    ULIB_TYPES "Size of types used in the library"
+    ULIB_TYPES "Size of library types"
     VALUES NORMAL TINY HUGE
 )
 
@@ -156,10 +156,6 @@ if(NOT ULIB_COLOR)
     list(APPEND ULIB_PUBLIC_DEFINES ULIB_NO_COLOR)
 endif()
 
-if(ULIB_LARGE_THREAD_ID)
-    list(APPEND ULIB_PUBLIC_DEFINES ULIB_LARGE_THREAD_ID)
-endif()
-
 if(ULIB_LOG_LEVEL)
     list(APPEND ULIB_PUBLIC_DEFINES ULIB_LOG_LEVEL=ULOG_${ULIB_LOG_LEVEL})
 else()
@@ -170,8 +166,12 @@ if(ULIB_CONCURRENCY)
     list(APPEND ULIB_PUBLIC_DEFINES ULIB_CONCURRENCY_REQUESTED)
 endif()
 
-if(NOT ULIB_MULTICORE)
-    list(APPEND ULIB_PUBLIC_DEFINES ULIB_NO_MULTICORE)
+if(NOT ULIB_LOCK_ADAPTIVE_SPIN)
+    list(APPEND ULIB_PUBLIC_DEFINES ULIB_LOCK_NO_SPIN)
+endif()
+
+if(ULIB_LARGE_THREAD_ID)
+    list(APPEND ULIB_PUBLIC_DEFINES ULIB_LARGE_THREAD_ID)
 endif()
 
 if(ULIB_CLANG_TIDY)

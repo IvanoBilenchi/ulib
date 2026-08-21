@@ -88,39 +88,47 @@ static inline Spinner spinner(void) {
     return (Spinner){ .backoff = backoff(), .i = 0 };
 }
 
-static inline bool spinner_spin(ulib_unused Spinner *spinner, ulib_unused p_ulib_spin_t budget) {
-#ifndef ULIB_NO_MULTICORE
-    if (spinner->i < budget) {
-        backoff_yield(&spinner->backoff);
-        spinner->i++;
-        return true;
-    }
-#endif
-    return false;
+static inline bool spinner_spin(Spinner *spinner, p_ulib_spin_t budget) {
+    if (spinner->i >= budget) return false;
+    backoff_yield(&spinner->backoff);
+    spinner->i++;
+    return true;
 }
 
-static inline void
-spin_rewarded(ulib_unused UAtomic(p_ulib_spin_t) *budget, ulib_unused p_ulib_spin_t prev_budget) {
-#ifndef ULIB_NO_MULTICORE
+#ifdef ULIB_LOCK_NO_SPIN
+
+#define spin_init(field) ((void)0)
+#define spin_load(field) ((p_ulib_spin_t)0)
+#define spin_rewarded(field, prev) ((void)(prev))
+#define spin_wasted(field, prev) ((void)(prev))
+#define spin_update(field, prev, spin) ((void)(prev), (void)(spin))
+
+#else // ULIB_LOCK_NO_SPIN
+
+static inline void p_spin_rewarded(UAtomic(p_ulib_spin_t) *budget, p_ulib_spin_t prev_budget) {
     if (prev_budget < MAX_BUDGET) uatomic_store_ex(budget, prev_budget + 1, UMO_RELAXED);
-#endif
 }
 
-static inline void
-spin_wasted(ulib_unused UAtomic(p_ulib_spin_t) *budget, ulib_unused p_ulib_spin_t prev_budget) {
-#ifndef ULIB_NO_MULTICORE
+static inline void p_spin_wasted(UAtomic(p_ulib_spin_t) *budget, p_ulib_spin_t prev_budget) {
     if (prev_budget != MIN_BUDGET) uatomic_store_ex(budget, MIN_BUDGET, UMO_RELAXED);
-#endif
 }
 
 static inline void
-spin_update(UAtomic(p_ulib_spin_t) *budget, p_ulib_spin_t prev_budget, p_ulib_spin_t spin) {
+p_spin_update(UAtomic(p_ulib_spin_t) *budget, p_ulib_spin_t prev_budget, p_ulib_spin_t spin) {
     if (spin <= GOOD_SPIN) {
-        spin_rewarded(budget, prev_budget);
+        p_spin_rewarded(budget, prev_budget);
     } else {
-        spin_wasted(budget, prev_budget);
+        p_spin_wasted(budget, prev_budget);
     }
 }
+
+#define spin_init(field) uatomic(field, MAX_BUDGET)
+#define spin_load(field) uatomic_load_ex(field, UMO_RELAXED)
+#define spin_rewarded(field, prev) p_spin_rewarded(field, prev)
+#define spin_wasted(field, prev) p_spin_wasted(field, prev)
+#define spin_update(field, prev, spin) p_spin_update(field, prev, spin)
+
+#endif // ULIB_LOCK_NO_SPIN
 
 // MARK: - Mutex
 
@@ -132,7 +140,7 @@ enum {
 
 ulib_ret p_ULock(ULock *lock) {
     uatomic(&lock->_state, UNLOCKED);
-    uatomic(&lock->_spins, MAX_BUDGET);
+    spin_init(&lock->_spins);
     return ULIB_OK;
 }
 
@@ -157,7 +165,7 @@ static inline bool lock_tryacquire_spin(ULock *lock, p_ulib_spin_t budget) {
     return false;
 }
 
-ULIB_NOINLINE static void lock_contended(ULock *lock, uint16_t budget) {
+ULIB_NOINLINE static void lock_contended(ULock *lock, p_ulib_spin_t budget) {
     if (lock_tryacquire_spin(lock, budget)) return;
     while (uatomic_swp_ex(&lock->_state, CONTENDED, UMO_ACQUIRE) != UNLOCKED) {
         ufutex_wait(&lock->_state, CONTENDED);
@@ -165,12 +173,12 @@ ULIB_NOINLINE static void lock_contended(ULock *lock, uint16_t budget) {
 }
 
 void p_ULock_lock(ULock *lock) {
-    uint16_t const budget = uatomic_load_ex(&lock->_spins, UMO_RELAXED);
+    p_ulib_spin_t const budget = spin_load(&lock->_spins);
     if (!lock_tryacquire(lock, budget)) lock_contended(lock, budget);
 }
 
 bool p_ULock_trylock(ULock *lock) {
-    return lock_tryacquire(lock, uatomic_load_ex(&lock->_spins, UMO_RELAXED));
+    return lock_tryacquire(lock, spin_load(&lock->_spins));
 }
 
 void p_ULock_unlock(ULock *lock) {
@@ -324,7 +332,7 @@ ULIB_NOINLINE static void rw_read_contended(URWLock *lock, uint16_t budget) {
         ufutex_wait(&lock->_state, s | RW_R_WAIT);
 
         // Reset state.
-        budget = uatomic_load_ex(&lock->_rspins, UMO_RELAXED);
+        budget = spin_load(&lock->_rspins);
         spin = spinner();
         s = uatomic_load_ex(&lock->_state, UMO_RELAXED);
     }
@@ -369,7 +377,7 @@ ULIB_NOINLINE static void rw_write_contended(URWLock *lock, p_ulib_spin_t budget
         ufutex_wait(&lock->_wnotify, seq);
 
         // Reset state.
-        budget = uatomic_load_ex(&lock->_wspins, UMO_RELAXED);
+        budget = spin_load(&lock->_wspins);
         spin = spinner();
         s = uatomic_load_ex(&lock->_state, UMO_RELAXED);
     }
@@ -378,15 +386,15 @@ ULIB_NOINLINE static void rw_write_contended(URWLock *lock, p_ulib_spin_t budget
 ulib_ret p_URWLock(URWLock *lock) {
     uatomic(&lock->_state, 0);
     uatomic(&lock->_wnotify, 0);
-    uatomic(&lock->_rspins, MAX_BUDGET);
-    uatomic(&lock->_wspins, MAX_BUDGET);
+    spin_init(&lock->_rspins);
+    spin_init(&lock->_wspins);
     return ULIB_OK;
 }
 
 void p_URWLock_deinit(ulib_unused URWLock *lock) {}
 
 void p_URWLock_lock(URWLock *lock) {
-    p_ulib_spin_t const budget = uatomic_load_ex(&lock->_wspins, UMO_RELAXED);
+    p_ulib_spin_t const budget = spin_load(&lock->_wspins);
     uint32_t s = 0;
     if (uatomic_cas_ex(&lock->_state, &s, RW_WRITE_LOCKED, UMO_ACQUIRE, UMO_RELAXED)) {
         spin_rewarded(&lock->_wspins, budget);
@@ -410,7 +418,7 @@ void p_URWLock_unlock(URWLock *lock) {
 }
 
 static inline void rw_read_lock(URWLock *lock) {
-    p_ulib_spin_t const budget = uatomic_load_ex(&lock->_rspins, UMO_RELAXED);
+    p_ulib_spin_t const budget = spin_load(&lock->_rspins);
     uint32_t s = uatomic_load_ex(&lock->_state, UMO_RELAXED);
     if (rw_is_read_lockable(s) &&
         uatomic_cas_ex(&lock->_state, &s, s + RW_READER, UMO_ACQUIRE, UMO_RELAXED)) {
@@ -450,7 +458,7 @@ void p_URWRLock_unlock(URWRLock *lock) {
 
 // MARK: - Platform
 
-#elif ULIB_OS_HAS_PTHREADS
+#elif ULIB_OS_HAS_PTHREADS // ULIB_PLATFORM_LOCKS
 
 #include <pthread.h> // IWYU pragma: keep
 
@@ -562,7 +570,7 @@ void p_URWRLock_unlock(URWRLock *lock) {
     pthread_rwlock_unlock(&lock->_super._h);
 }
 
-#elif ULIB_OS_IS_WIN
+#elif ULIB_OS_IS_WIN // ULIB_PLATFORM_LOCKS
 
 #include <windows.h>
 
@@ -637,7 +645,7 @@ void p_URWRLock_unlock(URWRLock *lock) {
     ReleaseSRWLockShared(&lock->_super._h);
 }
 
-#endif
+#endif // ULIB_PLATFORM_LOCKS
 
 #else // ULIB_CONCURRENCY
 
