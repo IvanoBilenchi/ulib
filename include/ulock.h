@@ -297,6 +297,8 @@ P_ULOCK_CPP_LOCK_IMPL(URWRLock)
  * Executes a block of code while holding a lock.
  *
  * @param lock @type{UAnyLock *} Lock to hold.
+ *
+ * @warning Exiting the block early via `break`, `return` or `goto` skips the unlock.
  */
 #define ulock_with(lock) p_ulock_with(lock, ULIB_UID(p_ulock_with_))
 

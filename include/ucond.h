@@ -81,6 +81,7 @@ ULIB_API void p_ucond_wait_ULock(UCond *cond, ULock *lock);
 ULIB_API void p_ucond_wait_URLock(UCond *cond, URLock *lock);
 ULIB_API void p_ucond_wait_USLock(UCond *cond, USLock *lock);
 ULIB_API void p_ucond_wait_URWLock(UCond *cond, URWLock *lock);
+ULIB_API void p_ucond_wait_URWRLock(UCond *cond, URWRLock *lock);
 
 ULIB_END_DECLS
 
@@ -94,6 +95,7 @@ ULIB_INLINE void ucond_wait(UCond *cond, ULock *lock) { p_ucond_wait_ULock(cond,
 ULIB_INLINE void ucond_wait(UCond *cond, URLock *lock) { p_ucond_wait_URLock(cond, lock); }
 ULIB_INLINE void ucond_wait(UCond *cond, USLock *lock) { p_ucond_wait_USLock(cond, lock); }
 ULIB_INLINE void ucond_wait(UCond *cond, URWLock *lock) { p_ucond_wait_URWLock(cond, lock); }
+ULIB_INLINE void ucond_wait(UCond *cond, URWRLock *lock) { p_ucond_wait_URWRLock(cond, lock); }
 // clang-format on
 /// @endcond
 
@@ -115,6 +117,12 @@ ULIB_INLINE void ucond_wait(UCond *cond, URWLock *lock) { p_ucond_wait_URWLock(c
  *       @func{ucond_signal} or @func{ucond_broadcast}. Callers should always re-check their
  *       predicate in a loop.
  *
+ * @note When waiting on a @type{URWRLock}, wake the waiters via @func{ucond_broadcast}:
+ *       @func{ucond_signal} only wakes one of the readers blocked on the predicate.
+ *
+ * @warning A @type{URLock} must be held exactly once by the calling thread, as only one
+ *          level of recursion is released.
+ *
  * @alias void ucond_wait(UCond *cond, UAnyLock *lock);
  */
 #define ucond_wait(cond, lock)                                                                     \
@@ -122,7 +130,8 @@ ULIB_INLINE void ucond_wait(UCond *cond, URWLock *lock) { p_ucond_wait_URWLock(c
         ULock *: p_ucond_wait_ULock,                                                               \
         URLock *: p_ucond_wait_URLock,                                                             \
         USLock *: p_ucond_wait_USLock,                                                             \
-        URWLock *: p_ucond_wait_URWLock)(cond, lock)
+        URWLock *: p_ucond_wait_URWLock,                                                           \
+        URWRLock *: p_ucond_wait_URWRLock)(cond, lock)
 
 /// @}
 

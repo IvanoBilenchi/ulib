@@ -16,19 +16,42 @@ enum {
 };
 
 typedef struct CondCtx {
-    ULock *lock;
+    void *lock;
     UCond *cond;
     bool *ready;
     UAtomic(unsigned) *counter;
+    bool shared;
 } CondCtx;
+
+static inline void cond_ctx_lock(CondCtx *ctx) {
+    if (ctx->shared) {
+        ulock_lock((URWRLock *)ctx->lock);
+    } else {
+        ulock_lock((ULock *)ctx->lock);
+    }
+}
+
+static inline void cond_ctx_unlock(CondCtx *ctx) {
+    if (ctx->shared) {
+        ulock_unlock((URWRLock *)ctx->lock);
+    } else {
+        ulock_unlock((ULock *)ctx->lock);
+    }
+}
+
+static inline void cond_ctx_wait(CondCtx *ctx) {
+    if (ctx->shared) {
+        ucond_wait(ctx->cond, (URWRLock *)ctx->lock);
+    } else {
+        ucond_wait(ctx->cond, (ULock *)ctx->lock);
+    }
+}
 
 static void ucond_worker(void *arg) {
     CondCtx *ctx = (CondCtx *)arg;
-    ulock_lock(ctx->lock);
-    while (!*ctx->ready) {
-        ucond_wait(ctx->cond, ctx->lock);
-    }
-    ulock_unlock(ctx->lock);
+    cond_ctx_lock(ctx);
+    while (!*ctx->ready) cond_ctx_wait(ctx);
+    cond_ctx_unlock(ctx);
     uatomic_fetch_add_ex(ctx->counter, 1, UMO_RELAXED);
 }
 
@@ -40,7 +63,13 @@ void ucond_test_signal(void) {
 
     bool ready = false;
     UAtomic(unsigned) counter = 0;
-    CondCtx ctx = { .lock = &lock, .cond = &cond, .ready = &ready, .counter = &counter };
+    CondCtx ctx = {
+        .lock = &lock,
+        .cond = &cond,
+        .ready = &ready,
+        .counter = &counter,
+        .shared = false,
+    };
 
     UThread thread;
     utest_assert_enum(uthread(&thread, ucond_worker, &ctx), ==, ULIB_OK);
@@ -51,25 +80,31 @@ void ucond_test_signal(void) {
 
     ulock_lock(&lock);
     ready = true;
-    ucond_signal(&cond);
     ulock_unlock(&lock);
+    ucond_signal(&cond);
 
     utest_assert_enum(uthread_join(&thread), ==, ULIB_OK);
-    utest_assert_uint(counter, ==, 1);
+    utest_assert_uint(uatomic_load_ex(&counter, UMO_RELAXED), ==, 1);
 
     ucond_deinit(&cond);
     ulock_deinit(&lock);
 }
 
 void ucond_test_broadcast(void) {
-    ULock lock = ulib_zero_init;
+    URWLock lock = ulib_zero_init;
     utest_assert_enum(ulock(&lock), ==, ULIB_OK);
     UCond cond = ulib_zero_init;
     utest_assert_enum(ucond(&cond), ==, ULIB_OK);
 
     bool ready = false;
     UAtomic(unsigned) counter = 0;
-    CondCtx ctx = { .lock = &lock, .cond = &cond, .ready = &ready, .counter = &counter };
+    CondCtx ctx = {
+        .lock = ulock_read(&lock),
+        .cond = &cond,
+        .ready = &ready,
+        .counter = &counter,
+        .shared = true,
+    };
 
     UThread threads[THREAD_COUNT];
     for (unsigned i = 0; i < THREAD_COUNT; ++i) {
@@ -82,13 +117,13 @@ void ucond_test_broadcast(void) {
 
     ulock_lock(&lock);
     ready = true;
-    ucond_broadcast(&cond);
     ulock_unlock(&lock);
+    ucond_broadcast(&cond);
 
     for (unsigned i = 0; i < THREAD_COUNT; ++i) {
         utest_assert_enum(uthread_join(&threads[i]), ==, ULIB_OK);
     }
-    utest_assert_uint(counter, ==, THREAD_COUNT);
+    utest_assert_uint(uatomic_load_ex(&counter, UMO_RELAXED), ==, THREAD_COUNT);
 
     ucond_deinit(&cond);
     ulock_deinit(&lock);
