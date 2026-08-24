@@ -11,6 +11,7 @@ Cpp11BracedListStyle: false
 ForEachMacros:
   - uhash_foreach
   - uiter_foreach
+  - ulock_with
   - uvec_foreach
   - uvec_foreach_reverse
 IndentCaseLabels: true

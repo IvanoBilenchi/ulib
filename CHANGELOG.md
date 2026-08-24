@@ -9,6 +9,7 @@ uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- `ulib_init` and `ulib_deinit` for explicit library initialization and deinitialization.
 - `uplatform.h`, providing platform, compiler, architecture and language detection macros.
 - `UMetrics` and related API.
 - `ULogPerfData`, `ULogPerfType`, `ulog_perf_data_span` and `ulog_perf_data_metrics`.

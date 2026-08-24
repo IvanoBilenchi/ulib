@@ -13,6 +13,8 @@
     height: 0;
 }
 
+/* Two-column layout for ToC and sections. */
+
 @media (min-width: 1024px) {
     .toctree-wrapper.two-col>ul {
         column-count: 2;
@@ -35,4 +37,19 @@
     section.two-col>dl {
         break-inside: avoid-column;
     }
+}
+
+/* Thread safety annotations (@threadsafety / @threadhazard). */
+
+.rst-content .admonition:has(>p>sub:first-child+sup)>.admonition-title {
+    font-size: 0;
+}
+
+.rst-content .admonition:has(>p>sub:first-child+sup)>.admonition-title:before,
+.rst-content .admonition:has(>p>sub:first-child+sup)>.admonition-title:after {
+    font-size: 1rem;
+}
+
+.rst-content .admonition:has(>p>sub:first-child+sup)>.admonition-title:after {
+    content: "Thread safety";
 }

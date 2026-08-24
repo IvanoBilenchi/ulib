@@ -148,6 +148,7 @@ static void bench_hash(HashTable *table, ulib_uint size) {
 }
 
 int main(void) {
+    ulib_init();
     ulog_main->level = ULOG_PERF;
     ulog_info("==[ UHash ]==");
 

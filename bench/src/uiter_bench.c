@@ -122,6 +122,7 @@ static void bench_uiter_param(unsigned str_len, unsigned count) {
 }
 
 int main(void) {
+    ulib_init();
     ulog_main->level = ULOG_PERF;
     ulog_info("==[ UIter ]==");
     unsigned const counts[] = { 100, 10000, ulib_min(ULIB_UINT_MAX / 2, 1000000) };

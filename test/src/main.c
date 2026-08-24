@@ -18,6 +18,7 @@
 #include "ulog_tests.h"
 #include "umetrics_tests.h"
 #include "unumber_tests.h"
+#include "uonce_tests.h"
 #include "urand_tests.h"
 #include "usem_tests.h"
 #include "ustream_tests.h"
@@ -47,5 +48,6 @@ utest_main({
     utest_run("ubarrier", UBARRIER_TESTS);
     utest_run("ulatch", ULATCH_TESTS);
     utest_run("usem", USEM_TESTS);
+    utest_run("uonce", UONCE_TESTS);
     utest_run("uversion", UVERSION_TESTS);
 })

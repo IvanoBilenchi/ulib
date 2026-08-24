@@ -446,6 +446,7 @@ static Action parse_args(int argc, char *const *argv, Config *config) {
 }
 
 int main(int argc, char **argv) {
+    ulib_init();
     ulog_main->level = ULOG_PERF;
 
     Config config = {

@@ -61,6 +61,14 @@ Barriers
 .. doxygengroup:: UBarrier_api
    :content-only:
 
+One-time initialization
+-----------------------
+
+.. doxygengroup:: UOnce_types
+   :content-only:
+.. doxygengroup:: UOnce_api
+   :content-only:
+
 Low-level primitives
 ====================
 

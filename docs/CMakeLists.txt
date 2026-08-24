@@ -46,6 +46,11 @@ set(DOXYGEN_ALIASES
     [[val{1}="<tt>#\1</tt>"]]
     [[cval{1}="<tt>\1</tt>"]]
     [[alias=@noop]]
+    [[threadsafety{1}="@note <sub></sub><sup></sup>\1"]]
+    [[threadhazard{1}="@warning <sub></sub><sup></sup>\1"]]
+    [[threadsafe="@threadsafety{May be called concurrently on the same object.}"]]
+    [[notthreadsafe="@threadhazard{Must not be called concurrently on the same object.}"]]
+    [[lockheld{1}="@threadhazard{The caller must hold <tt>#\1</tt>.}"]]
 )
 set(DOXYGEN_VERBATIM_VARS DOXYGEN_ALIASES)
 set(DOXYGEN_INPUT_FILTER "${Python3_EXECUTABLE} ${ULIB_UTILS_DIR}/doxygen/alias.py")

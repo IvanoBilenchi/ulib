@@ -540,13 +540,20 @@
  * @def ULIB_CONCURRENCY
  */
 
+/**
+ * Expands to its arguments if concurrency support is available, or to nothing otherwise.
+ * @def ulib_if_concurrency(...)
+ */
+
 // MSVC provides C11 atomics through /experimental:c11atomics, but keeps defining
 // __STDC_NO_ATOMICS__. Assume that if the user requested concurrency, it is available on MSVC.
 #if defined(ULIB_CONCURRENCY_REQUESTED) && ULIB_OS_HAS_THREADS &&                                  \
     (ULIB_LANG_HAS_ATOMICS || ULIB_CC_IS_MSVC)
     #define ULIB_CONCURRENCY 1
+    #define ulib_if_concurrency(...) __VA_ARGS__
 #else
     #define ULIB_CONCURRENCY 0
+    #define ulib_if_concurrency(...)
 #endif
 
 // clang-format on

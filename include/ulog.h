@@ -16,6 +16,7 @@
 #include "ucolor.h" // IWYU pragma: export
 #include "udebug.h"
 #include "ulib_ret_t.h"
+#include "ulock.h"
 #include "umetrics.h"
 #include "ustream.h"
 #include "ustring.h"
@@ -159,7 +160,12 @@ typedef struct ULogEvent {
 
 /// @}
 
-/// Logger object.
+/**
+ * Logger object.
+ *
+ * @threadsafety{Logger fields must be configured before the logger is used from multiple threads:
+ *               logging is thread-safe, reconfiguring a logger that is in use is not.}
+ */
 typedef struct ULog {
 
     /// Log level.
@@ -180,8 +186,23 @@ typedef struct ULog {
      * @param log Logger object.
      * @param event Log event.
      * @return Return code.
+     *
+     * @threadhazard{Handlers are invoked while the logger is locked, so they must not log to the
+     *               same logger, as doing so would deadlock. To write to the same stream, use
+     *               `ulog_write_*` functions instead of `ulog_*`.}
      */
     ulib_ret (*handler)(struct ULog *log, ULogEvent const *event);
+
+    /**
+     * Lock serializing event handling, or NULL to handle events without locking.
+     *
+     * @threadsafety{Loggers are initialized with a shared lock, so that by default every logger
+     *               serializes against every other one. Set this to a different lock to serialize
+     *               independently, or to NULL if the handler needs no serialization.}
+     *
+     * @note The logger does not take ownership of the lock, and never deinitializes it.
+     */
+    ULock *lock;
 
 } ULog;
 
@@ -189,6 +210,10 @@ typedef struct ULog {
  * @defgroup ULog Log API
  * @{
  */
+
+/// The main logger object.
+ULIB_API
+extern ULog *const ulog_main;
 
 /**
  * Returns the string representation of the specified log level.
@@ -215,51 +240,6 @@ UString ulog_level_to_string(ulog_level level);
 ULIB_API
 ULIB_PURE
 ulog_level ulog_level_from_string(UString string);
-
-/**
- * The main logger.
- *
- * @alias extern ULog *const ulog_main;
- */
-#define ulog_main p_ulog_main()
-
-/**
- * Returns a logger object initialized with the default settings.
- *
- * @return Logger object.
- */
-ULIB_API
-ULIB_CONST
-ULog ulog_default(void);
-
-/**
- * Checks whether the logger handles events at the specified log level.
- *
- * @param log Logger object.
- * @param level Log level.
- * @return True if the logger handles events at the specified log level, false otherwise.
- */
-#ifndef ULIB_NO_LOGGING
-ULIB_PURE
-ULIB_INLINE
-bool ulog_enabled(ULog *log, ulog_level level) {
-    return log->level <= level;
-}
-#else
-#define ulog_enabled(...) (false)
-#endif
-
-/**
- * Disables event handling for the specified logger.
- *
- * @param log Logger object.
- *
- * @note Set the log level to anything other than @val{ULOG_DISABLED} to re-enable event handling.
- */
-ULIB_INLINE
-void ulog_disable(ULog *log) {
-    log->level = ULOG_DISABLED;
-}
 
 /**
  * Raises a log event, passing some user data.
@@ -454,11 +434,55 @@ ULogPerfData ulog_perf_data_metrics(UMetrics const *metrics) {
 #define ulog_elapsed(...) ulog_elapsed_to(ulog_main, __VA_ARGS__)
 
 /**
+ * Returns a logger object initialized with the default settings.
+ *
+ * The logger writes to the standard error stream, and serializes event handling through the
+ * same lock as every other default-initialized logger.
+ *
+ * @return Logger object.
+ */
+ULIB_API
+ULIB_CONST
+ULog ulog_default(void);
+
+/**
+ * Checks whether the logger handles events at the specified log level.
+ *
+ * @param log Logger object.
+ * @param level Log level.
+ * @return True if the logger handles events at the specified log level, false otherwise.
+ */
+#ifndef ULIB_NO_LOGGING
+ULIB_PURE
+ULIB_INLINE
+bool ulog_enabled(ULog *log, ulog_level level) {
+    return log->level <= level;
+}
+#else
+#define ulog_enabled(...) (false)
+#endif
+
+/**
+ * Disables event handling for the specified logger.
+ *
+ * @param log Logger object.
+ *
+ * @note Set the log level to anything other than @val{ULOG_DISABLED} to re-enable event handling.
+ */
+ULIB_INLINE
+void ulog_disable(ULog *log) {
+    log->level = ULOG_DISABLED;
+}
+
+/**
  * Writes the specified event to the logger's output stream.
  *
  * @param log Logger object.
  * @param event Log event.
  * @return Return code.
+ *
+ * @note This function and the other `ulog_write_*` functions are the building blocks of
+ *       custom handlers, and should only be called from within one.
  */
 ULIB_API
 ulib_ret ulog_write_event(ULog *log, ULogEvent const *event);
@@ -591,10 +615,6 @@ ulib_ret ulog_write_newline(ULog *log);
 /// @}
 
 // Private API
-
-ULIB_API
-ULIB_CONST
-ULog *p_ulog_main(void);
 
 ULIB_API
 ulib_ret p_ulog(ULog *log, ULogEvent event, char const *fmt, ...);

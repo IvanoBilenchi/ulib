@@ -189,6 +189,7 @@ static void bench_uvec_heap_queue(void) {
 }
 
 int main(void) {
+    ulib_init();
     ulog_main->level = ULOG_PERF;
     ulog_info("==[ UVec ]==");
     bench_uvec_sort_small();

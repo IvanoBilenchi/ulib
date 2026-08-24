@@ -7,6 +7,7 @@
 
 #include "utest.h"
 #include "uleak.h"
+#include "ulib_init.h"
 #include "ulib_ret_t.h"
 #include "ulog.h"
 #include <stdarg.h>
@@ -88,6 +89,7 @@ void p_utest_batch_end(char const *name, size_t passed, size_t total) {
 }
 
 bool p_utest_begin(void) {
+    ulib_init();
     ulog_main->handler = event_handler;
     return uleak_detect_start();
 }
