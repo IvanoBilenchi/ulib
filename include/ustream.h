@@ -14,10 +14,12 @@
 
 #include "uattrs.h"
 #include "ulib_ret_t.h"
+#include "ulock.h"
 #include "umetrics.h"
 #include "ustrbuf.h"
 #include "ustring.h"
 #include "utime.h"
+#include "uutils.h"
 #include "uversion_t.h"
 #include "uwarning.h"
 #include <stdio.h>
@@ -94,6 +96,14 @@ typedef struct UIStream {
      */
     ulib_ret (*free)(void *ctx);
 
+    /**
+     * Lock serializing operations on the stream, or NULL to operate on it without locking.
+     *
+     * @threadsafety{The standard streams are initialized with a lock of their own, so that they
+     *               can be used from multiple threads. Every other stream is unlocked.}
+     */
+    URLock *lock;
+
 } UIStream;
 
 /**
@@ -104,11 +114,10 @@ typedef struct UIStream {
 /**
  * Standard input stream.
  *
- * @return Standard input stream.
+ * @threadsafety{Shared by the whole process, and serializes operations through its lock.}
  */
 ULIB_API
-ULIB_CONST
-UIStream *uistream_std(void);
+extern UIStream *const uistream_stdin;
 
 /**
  * Initializes an input stream.
@@ -125,7 +134,11 @@ ULIB_CONST
 ULIB_INLINE
 UIStream uistream(void *ctx, ulib_ret (*read_func)(void *, void *, size_t, size_t *),
                   ulib_ret (*reset_func)(void *), ulib_ret (*free_func)(void *)) {
-    UIStream s = { ULIB_OK, 0, ctx, read_func, reset_func, free_func };
+    UIStream s = ulib_zero_init;
+    s.ctx = ctx;
+    s.read = read_func;
+    s.reset = reset_func;
+    s.free = free_func;
     return s;
 }
 
@@ -293,6 +306,37 @@ ulib_ret uistream_buf(UIStream *stream, size_t buf_size);
 ULIB_API
 ulib_ret uistream_unbuf(UIStream *stream);
 
+/**
+ * Acquires the stream lock, if the stream has one.
+ *
+ * @param stream Input stream.
+ */
+ULIB_INLINE
+void uistream_lock(UIStream *stream) {
+    if (stream->lock) ulock_lock(stream->lock);
+}
+
+/**
+ * Releases the stream lock, if the stream has one.
+ *
+ * @param stream Input stream.
+ */
+ULIB_INLINE
+void uistream_unlock(UIStream *stream) {
+    if (stream->lock) ulock_unlock(stream->lock);
+}
+
+/**
+ * Executes a block of code while holding the stream lock.
+ *
+ * @param stream @ctype{#UIStream *} Input stream.
+ *
+ * @warning Exiting the block early via `break`, `return` or `goto` skips the unlock.
+ */
+#define uistream_with(stream) p_uistream_with(stream, ULIB_UID(p_uistream_with_))
+#define p_uistream_with(stream, var)                                                               \
+    for (unsigned var = (uistream_lock(stream), 1); var--; uistream_unlock(stream))
+
 /// @}
 
 /// Models an output stream.
@@ -363,6 +407,14 @@ typedef struct UOStream {
      */
     ulib_ret (*free)(void *ctx);
 
+    /**
+     * Lock serializing operations on the stream, or NULL to operate on it without locking.
+     *
+     * @threadsafety{The standard streams are initialized with a lock of their own, so that they
+     *               can be used from multiple threads. Every other stream is unlocked.}
+     */
+    URLock *lock;
+
 } UOStream;
 
 /**
@@ -370,34 +422,29 @@ typedef struct UOStream {
  * @{
  */
 
-/// Standard output stream.
-
 /**
  * Standard output stream.
  *
- * @return Standard output stream.
+ * @threadsafety{Shared by the whole process, and serializes operations through its lock.}
  */
 ULIB_API
-ULIB_CONST
-UOStream *uostream_std(void);
+extern UOStream *const uostream_stdout;
 
 /**
  * Standard error stream.
  *
- * @return Standard error stream.
+ * @threadsafety{Shared by the whole process, and serializes operations through its lock.}
  */
 ULIB_API
-ULIB_CONST
-UOStream *uostream_stderr(void);
+extern UOStream *const uostream_stderr;
 
 /**
  * Null output stream, discards all data written to it.
  *
- * @return Null output stream.
+ * @threadsafety{Shared by the whole process, and serializes operations through its lock.}
  */
 ULIB_API
-ULIB_CONST
-UOStream *uostream_null(void);
+extern UOStream *const uostream_null;
 
 /**
  * Initializes an output stream.
@@ -418,7 +465,13 @@ UOStream uostream(void *ctx, ulib_ret (*write_func)(void *, void const *, size_t
                   ulib_ret (*writef_func)(void *, size_t *, char const *, va_list),
                   ulib_ret (*flush_func)(void *), ulib_ret (*reset_func)(void *),
                   ulib_ret (*free_func)(void *)) {
-    UOStream s = { ULIB_OK, 0, ctx, write_func, writef_func, flush_func, reset_func, free_func };
+    UOStream s = ulib_zero_init;
+    s.ctx = ctx;
+    s.write = write_func;
+    s.writef = writef_func;
+    s.flush = flush_func;
+    s.reset = reset_func;
+    s.free = free_func;
     return s;
 }
 
@@ -734,6 +787,37 @@ ulib_ret uostream_buf(UOStream *stream, size_t buf_size);
  */
 ULIB_API
 ulib_ret uostream_unbuf(UOStream *stream);
+
+/**
+ * Acquires the stream lock, if the stream has one.
+ *
+ * @param stream Output stream.
+ */
+ULIB_INLINE
+void uostream_lock(UOStream *stream) {
+    if (stream->lock) ulock_lock(stream->lock);
+}
+
+/**
+ * Releases the stream lock, if the stream has one.
+ *
+ * @param stream Output stream.
+ */
+ULIB_INLINE
+void uostream_unlock(UOStream *stream) {
+    if (stream->lock) ulock_unlock(stream->lock);
+}
+
+/**
+ * Executes a block of code while holding the stream lock.
+ *
+ * @param stream @ctype{#UOStream *} Output stream.
+ *
+ * @warning Exiting the block early via `break`, `return` or `goto` skips the unlock.
+ */
+#define uostream_with(stream) p_uostream_with(stream, ULIB_UID(p_uostream_with_))
+#define p_uostream_with(stream, var)                                                               \
+    for (unsigned var = (uostream_lock(stream), 1); var--; uostream_unlock(stream))
 
 /// @}
 

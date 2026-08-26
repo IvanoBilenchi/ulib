@@ -12,7 +12,11 @@ void urand_int_test(void);
 void urand_float_test(void);
 void urand_string_test(void);
 void urand_misc_test(void);
+void urand_seed_test(void);
+void urand_concurrent_test(void);
 
-#define URAND_TESTS urand_int_test, urand_float_test, urand_string_test, urand_misc_test
+#define URAND_TESTS                                                                                \
+    urand_int_test, urand_float_test, urand_string_test, urand_misc_test, urand_seed_test,         \
+        urand_concurrent_test
 
 #endif // URAND_TESTS_H

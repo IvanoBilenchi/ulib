@@ -24,7 +24,9 @@ enum {
 };
 
 static int int_compare(void const *a, void const *b) {
-    return (int)(*((ulib_int *)a) - *((ulib_int *)b));
+    ulib_int const x = *(ulib_int const *)a;
+    ulib_int const y = *(ulib_int const *)b;
+    return (x > y) - (x < y);
 }
 
 static void bench_uvec_sort_small(void) {

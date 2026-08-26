@@ -16,7 +16,6 @@
 #include "ucolor.h" // IWYU pragma: export
 #include "udebug.h"
 #include "ulib_ret_t.h"
-#include "ulock.h"
 #include "umetrics.h"
 #include "ustream.h"
 #include "ustring.h"
@@ -187,22 +186,12 @@ typedef struct ULog {
      * @param event Log event.
      * @return Return code.
      *
-     * @threadhazard{Handlers are invoked while the logger is locked, so they must not log to the
-     *               same logger, as doing so would deadlock. To write to the same stream, use
-     *               `ulog_write_*` functions instead of `ulog_*`.}
+     * @threadsafety{The default handler writes the event while holding the lock of the output
+     *               stream, so that whole records are atomic with respect to any other user of
+     *               that stream. Custom handlers writing to a shared stream should do the same
+     *               via @func{uostream_with}.}
      */
     ulib_ret (*handler)(struct ULog *log, ULogEvent const *event);
-
-    /**
-     * Lock serializing event handling, or NULL to handle events without locking.
-     *
-     * @threadsafety{Loggers are initialized with a shared lock, so that by default every logger
-     *               serializes against every other one. Set this to a different lock to serialize
-     *               independently, or to NULL if the handler needs no serialization.}
-     *
-     * @note The logger does not take ownership of the lock, and never deinitializes it.
-     */
-    ULock *lock;
 
 } ULog;
 

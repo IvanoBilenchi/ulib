@@ -9,13 +9,16 @@
 
 #include "utime.h"
 #include "uattrs.h"
+#include "ulib_ret.h"
 #include "unumber.h"
 #include "uplatform.h"
 #include "ustrbuf.h"
 #include "ustream.h"
 #include "ustring.h"
+#include "utime_p.h"
 #include "uutils.h"
 #include <math.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>
 
@@ -32,6 +35,58 @@ enum {
 
 #define SECONDS_PER_HOUR (SECONDS_PER_MINUTE * MINUTES_PER_HOUR)
 #define SECONDS_PER_DAY (SECONDS_PER_HOUR * HOURS_PER_DAY)
+
+#if ULIB_OS_IS_POSIX
+
+static bool local_time(time_t const *ts, struct tm *out) {
+    return localtime_r(ts, out) != NULL;
+}
+
+ulib_ret p_utime_init(void) {
+    return ULIB_OK;
+}
+
+void p_utime_deinit(void) {}
+
+#elif ULIB_OS_IS_WIN
+
+static bool local_time(time_t const *ts, struct tm *out) {
+    return localtime_s(out, ts) == 0;
+}
+
+ulib_ret p_utime_init(void) {
+    return ULIB_OK;
+}
+
+void p_utime_deinit(void) {}
+
+#else
+
+#include "ulock.h"
+
+static ULock local_time_lock = ulib_zero_init;
+
+static bool local_time(time_t const *ts, struct tm *out) {
+    bool ok = false;
+    ulock_with (&local_time_lock) {
+        struct tm const *tm = localtime(ts);
+        if (tm) {
+            *out = *tm;
+            ok = true;
+        }
+    }
+    return ok;
+}
+
+ulib_ret p_utime_init(void) {
+    return ulock(&local_time_lock);
+}
+
+void p_utime_deinit(void) {
+    ulock_deinit(&local_time_lock);
+}
+
+#endif
 
 bool utime_equals(UTime const *a, UTime const *b) {
     return a->year == b->year && a->month == b->month && a->day == b->day && a->hour == b->hour &&
@@ -77,14 +132,15 @@ UTime utime_now(void) {
 
 UTime utime_local(void) {
     time_t timestamp = time(NULL);
-    struct tm *time = localtime(&timestamp);
+    struct tm time;
+    if (!local_time(&timestamp, &time)) return utime_from_timestamp((utime_stamp)timestamp);
     return (UTime){
-        .year = (long long)time->tm_year + 1900,
-        .month = (unsigned)time->tm_mon + 1,
-        .day = (unsigned)time->tm_mday,
-        .hour = (unsigned)time->tm_hour,
-        .minute = (unsigned)time->tm_min,
-        .second = (unsigned)time->tm_sec,
+        .year = (long long)time.tm_year + 1900,
+        .month = (unsigned)time.tm_mon + 1,
+        .day = (unsigned)time.tm_mday,
+        .hour = (unsigned)time.tm_hour,
+        .minute = (unsigned)time.tm_min,
+        .second = (unsigned)time.tm_sec,
     };
 }
 

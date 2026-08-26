@@ -6,10 +6,12 @@
  */
 
 #include "utest.h"
+#include "uatomic.h"
 #include "uleak.h"
 #include "ulib_init.h"
 #include "ulib_ret_t.h"
 #include "ulog.h"
+#include "ustream.h"
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -21,14 +23,14 @@ static ULogTag const pass_tag = { "PASS ", UCOLOR_OK };
 static ULogTag const fail_tag = { "FAIL ", UCOLOR_FAIL };
 static ULogTag const fatal_tag = { "FATAL", UCOLOR_FATAL };
 
-static size_t test_total = 0;
-static size_t test_passed = 0;
+static UAtomic(size_t) test_total = 0;
+static UAtomic(size_t) test_passed = 0;
 
-static bool test_status = true;
-static bool test_batch_status = true;
-static bool test_func_status = true;
+static UAtomic(bool) test_status = true;
+static UAtomic(bool) test_batch_status = true;
+static UAtomic(bool) test_func_status = true;
 
-static ulib_ret event_handler(ULog *log, ULogEvent const *event) {
+static ulib_ret write_event(ULog *log, ULogEvent const *event) {
     if (!event->data) return ulog_write_event(log, event);
     UTestEvent const *data = event->data;
     ulog_write_date(log);
@@ -51,39 +53,46 @@ static ulib_ret event_handler(ULog *log, ULogEvent const *event) {
     return ulog_write_newline(log);
 }
 
+static ulib_ret event_handler(ULog *log, ULogEvent const *event) {
+    ulib_ret ret = ULIB_OK;
+    uostream_with (log->stream) ret = write_event(log, event);
+    return ret;
+}
+
 bool utest_all_passed(void) {
-    return test_status;
+    return uatomic_load_ex(&test_status, UMO_RELAXED);
 }
 
 bool utest_batch_all_passed(void) {
-    return test_batch_status;
+    return uatomic_load_ex(&test_batch_status, UMO_RELAXED);
 }
 
 bool utest_passed(void) {
-    return test_func_status;
+    return uatomic_load_ex(&test_func_status, UMO_RELAXED);
 }
 
 void p_utest_batch_begin(char const *name) {
-    test_batch_status = true;
+    uatomic_store_ex(&test_batch_status, true, UMO_RELAXED);
     ulog_debug("Begin: %s", name);
 }
 
 bool p_utest_run(void (*test)(void)) {
-    test_func_status = true;
+    uatomic_store_ex(&test_func_status, true, UMO_RELAXED);
     test();
-    return test_func_status;
+    return uatomic_load_ex(&test_func_status, UMO_RELAXED);
 }
 
 void p_utest_fail(void) {
-    test_func_status = false;
-    test_batch_status = false;
-    test_status = false;
+    uatomic_store_ex(&test_func_status, false, UMO_RELAXED);
+    uatomic_store_ex(&test_batch_status, false, UMO_RELAXED);
+    uatomic_store_ex(&test_status, false, UMO_RELAXED);
 }
 
 void p_utest_batch_end(char const *name, size_t passed, size_t total) {
-    test_total += total;
-    test_passed += passed;
-    UTestEventType type = test_batch_status ? UTEST_EVENT_PASS : UTEST_EVENT_FAIL;
+    uatomic_faa_ex(&test_total, total, UMO_RELAXED);
+    uatomic_faa_ex(&test_passed, passed, UMO_RELAXED);
+    UTestEventType type = uatomic_load_ex(&test_batch_status, UMO_RELAXED) ? UTEST_EVENT_PASS
+                                                                           : UTEST_EVENT_FAIL;
     UTestEvent event = { .type = type, .passed = passed, .total = total };
     ulog(ulog_main, ULOG_INFO, &event, "\"%s\" test", name);
 }
@@ -95,10 +104,13 @@ bool p_utest_begin(void) {
 }
 
 bool p_utest_end(void) {
-    bool no_leaks = uleak_detect_end();
-    UTestEventType type = test_status ? UTEST_EVENT_PASS : UTEST_EVENT_FAIL;
-    UTestEvent event = { .type = type, .passed = test_passed, .total = test_total };
-    char const *msg = test_status ? "All tests passed" : "Some tests failed";
-    ulog(ulog_main, ULOG_INFO, &event, msg);
-    return test_status && no_leaks;
+    bool const no_leaks = uleak_detect_end();
+    bool const passed = uatomic_load_ex(&test_status, UMO_RELAXED);
+    UTestEvent event = {
+        .type = passed ? UTEST_EVENT_PASS : UTEST_EVENT_FAIL,
+        .passed = uatomic_load_ex(&test_passed, UMO_RELAXED),
+        .total = uatomic_load_ex(&test_total, UMO_RELAXED),
+    };
+    ulog(ulog_main, ULOG_INFO, &event, passed ? "All tests passed" : "Some tests failed");
+    return passed && no_leaks;
 }

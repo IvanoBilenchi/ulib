@@ -16,7 +16,6 @@
 #include "unumber.h"
 #include "ustring.h"
 #include <stddef.h>
-#include <stdlib.h>
 
 ULIB_BEGIN_DECLS
 
@@ -25,15 +24,21 @@ ULIB_BEGIN_DECLS
  * @{
  */
 
-/// Maximum value returned by @func{urand}.
+/**
+ * Maximum value returned by @func{urand}.
+ *
+ * @note Must be overridden when overriding **ULIB_RAND** and **ULIB_SRAND**.
+ */
 #ifndef ULIB_RAND_MAX
-#define ULIB_RAND_MAX RAND_MAX
+#define ULIB_RAND_MAX ULIB_UINT_MAX
 #endif
 
 /**
  * Sets the seed of the random number generator.
  *
  * @param seed Seed.
+ *
+ * @threadsafety{May be called concurrently.}
  */
 ULIB_API
 void urand_set_seed(ulib_uint seed);
@@ -51,6 +56,8 @@ UString const *urand_default_charset(void);
  * Returns a random integer between 0 and @val{ULIB_RAND_MAX}.
  *
  * @return Random integer.
+ *
+ * @threadsafety{May be called concurrently.}
  */
 ULIB_API
 ulib_uint urand(void);

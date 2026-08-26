@@ -28,6 +28,7 @@ ULIB_BEGIN_DECLS
  * Starts detection of memory leaks.
  *
  * @return True if detection started successfully, false otherwise.
+ * @threadhazard{Must not be called while another thread may be allocating or deallocating memory.}
  */
 ULIB_API
 bool uleak_detect_start(void);
@@ -36,6 +37,7 @@ bool uleak_detect_start(void);
  * Ends detection of memory leaks and logs detected leaks.
  *
  * @return True if no leaks were detected, false otherwise.
+ * @threadhazard{Must not be called while another thread may be allocating or deallocating memory.}
  */
 ULIB_API
 bool uleak_detect_end(void);

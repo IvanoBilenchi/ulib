@@ -7,10 +7,17 @@
 
 #include "urand_tests.h"
 #include "ulib.h"
+#include <stddef.h>
 #include <string.h>
 
+enum {
+    RAND_THREAD_COUNT = 4,
+    RAND_DRAW_COUNT = 8,
+    SEED = 12345,
+};
+
 void urand_int_test(void) {
-    urand_set_seed(12345);
+    urand_set_seed(SEED);
 
     ulib_uint val = urand();
     for (unsigned i = 0; i < 100; ++i) {
@@ -25,7 +32,7 @@ void urand_int_test(void) {
 }
 
 void urand_float_test(void) {
-    urand_set_seed(12345);
+    urand_set_seed(SEED);
 
     ulib_float val = urand_float();
     for (unsigned i = 0; i < 100; ++i) {
@@ -40,7 +47,7 @@ void urand_float_test(void) {
 }
 
 void urand_string_test(void) {
-    urand_set_seed(12345);
+    urand_set_seed(SEED);
 
     ulib_uint const len = 32;
     UString s = urand_string(len, NULL);
@@ -84,4 +91,47 @@ void urand_misc_test(void) {
     }
 
     uvec_deinit(ulib_uint, &v);
+}
+
+void urand_seed_test(void) {
+    ulib_uint expected[RAND_DRAW_COUNT];
+
+    urand_set_seed(SEED);
+    for (unsigned i = 0; i < RAND_DRAW_COUNT; ++i) expected[i] = urand();
+
+    urand_set_seed(SEED);
+    for (unsigned i = 0; i < RAND_DRAW_COUNT; ++i) utest_assert_uint(urand(), ==, expected[i]);
+}
+
+typedef struct RandCtx {
+    ulib_uint values[RAND_THREAD_COUNT][RAND_DRAW_COUNT];
+    UAtomic(unsigned) next;
+} RandCtx;
+
+static void urand_worker(void *arg) {
+    RandCtx *ctx = (RandCtx *)arg;
+    unsigned const idx = uatomic_fetch_add_ex(&ctx->next, 1, UMO_RELAXED);
+    for (unsigned i = 0; i < RAND_DRAW_COUNT; ++i) ctx->values[idx][i] = urand();
+}
+
+void urand_concurrent_test(void) {
+    RandCtx ctx = ulib_zero_init;
+    UThread threads[RAND_THREAD_COUNT];
+
+    urand_set_seed(SEED);
+
+    for (unsigned i = 0; i < RAND_THREAD_COUNT; ++i) {
+        utest_assert_enum(uthread(&threads[i], urand_worker, &ctx), ==, ULIB_OK);
+        utest_assert_enum(uthread_start(&threads[i]), ==, ULIB_OK);
+    }
+
+    for (unsigned i = 0; i < RAND_THREAD_COUNT; ++i) {
+        utest_assert_enum(uthread_join(&threads[i]), ==, ULIB_OK);
+    }
+
+    for (unsigned i = 0; i < RAND_THREAD_COUNT; ++i) {
+        for (unsigned j = i + 1; j < RAND_THREAD_COUNT; ++j) {
+            utest_assert_int(memcmp(ctx.values[i], ctx.values[j], sizeof(ctx.values[i])), !=, 0);
+        }
+    }
 }

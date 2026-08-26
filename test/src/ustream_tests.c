@@ -11,6 +11,11 @@
 #include <stdio.h>
 #include <string.h>
 
+enum {
+    STREAM_THREAD_COUNT = 8,
+    STREAM_WRITE_COUNT = 500,
+};
+
 enum { TEST_DATA_SIZE = 1024 };
 static char test_data[TEST_DATA_SIZE + 1] = { 0 };
 static char const test_data_file[] = "ustream_test_data.txt";
@@ -127,7 +132,7 @@ void uistream_buffered_test(void) {
 void uostream_null_test(void) {
     size_t written;
 
-    UOStream *stream = uostream_null();
+    UOStream *stream = uostream_null;
     utest_assert_ok(uostream_write(stream, test_data, TEST_DATA_SIZE, &written));
     utest_assert_uint(written, ==, TEST_DATA_SIZE);
 
@@ -355,4 +360,29 @@ void ustream_svarint_test(void) {
 void ustream_teardown_test(void) {
     remove(test_data_file);
     remove(test_output_file);
+}
+
+static void ustream_shared_worker(void *arg) {
+    UOStream *stream = (UOStream *)arg;
+    for (unsigned i = 0; i < STREAM_WRITE_COUNT; ++i) {
+        uostream_write_literal(stream, "x", NULL);
+    }
+}
+
+void ustream_shared_test(void) {
+    UOStream *stream = uostream_null;
+    utest_assert_enum(uostream_reset(stream), ==, ULIB_OK);
+
+    UThread threads[STREAM_THREAD_COUNT];
+    for (unsigned i = 0; i < STREAM_THREAD_COUNT; ++i) {
+        utest_assert_enum(uthread(&threads[i], ustream_shared_worker, stream), ==, ULIB_OK);
+        utest_assert_enum(uthread_start(&threads[i]), ==, ULIB_OK);
+    }
+
+    for (unsigned i = 0; i < STREAM_THREAD_COUNT; ++i) {
+        utest_assert_enum(uthread_join(&threads[i]), ==, ULIB_OK);
+    }
+
+    utest_assert_uint(stream->written_bytes, ==, STREAM_THREAD_COUNT * STREAM_WRITE_COUNT);
+    utest_assert_enum(uostream_reset(stream), ==, ULIB_OK);
 }

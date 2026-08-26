@@ -20,7 +20,7 @@
 #define ULIB_VERSION_PATCH 0
 #endif
 
-static UVersion version = {
+static UVersion const version = {
     .major = ULIB_VERSION_MAJOR,
     .minor = ULIB_VERSION_MINOR,
     .patch = ULIB_VERSION_PATCH,

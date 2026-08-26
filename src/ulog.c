@@ -11,7 +11,6 @@
 #include "udebug.h"
 #include "ulib_ret.h"
 #include "ulib_ret_t.h"
-#include "ulock.h"
 #include "ulog_p.h"
 #include "umetrics.h"
 #include "unumber.h"
@@ -24,27 +23,22 @@
 
 static ULog main_logger;
 ULog *const ulog_main = &main_logger;
-static ULock shared_lock;
 
 enum { LEVEL_COUNT = 8 };
-static char const *level_str[LEVEL_COUNT] = {
+static char const *const level_str[LEVEL_COUNT] = {
     "ALL", "TRACE", "DEBUG", "PERF", "INFO", "WARN", "ERROR", "FATAL",
 };
-static char const *level_color[LEVEL_COUNT] = {
+static char const *const level_color[LEVEL_COUNT] = {
     NULL,        UCOLOR_TRACE, UCOLOR_DEBUG, UCOLOR_PERF,
     UCOLOR_INFO, UCOLOR_WARN,  UCOLOR_ERROR, UCOLOR_FATAL,
 };
 
 ulib_ret p_ulog_init(void) {
-    ulib_ret ret = ulock(&shared_lock);
-    if (ulib_is_err(ret)) return ret;
     *ulog_main = ulog_default();
     return ULIB_OK;
 }
 
-void p_ulog_deinit(void) {
-    ulock_deinit(&shared_lock);
-}
+void p_ulog_deinit(void) {}
 
 ULIB_INLINE ulib_ret begin_color(ULog *log, char const *color) {
     return color && log->color ? uostream_write_cstring(log->stream, color, NULL) : ULIB_OK;
@@ -92,13 +86,18 @@ ulog_level ulog_level_from_string(UString string) {
     return ret;
 }
 
+static ulib_ret default_handle_event(ULog *log, ULogEvent const *event) {
+    ulib_ret ret = ULIB_OK;
+    uostream_with (log->stream) ret = ulog_write_event(log, event);
+    return ret;
+}
+
 ULog ulog_default(void) {
     return (ULog){
         .level = ULIB_LOG_LEVEL,
         .color = ULOG_COLOR,
-        .stream = uostream_stderr(),
-        .handler = ulog_write_event,
-        .lock = &shared_lock,
+        .stream = uostream_stderr,
+        .handler = default_handle_event,
     };
 }
 
@@ -191,18 +190,11 @@ ulib_ret ulog_write_newline(ULog *log) {
     return uostream_write_literal(log->stream, "\n", NULL);
 }
 
-static ulib_ret handle_event(ULog *log, ULogEvent const *event) {
-    if (!log->lock) return log->handler(log, event);
-    ulib_ret ret = ULIB_OK;
-    ulock_with (log->lock) ret = log->handler(log, event);
-    return ret;
-}
-
 ulib_ret p_ulog(ULog *log, ULogEvent event, char const *fmt, ...) {
     if (!log->handler) return ULIB_OK;
     event.msg.fmt = fmt ? fmt : "";
     va_start(event.msg.args, fmt);
-    ulib_ret ret = handle_event(log, &event);
+    ulib_ret ret = log->handler(log, &event);
     va_end(event.msg.args);
     return ret;
 }
@@ -217,7 +209,7 @@ ulib_ret p_ulog_metrics(ULog *log, ULogEvent event, umetrics_flags flags, char c
     event.data = &data;
     event.msg.fmt = fmt ? fmt : "";
     va_start(event.msg.args, fmt);
-    ulib_ret ret = handle_event(log, &event);
+    ulib_ret ret = log->handler(log, &event);
     va_end(event.msg.args);
     return ret;
 }
