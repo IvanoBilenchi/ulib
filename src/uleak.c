@@ -17,9 +17,12 @@
 #undef ULIB_FREE
 
 #include "uhash.h"
+#include "ulib_ret.h"
+#include "ulock.h"
 #include "ulog.h"
 #include "unumber.h"
 #include "utest.h"
+#include "uutils.h"
 #include <inttypes.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -29,37 +32,47 @@
 
 UHASH_INIT(AllocTable, uintptr_t, char *, ulib_hash_alloc_ptr, ulib_eq)
 static UHash(AllocTable) *alloc_table = NULL;
+static ULock alloc_lock = ulib_zero_init;
 
-#define alloc_table_add(PTR, FILE, FN, LINE)                                                       \
-    do {                                                                                           \
-        if (alloc_table) {                                                                         \
-            char const fmt[] = "%s, %s, line %d";                                                  \
-            size_t buf_size = (size_t)snprintf(NULL, 0, fmt, FILE, FN, LINE) + 1;                  \
-            char *loc = malloc(buf_size);                                                          \
-            if (loc) snprintf(loc, buf_size, fmt, FILE, FN, LINE);                                 \
-            uhmap_set(AllocTable, alloc_table, (uintptr_t)(PTR), loc, NULL);                       \
-        }                                                                                          \
-    } while (0)
+static void alloc_table_add(uintptr_t ptr, char const *file, char const *fn, int line) {
+    if (!alloc_table) return;
+    char const fmt[] = "%s, %s, line %d";
+    size_t buf_size = (size_t)snprintf(NULL, 0, fmt, file, fn, line) + 1;
+    char *loc = malloc(buf_size);
+    if (loc) snprintf(loc, buf_size, fmt, file, fn, line);
+    ulock_with (&alloc_lock) uhmap_set(AllocTable, alloc_table, ptr, loc, NULL);
+}
 
-#define alloc_table_remove(PTR)                                                                    \
-    do {                                                                                           \
-        if (alloc_table) {                                                                         \
-            char *buf;                                                                             \
-            if (uhmap_pop(AllocTable, alloc_table, (uintptr_t)(PTR), NULL, &buf)) free(buf);       \
-        }                                                                                          \
-    } while (0)
+static void alloc_table_remove(uintptr_t ptr) {
+    if (!alloc_table) return;
+    char *buf = NULL;
+    bool found = false;
+    ulock_with (&alloc_lock) found = uhmap_pop(AllocTable, alloc_table, ptr, NULL, &buf);
+    if (found) free(buf);
+}
 
 bool uleak_detect_start(void) {
-    alloc_table = malloc(sizeof(*alloc_table));
+    UHash(AllocTable) *table = NULL;
 
-    if (!alloc_table) {
-        ulog_error("Could not allocate the allocation table");
-        return false;
+    if (!ulib_is_ok(ulock(&alloc_lock))) {
+        ulog_error("Could not initialize the allocation table lock");
+        goto err;
     }
 
-    *alloc_table = uhmap(AllocTable);
+    if (!(table = malloc(sizeof(*table)))) {
+        ulog_error("Could not allocate the allocation table");
+        goto err;
+    }
+
+    *table = uhmap(AllocTable);
+    alloc_table = table;
     ulog_debug("Begin: leak detection");
     return true;
+
+err:
+    free(table);
+    ulock_deinit(&alloc_lock);
+    return false;
 }
 
 static bool log_leaks(void) {
@@ -86,25 +99,23 @@ static bool log_leaks(void) {
 
 bool uleak_detect_end(void) {
     bool no_leaks = log_leaks();
-
-    uhash_foreach (AllocTable, alloc_table, alloc) {
-        free(*alloc.val);
-    }
+    uhash_foreach (AllocTable, alloc_table, alloc) free(*alloc.val);
     uhash_deinit(AllocTable, alloc_table);
     free(alloc_table);
-
+    alloc_table = NULL;
+    ulock_deinit(&alloc_lock);
     return no_leaks;
 }
 
 void *p_uleak_malloc_impl(size_t size, char const *file, char const *fn, int line) {
     void *ptr = malloc(size);
-    if (ptr) alloc_table_add(ptr, file, fn, line);
+    if (ptr) alloc_table_add((uintptr_t)ptr, file, fn, line);
     return ptr;
 }
 
 void *p_uleak_calloc_impl(size_t num, size_t size, char const *file, char const *fn, int line) {
     void *ptr = calloc(num, size);
-    if (ptr) alloc_table_add(ptr, file, fn, line);
+    if (ptr) alloc_table_add((uintptr_t)ptr, file, fn, line);
     return ptr;
 }
 
@@ -114,14 +125,14 @@ void *p_uleak_realloc_impl(void *ptr, size_t size, char const *file, char const 
 
     if (new_ptr && old != (uintptr_t)new_ptr) {
         alloc_table_remove(old);
-        alloc_table_add(new_ptr, file, fn, line);
+        alloc_table_add((uintptr_t)new_ptr, file, fn, line);
     }
 
     return new_ptr;
 }
 
 void p_uleak_free_impl(void *ptr) {
-    alloc_table_remove(ptr);
+    alloc_table_remove((uintptr_t)ptr);
     free(ptr);
 }
 

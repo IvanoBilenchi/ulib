@@ -112,8 +112,8 @@ if(ULIB_LEAKS)
 endif()
 
 foreach(ULIB_MACRO ${ULIB_MACRO_OVERRIDES})
-    if(${ULIB_MACRO})
-        list(APPEND ULIB_PUBLIC_DEFINES ${ULIB_MACRO}=${${ULIB_MACRO}})
+    if(ULIB_OVERRIDE_${ULIB_MACRO})
+        list(APPEND ULIB_PUBLIC_DEFINES "ULIB_${ULIB_MACRO}=${ULIB_OVERRIDE_${ULIB_MACRO}}")
     endif()
 endforeach()
 

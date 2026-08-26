@@ -259,7 +259,7 @@ static void metrics_to_buf(UMetrics const *metrics, char *buf, size_t size, size
 
 void uostream_metrics_test(void) {
     char buf[256];
-    size_t written;
+    size_t written = 0;
     UMetrics metrics = ulib_zero_init;
 
     metrics.cpu_user = utime_span(15, UTIME_MS);
@@ -350,4 +350,9 @@ void ustream_svarint_test(void) {
 
     uistream_deinit(&istream);
     uostream_deinit(&ostream);
+}
+
+void ustream_teardown_test(void) {
+    remove(test_data_file);
+    remove(test_output_file);
 }

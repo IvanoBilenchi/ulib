@@ -70,6 +70,20 @@
             }
         },
         {
+            "name": "leaks",
+            "hidden": true,
+            "cacheVariables": {
+                "ULIB_LEAKS": true
+            }
+        },
+        {
+            "name": "leaks-off",
+            "hidden": true,
+            "cacheVariables": {
+                "ULIB_LEAKS": false
+            }
+        },
+        {
             "name": "werror",
             "hidden": true,
             "cacheVariables": {
@@ -84,6 +98,7 @@
                 "debug",
                 "clang-tidy",
                 "sanitizers",
+                "leaks",
                 "werror"
             ],
             "displayName": "Development"
@@ -94,7 +109,8 @@
                 "base",
                 "release",
                 "clang-tidy-off",
-                "sanitizers-off"
+                "sanitizers-off",
+                "leaks-off"
             ],
             "displayName": "Distribution"
         },
@@ -134,6 +150,7 @@
                 "base",
                 "assertions",
                 "sanitizers",
+                "leaks",
                 "werror"
             ],
             "displayName": "CI (test)"
