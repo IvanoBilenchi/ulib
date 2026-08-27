@@ -67,21 +67,22 @@ void p_USLock_unlock(USLock *lock) {
 #include "uattrs.h"
 #include "ubit.h"
 #include "ufutex.h"
+#include <assert.h>
 
 // MARK: - Adaptive spin
 
-// Adaptive spin budget, in backoff steps: spinning is worth it when it is either short,
-// meaning the wait ended within GOOD_SPIN steps, or rare, meaning the acquisitions that never
-// wait at all pay for the occasional long one.
 enum {
-    MIN_BUDGET = 4,
-    GOOD_SPIN = 10,
-    MAX_BUDGET = 256,
+    MIN_BUDGET = 4,   // Spin at least this many times before parking.
+    GOOD_SPIN = 10,   // Consider a spin "good" if it ends within this many steps.
+    MAX_BUDGET = 256, // Spin at most this many times before parking.
+    SPIN_BITS = 8,    // Number of bits used to store the spin budget in the lock state word.
 };
+
+typedef uint16_t spin_t;
 
 typedef struct Spinner {
     backoff_t backoff;
-    p_ulib_spin_t i;
+    spin_t i;
 } Spinner;
 
 static inline Spinner spinner(void) {
@@ -92,106 +93,152 @@ static inline void spinner_backoff(Spinner *spinner) {
     backoff_yield(&spinner->backoff);
 }
 
-static inline bool spinner_spin(Spinner *spinner, p_ulib_spin_t budget) {
+static inline bool spinner_spin(Spinner *spinner, spin_t budget) {
     if (spinner->i >= budget) return false;
     spinner_backoff(spinner);
     spinner->i++;
     return true;
 }
 
+#define SPIN_MASK(shift) ubit32_range(shift, SPIN_BITS)
+
+static_assert(MAX_BUDGET - MIN_BUDGET <= ubit32_range(0, SPIN_BITS),
+              "The spin budget must fit in the word it is packed into");
+
 #ifdef ULIB_LOCK_NO_SPIN
 
-#define spin_init(field) ((void)0)
-#define spin_load(field) ((p_ulib_spin_t)0)
-#define spin_rewarded(field, prev) ((void)(prev))
-#define spin_wasted(field, prev) ((void)(prev))
-#define spin_update(field, prev, spin) ((void)(prev), (void)(spin))
+#define spin_get(word, shift) ((void)(word), (void)(shift), (spin_t)0)
+#define spin_set(word, shift, budget) ((void)(shift), (void)(budget), (word))
+#define spin_rewarded(word, shift, budget) ((void)(shift), (void)(budget), (word))
+#define spin_updated(word, shift, budget, spin)                                                    \
+    ((void)(shift), (void)(budget), (void)(spin), (word))
+#define spin_load(word, shift) ((void)(word), (void)(shift), (spin_t)0)
+#define spin_store_reset(word, shift, budget) ((void)(word), (void)(shift), (void)(budget))
+#define spin_store_rewarded(word, shift, budget) ((void)(word), (void)(shift), (void)(budget))
+#define spin_store_updated(word, shift, budget, spin)                                              \
+    ((void)(word), (void)(shift), (void)(budget), (void)(spin))
 
 #else // ULIB_LOCK_NO_SPIN
 
-static inline void p_spin_rewarded(UAtomic(p_ulib_spin_t) *budget, p_ulib_spin_t prev_budget) {
-    if (prev_budget < MAX_BUDGET) uatomic_store_ex(budget, prev_budget + 1, UMO_RELAXED);
+static inline spin_t spin_get(uint32_t w, unsigned shift) {
+    uint32_t const raw = ubit_and(ubit_rshift(w, shift), ubit32_range(0, SPIN_BITS));
+    return (spin_t)(raw + MIN_BUDGET);
 }
 
-static inline void p_spin_wasted(UAtomic(p_ulib_spin_t) *budget, p_ulib_spin_t prev_budget) {
-    if (prev_budget != MIN_BUDGET) uatomic_store_ex(budget, MIN_BUDGET, UMO_RELAXED);
+static inline uint32_t spin_set(uint32_t w, unsigned shift, spin_t budget) {
+    uint32_t const raw = ubit_lshift((uint32_t)(budget - MIN_BUDGET), shift);
+    return ubit_overwrite(w, raw, SPIN_MASK(shift));
+}
+
+static inline uint32_t spin_reset(uint32_t w, unsigned shift) {
+    return ubit_overwrite(w, 0, SPIN_MASK(shift));
+}
+
+static inline uint32_t spin_reward_nocheck(uint32_t w, unsigned shift, spin_t budget) {
+    return spin_set(w, shift, budget + 1);
+}
+
+static inline uint32_t spin_reward(uint32_t w, unsigned shift, spin_t budget) {
+    return budget < MAX_BUDGET ? spin_reward_nocheck(w, shift, budget) : w;
+}
+
+static inline uint32_t spin_update(uint32_t w, unsigned shift, spin_t budget, spin_t spin) {
+    return spin <= GOOD_SPIN ? spin_reward(w, shift, budget) : spin_reset(w, shift);
+}
+
+static inline spin_t spin_load(UAtomic(uint32_t) *word, unsigned shift) {
+    return spin_get(uatomic_load_ex(word, UMO_RELAXED), shift);
+}
+
+static inline void spin_store_reset(UAtomic(uint32_t) *word, unsigned shift, spin_t budget) {
+    if (budget == MIN_BUDGET) return;
+    uatomic_fetch_and_ex(word, ubit_sub(ubit32_all(), SPIN_MASK(shift)), UMO_RELAXED);
+}
+
+static inline void spin_store_rewarded(UAtomic(uint32_t) *word, unsigned shift, spin_t budget) {
+    if (budget >= MAX_BUDGET) return;
+    uint32_t w = uatomic_load_ex(word, UMO_RELAXED);
+    uint32_t new_w = 0;
+    do {
+        new_w = spin_reward_nocheck(w, shift, budget);
+    } while (!uatomic_wcas_ex(word, &w, new_w, UMO_RELAXED, UMO_RELAXED));
 }
 
 static inline void
-p_spin_update(UAtomic(p_ulib_spin_t) *budget, p_ulib_spin_t prev_budget, p_ulib_spin_t spin) {
+spin_store_updated(UAtomic(uint32_t) *word, unsigned shift, spin_t budget, spin_t spin) {
     if (spin <= GOOD_SPIN) {
-        p_spin_rewarded(budget, prev_budget);
+        spin_store_rewarded(word, shift, budget);
     } else {
-        p_spin_wasted(budget, prev_budget);
+        spin_store_reset(word, shift, budget);
     }
 }
-
-#define spin_init(field) uatomic(field, MIN_BUDGET)
-#define spin_load(field) uatomic_load_ex(field, UMO_RELAXED)
-#define spin_rewarded(field, prev) p_spin_rewarded(field, prev)
-#define spin_wasted(field, prev) p_spin_wasted(field, prev)
-#define spin_update(field, prev, spin) p_spin_update(field, prev, spin)
 
 #endif // ULIB_LOCK_NO_SPIN
 
 // MARK: - Mutex
 
-enum {
-    UNLOCKED = 0,
-    LOCKED = 1,
-    CONTENDED = 2,
-};
+// The state word packs the lock bits and the adaptive spin budget.
+//
+// `_state`:
+//   - low 2 bits = LOCK_LOCKED | LOCK_WAIT.
+//   - high 8 bits = spin budget.
+
+#define LOCK_BUDGET_SHIFT 24
+#define LOCK_LOCKED ubit32_bit(0)
+#define LOCK_WAIT ubit32_bit(1)
+#define LOCK_BITS (LOCK_LOCKED | LOCK_WAIT)
 
 ulib_ret p_ULock(ULock *lock) {
-    uatomic(&lock->_state, UNLOCKED);
-    spin_init(&lock->_spins);
+    uatomic(&lock->_state, 0);
     return ULIB_OK;
 }
 
 void p_ULock_deinit(ulib_unused ULock *lock) {}
 
-static inline bool lock_tryacquire(ULock *lock) {
-    uint32_t val = UNLOCKED;
-    return uatomic_cas_ex(&lock->_state, &val, LOCKED, UMO_ACQUIRE, UMO_RELAXED);
+static inline uint32_t lock_unlocked(uint32_t s) {
+    return ubit_sub(s, LOCK_BITS);
 }
 
-static inline bool lock_tryacquire_spin(ULock *lock, p_ulib_spin_t budget) {
+static inline bool lock_tryacquire(ULock *lock) {
+    uint32_t s = lock_unlocked(uatomic_load_ex(&lock->_state, UMO_RELAXED));
+    spin_t const budget = spin_get(s, LOCK_BUDGET_SHIFT);
+    uint32_t const new_s = ubit_or(spin_reward(s, LOCK_BUDGET_SHIFT, budget), LOCK_LOCKED);
+    return uatomic_cas_ex(&lock->_state, &s, new_s, UMO_ACQUIRE, UMO_RELAXED);
+}
+
+static inline bool lock_tryacquire_spin(ULock *lock, spin_t budget) {
+    uint32_t s = lock_unlocked(uatomic_load_ex(&lock->_state, UMO_RELAXED));
     for (Spinner spin = spinner(); spinner_spin(&spin, budget);) {
-        uint32_t val = UNLOCKED;
-        if (uatomic_wcas_ex(&lock->_state, &val, LOCKED, UMO_ACQUIRE, UMO_RELAXED)) {
-            spin_update(&lock->_spins, budget, spin.i);
-            return true;
-        }
+        uint32_t const new_budget = spin_update(s, LOCK_BUDGET_SHIFT, budget, spin.i);
+        uint32_t const new_s = ubit_or(new_budget, LOCK_LOCKED);
+        if (uatomic_wcas_ex(&lock->_state, &s, new_s, UMO_ACQUIRE, UMO_RELAXED)) return true;
+        s = lock_unlocked(s);
     }
-    spin_wasted(&lock->_spins, budget);
+    spin_store_reset(&lock->_state, LOCK_BUDGET_SHIFT, budget);
     return false;
 }
 
-ULIB_NOINLINE static void lock_contended(ULock *lock, p_ulib_spin_t budget) {
-    if (lock_tryacquire_spin(lock, budget)) return;
-    while (uatomic_swp_ex(&lock->_state, CONTENDED, UMO_ACQUIRE) != UNLOCKED) {
-        ufutex_wait(&lock->_state, CONTENDED);
+ULIB_NOINLINE static void lock_contended(ULock *lock) {
+    if (lock_tryacquire_spin(lock, spin_load(&lock->_state, LOCK_BUDGET_SHIFT))) return;
+    for (;;) {
+        uint32_t const old = uatomic_fetch_or_ex(&lock->_state, LOCK_BITS, UMO_ACQUIRE);
+        if (!ubit_any(old, LOCK_LOCKED)) return;
+        ufutex_wait(&lock->_state, ubit_or(old, LOCK_BITS));
     }
 }
 
 void p_ULock_lock(ULock *lock) {
-    p_ulib_spin_t const budget = spin_load(&lock->_spins);
-    if (lock_tryacquire(lock)) {
-        spin_rewarded(&lock->_spins, budget);
-        return;
-    }
-    lock_contended(lock, budget);
+    if (!lock_tryacquire(lock)) lock_contended(lock);
 }
 
 bool p_ULock_trylock(ULock *lock) {
-    return lock_tryacquire(lock);
+    return !ubit_any(uatomic_fetch_or_ex(&lock->_state, LOCK_LOCKED, UMO_ACQUIRE), LOCK_LOCKED);
 }
 
 void p_ULock_unlock(ULock *lock) {
-    if (uatomic_fas_ex(&lock->_state, 1, UMO_RELEASE) == CONTENDED) {
-        uatomic_store_ex(&lock->_state, UNLOCKED, UMO_RELEASE);
-        (void)ufutex_wake_one(&lock->_state);
-    }
+    uint32_t const new = ubit_sub(ubit32_all(), LOCK_BITS);
+    uint32_t const old = uatomic_fetch_and_ex(&lock->_state, new, UMO_RELEASE);
+    if (ubit_any(old, LOCK_WAIT)) (void)ufutex_wake_one(&lock->_state);
 }
 
 // MARK: - Recursive mutex
@@ -244,7 +291,17 @@ void p_URLock_unlock(URLock *lock) {
 //   - bit 30 = readers are waiting.
 //   - bit 31 = writers are waiting.
 //
-// `_wnotify`: monotonic event counter futex to park and wake writers.
+// `_wnotify`: futex to park and wake writers + adaptive spin budget.
+//   - low 8 bits = reader spin budget.
+//   - bits 8-15 = writer spin budget.
+//   - high 16 bits = monotonic event counter.
+
+enum {
+    RW_RSPINS_SHIFT = 0,
+    RW_WSPINS_SHIFT = 8,
+};
+
+#define RW_NOTIFY ubit32_bit(16)
 
 #define RW_READER UINT32_C(1)
 #define RW_MASK ubit32_range(0, 30)
@@ -278,7 +335,7 @@ static inline bool rw_is_read_lockable(uint32_t s) {
 }
 
 static inline ulib_ret rw_wake_writer(UAtomic(uint32_t) *wnotify) {
-    uatomic_fetch_add_ex(wnotify, 1, UMO_RELEASE);
+    uatomic_fetch_add_ex(wnotify, RW_NOTIFY, UMO_RELEASE);
     return ufutex_wake_one(wnotify);
 }
 
@@ -307,7 +364,7 @@ static void rw_wake(UAtomic(uint32_t) *state, UAtomic(uint32_t) *wnotify, uint32
     }
 }
 
-ULIB_NOINLINE static void rw_read_contended(URWLock *lock, uint16_t budget) {
+ULIB_NOINLINE static void rw_read_contended(URWLock *lock, spin_t budget) {
     Spinner spin = spinner();
     uint32_t s = uatomic_load_ex(&lock->_state, UMO_RELAXED);
 
@@ -316,7 +373,7 @@ ULIB_NOINLINE static void rw_read_contended(URWLock *lock, uint16_t budget) {
         if (rw_is_read_lockable(s)) {
             uint32_t const new_s = s + RW_READER;
             if (uatomic_wcas_ex(&lock->_state, &s, new_s, UMO_ACQUIRE, UMO_RELAXED)) {
-                spin_update(&lock->_rspins, budget, spin.i);
+                spin_store_updated(&lock->_wnotify, RW_RSPINS_SHIFT, budget, spin.i);
                 return;
             }
             spinner_backoff(&spin);
@@ -328,7 +385,7 @@ ULIB_NOINLINE static void rw_read_contended(URWLock *lock, uint16_t budget) {
             s = uatomic_load_ex(&lock->_state, UMO_RELAXED);
             continue;
         }
-        spin_wasted(&lock->_rspins, budget);
+        spin_store_reset(&lock->_wnotify, RW_RSPINS_SHIFT, budget);
 
         // Flag readers-waiting and sleep.
         if (!rw_has_readers_waiting(s)) {
@@ -338,13 +395,13 @@ ULIB_NOINLINE static void rw_read_contended(URWLock *lock, uint16_t budget) {
         ufutex_wait(&lock->_state, s | RW_R_WAIT);
 
         // Reset state.
-        budget = spin_load(&lock->_rspins);
+        budget = spin_load(&lock->_wnotify, RW_RSPINS_SHIFT);
         spin = spinner();
         s = uatomic_load_ex(&lock->_state, UMO_RELAXED);
     }
 }
 
-ULIB_NOINLINE static void rw_write_contended(URWLock *lock, p_ulib_spin_t budget) {
+ULIB_NOINLINE static void rw_write_contended(URWLock *lock, spin_t budget) {
     Spinner spin = spinner();
     uint32_t s = uatomic_load_ex(&lock->_state, UMO_RELAXED);
     uint32_t writers_waiting = 0;
@@ -354,7 +411,7 @@ ULIB_NOINLINE static void rw_write_contended(URWLock *lock, p_ulib_spin_t budget
         if (rw_is_unlocked(s)) {
             uint32_t const new_s = s | RW_WRITE_LOCKED | writers_waiting;
             if (uatomic_wcas_ex(&lock->_state, &s, new_s, UMO_ACQUIRE, UMO_RELAXED)) {
-                spin_update(&lock->_wspins, budget, spin.i);
+                spin_store_updated(&lock->_wnotify, RW_WSPINS_SHIFT, budget, spin.i);
                 return;
             }
             spinner_backoff(&spin);
@@ -366,7 +423,7 @@ ULIB_NOINLINE static void rw_write_contended(URWLock *lock, p_ulib_spin_t budget
             s = uatomic_load_ex(&lock->_state, UMO_RELAXED);
             continue;
         }
-        spin_wasted(&lock->_wspins, budget);
+        spin_store_reset(&lock->_wnotify, RW_WSPINS_SHIFT, budget);
 
         // Flag writers-waiting and sleep.
         if (!rw_has_writers_waiting(s)) {
@@ -376,14 +433,14 @@ ULIB_NOINLINE static void rw_write_contended(URWLock *lock, p_ulib_spin_t budget
         // This needs to be propagated to avoid lost wakeups.
         writers_waiting = RW_W_WAIT;
 
-        uint32_t seq = uatomic_load_ex(&lock->_wnotify, UMO_ACQUIRE);
+        uint32_t const seq = uatomic_load_ex(&lock->_wnotify, UMO_ACQUIRE);
         // Re-check _state so we don't sleep through a wakeup that raced with us.
         s = uatomic_load_ex(&lock->_state, UMO_RELAXED);
         if (rw_is_unlocked(s) || !rw_has_writers_waiting(s)) continue;
         ufutex_wait(&lock->_wnotify, seq);
 
         // Reset state.
-        budget = spin_load(&lock->_wspins);
+        budget = spin_load(&lock->_wnotify, RW_WSPINS_SHIFT);
         spin = spinner();
         s = uatomic_load_ex(&lock->_state, UMO_RELAXED);
     }
@@ -392,18 +449,16 @@ ULIB_NOINLINE static void rw_write_contended(URWLock *lock, p_ulib_spin_t budget
 ulib_ret p_URWLock(URWLock *lock) {
     uatomic(&lock->_state, 0);
     uatomic(&lock->_wnotify, 0);
-    spin_init(&lock->_rspins);
-    spin_init(&lock->_wspins);
     return ULIB_OK;
 }
 
 void p_URWLock_deinit(ulib_unused URWLock *lock) {}
 
 void p_URWLock_lock(URWLock *lock) {
-    p_ulib_spin_t const budget = spin_load(&lock->_wspins);
+    spin_t const budget = spin_load(&lock->_wnotify, RW_WSPINS_SHIFT);
     uint32_t s = 0;
     if (uatomic_cas_ex(&lock->_state, &s, RW_WRITE_LOCKED, UMO_ACQUIRE, UMO_RELAXED)) {
-        spin_rewarded(&lock->_wspins, budget);
+        spin_store_rewarded(&lock->_wnotify, RW_WSPINS_SHIFT, budget);
         return;
     }
     rw_write_contended(lock, budget);
@@ -424,11 +479,11 @@ void p_URWLock_unlock(URWLock *lock) {
 }
 
 static inline void rw_read_lock(URWLock *lock) {
-    p_ulib_spin_t const budget = spin_load(&lock->_rspins);
+    spin_t const budget = spin_load(&lock->_wnotify, RW_RSPINS_SHIFT);
     uint32_t s = uatomic_load_ex(&lock->_state, UMO_RELAXED);
     if (rw_is_read_lockable(s) &&
         uatomic_cas_ex(&lock->_state, &s, s + RW_READER, UMO_ACQUIRE, UMO_RELAXED)) {
-        spin_rewarded(&lock->_rspins, budget);
+        spin_store_rewarded(&lock->_wnotify, RW_RSPINS_SHIFT, budget);
         return;
     }
     rw_read_contended(lock, budget);

@@ -34,30 +34,19 @@ struct USLock {
         #include "uthread.h"
         #include <stdint.h>
 
-        typedef uint16_t p_ulib_spin_t;
-
-        #ifdef ULIB_LOCK_NO_SPIN
-            #define P_ULOCK_SPIN_FIELD(name)
-        #else
-            #define P_ULOCK_SPIN_FIELD(name) UAtomic(p_ulib_spin_t) name;
-        #endif
-
         struct ULock {
             UAtomic(uint32_t) _state;
-            P_ULOCK_SPIN_FIELD(_spins)
         };
 
         struct URLock {
             struct ULock _lock;
-            UAtomic(UThreadId) _owner;
             uint32_t _count;
+            UAtomic(UThreadId) _owner;
         };
 
         struct URWLock {
             UAtomic(uint32_t) _state;
             UAtomic(uint32_t) _wnotify;
-            P_ULOCK_SPIN_FIELD(_rspins)
-            P_ULOCK_SPIN_FIELD(_wspins)
         };
     #elif ULIB_OS_HAS_PTHREADS
         #include <pthread.h> // IWYU pragma: keep
