@@ -697,8 +697,8 @@ static ulib_ret write_metrics(UOStream *stream, UMetrics const *metrics, size_t 
         ret = write_metric_double(stream, sep, "mem peak", kb, " KB", &tot);
         sep = ", ";
     }
-    if (available & UMETRICS_CTX_VOLUNTARY) {
-        ret = write_metric_uint(stream, sep, "vol ctx", metrics->ctx_voluntary, "", &tot);
+    if (available & UMETRICS_CTX_TOTAL) {
+        ret = write_metric_uint(stream, sep, "tot ctx", metrics->ctx_total, "", &tot);
         sep = ", ";
     }
     if (available & UMETRICS_CTX_INVOLUNTARY) {

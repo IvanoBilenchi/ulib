@@ -270,8 +270,8 @@ void uostream_metrics_test(void) {
     metrics.cpu_user = utime_span(15, UTIME_MS);
     metrics.cpu_system = utime_span(10, UTIME_MS);
     metrics.mem_peak = 4096;
-    metrics.ctx_voluntary = 7;
-    metrics.ctx_involuntary = 9;
+    metrics.ctx_total = 9;
+    metrics.ctx_involuntary = 5;
 
     metrics_to_buf(&metrics, buf, sizeof(buf), &written);
     utest_assert_uint(written, ==, 0);
@@ -279,7 +279,7 @@ void uostream_metrics_test(void) {
 
     metrics.available = UMETRICS_CPU_USER | UMETRICS_CTX_INVOLUNTARY;
     metrics_to_buf(&metrics, buf, sizeof(buf), &written);
-    utest_assert_cstring(buf, ==, "user 15.00 ms, invol ctx 9");
+    utest_assert_cstring(buf, ==, "user 15.00 ms, invol ctx 5");
     utest_assert_uint(written, ==, strlen(buf));
 
     metrics.available = UMETRICS_MEM_PEAK;
@@ -289,7 +289,7 @@ void uostream_metrics_test(void) {
     metrics.available = UMETRICS_ALL;
     metrics_to_buf(&metrics, buf, sizeof(buf), &written);
     utest_assert_cstring(buf, ==,
-                         "user 15.00 ms, sys 10.00 ms, mem peak 4.00 KB, vol ctx 7, invol ctx 9");
+                         "user 15.00 ms, sys 10.00 ms, mem peak 4.00 KB, tot ctx 9, invol ctx 5");
     utest_assert_uint(written, ==, strlen(buf));
 }
 

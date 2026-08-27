@@ -42,8 +42,8 @@ enum umetrics_flags_bits {
     /// Peak physical memory usage.
     UMETRICS_BIT_MEM_PEAK = 2,
 
-    /// Voluntary context switches.
-    UMETRICS_BIT_CTX_VOLUNTARY = 3,
+    /// Context switches.
+    UMETRICS_BIT_CTX_TOTAL = 3,
 
     /// Involuntary context switches.
     UMETRICS_BIT_CTX_INVOLUNTARY = 4,
@@ -64,8 +64,8 @@ enum umetrics_flags_values {
     /// Peak physical memory usage.
     UMETRICS_MEM_PEAK = 1U << UMETRICS_BIT_MEM_PEAK,
 
-    /// Voluntary context switches.
-    UMETRICS_CTX_VOLUNTARY = 1U << UMETRICS_BIT_CTX_VOLUNTARY,
+    /// Context switches.
+    UMETRICS_CTX_TOTAL = 1U << UMETRICS_BIT_CTX_TOTAL,
 
     /// Involuntary context switches.
     UMETRICS_CTX_INVOLUNTARY = 1U << UMETRICS_BIT_CTX_INVOLUNTARY,
@@ -74,7 +74,7 @@ enum umetrics_flags_values {
     UMETRICS_CPU_TIME = UMETRICS_CPU_USER | UMETRICS_CPU_SYSTEM,
 
     /// All context switch metrics.
-    UMETRICS_CTX_SWITCHES = UMETRICS_CTX_VOLUNTARY | UMETRICS_CTX_INVOLUNTARY,
+    UMETRICS_CTX_SWITCHES = UMETRICS_CTX_TOTAL | UMETRICS_CTX_INVOLUNTARY,
 
     /// All metrics.
     UMETRICS_ALL = UMETRICS_CPU_TIME | UMETRICS_MEM_PEAK | UMETRICS_CTX_SWITCHES,
@@ -106,8 +106,8 @@ typedef struct UMetrics {
     /// Peak physical memory usage, in bytes.
     size_t mem_peak;
 
-    /// Context switches where the program yielded, e.g. by blocking on a lock.
-    unsigned long ctx_voluntary;
+    /// Context switches.
+    unsigned long ctx_total;
 
     /// Context switches where the program was preempted by the scheduler.
     unsigned long ctx_involuntary;

@@ -243,7 +243,7 @@ static void *bench_alloc(size_t size) {
 static void metrics_sub(UMetrics *metrics, UMetrics const *before) {
     metrics->cpu_user -= before->cpu_user;
     metrics->cpu_system -= before->cpu_system;
-    metrics->ctx_voluntary -= before->ctx_voluntary;
+    metrics->ctx_total -= before->ctx_total;
     metrics->ctx_involuntary -= before->ctx_involuntary;
 }
 

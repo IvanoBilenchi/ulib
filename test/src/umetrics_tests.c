@@ -16,7 +16,7 @@ static umetrics_flags non_zero_metrics(UMetrics const *metrics) {
     if (metrics->cpu_user) flags |= UMETRICS_CPU_USER;
     if (metrics->cpu_system) flags |= UMETRICS_CPU_SYSTEM;
     if (metrics->mem_peak) flags |= UMETRICS_MEM_PEAK;
-    if (metrics->ctx_voluntary) flags |= UMETRICS_CTX_VOLUNTARY;
+    if (metrics->ctx_total) flags |= UMETRICS_CTX_TOTAL;
     if (metrics->ctx_involuntary) flags |= UMETRICS_CTX_INVOLUNTARY;
     return flags;
 }
@@ -60,8 +60,8 @@ void umetrics_test_get(void) {
 void umetrics_test_flags(void) {
     umetrics_flags const supported = umetrics_supported();
     umetrics_flags const flags[] = {
-        UMETRICS_CPU_USER,      UMETRICS_CPU_SYSTEM,      UMETRICS_MEM_PEAK,
-        UMETRICS_CTX_VOLUNTARY, UMETRICS_CTX_INVOLUNTARY,
+        UMETRICS_CPU_USER,  UMETRICS_CPU_SYSTEM,      UMETRICS_MEM_PEAK,
+        UMETRICS_CTX_TOTAL, UMETRICS_CTX_INVOLUNTARY,
     };
 
     for (unsigned i = 0; i < ulib_array_count(flags); ++i) {

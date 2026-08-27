@@ -21,7 +21,11 @@
 
 #include <sys/resource.h>
 
+#if ULIB_OS_IS_APPLE
+#define P_UMETRICS_SUPPORTED (UMETRICS_CPU_TIME | UMETRICS_MEM_PEAK | UMETRICS_CTX_TOTAL)
+#else
 #define P_UMETRICS_SUPPORTED UMETRICS_ALL
+#endif
 
 ULIB_CONST ULIB_INLINE utime_ns timeval_ns(struct timeval t) {
     return ((utime_ns)t.tv_sec * UTIME_NS_PER_S) + ((utime_ns)t.tv_usec * UTIME_NS_PER_US);
@@ -41,8 +45,10 @@ static ulib_ret umetrics_fill(UMetrics *m, umetrics_flags f) {
     if (ubit_any(f, UMETRICS_CPU_USER)) m->cpu_user = timeval_ns(usage.ru_utime);
     if (ubit_any(f, UMETRICS_CPU_SYSTEM)) m->cpu_system = timeval_ns(usage.ru_stime);
     if (ubit_any(f, UMETRICS_MEM_PEAK)) m->mem_peak = maxrss_bytes(usage.ru_maxrss);
-    if (ubit_any(f, UMETRICS_CTX_VOLUNTARY)) m->ctx_voluntary = (unsigned long)usage.ru_nvcsw;
     if (ubit_any(f, UMETRICS_CTX_INVOLUNTARY)) m->ctx_involuntary = (unsigned long)usage.ru_nivcsw;
+    if (ubit_any(f, UMETRICS_CTX_TOTAL)) {
+        m->ctx_total = (unsigned long)(usage.ru_nvcsw + usage.ru_nivcsw);
+    }
     m->available = f;
     return ULIB_OK;
 }
