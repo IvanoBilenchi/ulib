@@ -11,6 +11,8 @@
 #include "uplatform.h"
 #include "utime.h"
 
+// MARK: - Threads
+
 #if ULIB_CONCURRENCY
 
 #if ULIB_OS_HAS_PTHREADS
@@ -71,7 +73,7 @@ ulib_ret uthread_detach(UThread *thread) {
 
 #endif
 
-#else
+#else // ULIB_CONCURRENCY
 
 #include "uwarning.h"
 
@@ -95,6 +97,8 @@ ulib_ret uthread_detach(ulib_unused UThread *thread) {
 
 #endif // ULIB_CONCURRENCY
 
+// MARK: - Thread ID
+
 #if ULIB_CONCURRENCY
 
 #include "uatomic.h"
@@ -114,7 +118,7 @@ UThreadId uthread_id(void) {
     return id;
 }
 
-#else
+#else // ULIB_CONCURRENCY
 
 UThreadId uthread_id(void) {
     return 1;
@@ -122,7 +126,19 @@ UThreadId uthread_id(void) {
 
 #endif // ULIB_CONCURRENCY
 
-#if ULIB_OS_IS_POSIX
+// MARK: - Sleep
+
+#if ULIB_OS_IS_ZEPHYR
+
+#include <zephyr/kernel.h>
+#include <zephyr/sys_clock.h>
+
+ulib_ret uthread_sleep(utime_ns t) {
+    k_sleep(K_NSEC(t));
+    return ULIB_OK;
+}
+
+#elif ULIB_OS_IS_POSIX
 
 #include <errno.h>
 #include <sys/errno.h>

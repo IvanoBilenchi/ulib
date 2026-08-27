@@ -150,11 +150,50 @@
 #endif
 
 /**
+ * True if the target OS is FreeBSD.
+ * @def ULIB_OS_IS_FREEBSD
+ */
+#ifdef __FreeBSD__
+    #define ULIB_OS_IS_FREEBSD 1
+#else
+    #define ULIB_OS_IS_FREEBSD 0
+#endif
+
+/**
+ * True if the target OS is NetBSD.
+ * @def ULIB_OS_IS_NETBSD
+ */
+#ifdef __NetBSD__
+    #define ULIB_OS_IS_NETBSD 1
+#else
+    #define ULIB_OS_IS_NETBSD 0
+#endif
+
+/**
+ * True if the target OS is OpenBSD.
+ * @def ULIB_OS_IS_OPENBSD
+ */
+#ifdef __OpenBSD__
+    #define ULIB_OS_IS_OPENBSD 1
+#else
+    #define ULIB_OS_IS_OPENBSD 0
+#endif
+
+/**
+ * True if the target OS is DragonFly BSD.
+ * @def ULIB_OS_IS_DRAGONFLY
+ */
+#ifdef __DragonFly__
+    #define ULIB_OS_IS_DRAGONFLY 1
+#else
+    #define ULIB_OS_IS_DRAGONFLY 0
+#endif
+
+/**
  * True if the target OS is a BSD variant.
  * @def ULIB_OS_IS_BSD
  */
-#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) ||                          \
-    defined(__DragonFly__)
+#if ULIB_OS_IS_FREEBSD || ULIB_OS_IS_NETBSD || ULIB_OS_IS_OPENBSD || ULIB_OS_IS_DRAGONFLY
     #define ULIB_OS_IS_BSD 1
 #else
     #define ULIB_OS_IS_BSD 0
