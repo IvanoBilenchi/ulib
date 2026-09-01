@@ -24,7 +24,7 @@
 #define uvec_append_items(T, vec, ...)                                                             \
     do {                                                                                           \
         T const p_items[] = { __VA_ARGS__ };                                                       \
-        uvec_append_array(T, vec, p_items, ulib_array_count(p_items));                             \
+        utest_assert_ok(uvec_append_array(T, vec, p_items, ulib_array_count(p_items)));            \
     } while (0)
 
 // Tests

@@ -106,12 +106,13 @@ function(clang_tidy_check TARGET)
     endif()
 
     # Compute clang-tidy arguments
-    list(APPEND TIDY_CHECKS "$<$<BOOL:$<TARGET_PROPERTY:${TARGET},PRECOMPILE_HEADERS>>:-misc-header-include-cycle>")
+    set(FORCED_HEADERS "$<FILTER:$<TARGET_PROPERTY:${TARGET},COMPILE_OPTIONS>,INCLUDE,^--include=>")
+    list(APPEND TIDY_CHECKS "$<$<BOOL:${FORCED_HEADERS}>:-misc-header-include-cycle>")
     list(JOIN TIDY_CHECKS "," TIDY_CHECKS_ARG)
     list(APPEND TIDY_COMMAND "--checks=${TIDY_CHECKS_ARG}")
     list(APPEND CLANG_ARGS "--" "-fno-caret-diagnostics")
     list(APPEND CLANG_ARGS "$<LIST:TRANSFORM,$<TARGET_PROPERTY:${TARGET},INCLUDE_DIRECTORIES>,PREPEND,-I>")
-    list(APPEND CLANG_ARGS "$<LIST:TRANSFORM,$<TARGET_PROPERTY:${TARGET},PRECOMPILE_HEADERS>,PREPEND,--include=>")
+    list(APPEND CLANG_ARGS "${FORCED_HEADERS}")
     list(APPEND CLANG_ARGS "$<LIST:TRANSFORM,$<TARGET_PROPERTY:${TARGET},COMPILE_DEFINITIONS>,PREPEND,-D>")
 
     # Create clang-tidy commands and target to check headers

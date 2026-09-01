@@ -43,6 +43,7 @@ set(ULIB_UTILS_DIR "${ULIB_PROJECT_DIR}/utils")
 
 list(APPEND CMAKE_MODULE_PATH "${ULIB_UTILS_DIR}/cmake")
 include(CacheUtils)
+include(CompileUtils)
 
 # Cache variables
 
@@ -108,7 +109,7 @@ if(ULIB_LEAKS)
     set(ULIB_OVERRIDE_REALLOC p_uleak_realloc)
     set(ULIB_OVERRIDE_FREE p_uleak_free)
     list(APPEND ULIB_PRIVATE_DEFINES ULIB_LEAKS)
-    list(APPEND ULIB_USER_HEADERS "${ULIB_PUBLIC_HEADERS_DIR}/uleak.h")
+    list(APPEND ULIB_USER_HEADERS "uleak.h")
 endif()
 
 foreach(ULIB_MACRO ${ULIB_MACRO_OVERRIDES})
@@ -130,21 +131,11 @@ if(MSVC)
     endif()
 else()
     list(APPEND ULIB_PRIVATE_CFLAGS -Wall -Wextra -Wpedantic)
-    if(ULIB_SANITIZERS)
-        string(REPLACE ";" "," ULIB_SANITIZER_LIST "${ULIB_SANITIZERS}")
-        list(APPEND ULIB_PUBLIC_CFLAGS "-fsanitize=${ULIB_SANITIZER_LIST}")
-        list(APPEND ULIB_PUBLIC_LFLAGS "-fsanitize=${ULIB_SANITIZER_LIST}")
-    endif()
-    if(ULIB_OPTIMIZE_FOR_HOST)
-        list(APPEND ULIB_PRIVATE_CFLAGS "-march=native")
-    endif()
 endif()
 
 if(ULIB_LTO)
     include(CheckIPOSupported)
-    check_ipo_supported(RESULT ULIB_LTO_ENABLED)
-else()
-    set(ULIB_LTO_ENABLED OFF)
+    check_ipo_supported(RESULT CMAKE_INTERPROCEDURAL_OPTIMIZATION)
 endif()
 
 if(ULIB_TYPES STREQUAL "TINY")
@@ -195,6 +186,13 @@ list(APPEND ULIB_SOURCES ${ULIB_USER_SOURCES})
 # Targets #
 ###########
 
+add_library(ulib-internal INTERFACE)
+target_compile_options(ulib-internal INTERFACE ${ULIB_PRIVATE_CFLAGS})
+
+if(ULIB_OPTIMIZE_FOR_HOST)
+    target_optimize_for_host(ulib-internal INTERFACE)
+endif()
+
 add_library(ulib ${ULIB_LIBRARY_TYPE})
 target_sources(
     ulib
@@ -213,22 +211,19 @@ set_target_properties(
     PREFIX ""
     C_VISIBILITY_PRESET hidden
     VISIBILITY_INLINES_HIDDEN ON
-    INTERPROCEDURAL_OPTIMIZATION ${ULIB_LTO_ENABLED}
 )
 target_compile_features(ulib PUBLIC ${ULIB_COMPILE_FEATURES})
-target_compile_options(ulib PUBLIC ${ULIB_PUBLIC_CFLAGS} PRIVATE ${ULIB_PRIVATE_CFLAGS})
-target_link_options(ulib PUBLIC ${ULIB_PUBLIC_LFLAGS} PRIVATE ${ULIB_PRIVATE_LFLAGS})
+target_compile_options(ulib PUBLIC ${ULIB_PUBLIC_CFLAGS})
 target_compile_definitions(ulib PUBLIC ${ULIB_PUBLIC_DEFINES} PRIVATE ${ULIB_PRIVATE_DEFINES})
+target_force_include(ulib PUBLIC ${ULIB_USER_HEADERS})
+target_add_sanitizers(ulib PUBLIC ${ULIB_SANITIZERS})
+target_link_libraries(ulib PRIVATE ulib-internal)
 
 if(WIN32)
     target_link_libraries(ulib PRIVATE psapi)
     if (ULIB_CONCURRENCY)
         target_link_libraries(ulib PRIVATE Synchronization)
     endif()
-endif()
-
-if(ULIB_USER_HEADERS)
-    target_precompile_headers(ulib PUBLIC ${ULIB_USER_HEADERS})
 endif()
 
 if(ULIB_LIBRARY_TYPE STREQUAL "SHARED")

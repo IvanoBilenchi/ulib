@@ -5,3 +5,7 @@ Diagnostics:
     IgnoreHeader:
       - /_[^/]+\.h$
       - bits/.*\.h$
+If:
+  PathMatch: .*\.h
+CompileFlags:
+  Remove: [-include]

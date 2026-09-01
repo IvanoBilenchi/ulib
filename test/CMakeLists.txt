@@ -14,9 +14,7 @@ target_sources(
         BASE_DIRS "${ULIB_TEST_SRC_DIR}"
         FILES ${ULIB_TEST_HEADERS}
 )
-set_target_properties(ulib-test PROPERTIES INTERPROCEDURAL_OPTIMIZATION ${ULIB_LTO_ENABLED})
-target_compile_options(ulib-test PRIVATE ${ULIB_PRIVATE_CFLAGS})
-target_link_libraries(ulib-test PRIVATE ulib)
+target_link_libraries(ulib-test PRIVATE ulib ulib-internal)
 
 if(ULIB_CLANG_TIDY)
     clang_tidy_check(ulib-test)
@@ -48,10 +46,7 @@ if(ULIB_CPP_TESTS)
             BASE_DIRS "${ULIB_TEST_SRC_DIR}"
             FILES ${ULIB_TEST_HEADERS}
     )
-    set_target_properties(ulib-cpp-test PROPERTIES
-        INTERPROCEDURAL_OPTIMIZATION ${ULIB_LTO_ENABLED}
-        EXPORT_COMPILE_COMMANDS OFF
-    )
+    set_target_properties(ulib-cpp-test PROPERTIES EXPORT_COMPILE_COMMANDS OFF)
     target_compile_features(ulib-cpp-test PRIVATE cxx_std_23)
     target_link_libraries(ulib-cpp-test PRIVATE ulib)
 

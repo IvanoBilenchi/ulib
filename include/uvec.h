@@ -99,11 +99,7 @@ typedef enum uvec_ret {
 
 /// Enable the small buffer optimization.
 #ifndef UVEC_SBO
-#if defined(ULIB_DEBUG) || defined(__clang_analyzer__)
-#define UVEC_SBO 0
-#else
 #define UVEC_SBO 1
-#endif
 #endif
 
 /// @}
@@ -131,8 +127,10 @@ typedef enum uvec_ret {
     (sizeof(struct ULIB_MACRO_CONCAT(p_uvec_sizing_, T)) - sizeof(T *) - sizeof(ulib_uint))
 #define p_uvec_small_size(T) ((sizeof(struct ULIB_MACRO_CONCAT(p_uvec_large_, T)) - 1) / sizeof(T))
 #ifdef __clang_analyzer__
-#define p_uvec_exp(T, v) ((v)->_l._exp[p_uvec_exp_size(T) - 1])
+#define P_UVEC_ANALYZER_EXP ulib_byte _exp;
+#define p_uvec_exp(T, v) ((v)->_exp)
 #else
+#define P_UVEC_ANALYZER_EXP
 #define p_uvec_exp(T, v) ((v)->_s[p_uvec_size(T) - 1])
 #endif
 #define p_uvec_exp_set(T, v, e) (p_uvec_exp(T, v) = (ulib_byte)(e))
@@ -178,6 +176,7 @@ typedef enum uvec_ret {
             struct p_uvec_large_##T _l;                                                            \
             ulib_byte _s[p_uvec_size(T)];                                                          \
         };                                                                                         \
+        P_UVEC_ANALYZER_EXP                                                                        \
         /** @endcond */                                                                            \
     } UVec_##T;                                                                                    \
                                                                                                    \
@@ -257,7 +256,9 @@ typedef enum uvec_ret {
                                                                                                    \
     ATTRS ULIB_PURE ULIB_INLINE ulib_uint uvec_count_##T(UVec(T) const *vec) {                     \
         ulib_byte exp = p_uvec_exp(T, vec);                                                        \
-        return p_uvec_exp_is_large(exp) ? vec->_l._count : exp;                                    \
+        if (p_uvec_exp_is_large(exp)) return vec->_l._count;                                       \
+        ulib_analyzer_assert(exp <= p_uvec_small_size(T));                                         \
+        return exp;                                                                                \
     }                                                                                              \
                                                                                                    \
     ATTRS ULIB_INLINE void p_uvec_set_count_##T(UVec(T) *vec, ulib_uint count) {                   \
@@ -270,7 +271,9 @@ typedef enum uvec_ret {
     }                                                                                              \
                                                                                                    \
     ATTRS ULIB_PURE ULIB_INLINE T uvec_last_##T(UVec(T) const *vec) {                              \
-        return uvec_data(T, vec)[uvec_count(T, vec) - 1];                                          \
+        ulib_uint count = uvec_count(T, vec);                                                      \
+        ulib_analyzer_assert(count);                                                               \
+        return uvec_data(T, vec)[count - 1];                                                       \
     }                                                                                              \
                                                                                                    \
     ATTRS ULIB_PURE ULIB_INLINE UVec(T) uvec_view_from_##T(UVec(T) const *vec, ulib_uint start) {  \
@@ -312,6 +315,7 @@ typedef enum uvec_ret {
                                                                                                    \
     ATTRS ULIB_INLINE void uvec_unordered_remove_at_##T(UVec(T) *vec, ulib_uint idx) {             \
         ulib_uint count = uvec_count(T, vec);                                                      \
+        ulib_analyzer_assert(idx < count);                                                         \
         T *const data = uvec_data(T, vec);                                                         \
         data[idx] = data[--count];                                                                 \
         p_uvec_set_count_##T(vec, count);                                                          \
@@ -529,6 +533,7 @@ typedef enum uvec_ret {
     ATTRS ulib_ret uvec_push_##T(UVec(T) *vec, T item) {                                           \
         ulib_uint count = uvec_count(T, vec);                                                      \
         if (count == uvec_size(T, vec) && uvec_reserve_##T(vec, count + 1)) return ULIB_ERR_MEM;   \
+        ulib_analyzer_assert(count < uvec_size(T, vec));                                           \
         uvec_data(T, vec)[count] = item;                                                           \
         p_uvec_set_count_##T(vec, count + 1);                                                      \
         return ULIB_OK;                                                                            \
@@ -908,6 +913,7 @@ typedef enum uvec_ret {
         if (ret) return ret;                                                                       \
         T *heap = uvec_data(T, vec);                                                               \
         ulib_uint count = uvec_count(T, vec);                                                      \
+        ulib_analyzer_assert(count);                                                               \
         p_uvec_##TYPE##_heapq_up_##T(heap, count - 1);                                             \
         return ULIB_OK;                                                                            \
     }                                                                                              \
