@@ -84,7 +84,11 @@
 #define ULIB_DEPRECATED_MACRO                                                                      \
     ULIB_WARNING(Deprecated. See the docstring for a possible replacement.)
 
-#if ULIB_CC_IS_GNU
+#if ULIB_DOCS
+    #define ULIB_DEPRECATED(msg) /** @deprecated msg */
+    #define ULIB_DEPRECATED_ENUM(old_val, new_val) \
+        /** @deprecated Use @val{new_val} instead. */ old_val = new_val
+#elif ULIB_CC_IS_GNU
     #define ULIB_DEPRECATED(msg) __attribute__((__deprecated__(#msg)))
     #define ULIB_DEPRECATED_ENUM(old_val, new_val)                                                 \
         old_val __attribute__((__deprecated__("Use " #new_val " instead."))) = new_val

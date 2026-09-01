@@ -584,10 +584,21 @@
  * @def ulib_if_concurrency(...)
  */
 
+#ifdef ULIB_CONCURRENCY_REQUESTED
+    #define P_ULIB_CONCURRENCY_REQUESTED 1
+#else
+    #define P_ULIB_CONCURRENCY_REQUESTED 0
+#endif
+
 // MSVC provides C11 atomics through /experimental:c11atomics, but keeps defining
 // __STDC_NO_ATOMICS__. Assume that if the user requested concurrency, it is available on MSVC.
-#if defined(ULIB_CONCURRENCY_REQUESTED) && ULIB_OS_HAS_THREADS &&                                  \
-    (ULIB_LANG_HAS_ATOMICS || ULIB_CC_IS_MSVC)
+#if ULIB_OS_HAS_THREADS && (ULIB_LANG_HAS_ATOMICS || ULIB_CC_IS_MSVC)
+    #define P_ULIB_CONCURRENCY_AVAILABLE 1
+#else
+    #define P_ULIB_CONCURRENCY_AVAILABLE 0
+#endif
+
+#if ULIB_DOCS || (P_ULIB_CONCURRENCY_REQUESTED && P_ULIB_CONCURRENCY_AVAILABLE)
     #define ULIB_CONCURRENCY 1
     #define ulib_if_concurrency(...) __VA_ARGS__
 #else

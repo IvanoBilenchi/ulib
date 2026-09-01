@@ -154,7 +154,11 @@ typedef enum UMemoryOrder {
 #define uatomic_flag_clear_ex(flag, order) atomic_flag_clear_explicit(flag, (memory_order)order)
 
 /// Atomic type.
+#if ULIB_DOCS
+#define UAtomic(T) T
+#else
 #define UAtomic(T) _Atomic(T)
+#endif
 
 /**
  * Initializes an atomic object.

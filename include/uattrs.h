@@ -68,7 +68,11 @@
 #endif
 
 /// Marks inline function definitions.
-#define ULIB_INLINE static inline
+#if ULIB_DOCS
+    #define ULIB_INLINE
+#else
+    #define ULIB_INLINE static inline
+#endif
 
 /**
  * Marks functions that must not be inlined.
