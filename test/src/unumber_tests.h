@@ -12,9 +12,10 @@ void unumber_test_pow2(void);
 void unumber_test_uint_generic(void);
 void unumber_test_uint_aliases(void);
 void unumber_test_int_dispatch(void);
+void unumber_test_round(void);
 
 #define UNUMBER_TESTS                                                                              \
     unumber_test_pow2, unumber_test_uint_generic, unumber_test_uint_aliases,                       \
-        unumber_test_int_dispatch
+        unumber_test_int_dispatch, unumber_test_round
 
 #endif // UNUMBER_TESTS_H

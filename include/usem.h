@@ -14,8 +14,10 @@
 
 #include "uatomic.h"
 #include "uattrs.h"
+#include "udeadline.h"
 #include "ulib_ret.h"
 #include "uplatform.h"
+#include "utime_t.h"
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -111,6 +113,41 @@ void usem_wait(USem *sem);
  */
 ULIB_API
 bool usem_trywait(USem *sem);
+
+/**
+ * Attempts to acquire a permit, blocking the calling thread until the specified deadline.
+ *
+ * @param sem Semaphore to acquire a permit from.
+ * @param deadline Instant past which the calling thread stops blocking.
+ * @return True if a permit was acquired, false if the deadline expired.
+ *
+ * @note The calling thread may stay blocked past `deadline`, never before it.
+ *       No permit is consumed when the deadline expires.
+ *
+ * @note If concurrency is disabled, this function does not block: it behaves like
+ *       @func{usem_trywait}, as no other thread could ever post a permit.
+ */
+ULIB_API
+bool usem_trywait_until(USem *sem, UDeadline deadline);
+
+/**
+ * Attempts to acquire a permit, blocking the calling thread for up to the specified time span.
+ *
+ * @param sem Semaphore to acquire a permit from.
+ * @param timeout Maximum time to block for. @val{UTIME_NS_MAX} blocks indefinitely,
+ *                zero behaves like @func{usem_trywait}.
+ * @return True if a permit was acquired, false if the timeout expired.
+ *
+ * @note The calling thread may stay blocked for longer than `timeout`, never shorter.
+ *       No permit is consumed when the timeout expires.
+ *
+ * @note If concurrency is disabled, this function does not block: it behaves like
+ *       @func{usem_trywait}, as no other thread could ever post a permit.
+ */
+ULIB_INLINE
+bool usem_trywait_for(USem *sem, utime_ns timeout) {
+    return usem_trywait_until(sem, udeadline(timeout));
+}
 
 /**
  * Releases a permit, waking up one thread waiting on the semaphore, if any.

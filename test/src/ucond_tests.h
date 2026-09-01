@@ -13,9 +13,12 @@
 void ucond_test_signal(void);
 void ucond_test_broadcast(void);
 void ucond_test_unsupported(void);
+void ucond_test_timeout(void);
+void ucond_test_timed_wait(void);
 
 #if ULIB_CONCURRENCY
-#define UCOND_TESTS ucond_test_signal, ucond_test_broadcast
+#define UCOND_TESTS                                                                                \
+    ucond_test_signal, ucond_test_broadcast, ucond_test_timeout, ucond_test_timed_wait
 #else
 #define UCOND_TESTS ucond_test_unsupported
 #endif

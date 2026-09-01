@@ -362,10 +362,13 @@ static bool opt_is(char const *arg, char const *lname, char const *sname) {
     return strcmp(arg, lname) == 0 || strcmp(arg, sname) == 0;
 }
 
+enum { MAX_UINT_VALUE = 1U << 24 };
+
 static unsigned long parse_uint(char const *val, char const *opt) {
     char *end = NULL;
     unsigned long const num = strtoul(val, &end, 10);
     if (end == val || *end) fail("invalid value '%s' for '%s'", val, opt);
+    if (num > MAX_UINT_VALUE) fail("value '%s' for '%s' exceeds %u", val, opt, MAX_UINT_VALUE);
     return num;
 }
 

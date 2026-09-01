@@ -334,7 +334,7 @@ static utime_ns const unit_max_ns[] = {
     [UTIME_HOURS] = UTIME_NS_MAX / UTIME_NS_PER_HOUR,
     [UTIME_DAYS] = UTIME_NS_MAX / UTIME_NS_PER_DAY,
     [UTIME_MONTHS] = 0,
-    [UTIME_YEARS] = 0
+    [UTIME_YEARS] = 0,
 };
 
 utime_unit utime_span_unit_auto(utime_ns t) {
@@ -357,6 +357,33 @@ double utime_span_to(utime_ns t, utime_unit unit) {
     if (unit > UTIME_DAYS) return NAN;
     if (unit <= UTIME_NANOSECONDS) return (double)t;
     return (double)t / (double)unit_ns[unit];
+}
+
+unsigned long long utime_span_to_floor(utime_ns t, utime_unit unit) {
+    if (unit > UTIME_DAYS) return 0;
+    return ulib_div_floor(t, unit_ns[unit]);
+}
+
+unsigned long long utime_span_to_ceil(utime_ns t, utime_unit unit) {
+    if (unit > UTIME_DAYS) return 0;
+    return ulib_div_ceil(t, unit_ns[unit]);
+}
+
+unsigned long long utime_span_to_round(utime_ns t, utime_unit unit) {
+    if (unit > UTIME_DAYS) return 0;
+    return ulib_div_round(t, unit_ns[unit]);
+}
+
+utime_ns utime_span_round(utime_ns t, utime_unit unit) {
+    return utime_span(utime_span_to_round(t, unit), unit);
+}
+
+utime_ns utime_span_round_up(utime_ns t, utime_unit unit) {
+    return utime_span(utime_span_to_ceil(t, unit), unit);
+}
+
+utime_ns utime_span_round_down(utime_ns t, utime_unit unit) {
+    return utime_span(utime_span_to_floor(t, unit), unit);
 }
 
 UString utime_span_to_string(utime_ns t, utime_unit unit) {

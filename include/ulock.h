@@ -13,8 +13,8 @@
 #ifndef ULOCK_H
 #define ULOCK_H
 
-#include "uatomic.h"
 #include "uattrs.h"
+#include "udeadline.h"
 #include "ulib_ret.h"
 #include "uplatform.h"
 #include "uutils.h"
@@ -25,11 +25,13 @@ ULIB_BEGIN_DECLS
 /// @cond
 // clang-format off
 
-struct USLock {
-    uatomic_flag _flag;
-};
-
 #if ULIB_CONCURRENCY
+    #include "uatomic.h"
+
+    struct USLock {
+        uatomic_flag _flag;
+    };
+
     #ifndef ULIB_PLATFORM_SYNC
         #include "uthread.h"
         #include <stdint.h>
@@ -79,14 +81,18 @@ struct USLock {
         };
     #endif
 #else // ULIB_CONCURRENCY
+    #include <stdint.h>
     struct ULock {
-        char _h;
+        bool _held;
+    };
+    struct USLock {
+        bool _held;
     };
     struct URLock {
-        char _h;
+        char _dummy;
     };
     struct URWLock {
-        char _h;
+        uint32_t _state;
     };
 #endif // ULIB_CONCURRENCY
 
@@ -159,6 +165,7 @@ URWRLock *ulock_read(URWLock *lock) {
 #define P_ULOCK_DECL_LOCK(T)                                                                       \
     ULIB_API void p_##T##_lock(T *lock);                                                           \
     ULIB_API bool p_##T##_trylock(T *lock);                                                        \
+    ULIB_API bool p_##T##_trylock_until(T *lock, UDeadline deadline);                              \
     ULIB_API void p_##T##_unlock(T *lock);
 
 #define P_ULOCK_DECL(T)                                                                            \
@@ -172,13 +179,117 @@ P_ULOCK_DECL(USLock)
 P_ULOCK_DECL(URWLock)
 P_ULOCK_DECL_LOCK(URWRLock)
 
+#else // ULIB_CONCURRENCY
+
+#include "udebug.h"
+#include "uthread.h"
+#include "utime_t.h"
+#include "uwarning.h"
+
+#define P_URWLOCK_WRITER UINT32_C(0x80000000)
+
+ULIB_INLINE void p_ulock_assert(ulib_unused bool acquired) {
+    ulib_assert(acquired);
+}
+
+ULIB_INLINE bool p_ulock_expire(UDeadline deadline) {
+    // Waiting out a deadline that never expires would deadlock: report failure rather than
+    // never return.
+    utime_ns const remaining = udeadline_remaining(deadline);
+    if (remaining && remaining != UTIME_NS_MAX) uthread_sleep(remaining);
+    return false;
+}
+
+// clang-format off
+
+ULIB_INLINE ulib_ret p_ulock_bool(bool *l) { *l = false; return ULIB_OK; }
+ULIB_INLINE void p_ulock_bool_deinit(ulib_unused bool *lock) {}
+ULIB_INLINE bool p_ulock_bool_trylock(bool *l) { if (*l) return false; *l = true; return true; }
+ULIB_INLINE void p_ulock_bool_lock(bool *l) { p_ulock_assert(p_ulock_bool_trylock(l)); }
+ULIB_INLINE void p_ulock_bool_unlock(bool *lock) { ulib_assert(*lock); *lock = false; }
+ULIB_INLINE bool p_ulock_bool_trylock_until(bool *lock, UDeadline deadline) {
+    return p_ulock_bool_trylock(lock) || p_ulock_expire(deadline);
+}
+
+ULIB_INLINE ulib_ret p_ULock(ULock *lock) { return p_ulock_bool(&lock->_held); }
+ULIB_INLINE void p_ULock_deinit(ULock *lock) { p_ulock_bool_deinit(&lock->_held); }
+ULIB_INLINE bool p_ULock_trylock(ULock *lock) { return p_ulock_bool_trylock(&lock->_held); }
+ULIB_INLINE void p_ULock_lock(ULock *lock) { p_ulock_bool_lock(&lock->_held); }
+ULIB_INLINE void p_ULock_unlock(ULock *lock) { p_ulock_bool_unlock(&lock->_held); }
+ULIB_INLINE bool p_ULock_trylock_until(ULock *lock, UDeadline deadline) {
+    return p_ulock_bool_trylock_until(&lock->_held, deadline);
+}
+
+ULIB_INLINE ulib_ret p_USLock(USLock *lock) { return p_ulock_bool(&lock->_held); }
+ULIB_INLINE void p_USLock_deinit(USLock *lock) { p_ulock_bool_deinit(&lock->_held); }
+ULIB_INLINE bool p_USLock_trylock(USLock *lock) { return p_ulock_bool_trylock(&lock->_held); }
+ULIB_INLINE void p_USLock_lock(USLock *lock) { p_ulock_bool_lock(&lock->_held); }
+ULIB_INLINE void p_USLock_unlock(USLock *lock) { p_ulock_bool_unlock(&lock->_held); }
+ULIB_INLINE bool p_USLock_trylock_until(USLock *lock, UDeadline deadline) {
+    return p_ulock_bool_trylock_until(&lock->_held, deadline);
+}
+
+ULIB_INLINE ulib_ret p_URLock(ulib_unused URLock *lock) { return ULIB_OK; }
+ULIB_INLINE void p_URLock_deinit(ulib_unused URLock *lock) {}
+ULIB_INLINE bool p_URLock_trylock(ulib_unused URLock *lock) { return true; }
+ULIB_INLINE void p_URLock_lock(ulib_unused URLock *lock) {}
+ULIB_INLINE void p_URLock_unlock(ulib_unused URLock *lock) {}
+ULIB_INLINE bool p_URLock_trylock_until(ulib_unused URLock *lock, ulib_unused UDeadline deadline) {
+    return true;
+}
+
+// clang-format on
+
+ULIB_INLINE ulib_ret p_URWLock(URWLock *lock) {
+    lock->_state = 0;
+    return ULIB_OK;
+}
+
+ULIB_INLINE void p_URWLock_deinit(ulib_unused URWLock *lock) {}
+
+ULIB_INLINE bool p_URWLock_trylock(URWLock *lock) {
+    if (lock->_state) return false;
+    lock->_state = P_URWLOCK_WRITER;
+    return true;
+}
+
+ULIB_INLINE void p_URWLock_lock(URWLock *lock) {
+    p_ulock_assert(p_URWLock_trylock(lock));
+}
+
+ULIB_INLINE bool p_URWLock_trylock_until(URWLock *lock, UDeadline deadline) {
+    return p_URWLock_trylock(lock) || p_ulock_expire(deadline);
+}
+
+ULIB_INLINE void p_URWLock_unlock(URWLock *lock) {
+    ulib_assert(lock->_state == P_URWLOCK_WRITER);
+    lock->_state = 0;
+}
+
+ULIB_INLINE bool p_URWRLock_trylock(URWRLock *lock) {
+    if (lock->_super._state & P_URWLOCK_WRITER) return false;
+    ++lock->_super._state;
+    return true;
+}
+
+ULIB_INLINE void p_URWRLock_lock(URWRLock *lock) {
+    p_ulock_assert(p_URWRLock_trylock(lock));
+}
+
+ULIB_INLINE bool p_URWRLock_trylock_until(URWRLock *lock, UDeadline deadline) {
+    return p_URWRLock_trylock(lock) || p_ulock_expire(deadline);
+}
+
+ULIB_INLINE void p_URWRLock_unlock(URWRLock *lock) {
+    ulib_assert(lock->_super._state);
+    --lock->_super._state;
+}
+
 #endif // ULIB_CONCURRENCY
 
 ULIB_END_DECLS
 
 // Generic API
-
-#if ULIB_CONCURRENCY
 
 #if ULIB_LANG_IS_CPP
 
@@ -186,6 +297,10 @@ ULIB_END_DECLS
 #define P_ULOCK_CPP_LOCK_IMPL(T)                                                                   \
     ULIB_INLINE void ulock_lock(T *lock) { p_##T##_lock(lock); }                                   \
     ULIB_INLINE bool ulock_trylock(T *lock) { return p_##T##_trylock(lock); }                      \
+    ULIB_INLINE bool ulock_trylock_until(T *lock, UDeadline d)                                     \
+        { return p_##T##_trylock_until(lock, d); }                                                 \
+    ULIB_INLINE bool ulock_trylock_for(T *lock, utime_ns t)                                        \
+        { return ulock_trylock_until(lock, udeadline(t)); }                                        \
     ULIB_INLINE void ulock_unlock(T *lock) { p_##T##_unlock(lock); }
 
 #define P_ULOCK_CPP_IMPL(T)                                                                        \
@@ -265,6 +380,33 @@ P_ULOCK_CPP_LOCK_IMPL(URWRLock)
 #define ulock_trylock(lock) p_ulock_generic(_trylock, lock)(lock)
 
 /**
+ * Tries to lock a lock, blocking the calling thread until the specified deadline.
+ *
+ * @param lock Lock to try to lock.
+ * @param deadline Instant past which the calling thread stops blocking.
+ * @return True if the lock was successfully acquired, false if the deadline expired.
+ *
+ * @note The calling thread may stay blocked past `deadline`, never before it.
+ *
+ * @alias bool ulock_trylock_until(UAnyLock *lock, UDeadline deadline);
+ */
+#define ulock_trylock_until(lock, deadline) p_ulock_generic(_trylock_until, lock)(lock, deadline)
+
+/**
+ * Tries to lock a lock, blocking the calling thread for up to the specified time span.
+ *
+ * @param lock Lock to try to lock.
+ * @param timeout Maximum time to block for. @val{UTIME_NS_MAX} blocks indefinitely,
+ *                zero behaves like @func{ulock_trylock}.
+ * @return True if the lock was successfully acquired, false if the timeout expired.
+ *
+ * @note The calling thread may stay blocked for longer than `timeout`, never shorter.
+ *
+ * @alias bool ulock_trylock_for(UAnyLock *lock, utime_ns timeout);
+ */
+#define ulock_trylock_for(lock, timeout) ulock_trylock_until(lock, udeadline(timeout))
+
+/**
  * Unlocks a lock.
  *
  * @param lock Lock to unlock.
@@ -295,31 +437,5 @@ P_ULOCK_CPP_LOCK_IMPL(URWRLock)
     for (unsigned var = (ulock_lock(lock), 1); var--; ulock_unlock(lock))
 
 /// @}
-
-#else // ULIB_CONCURRENCY
-
-#include "uwarning.h"
-
-ULIB_BEGIN_DECLS
-
-// clang-format off
-ULIB_INLINE void p_ulock_noop_void(ulib_unused void *lock) {}
-ULIB_INLINE ulib_ret p_ulock_noop_ok(ulib_unused void *lock) { return ULIB_OK; }
-ULIB_INLINE bool p_ulock_noop_true(ulib_unused void *lock) { return true; }
-// clang-format on
-
-ULIB_END_DECLS
-
-/// @cond
-#define ulock(lock) p_ulock_noop_ok(lock)
-#define ulock_lock(lock) p_ulock_noop_void(lock)
-#define ulock_trylock(lock) p_ulock_noop_true(lock)
-#define ulock_unlock(lock) p_ulock_noop_void(lock)
-#define ulock_deinit(lock) p_ulock_noop_void(lock)
-#define ulock_with(lock) p_ulock_with(lock, ULIB_UID(p_ulock_with_))
-#define p_ulock_with(lock, var) for (unsigned var = 1; var--; p_ulock_noop_void(lock))
-/// @endcond
-
-#endif // ULIB_CONCURRENCY
 
 #endif // ULOCK_H

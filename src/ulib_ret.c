@@ -24,6 +24,7 @@ UString ulib_ret_to_name(ulib_ret ret) {
         [ret_to_idx(ULIB_ERR_IO)] = "ULIB_ERR_IO",
         [ret_to_idx(ULIB_ERR_AGAIN)] = "ULIB_ERR_AGAIN",
         [ret_to_idx(ULIB_ERR_UNSUPPORTED)] = "ULIB_ERR_UNSUPPORTED",
+        [ret_to_idx(ULIB_ERR_TIMEOUT)] = "ULIB_ERR_TIMEOUT",
     };
     size_t const i = ret_to_idx(ret);
     return i < ulib_array_count(names) ? ustring_wrap_cstring(names[i]) : ustring_null;
@@ -40,6 +41,7 @@ UString ulib_ret_to_string(ulib_ret ret) {
         [ret_to_idx(ULIB_ERR_IO)] = "input/output error",
         [ret_to_idx(ULIB_ERR_AGAIN)] = "temporary error",
         [ret_to_idx(ULIB_ERR_UNSUPPORTED)] = "unsupported operation",
+        [ret_to_idx(ULIB_ERR_TIMEOUT)] = "timed out",
     };
     size_t const i = ret_to_idx(ret);
     return i < ulib_array_count(strings) ? ustring_wrap_cstring(strings[i]) : ustring_null;

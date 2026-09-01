@@ -85,3 +85,11 @@ Futexes
 
 .. doxygengroup:: UFutex_api
    :content-only:
+
+Deadlines
+---------
+
+.. doxygengroup:: UDeadline_types
+   :content-only:
+.. doxygengroup:: UDeadline_api
+   :content-only:

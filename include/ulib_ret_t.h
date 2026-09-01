@@ -63,6 +63,9 @@ enum ulib_ret_builtin {
     /// The operation failed because it is not supported on this platform.
     ULIB_ERR_UNSUPPORTED = -6,
 
+    /// The operation did not complete before its deadline expired.
+    ULIB_ERR_TIMEOUT = -7,
+
 };
 
 ULIB_END_DECLS

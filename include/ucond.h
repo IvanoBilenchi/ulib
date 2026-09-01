@@ -14,9 +14,11 @@
 
 #include "uatomic.h"
 #include "uattrs.h"
+#include "udeadline.h"
 #include "ulib_ret.h"
 #include "ulock.h"
 #include "uplatform.h"
+#include <stdbool.h>
 #include <stdint.h>
 
 ULIB_BEGIN_DECLS
@@ -83,6 +85,12 @@ ULIB_API void p_ucond_wait_USLock(UCond *cond, USLock *lock);
 ULIB_API void p_ucond_wait_URWLock(UCond *cond, URWLock *lock);
 ULIB_API void p_ucond_wait_URWRLock(UCond *cond, URWRLock *lock);
 
+ULIB_API bool p_ucond_wait_until_ULock(UCond *cond, ULock *lock, UDeadline deadline);
+ULIB_API bool p_ucond_wait_until_URLock(UCond *cond, URLock *lock, UDeadline deadline);
+ULIB_API bool p_ucond_wait_until_USLock(UCond *cond, USLock *lock, UDeadline deadline);
+ULIB_API bool p_ucond_wait_until_URWLock(UCond *cond, URWLock *lock, UDeadline deadline);
+ULIB_API bool p_ucond_wait_until_URWRLock(UCond *cond, URWRLock *lock, UDeadline deadline);
+
 ULIB_END_DECLS
 
 // Generic API
@@ -91,11 +99,18 @@ ULIB_END_DECLS
 
 /// @cond
 // clang-format off
-ULIB_INLINE void ucond_wait(UCond *cond, ULock *lock) { p_ucond_wait_ULock(cond, lock); }
-ULIB_INLINE void ucond_wait(UCond *cond, URLock *lock) { p_ucond_wait_URLock(cond, lock); }
-ULIB_INLINE void ucond_wait(UCond *cond, USLock *lock) { p_ucond_wait_USLock(cond, lock); }
-ULIB_INLINE void ucond_wait(UCond *cond, URWLock *lock) { p_ucond_wait_URWLock(cond, lock); }
-ULIB_INLINE void ucond_wait(UCond *cond, URWRLock *lock) { p_ucond_wait_URWRLock(cond, lock); }
+#define P_UCOND_CPP_IMPL(T)                                                                        \
+    ULIB_INLINE void ucond_wait(UCond *cond, T *lock) { p_ucond_wait_##T(cond, lock); }            \
+    ULIB_INLINE bool ucond_wait_until(UCond *cond, T *lock, UDeadline d)                           \
+        { return p_ucond_wait_until_##T(cond, lock, d); }                                          \
+    ULIB_INLINE bool ucond_wait_for(UCond *cond, T *lock, utime_ns t)                              \
+        { return ucond_wait_until(cond, lock, udeadline(t)); }
+
+P_UCOND_CPP_IMPL(ULock)
+P_UCOND_CPP_IMPL(URLock)
+P_UCOND_CPP_IMPL(USLock)
+P_UCOND_CPP_IMPL(URWLock)
+P_UCOND_CPP_IMPL(URWRLock)
 // clang-format on
 /// @endcond
 
@@ -132,6 +147,57 @@ ULIB_INLINE void ucond_wait(UCond *cond, URWRLock *lock) { p_ucond_wait_URWRLock
         USLock *: p_ucond_wait_USLock,                                                             \
         URWLock *: p_ucond_wait_URWLock,                                                           \
         URWRLock *: p_ucond_wait_URWRLock)(cond, lock)
+
+/**
+ * Atomically unlocks `lock` and blocks the calling thread on `cond` until the specified deadline,
+ * then locks `lock` again before returning.
+ *
+ * @param cond Condition variable to wait on.
+ * @param lock Lock associated with the condition. Must be held by the calling thread.
+ * @param deadline Instant past which the calling thread stops blocking.
+ * @return False if the deadline expired, true otherwise.
+ *
+ * @note This function may return spuriously, i.e. without a corresponding call to
+ *       @func{ucond_signal} or @func{ucond_broadcast}. Callers should always re-check their
+ *       predicate in a loop.
+ *
+ * @note `lock` is acquired again in either case, and reacquiring it is not bound by `deadline`.
+ *
+ * @note If concurrency is disabled, this function does nothing and reports success, since no
+ *       other thread could ever make the predicate true.
+ *
+ * @alias bool ucond_wait_until(UCond *cond, UAnyLock *lock, UDeadline deadline);
+ */
+#define ucond_wait_until(cond, lock, deadline)                                                     \
+    _Generic((lock),                                                                               \
+        ULock *: p_ucond_wait_until_ULock,                                                         \
+        URLock *: p_ucond_wait_until_URLock,                                                       \
+        USLock *: p_ucond_wait_until_USLock,                                                       \
+        URWLock *: p_ucond_wait_until_URWLock,                                                     \
+        URWRLock *: p_ucond_wait_until_URWRLock)(cond, lock, deadline)
+
+/**
+ * Atomically unlocks `lock` and blocks the calling thread on `cond` for up to the specified
+ * time span, then locks `lock` again before returning.
+ *
+ * @param cond Condition variable to wait on.
+ * @param lock Lock associated with the condition. Must be held by the calling thread.
+ * @param timeout Maximum time to block for. @val{UTIME_NS_MAX} blocks indefinitely.
+ * @return False if the timeout expired, true otherwise.
+ *
+ * @note This function may return spuriously, i.e. without a corresponding call to
+ *       @func{ucond_signal} or @func{ucond_broadcast}. Callers should always re-check their
+ *       predicate in a loop, and use @func{ucond_wait_until} to keep the total wait bounded
+ *       while doing so.
+ *
+ * @note `lock` is acquired again in either case, and reacquiring it is not bound by `timeout`.
+ *
+ * @note If concurrency is disabled, this function does nothing and reports success, since no
+ *       other thread could ever make the predicate true.
+ *
+ * @alias bool ucond_wait_for(UCond *cond, UAnyLock *lock, utime_ns timeout);
+ */
+#define ucond_wait_for(cond, lock, timeout) ucond_wait_until(cond, lock, udeadline(timeout))
 
 /// @}
 

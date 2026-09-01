@@ -11,6 +11,7 @@
 #if ULIB_CONCURRENCY
 
 #include "uatomic.h"
+#include "udeadline.h"
 #include "ulib_ret.h"
 #include "ulock.h"
 #include "unumber.h"
@@ -49,13 +50,20 @@ void p_USLock_deinit(ulib_unused USLock *lock) {}
 
 void p_USLock_lock(USLock *lock) {
     backoff_t bo = backoff();
-    while (uatomic_flag_test_and_set_ex(&lock->_flag, UMO_ACQUIRE)) {
-        backoff_yield(&bo);
-    }
+    while (!p_USLock_trylock(lock)) backoff_yield(&bo);
 }
 
 bool p_USLock_trylock(USLock *lock) {
     return !uatomic_flag_test_and_set_ex(&lock->_flag, UMO_ACQUIRE);
+}
+
+bool p_USLock_trylock_until(USLock *lock, UDeadline deadline) {
+    backoff_t bo = backoff();
+    while (!p_USLock_trylock(lock)) {
+        if (!udeadline_remaining(deadline)) return false;
+        backoff_yield(&bo);
+    }
+    return true;
 }
 
 void p_USLock_unlock(USLock *lock) {
@@ -67,6 +75,7 @@ void p_USLock_unlock(USLock *lock) {
 #include "uattrs.h"
 #include "ubit.h"
 #include "ufutex.h"
+#include "ufutex_p.h"
 #include <assert.h>
 
 // MARK: - Adaptive spin
@@ -218,21 +227,29 @@ static inline bool lock_tryacquire_spin(ULock *lock, spin_t budget) {
     return false;
 }
 
-ULIB_NOINLINE static void lock_contended(ULock *lock) {
-    if (lock_tryacquire_spin(lock, spin_load(&lock->_state, LOCK_BUDGET_SHIFT))) return;
+// Spinning is itself a form of blocking, so an already expired deadline must not reach it.
+ULIB_NOINLINE static bool lock_contended(ULock *lock, UDeadline deadline) {
+    if (!udeadline_remaining(deadline)) return p_ULock_trylock(lock);
+    if (lock_tryacquire_spin(lock, spin_load(&lock->_state, LOCK_BUDGET_SHIFT))) return true;
     for (;;) {
         uint32_t const old = uatomic_fetch_or_ex(&lock->_state, LOCK_BITS, UMO_ACQUIRE);
-        if (!ubit_any(old, LOCK_LOCKED)) return;
-        ufutex_wait(&lock->_state, ubit_or(old, LOCK_BITS));
+        if (!ubit_any(old, LOCK_LOCKED)) return true;
+        if (!p_udeadline_wait(&lock->_state, ubit_or(old, LOCK_BITS), deadline)) {
+            return p_ULock_trylock(lock);
+        }
     }
 }
 
 void p_ULock_lock(ULock *lock) {
-    if (!lock_tryacquire(lock)) lock_contended(lock);
+    if (!lock_tryacquire(lock)) lock_contended(lock, udeadline_never());
 }
 
 bool p_ULock_trylock(ULock *lock) {
     return !ubit_any(uatomic_fetch_or_ex(&lock->_state, LOCK_LOCKED, UMO_ACQUIRE), LOCK_LOCKED);
+}
+
+bool p_ULock_trylock_until(ULock *lock, UDeadline deadline) {
+    return lock_tryacquire(lock) || lock_contended(lock, deadline);
 }
 
 void p_ULock_unlock(ULock *lock) {
@@ -252,28 +269,39 @@ ulib_ret p_URLock(URLock *lock) {
 
 void p_URLock_deinit(ulib_unused URLock *lock) {}
 
-static bool r_lock(URLock *lock, bool trylock) {
-    UThreadId const thread_id = uthread_id();
-    if (uatomic_load_ex(&lock->_owner, UMO_RELAXED) == thread_id) {
-        ++lock->_count;
-        return true;
-    }
-    if (trylock) {
-        if (!ulock_trylock(&lock->_lock)) return false;
-    } else {
-        ulock_lock(&lock->_lock);
-    }
-    uatomic_store_ex(&lock->_owner, thread_id, UMO_RELAXED);
-    lock->_count = 1;
+// Reports whether the calling thread already owns the lock, recursing into it if so.
+static bool r_reenter(URLock *lock, UThreadId thread_id) {
+    if (uatomic_load_ex(&lock->_owner, UMO_RELAXED) != thread_id) return false;
+    ++lock->_count;
     return true;
 }
 
+static void r_own(URLock *lock, UThreadId thread_id) {
+    uatomic_store_ex(&lock->_owner, thread_id, UMO_RELAXED);
+    lock->_count = 1;
+}
+
 void p_URLock_lock(URLock *lock) {
-    r_lock(lock, false);
+    UThreadId const thread_id = uthread_id();
+    if (r_reenter(lock, thread_id)) return;
+    ulock_lock(&lock->_lock);
+    r_own(lock, thread_id);
 }
 
 bool p_URLock_trylock(URLock *lock) {
-    return r_lock(lock, true);
+    UThreadId const thread_id = uthread_id();
+    if (r_reenter(lock, thread_id)) return true;
+    if (!ulock_trylock(&lock->_lock)) return false;
+    r_own(lock, thread_id);
+    return true;
+}
+
+bool p_URLock_trylock_until(URLock *lock, UDeadline deadline) {
+    UThreadId const thread_id = uthread_id();
+    if (r_reenter(lock, thread_id)) return true;
+    if (!ulock_trylock_until(&lock->_lock, deadline)) return false;
+    r_own(lock, thread_id);
+    return true;
 }
 
 void p_URLock_unlock(URLock *lock) {
@@ -364,7 +392,26 @@ static void rw_wake(UAtomic(uint32_t) *state, UAtomic(uint32_t) *wnotify, uint32
     }
 }
 
-ULIB_NOINLINE static void rw_read_contended(URWLock *lock, spin_t budget) {
+static inline bool rw_write_trylock(URWLock *lock) {
+    uint32_t s = uatomic_load_ex(&lock->_state, UMO_RELAXED);
+    while (rw_is_unlocked(s)) {
+        uint32_t const new_s = s | RW_WRITE_LOCKED;
+        if (uatomic_wcas_ex(&lock->_state, &s, new_s, UMO_ACQUIRE, UMO_RELAXED)) return true;
+    }
+    return false;
+}
+
+static inline bool rw_read_trylock(URWLock *lock) {
+    uint32_t s = uatomic_load_ex(&lock->_state, UMO_RELAXED);
+    while (rw_is_read_lockable(s)) {
+        uint32_t const new_s = s + RW_READER;
+        if (uatomic_wcas_ex(&lock->_state, &s, new_s, UMO_ACQUIRE, UMO_RELAXED)) return true;
+    }
+    return false;
+}
+
+ULIB_NOINLINE static bool rw_read_contended(URWLock *lock, spin_t budget, UDeadline deadline) {
+    if (!udeadline_remaining(deadline)) return rw_read_trylock(lock);
     Spinner spin = spinner();
     uint32_t s = uatomic_load_ex(&lock->_state, UMO_RELAXED);
 
@@ -374,7 +421,7 @@ ULIB_NOINLINE static void rw_read_contended(URWLock *lock, spin_t budget) {
             uint32_t const new_s = s + RW_READER;
             if (uatomic_wcas_ex(&lock->_state, &s, new_s, UMO_ACQUIRE, UMO_RELAXED)) {
                 spin_store_updated(&lock->_wnotify, RW_RSPINS_SHIFT, budget, spin.i);
-                return;
+                return true;
             }
             spinner_backoff(&spin);
             continue;
@@ -392,7 +439,7 @@ ULIB_NOINLINE static void rw_read_contended(URWLock *lock, spin_t budget) {
             uint32_t const new_s = s | RW_R_WAIT;
             if (!uatomic_cas_ex(&lock->_state, &s, new_s, UMO_RELAXED, UMO_RELAXED)) continue;
         }
-        ufutex_wait(&lock->_state, s | RW_R_WAIT);
+        if (!p_udeadline_wait(&lock->_state, s | RW_R_WAIT, deadline)) return rw_read_trylock(lock);
 
         // Reset state.
         budget = spin_load(&lock->_wnotify, RW_RSPINS_SHIFT);
@@ -401,7 +448,8 @@ ULIB_NOINLINE static void rw_read_contended(URWLock *lock, spin_t budget) {
     }
 }
 
-ULIB_NOINLINE static void rw_write_contended(URWLock *lock, spin_t budget) {
+ULIB_NOINLINE static bool rw_write_contended(URWLock *lock, spin_t budget, UDeadline deadline) {
+    if (!udeadline_remaining(deadline)) return rw_write_trylock(lock);
     Spinner spin = spinner();
     uint32_t s = uatomic_load_ex(&lock->_state, UMO_RELAXED);
     uint32_t writers_waiting = 0;
@@ -412,7 +460,7 @@ ULIB_NOINLINE static void rw_write_contended(URWLock *lock, spin_t budget) {
             uint32_t const new_s = s | RW_WRITE_LOCKED | writers_waiting;
             if (uatomic_wcas_ex(&lock->_state, &s, new_s, UMO_ACQUIRE, UMO_RELAXED)) {
                 spin_store_updated(&lock->_wnotify, RW_WSPINS_SHIFT, budget, spin.i);
-                return;
+                return true;
             }
             spinner_backoff(&spin);
             continue;
@@ -437,7 +485,7 @@ ULIB_NOINLINE static void rw_write_contended(URWLock *lock, spin_t budget) {
         // Re-check _state so we don't sleep through a wakeup that raced with us.
         s = uatomic_load_ex(&lock->_state, UMO_RELAXED);
         if (rw_is_unlocked(s) || !rw_has_writers_waiting(s)) continue;
-        ufutex_wait(&lock->_wnotify, seq);
+        if (!p_udeadline_wait(&lock->_wnotify, seq, deadline)) return rw_write_trylock(lock);
 
         // Reset state.
         budget = spin_load(&lock->_wnotify, RW_WSPINS_SHIFT);
@@ -454,23 +502,26 @@ ulib_ret p_URWLock(URWLock *lock) {
 
 void p_URWLock_deinit(ulib_unused URWLock *lock) {}
 
-void p_URWLock_lock(URWLock *lock) {
+static inline bool rw_write_lock(URWLock *lock, UDeadline deadline) {
     spin_t const budget = spin_load(&lock->_wnotify, RW_WSPINS_SHIFT);
     uint32_t s = 0;
     if (uatomic_cas_ex(&lock->_state, &s, RW_WRITE_LOCKED, UMO_ACQUIRE, UMO_RELAXED)) {
         spin_store_rewarded(&lock->_wnotify, RW_WSPINS_SHIFT, budget);
-        return;
+        return true;
     }
-    rw_write_contended(lock, budget);
+    return rw_write_contended(lock, budget, deadline);
+}
+
+void p_URWLock_lock(URWLock *lock) {
+    rw_write_lock(lock, udeadline_never());
 }
 
 bool p_URWLock_trylock(URWLock *lock) {
-    uint32_t s = uatomic_load_ex(&lock->_state, UMO_RELAXED);
-    while (rw_is_unlocked(s)) {
-        uint32_t const new_s = s | RW_WRITE_LOCKED;
-        if (uatomic_wcas_ex(&lock->_state, &s, new_s, UMO_ACQUIRE, UMO_RELAXED)) return true;
-    }
-    return false;
+    return rw_write_trylock(lock);
+}
+
+bool p_URWLock_trylock_until(URWLock *lock, UDeadline deadline) {
+    return rw_write_lock(lock, deadline);
 }
 
 void p_URWLock_unlock(URWLock *lock) {
@@ -478,32 +529,27 @@ void p_URWLock_unlock(URWLock *lock) {
     if (rw_has_waiters(s)) rw_wake(&lock->_state, &lock->_wnotify, s);
 }
 
-static inline void rw_read_lock(URWLock *lock) {
+static inline bool rw_read_lock(URWLock *lock, UDeadline deadline) {
     spin_t const budget = spin_load(&lock->_wnotify, RW_RSPINS_SHIFT);
     uint32_t s = uatomic_load_ex(&lock->_state, UMO_RELAXED);
     if (rw_is_read_lockable(s) &&
         uatomic_cas_ex(&lock->_state, &s, s + RW_READER, UMO_ACQUIRE, UMO_RELAXED)) {
         spin_store_rewarded(&lock->_wnotify, RW_RSPINS_SHIFT, budget);
-        return;
+        return true;
     }
-    rw_read_contended(lock, budget);
+    return rw_read_contended(lock, budget, deadline);
 }
 
 void p_URWRLock_lock(URWRLock *lock) {
-    rw_read_lock(&lock->_super);
-}
-
-static inline bool rw_read_trylock(URWLock *lock) {
-    uint32_t s = uatomic_load_ex(&lock->_state, UMO_RELAXED);
-    while (rw_is_read_lockable(s)) {
-        uint32_t const new_s = s + RW_READER;
-        if (uatomic_wcas_ex(&lock->_state, &s, new_s, UMO_ACQUIRE, UMO_RELAXED)) return true;
-    }
-    return false;
+    rw_read_lock(&lock->_super, udeadline_never());
 }
 
 bool p_URWRLock_trylock(URWRLock *lock) {
     return rw_read_trylock(&lock->_super);
+}
+
+bool p_URWRLock_trylock_until(URWRLock *lock, UDeadline deadline) {
+    return rw_read_lock(&lock->_super, deadline);
 }
 
 static inline void rw_read_unlock(URWLock *lock) {
@@ -519,11 +565,15 @@ void p_URWRLock_unlock(URWRLock *lock) {
 
 // MARK: - Platform
 
-#elif ULIB_OS_HAS_PTHREADS // ULIB_PLATFORM_SYNC
+#else // ULIB_PLATFORM_SYNC
+
+#if ULIB_OS_HAS_PTHREADS
 
 #include <pthread.h> // IWYU pragma: keep
 
-#if ULIB_OS_IS_APPLE // ULock
+// MARK: POSIX
+
+#if ULIB_OS_IS_APPLE
 
 #include <os/lock.h>
 
@@ -569,7 +619,7 @@ void p_ULock_unlock(ULock *lock) {
     pthread_mutex_unlock(&lock->_h);
 }
 
-#endif // ULock
+#endif
 
 ulib_ret p_URLock(URLock *lock) {
     ulib_ret ret = ULIB_ERR;
@@ -631,7 +681,9 @@ void p_URWRLock_unlock(URWRLock *lock) {
     pthread_rwlock_unlock(&lock->_super._h);
 }
 
-#elif ULIB_OS_IS_WIN // ULIB_PLATFORM_SYNC
+#elif ULIB_OS_IS_WIN
+
+// MARK: Windows
 
 #include <windows.h>
 
@@ -705,6 +757,39 @@ bool p_URWRLock_trylock(URWRLock *lock) {
 void p_URWRLock_unlock(URWRLock *lock) {
     ReleaseSRWLockShared(&lock->_super._h);
 }
+
+#endif
+
+// MARK: Trylock for
+
+#include "utime_t.h"
+
+enum {
+    POLL_SLEEP_MIN = UTIME_NS_PER_US * 100,
+    POLL_SLEEP_MAX = UTIME_NS_PER_MS * 2,
+};
+
+#define P_ULOCK_TRYLOCK_UNTIL_IMPL(T)                                                              \
+    bool p_##T##_trylock_until(T *lock, UDeadline deadline) {                                      \
+        backoff_t bo = backoff();                                                                  \
+        utime_ns sleep = 0;                                                                        \
+        for (;;) {                                                                                 \
+            if (p_##T##_trylock(lock)) return true;                                                \
+            utime_ns const left = udeadline_remaining(deadline);                                   \
+            if (!left) return false;                                                               \
+            if (bo < MAX_BACKOFF) {                                                                \
+                backoff_yield(&bo);                                                                \
+                continue;                                                                          \
+            }                                                                                      \
+            sleep = sleep ? ulib_min(sleep * 2, (utime_ns)POLL_SLEEP_MAX) : POLL_SLEEP_MIN;        \
+            uthread_sleep(ulib_min(sleep, left));                                                  \
+        }                                                                                          \
+    }
+
+P_ULOCK_TRYLOCK_UNTIL_IMPL(ULock)
+P_ULOCK_TRYLOCK_UNTIL_IMPL(URLock)
+P_ULOCK_TRYLOCK_UNTIL_IMPL(URWLock)
+P_ULOCK_TRYLOCK_UNTIL_IMPL(URWRLock)
 
 #endif // ULIB_PLATFORM_SYNC
 

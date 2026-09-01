@@ -105,7 +105,7 @@ typedef enum uhash_ret {
     ULIB_DEPRECATED_ENUM(UHASH_PRESENT, ULIB_NO),
 
     /// The key has been inserted (it was absent).
-    ULIB_DEPRECATED_ENUM(UHASH_INSERTED, ULIB_OK)
+    ULIB_DEPRECATED_ENUM(UHASH_INSERTED, ULIB_OK),
 
 } uhash_ret;
 

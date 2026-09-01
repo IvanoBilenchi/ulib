@@ -14,7 +14,9 @@
 
 #include "uatomic.h"
 #include "uattrs.h"
+#include "udeadline.h"
 #include "ulib_ret.h"
+#include "utime_t.h"
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -72,6 +74,39 @@ void uevent_deinit(UEvent *event);
  */
 ULIB_API
 void uevent_wait(UEvent *event);
+
+/**
+ * Blocks the calling thread until the event is set, or until the specified deadline.
+ *
+ * @param event Event to wait on.
+ * @param deadline Instant past which the calling thread stops blocking.
+ * @return True if the event is set, false if the deadline expired.
+ *
+ * @note The calling thread may stay blocked past `deadline`, never before it.
+ *
+ * @note If concurrency is disabled, this function does not block: it reports whether the event
+ *       is set, as no other thread could ever set it.
+ */
+ULIB_API
+bool uevent_wait_until(UEvent *event, UDeadline deadline);
+
+/**
+ * Blocks the calling thread until the event is set, for up to the specified time span.
+ *
+ * @param event Event to wait on.
+ * @param timeout Maximum time to block for. @val{UTIME_NS_MAX} blocks indefinitely,
+ *                zero only checks the event without blocking.
+ * @return True if the event is set, false if the timeout expired.
+ *
+ * @note The calling thread may stay blocked for longer than `timeout`, never shorter.
+ *
+ * @note If concurrency is disabled, this function does not block: it reports whether the event
+ *       is set, as no other thread could ever set it.
+ */
+ULIB_INLINE
+bool uevent_wait_for(UEvent *event, utime_ns timeout) {
+    return uevent_wait_until(event, udeadline(timeout));
+}
 
 /**
  * Checks whether the event is set without blocking the calling thread.

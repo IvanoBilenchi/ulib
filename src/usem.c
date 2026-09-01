@@ -6,6 +6,7 @@
  */
 
 #include "usem.h"
+#include "udeadline.h"
 #include "ulib_ret.h"
 #include "uplatform.h"
 #include <stdbool.h>
@@ -15,6 +16,7 @@
 
 #include "uatomic.h"
 #include "ufutex.h"
+#include "ufutex_p.h"
 
 #if USEM_USE_64BIT_ATOMICS
 
@@ -62,34 +64,39 @@ ulib_ret usem(USem *sem, uint32_t permits) {
 void usem_deinit(ulib_unused USem *sem) {}
 
 bool usem_trywait(USem *sem) {
-    uint64_t state = uatomic_load_ex(&sem->_state, UMO_RELAXED);
-    while (state_permits(&state)) {
-        uint64_t const new_state = state - ONE_PERMIT;
-        if (uatomic_wcas_ex(&sem->_state, &state, new_state, UMO_ACQUIRE, UMO_RELAXED)) return true;
+    uint64_t s = uatomic_load_ex(&sem->_state, UMO_RELAXED);
+    while (state_permits(&s)) {
+        uint64_t const new_s = s - ONE_PERMIT;
+        if (uatomic_wcas_ex(&sem->_state, &s, new_s, UMO_ACQUIRE, UMO_RELAXED)) return true;
     }
     return false;
 }
 
 void usem_wait(USem *sem) {
-    uint64_t state = uatomic_load_ex(&sem->_state, UMO_RELAXED);
+    usem_trywait_until(sem, udeadline_never());
+}
+
+bool usem_trywait_until(USem *sem, UDeadline deadline) {
+    uint64_t s = uatomic_load_ex(&sem->_state, UMO_RELAXED);
     for (;;) {
         // Fast path: consume a permit if any are available.
-        while (state_permits(&state)) {
-            uint64_t const new_state = state - ONE_PERMIT;
-            if (uatomic_wcas_ex(&sem->_state, &state, new_state, UMO_ACQUIRE, UMO_RELAXED)) return;
+        while (state_permits(&s)) {
+            uint64_t const new_s = s - ONE_PERMIT;
+            if (uatomic_wcas_ex(&sem->_state, &s, new_s, UMO_ACQUIRE, UMO_RELAXED)) return true;
         }
 
         // No permits: register as a waiter.
-        state = uatomic_faa_ex(&sem->_state, ONE_WAITER, UMO_ACQUIRE);
-        if (state_permits(&state)) {
+        s = uatomic_faa_ex(&sem->_state, ONE_WAITER, UMO_ACQUIRE);
+        if (state_permits(&s)) {
             // A permit was posted just before we registered: unregister and retry to acquire it.
-            state = uatomic_fas_ex(&sem->_state, ONE_WAITER, UMO_RELAXED) - ONE_WAITER;
+            s = uatomic_fas_ex(&sem->_state, ONE_WAITER, UMO_RELAXED) - ONE_WAITER;
             continue;
         }
 
         // Park until the permit count changes, then unregister and retry.
-        ufutex_wait(state_futex(&sem->_state), 0);
-        state = uatomic_fas_ex(&sem->_state, ONE_WAITER, UMO_RELAXED) - ONE_WAITER;
+        bool const expired = !p_udeadline_wait(state_futex(&sem->_state), 0, deadline);
+        s = uatomic_fas_ex(&sem->_state, ONE_WAITER, UMO_RELAXED) - ONE_WAITER;
+        if (expired) return usem_trywait(sem);
     }
 }
 
@@ -121,18 +128,23 @@ bool usem_trywait(USem *sem) {
 }
 
 void usem_wait(USem *sem) {
+    usem_trywait_until(sem, udeadline_never());
+}
+
+bool usem_trywait_until(USem *sem, UDeadline deadline) {
     for (;;) {
         // Fast path: consume a permit if any are available.
-        uint32_t val = uatomic_load_ex(&sem->_permits, UMO_RELAXED);
-        while (val) {
-            if (uatomic_wcas_ex(&sem->_permits, &val, val - 1, UMO_ACQUIRE, UMO_RELAXED)) return;
+        uint32_t p = uatomic_load_ex(&sem->_permits, UMO_RELAXED);
+        while (p) {
+            if (uatomic_wcas_ex(&sem->_permits, &p, p - 1, UMO_ACQUIRE, UMO_RELAXED)) return true;
         }
 
         // No permits: register as a waiter. Check one last time for permits before parking.
         uatomic_faa_ex(&sem->_waiters, 1, UMO_SEQ_CST);
-        val = uatomic_load_ex(&sem->_permits, UMO_SEQ_CST);
-        if (!val) ufutex_wait(&sem->_permits, 0);
+        p = uatomic_load_ex(&sem->_permits, UMO_SEQ_CST);
+        bool const expired = p ? false : !p_udeadline_wait(&sem->_permits, 0, deadline);
         uatomic_fas_ex(&sem->_waiters, 1, UMO_RELAXED);
+        if (expired) return usem_trywait(sem);
     }
 }
 
@@ -164,6 +176,10 @@ bool usem_trywait(USem *sem) {
 void usem_wait(USem *sem) {
     ulib_assert(sem->_permits);
     usem_trywait(sem);
+}
+
+bool usem_trywait_until(USem *sem, ulib_unused UDeadline deadline) {
+    return usem_trywait(sem);
 }
 
 void usem_post(USem *sem) {

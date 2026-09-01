@@ -352,7 +352,7 @@ void uvec_test_sort(void) {
 
     // Repeated elements
     for (unsigned i = 0; i < SORT_COUNT; ++i) {
-        array[i] = (VTYPE)(urand() % 10);
+        array[i] = (VTYPE)(urand() % 10U);
     }
 
     uvec_clear(VTYPE, &v);

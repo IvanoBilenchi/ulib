@@ -33,6 +33,59 @@ void utime_test_ns(void) {
     utest_assert_uint(t, <, 2000000000);
 }
 
+void utime_test_span_convert(void) {
+    utime_ns const ms = utime_span(1, UTIME_MS);
+
+    utest_assert_uint(utime_span_to_floor(ms, UTIME_MS), ==, 1);
+    utest_assert_uint(utime_span_to_ceil(ms, UTIME_MS), ==, 1);
+    utest_assert_uint(utime_span_to_round(ms, UTIME_MS), ==, 1);
+    utest_assert_uint(utime_span_round_down(ms, UTIME_MS), ==, ms);
+    utest_assert_uint(utime_span_round_up(ms, UTIME_MS), ==, ms);
+    utest_assert_uint(utime_span_round(ms, UTIME_MS), ==, ms);
+
+    utime_ns const just_over = ms + 1;
+    utest_assert_uint(utime_span_to_floor(just_over, UTIME_MS), ==, 1);
+    utest_assert_uint(utime_span_to_ceil(just_over, UTIME_MS), ==, 2);
+    utest_assert_uint(utime_span_to_round(just_over, UTIME_MS), ==, 1);
+    utest_assert_uint(utime_span_round_down(just_over, UTIME_MS), ==, ms);
+    utest_assert_uint(utime_span_round_up(just_over, UTIME_MS), ==, 2 * ms);
+    utest_assert_uint(utime_span_round(just_over, UTIME_MS), ==, ms);
+
+    utime_ns const half = ms + (ms / 2);
+    utest_assert_uint(utime_span_to_round(half, UTIME_MS), ==, 2);
+    utest_assert_uint(utime_span_round(half, UTIME_MS), ==, 2 * ms);
+    utest_assert_uint(utime_span_to_round(half - 1, UTIME_MS), ==, 1);
+    utest_assert_uint(utime_span_round(half - 1, UTIME_MS), ==, ms);
+
+    utest_assert_uint(utime_span_to_floor(1, UTIME_MS), ==, 0);
+    utest_assert_uint(utime_span_to_ceil(1, UTIME_MS), ==, 1);
+    utest_assert_uint(utime_span_to_round(1, UTIME_MS), ==, 0);
+    utest_assert_uint(utime_span_round_down(1, UTIME_MS), ==, 0);
+    utest_assert_uint(utime_span_round_up(1, UTIME_MS), ==, ms);
+    utest_assert_uint(utime_span_round_up(0, UTIME_MS), ==, 0);
+
+    utest_assert_uint(utime_span_to_ceil(7, UTIME_NS), ==, 7);
+    utest_assert_uint(utime_span_to_round(7, UTIME_NS), ==, 7);
+    utest_assert_uint(utime_span_round_up(7, UTIME_NS), ==, 7);
+    utest_assert_uint(utime_span_to_ceil(ms, UTIME_MONTHS), ==, 0);
+    utest_assert_uint(utime_span_round_up(ms, UTIME_MONTHS), ==, 0);
+
+    for (unsigned u = UTIME_NS; u <= UTIME_DAYS; ++u) {
+        utime_unit const unit = (utime_unit)u;
+        unsigned long long const floor = utime_span_to_floor(UTIME_NS_MAX, unit);
+        utest_assert_uint(utime_span_to_ceil(UTIME_NS_MAX, unit), >=, floor);
+        utest_assert_uint(utime_span_to_round(UTIME_NS_MAX, unit), >=, floor);
+        utest_assert_uint(utime_span_round_down(UTIME_NS_MAX, unit), <=, UTIME_NS_MAX);
+        utest_assert_uint(utime_span_round_up(UTIME_NS_MAX, unit), >=,
+                          utime_span_round_down(UTIME_NS_MAX, unit));
+    }
+    utest_assert_uint(utime_span_to_ceil(UTIME_NS_MAX, UTIME_US), ==,
+                      (UTIME_NS_MAX / UTIME_NS_PER_US) + 1);
+    utest_assert_uint(utime_span_round_up(UTIME_NS_MAX, UTIME_US), ==, UTIME_NS_MAX);
+    utest_assert_uint(utime_span_round_down(UTIME_NS_MAX, UTIME_US), ==,
+                      (UTIME_NS_MAX / UTIME_NS_PER_US) * UTIME_NS_PER_US);
+}
+
 void utime_test_interval(void) {
     utest_assert_uint(utime_span(999, UTIME_NANOSECONDS), ==, 999);
     utest_assert_uint(utime_span(1, UTIME_MICROSECONDS), ==, 1000);
@@ -64,7 +117,7 @@ void utime_test_interval(void) {
         { 999994999, UTIME_MILLISECONDS, "999.99 ms" }, { 999995000, UTIME_SECONDS, "1.00 s" },
         { 59994999999, UTIME_SECONDS, "59.99 s" },      { 59995000000, UTIME_MINUTES, "1.00 m" },
         { 3599699999999, UTIME_MINUTES, "59.99 m" },    { 3599700000000, UTIME_HOURS, "1.00 h" },
-        { 86381999999999, UTIME_HOURS, "23.99 h" },     { 86382000000000, UTIME_DAYS, "1.00 d" }
+        { 86381999999999, UTIME_HOURS, "23.99 h" },     { 86382000000000, UTIME_DAYS, "1.00 d" },
     };
 
     for (unsigned i = 0; i < ulib_array_count(test_data); ++i) {

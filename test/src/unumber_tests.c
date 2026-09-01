@@ -147,3 +147,70 @@ void unumber_test_int_dispatch(void) {
     utest_assert_uint(sizeof(ulib_uint_floor2(l)), ==, sizeof(unsigned long));
     utest_assert_uint(sizeof(ulib_uint_floor2(ll)), ==, sizeof(unsigned long long));
 }
+
+void unumber_test_round(void) {
+    utest_assert_uint(ulib_div_floor(7U, 3U), ==, 2);
+    utest_assert_uint(ulib_div_ceil(7U, 3U), ==, 3);
+    utest_assert_uint(ulib_div_round(7U, 3U), ==, 2);
+    utest_assert_uint(ulib_div_round(8U, 3U), ==, 3);
+
+    utest_assert_uint(ulib_round_down(7U, 3U), ==, 6);
+    utest_assert_uint(ulib_round_up(7U, 3U), ==, 9);
+    utest_assert_uint(ulib_round(7U, 3U), ==, 6);
+    utest_assert_uint(ulib_round(8U, 3U), ==, 9);
+
+    utest_assert_uint(ulib_div_round(3U, 2U), ==, 2);
+    utest_assert_uint(ulib_round(3U, 2U), ==, 4);
+
+    utest_assert_uint(ulib_round_down(6U, 3U), ==, 6);
+    utest_assert_uint(ulib_round_up(6U, 3U), ==, 6);
+    utest_assert_uint(ulib_round(6U, 3U), ==, 6);
+    utest_assert_uint(ulib_round_up(7U, 1U), ==, 7);
+    utest_assert_uint(ulib_round(7U, 1U), ==, 7);
+
+    uint64_t const big = UINT64_C(1) << 40;
+    utest_assert_uint(ulib_div_floor(big + 3, UINT64_C(4)), ==, big / 4);
+    utest_assert_uint(ulib_div_ceil(big + 1, UINT64_C(4)), ==, (big / 4) + 1);
+    utest_assert_uint(ulib_round_up(big + 1, UINT64_C(4)), ==, big + 4);
+    utest_assert_uint(ulib_round_down(big + 3, UINT64_C(4)), ==, big);
+
+    utest_assert_uint(ulib_div_ceil(UINT64_MAX - 1, UINT64_MAX), ==, 1);
+    utest_assert_uint(ulib_div_round(UINT64_MAX - 1, UINT64_MAX), ==, 1);
+
+    for (ulib_uint y = 1; y <= 8; ++y) {
+        for (ulib_uint x = 0; x <= 40; ++x) {
+            ulib_uint const down = ulib_round_down(x, y);
+            ulib_uint const up = ulib_round_up(x, y);
+            ulib_uint const nearest = ulib_round(x, y);
+
+            utest_assert_uint(down % y, ==, 0);
+            utest_assert_uint(up % y, ==, 0);
+            utest_assert_uint(down, <=, x);
+            utest_assert_uint(up, >=, x);
+            utest_assert_uint(up - down, ==, x % y ? y : 0);
+
+            utest_assert_uint(ulib_div_floor(x, y), ==, down / y);
+            utest_assert_uint(ulib_div_ceil(x, y), ==, up / y);
+            utest_assert_uint(ulib_div_round(x, y), ==, nearest / y);
+
+            utest_assert_uint(nearest, ==, (x - down) * 2 >= y ? up : down);
+        }
+    }
+
+    for (ulib_uint y = 1; y <= 8; ++y) {
+        ulib_uint const x = ULIB_UINT_MAX;
+        ulib_uint const q = x / y;
+        ulib_uint const r = x % y;
+        utest_assert_uint(ulib_div_floor(x, y), ==, q);
+        utest_assert_uint(ulib_div_ceil(x, y), ==, r ? q + 1 : q);
+        utest_assert_uint(ulib_div_round(x, y), ==, r * 2 >= y ? q + 1 : q);
+        utest_assert_uint(ulib_round_down(x, y), ==, q * y);
+    }
+
+    ulib_uint const max = ULIB_UINT_MAX;
+    utest_assert_uint(ulib_div_floor(max - 1, max), ==, 0);
+    utest_assert_uint(ulib_div_ceil(max - 1, max), ==, 1);
+    utest_assert_uint(ulib_div_round(max - 1, max), ==, 1);
+    utest_assert_uint(ulib_round_up(max - 1, max), ==, max);
+    utest_assert_uint(ulib_div_round(max / 4, max), ==, 0);
+}

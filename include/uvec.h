@@ -65,7 +65,7 @@ typedef enum uvec_ret {
     ULIB_DEPRECATED_ENUM(UVEC_OK, ULIB_OK),
 
     /// The operation could not be completed.
-    ULIB_DEPRECATED_ENUM(UVEC_NO, ULIB_NO)
+    ULIB_DEPRECATED_ENUM(UVEC_NO, ULIB_NO),
 
 } uvec_ret;
 
@@ -130,7 +130,11 @@ typedef enum uvec_ret {
 #define p_uvec_exp_size(T)                                                                         \
     (sizeof(struct ULIB_MACRO_CONCAT(p_uvec_sizing_, T)) - sizeof(T *) - sizeof(ulib_uint))
 #define p_uvec_small_size(T) ((sizeof(struct ULIB_MACRO_CONCAT(p_uvec_large_, T)) - 1) / sizeof(T))
+#ifdef __clang_analyzer__
+#define p_uvec_exp(T, v) ((v)->_l._exp[p_uvec_exp_size(T) - 1])
+#else
 #define p_uvec_exp(T, v) ((v)->_s[p_uvec_size(T) - 1])
+#endif
 #define p_uvec_exp_set(T, v, e) (p_uvec_exp(T, v) = (ulib_byte)(e))
 #define p_uvec_exp_is_small(e) (!p_uvec_exp_is_large(e))
 #define p_uvec_exp_is_compact(e) ((e) == P_UVEC_EXP_COMPACT)

@@ -2,11 +2,14 @@
  * @author Ivano Bilenchi
  *
  * @copyright Copyright (c) 2026 Ivano Bilenchi <https://ivanobilenchi.com>
+ * @copyright SPDX-License-Identifier: ISC
  */
 
 #include "ubarrier.h"
+#include "udeadline.h"
 #include "ulib_ret.h"
 #include "uplatform.h"
+#include <stdbool.h>
 #include <stdint.h>
 
 #if ULIB_CONCURRENCY
@@ -14,6 +17,7 @@
 #include "uatomic.h"
 #include "udebug.h"
 #include "ufutex.h"
+#include "ufutex_p.h"
 #include "ulock.h"
 
 ulib_ret ubarrier(UBarrier *barrier, uint16_t count) {
@@ -28,13 +32,21 @@ void ubarrier_deinit(UBarrier *barrier) {
     ulock_deinit(&barrier->_lock);
 }
 
+static inline UBarrierPhase barrier_phase(UBarrier *barrier, UMemoryOrder order) {
+    return uatomic_load_ex(&barrier->_seq, order);
+}
+
+static inline void barrier_next_phase(UBarrier *barrier) {
+    uatomic_faa_ex(&barrier->_seq, 1, UMO_RELEASE);
+    ufutex_wake_all(&barrier->_seq);
+}
+
 static inline UBarrierPhase barrier_arrive(UBarrier *barrier, uint16_t count) {
-    UBarrierPhase phase = uatomic_load_ex(&barrier->_seq, UMO_RELAXED);
+    UBarrierPhase phase = barrier_phase(barrier, UMO_RELAXED);
     ulib_assert(count && count <= barrier->_remaining);
     if (!(barrier->_remaining -= count)) {
         barrier->_remaining = barrier->_count;
-        uatomic_faa_ex(&barrier->_seq, 1, UMO_RELEASE);
-        ufutex_wake_all(&barrier->_seq);
+        barrier_next_phase(barrier);
     }
     ulock_unlock(&barrier->_lock);
     return phase;
@@ -46,13 +58,24 @@ UBarrierPhase ubarrier_arrive(UBarrier *barrier, uint16_t count) {
 }
 
 void ubarrier_wait(UBarrier *barrier, UBarrierPhase phase) {
-    while (uatomic_load_ex(&barrier->_seq, UMO_ACQUIRE) == phase) {
-        ufutex_wait(&barrier->_seq, phase);
+    ubarrier_wait_until(barrier, phase, udeadline_never());
+}
+
+bool ubarrier_wait_until(UBarrier *barrier, UBarrierPhase phase, UDeadline deadline) {
+    while (barrier_phase(barrier, UMO_ACQUIRE) == phase) {
+        if (!p_udeadline_wait(&barrier->_seq, phase, deadline)) {
+            return barrier_phase(barrier, UMO_ACQUIRE) != phase;
+        }
     }
+    return true;
 }
 
 void ubarrier_arrive_and_wait(UBarrier *barrier) {
     ubarrier_wait(barrier, ubarrier_arrive(barrier, 1));
+}
+
+bool ubarrier_arrive_and_wait_until(UBarrier *barrier, UDeadline deadline) {
+    return ubarrier_wait_until(barrier, ubarrier_arrive(barrier, 1), deadline);
 }
 
 UBarrierPhase ubarrier_arrive_and_drop(UBarrier *barrier) {
@@ -77,7 +100,16 @@ UBarrierPhase ubarrier_arrive(ulib_unused UBarrier *barrier, ulib_unused uint16_
 
 void ubarrier_wait(ulib_unused UBarrier *barrier, ulib_unused UBarrierPhase phase) {}
 
+bool ubarrier_wait_until(ulib_unused UBarrier *barrier, ulib_unused UBarrierPhase phase,
+                         ulib_unused UDeadline deadline) {
+    return true;
+}
+
 void ubarrier_arrive_and_wait(ulib_unused UBarrier *barrier) {}
+
+bool ubarrier_arrive_and_wait_until(ulib_unused UBarrier *barrier, ulib_unused UDeadline deadline) {
+    return true;
+}
 
 UBarrierPhase ubarrier_arrive_and_drop(ulib_unused UBarrier *barrier) {
     return 0;

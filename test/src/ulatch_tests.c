@@ -11,8 +11,11 @@
 
 enum {
     THREAD_COUNT = 8,
-    SLEEP_MS = 50,
 };
+
+#define SLEEP_TIME utime_span(50, UTIME_MS)
+#define TIMEOUT utime_span(50, UTIME_MS)
+#define LONG_TIMEOUT utime_span(10, UTIME_S)
 
 typedef struct LatchCtx {
     ULatch *latch;
@@ -84,7 +87,7 @@ void ulatch_test_arrive_and_wait(void) {
         utest_assert_enum(uthread_start(&threads[i]), ==, ULIB_OK);
     }
 
-    uthread_sleep(utime_span(SLEEP_MS, UTIME_MS));
+    uthread_sleep(SLEEP_TIME);
     utest_assert_uint(uatomic_load_ex(&counter, UMO_RELAXED), ==, 0);
 
     ulatch_arrive_and_wait(&latch, 1);
@@ -93,6 +96,59 @@ void ulatch_test_arrive_and_wait(void) {
         utest_assert_enum(uthread_join(&threads[i]), ==, ULIB_OK);
     }
     utest_assert_uint(counter, ==, THREAD_COUNT);
+
+    ulatch_deinit(&latch);
+}
+
+void ulatch_test_poll(void) {
+    ULatch latch = ulib_zero_init;
+    utest_assert_enum(ulatch(&latch, 2), ==, ULIB_OK);
+
+    utest_assert_false(ulatch_wait_for(&latch, 0));
+    utest_assert_false(ulatch_arrive_and_wait_for(&latch, 1, 0));
+    utest_assert(ulatch_arrive_and_wait_for(&latch, 1, 0));
+
+    ulatch_deinit(&latch);
+}
+
+void ulatch_test_timeout(void) {
+    ULatch latch = ulib_zero_init;
+    utest_assert_enum(ulatch(&latch, 1), ==, ULIB_OK);
+
+    utime_ns start = utime_get_ns();
+    utest_assert_false(ulatch_wait_for(&latch, TIMEOUT));
+    utest_assert_uint(utime_get_ns() - start, >=, TIMEOUT);
+
+    start = utime_get_ns();
+    utest_assert_false(ulatch_wait_until(&latch, udeadline(TIMEOUT)));
+    utest_assert_uint(utime_get_ns() - start, >=, TIMEOUT);
+
+    ulatch_arrive(&latch, 1);
+    utest_assert(ulatch_wait_for(&latch, TIMEOUT));
+    utest_assert(ulatch_wait_until(&latch, udeadline(0)));
+
+    ulatch_deinit(&latch);
+}
+
+void ulatch_test_timed_wait(void) {
+    ULatch latch = ulib_zero_init;
+    utest_assert_enum(ulatch(&latch, THREAD_COUNT), ==, ULIB_OK);
+
+    UAtomic(unsigned) counter = 0;
+    LatchCtx ctx = { .latch = &latch, .counter = &counter };
+
+    UThread threads[THREAD_COUNT];
+    for (unsigned i = 0; i < THREAD_COUNT; ++i) {
+        utest_assert_enum(uthread(&threads[i], ulatch_arrive_worker, &ctx), ==, ULIB_OK);
+        utest_assert_enum(uthread_start(&threads[i]), ==, ULIB_OK);
+    }
+
+    utest_assert(ulatch_wait_for(&latch, LONG_TIMEOUT));
+    utest_assert_uint(uatomic_load_ex(&counter, UMO_RELAXED), ==, THREAD_COUNT);
+
+    for (unsigned i = 0; i < THREAD_COUNT; ++i) {
+        utest_assert_enum(uthread_join(&threads[i]), ==, ULIB_OK);
+    }
 
     ulatch_deinit(&latch);
 }

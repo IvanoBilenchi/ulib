@@ -9,7 +9,9 @@
 #include "ubarrier_tests.h"
 #include "ubit_tests.h"
 #include "ucond_tests.h"
+#include "udeadline_tests.h"
 #include "uevent_tests.h"
+#include "ufutex_tests.h"
 #include "uhash_tests.h"
 #include "uiter_tests.h"
 #include "ulatch_tests.h"
@@ -39,10 +41,12 @@ utest_main({
     utest_run("ulog", ULOG_TESTS);
     utest_run("urand", URAND_TESTS);
     utest_run("utime", UTIME_TESTS);
+    utest_run("udeadline", UDEADLINE_TESTS);
     utest_run("umetrics", UMETRICS_TESTS);
     utest_run("uthread", UTHREAD_TESTS);
     utest_run("uatomic", UATOMIC_TESTS);
     utest_run("ulock", ULOCK_TESTS);
+    utest_run("ufutex", UFUTEX_TESTS);
     utest_run("uevent", UEVENT_TESTS);
     utest_run("ucond", UCOND_TESTS);
     utest_run("ubarrier", UBARRIER_TESTS);

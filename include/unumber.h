@@ -633,6 +633,82 @@ P_ULIB_INT_CPP_DEF(long long, unsigned long long, ullong)
  */
 #define ulib_diff(a, b) (((a) > (b)) ? ((a) - (b)) : ((b) - (a)))
 
+/**
+ * Returns the ceiling of the division of two numbers.
+ *
+ * @param x The dividend.
+ * @param y The divisor.
+ * @return The ceiling of the division.
+ *
+ * @warning Undefined if `y` is zero, or if either argument is negative.
+ * @alias T ulib_div_ceil(T x, T y);
+ */
+#define ulib_div_ceil(x, y) (((x) / (y)) + ((x) % (y) ? 1 : 0))
+
+/**
+ * Returns the floor of the division of two numbers.
+ *
+ * @param x The dividend.
+ * @param y The divisor.
+ * @return The floor of the division.
+ *
+ * @warning Undefined if `y` is zero, or if either argument is negative.
+ * @alias T ulib_div_floor(T x, T y);
+ */
+#define ulib_div_floor(x, y) ((x) / (y))
+
+/**
+ * Returns the rounded result of the division of two numbers.
+ *
+ * Halfway results are rounded away from zero.
+ *
+ * @param x The dividend.
+ * @param y The divisor.
+ * @return The rounded result of the division.
+ *
+ * @warning Undefined if `y` is zero, or if either argument is negative.
+ * @alias T ulib_div_round(T x, T y);
+ */
+#define ulib_div_round(x, y) (((x) / (y)) + (((x) % (y)) >= ((y) - ((x) % (y))) ? 1 : 0))
+
+/**
+ * Rounds a number up to the nearest multiple of another number.
+ *
+ * @param x The number.
+ * @param y The multiple.
+ * @return Rounded value.
+ *
+ * @warning Undefined if `y` is zero, or if either argument is negative.
+ * @warning Overflows only if the rounded value is not representable in the type of `x`.
+ * @alias T ulib_round_up(T x, T y);
+ */
+#define ulib_round_up(x, y) (ulib_div_ceil(x, y) * (y))
+
+/**
+ * Rounds a number down to the nearest multiple of another number.
+ *
+ * @param x The number.
+ * @param y The multiple.
+ * @return Rounded value.
+ *
+ * @warning Undefined if `y` is zero, or if either argument is negative.
+ * @alias T ulib_round_down(T x, T y);
+ */
+#define ulib_round_down(x, y) (ulib_div_floor(x, y) * (y))
+
+/**
+ * Rounds a number to the nearest multiple of another number.
+ *
+ * @param x The number.
+ * @param y The multiple.
+ * @return Rounded value.
+ *
+ * @warning Undefined if `y` is zero, or if either argument is negative.
+ * @warning Overflows only if the rounded value is not representable in the type of `x`.
+ * @alias T ulib_round(T x, T y);
+ */
+#define ulib_round(x, y) (ulib_div_round(x, y) * (y))
+
 /// @}
 
 #endif // UNUMBER_H
