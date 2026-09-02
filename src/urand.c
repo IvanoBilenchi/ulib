@@ -41,7 +41,6 @@ ULIB_INLINE void rand_seed(ulib_uint seed) {
 #else
 
 #include "uatomic.h"
-#include "uplatform.h"
 #include "uthread.h"
 #include <stdint.h>
 
@@ -75,8 +74,8 @@ ULIB_CONST ULIB_INLINE rand_state rand_mix(rand_state z) {
 static UAtomic(ulib_uint) global_seed = 1;
 static UAtomic(unsigned) global_epoch = 1;
 
-static ulib_if_concurrency(_Thread_local) rand_state local_state;
-static ulib_if_concurrency(_Thread_local) unsigned local_epoch;
+static ULIB_THREAD_LOCAL rand_state local_state;
+static ULIB_THREAD_LOCAL unsigned local_epoch;
 
 static void rand_reseed(void) {
     local_epoch = uatomic_load_ex(&global_epoch, UMO_ACQUIRE);

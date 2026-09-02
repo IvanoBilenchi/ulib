@@ -102,6 +102,7 @@ ulib_ret uthread_detach(ulib_unused UThread *thread) {
 #if ULIB_CONCURRENCY
 
 #include "uatomic.h"
+#include "uattrs.h"
 #include "udebug.h"
 #include "uutils.h"
 
@@ -113,7 +114,7 @@ static UThreadId next_thread_id(void) {
 }
 
 UThreadId uthread_id(void) {
-    static _Thread_local UThreadId id = UTHREAD_ID_NULL;
+    static ULIB_THREAD_LOCAL UThreadId id = UTHREAD_ID_NULL;
     if (ulib_unlikely(!id)) id = next_thread_id();
     return id;
 }

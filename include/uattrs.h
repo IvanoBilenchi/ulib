@@ -127,6 +127,30 @@
     #define ULIB_NORETURN
 #endif
 
+/**
+ * Marks variables with thread-local storage duration.
+ *
+ * @note If concurrency is disabled, this macro expands to nothing.
+ *
+ * @def ULIB_THREAD_LOCAL
+ */
+
+#if ULIB_DOCS || !ULIB_CONCURRENCY
+    #define ULIB_THREAD_LOCAL
+#elif ULIB_OS_IS_ZEPHYR && !defined(CONFIG_THREAD_LOCAL_STORAGE)
+    #error "Thread-local storage requires CONFIG_THREAD_LOCAL_STORAGE"
+#elif ULIB_LANG_IS_CPP || __STDC_VERSION__ >= 202311L
+    #define ULIB_THREAD_LOCAL thread_local
+#elif __STDC_VERSION__ >= 201112L
+    #define ULIB_THREAD_LOCAL _Thread_local
+#elif ULIB_CC_IS_GNU
+    #define ULIB_THREAD_LOCAL __thread
+#elif ULIB_CC_IS_MSVC
+    #define ULIB_THREAD_LOCAL __declspec(thread)
+#else
+    #error "Thread-local storage is not supported by this compiler"
+#endif
+
 /// @}
 
 #endif // UATTRS_H
