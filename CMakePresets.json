@@ -139,10 +139,7 @@
                 "clang-tidy",
                 "werror"
             ],
-            "displayName": "CI (analyze)",
-            "cacheVariables": {
-                "ULIB_CPP_TESTS": false
-            }
+            "displayName": "CI (analyze)"
         },
         {
             "name": "ci-test",

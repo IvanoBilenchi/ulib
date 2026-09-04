@@ -60,7 +60,7 @@ void usem_test_wait_post(void) {
     utest_assert_enum(usem(&sem, 0), ==, ULIB_OK);
 
     UAtomic(unsigned) counter = 0;
-    SemCtx ctx = { .sem = &sem, .counter = &counter };
+    SemCtx ctx = { .sem = &sem, .counter = &counter, .timeout = 0 };
 
     UThread threads[THREAD_COUNT];
     for (unsigned i = 0; i < THREAD_COUNT; ++i) {

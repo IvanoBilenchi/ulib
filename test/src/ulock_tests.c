@@ -335,6 +335,7 @@ void ulock_test_simple(void) {
         .trylock_for_func = lock_trylock_for,
         .trylock_until_func = lock_trylock_until,
         .unlock_func = lock_unlock,
+        .shared = false,
     };
     test_lock(&wrapper);
     test_lock_barriers(&wrapper);
@@ -361,6 +362,7 @@ void ulock_test_recursive(void) {
         .trylock_for_func = rlock_trylock_for,
         .trylock_until_func = rlock_trylock_until,
         .unlock_func = rlock_unlock,
+        .shared = false,
     };
     test_lock(&wrapper);
     test_lock_barriers(&wrapper);
@@ -385,6 +387,7 @@ void ulock_test_spin(void) {
         .trylock_for_func = slock_trylock_for,
         .trylock_until_func = slock_trylock_until,
         .unlock_func = slock_unlock,
+        .shared = false,
     };
     test_lock(&wrapper);
     test_lock_barriers(&wrapper);
@@ -416,6 +419,7 @@ void ulock_test_read_write(void) {
         .trylock_for_func = rwlock_trylock_for,
         .trylock_until_func = rwlock_trylock_until,
         .unlock_func = rwlock_unlock,
+        .shared = false,
     };
     test_lock(&write_wrapper);
     test_lock_barriers(&write_wrapper);
