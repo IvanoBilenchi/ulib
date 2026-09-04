@@ -150,12 +150,16 @@ bool usem_trywait_for(USem *sem, utime_ns timeout) {
 }
 
 /**
- * Releases a permit, waking up one thread waiting on the semaphore, if any.
+ * Releases the specified number of permits, waking up threads waiting on the semaphore, if any.
  *
- * @param sem Semaphore to release a permit to.
+ * A single call releases `permits` permits, so that the calling thread can release on behalf
+ * of as many work units as it produced.
+ *
+ * @param sem Semaphore to release permits to.
+ * @param permits Number of permits to release.
  */
 ULIB_API
-void usem_post(USem *sem);
+void usem_post(USem *sem, uint32_t permits);
 
 /// @}
 

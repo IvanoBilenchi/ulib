@@ -18,6 +18,16 @@
 #include "ufutex.h"
 #include "ufutex_p.h"
 
+// Each permit can satisfy at most one waiter, but the futex API can only wake one thread or all
+// of them: a batch therefore wakes everyone, and waiters left without a permit re-park.
+static inline void sem_wake(UAtomic(uint32_t) *futex, uint32_t permits) {
+    if (permits > 1) {
+        ufutex_wake_all(futex);
+    } else {
+        ufutex_wake_one(futex);
+    }
+}
+
 #if USEM_USE_64BIT_ATOMICS
 
 // The state packs the permit count and the number of waiters into the two 32-bit halves of a
@@ -100,9 +110,9 @@ bool usem_trywait_until(USem *sem, UDeadline deadline) {
     }
 }
 
-void usem_post(USem *sem) {
-    uint64_t state = uatomic_faa_ex(&sem->_state, ONE_PERMIT, UMO_RELEASE);
-    if (state_waiters(&state)) ufutex_wake_one(state_futex(&sem->_state));
+void usem_post(USem *sem, uint32_t permits) {
+    uint64_t state = uatomic_faa_ex(&sem->_state, state_pack(permits, 0), UMO_RELEASE);
+    if (state_waiters(&state)) sem_wake(state_futex(&sem->_state), permits);
 }
 
 #else // USEM_USE_64BIT_ATOMICS
@@ -148,9 +158,9 @@ bool usem_trywait_until(USem *sem, UDeadline deadline) {
     }
 }
 
-void usem_post(USem *sem) {
-    uatomic_faa_ex(&sem->_permits, 1, UMO_SEQ_CST);
-    if (uatomic_load_ex(&sem->_waiters, UMO_SEQ_CST)) ufutex_wake_one(&sem->_permits);
+void usem_post(USem *sem, uint32_t permits) {
+    uatomic_faa_ex(&sem->_permits, permits, UMO_SEQ_CST);
+    if (uatomic_load_ex(&sem->_waiters, UMO_SEQ_CST)) sem_wake(&sem->_permits, permits);
 }
 
 #endif // USEM_USE_64BIT_ATOMICS
@@ -182,8 +192,8 @@ bool usem_trywait_until(USem *sem, ulib_unused UDeadline deadline) {
     return usem_trywait(sem);
 }
 
-void usem_post(USem *sem) {
-    sem->_permits++;
+void usem_post(USem *sem, uint32_t permits) {
+    sem->_permits += permits;
 }
 
 #endif // ULIB_CONCURRENCY

@@ -28,12 +28,16 @@ void usem_test_base(void) {
     utest_assert(usem_trywait(&sem));
     utest_assert_false(usem_trywait(&sem));
 
-    usem_post(&sem);
+    usem_post(&sem, 1);
     utest_assert(usem_trywait(&sem));
     utest_assert_false(usem_trywait(&sem));
 
-    usem_post(&sem);
+    usem_post(&sem, 1);
     usem_wait(&sem);
+    utest_assert_false(usem_trywait(&sem));
+
+    usem_post(&sem, 3);
+    for (unsigned i = 0; i < 3; ++i) utest_assert(usem_trywait(&sem));
     utest_assert_false(usem_trywait(&sem));
 
     usem_deinit(&sem);
@@ -67,7 +71,7 @@ void usem_test_wait_post(void) {
     uthread_sleep(SLEEP_TIME);
     utest_assert_uint(uatomic_load_ex(&counter, UMO_RELAXED), ==, 0);
 
-    for (unsigned i = 0; i < THREAD_COUNT; ++i) usem_post(&sem);
+    usem_post(&sem, THREAD_COUNT);
 
     for (unsigned i = 0; i < THREAD_COUNT; ++i) {
         utest_assert_enum(uthread_join(&threads[i]), ==, ULIB_OK);
@@ -93,7 +97,7 @@ static void usem_mutex_worker(void *arg) {
         }
         ++*ctx->counter;
         uatomic_fetch_sub_ex(ctx->in_cs, 1, UMO_ACQ_REL);
-        usem_post(ctx->sem);
+        usem_post(ctx->sem, 1);
     }
 }
 
@@ -128,7 +132,7 @@ void usem_test_poll(void) {
 
     utest_assert(usem_trywait_for(&sem, 0));
     utest_assert_false(usem_trywait_for(&sem, 0));
-    usem_post(&sem);
+    usem_post(&sem, 1);
     utest_assert(usem_trywait_for(&sem, 0));
 
     usem_deinit(&sem);
@@ -146,9 +150,9 @@ void usem_test_timeout(void) {
     utest_assert_false(usem_trywait_until(&sem, udeadline(TIMEOUT)));
     utest_assert_uint(utime_get_ns() - start, >=, TIMEOUT);
 
-    usem_post(&sem);
+    usem_post(&sem, 1);
     utest_assert(usem_trywait_for(&sem, TIMEOUT));
-    usem_post(&sem);
+    usem_post(&sem, 1);
     utest_assert(usem_trywait_until(&sem, udeadline(TIMEOUT)));
     utest_assert_false(usem_trywait(&sem));
 
@@ -175,7 +179,7 @@ void usem_test_timed_wait(void) {
         utest_assert_enum(uthread_start(&threads[i]), ==, ULIB_OK);
     }
 
-    for (unsigned i = 0; i < THREAD_COUNT; ++i) usem_post(&sem);
+    for (unsigned i = 0; i < THREAD_COUNT; ++i) usem_post(&sem, 1);
 
     for (unsigned i = 0; i < THREAD_COUNT; ++i) {
         utest_assert_enum(uthread_join(&threads[i]), ==, ULIB_OK);
