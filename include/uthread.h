@@ -198,6 +198,13 @@ ULIB_API
 ulib_ret uthread_sleep(utime_ns t);
 
 /**
+ * Yields the remainder of the calling thread's time slice, allowing the scheduler to run other
+ * threads that are ready.
+ */
+ULIB_API
+void uthread_yield(void);
+
+/**
  * Cost of @func{uthread_yield_cpu}, relative to the cheapest instruction it maps to.
  * @def UTHREAD_YIELD_CPU_COST
  */

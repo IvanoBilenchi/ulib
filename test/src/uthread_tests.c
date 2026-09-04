@@ -17,6 +17,8 @@ enum {
     ID_THREADS = 8,
 };
 
+#define YIELD_TIMEOUT utime_span(10, UTIME_S)
+
 static inline unsigned rand_ms(void) {
     return (unsigned)urand_range(1, MAX_SLEEP_MS);
 }
@@ -108,4 +110,21 @@ void uthread_test_sleep(void) {
         elapsed = utime_get_ns() - elapsed;
         utest_assert_uint(elapsed, >=, ms * UTIME_NS_PER_MS);
     }
+}
+
+static void yield_worker(void *arg) {
+    uatomic_store_ex((UAtomic(bool) *)arg, true, UMO_RELEASE);
+}
+
+void uthread_test_yield(void) {
+    UAtomic(bool) flag = false;
+    UThread thread;
+    utest_assert_enum(uthread(&thread, yield_worker, &flag), ==, ULIB_OK);
+    utest_assert_enum(uthread_start(&thread), ==, ULIB_OK);
+
+    UDeadline const deadline = udeadline(YIELD_TIMEOUT);
+    while (!uatomic_load_ex(&flag, UMO_ACQUIRE) && udeadline_remaining(deadline)) uthread_yield();
+    utest_assert(uatomic_load_ex(&flag, UMO_ACQUIRE));
+
+    utest_assert_enum(uthread_join(&thread), ==, ULIB_OK);
 }
