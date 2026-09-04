@@ -42,14 +42,13 @@ set(ULIB_UTILS_DIR "${ULIB_PROJECT_DIR}/utils")
 # CMake settings
 
 list(APPEND CMAKE_MODULE_PATH "${ULIB_UTILS_DIR}/cmake")
-include(CacheUtils)
-include(CompileUtils)
+include(CMakeUtils)
 
 # Cache variables
 
 option(ULIB_DOCS "Enable the documentation targets" OFF)
 option(ULIB_TESTS "Enable the test targets" ${PROJECT_IS_TOP_LEVEL})
-option(ULIB_CPP_TESTS "Enable the C++ test targets" ${ULIB_TESTS})
+option(ULIB_CPP_TESTS "Compile the tests as C++" OFF)
 option(ULIB_BENCHMARKS "Enable the benchmark targets" ${PROJECT_IS_TOP_LEVEL})
 option(ULIB_LTO "Enable link-time optimization, if available" ON)
 option(ULIB_OPTIMIZE_FOR_HOST "Enable host CPU optimizations (keep OFF for distribution)" OFF)

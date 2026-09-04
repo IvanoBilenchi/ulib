@@ -54,13 +54,14 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu, macos, windows]
-        variant: [normal, tiny, huge, concurrency, platform-sync, shared-tsan]
+        variant: [normal, tiny, huge, concurrency, platform-sync, shared-tsan, cpp]
         include:
           - lib_type: STATIC
             types: NORMAL
             concurrency: OFF
             platform_sync: OFF
             sanitizers: address;undefined
+            cpp: OFF
           - variant: tiny
             types: TINY
           - variant: huge
@@ -74,6 +75,9 @@ jobs:
             lib_type: SHARED
             concurrency: ON
             sanitizers: thread
+          - variant: cpp
+            concurrency: ON
+            cpp: ON
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -87,6 +91,7 @@ jobs:
           -DULIB_CONCURRENCY=${{matrix.concurrency}}
           -DULIB_PLATFORM_SYNC=${{matrix.platform_sync}}
           -DULIB_SANITIZERS="${{matrix.sanitizers}}"
+          -DULIB_CPP_TESTS=${{matrix.cpp}}
 
       - name: Build
         run: cmake --build --preset build --config ${{env.config}}

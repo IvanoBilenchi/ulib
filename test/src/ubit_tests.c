@@ -90,7 +90,7 @@
                                                                                                    \
         utest_assert_uint(ubit_rshift(mask, 4), ==, 0x7);                                          \
         utest_assert_uint(ubit_lshift(ubit_rshift(mask, 4), 4), ==, 0x70);                         \
-        utest_assert_uint(ubit_two_compl(mask), ==, ubit_cast(N)(~mask + 1U));                     \
+        utest_assert_uint(ubit_cast(N)(mask + ubit_two_compl(mask)), ==, 0);                       \
                                                                                                    \
         mask = ubit_overwrite(ubit_cast(N)(0x55), ubit_cast(N)(0x20), ubit_cast(N)(0x70));         \
         utest_assert_uint(mask, ==, 0x25);                                                         \
@@ -128,7 +128,7 @@
         utest_assert_uint(ubit_sub(mask, (T)0x10), ==, 0xE0);                                      \
         utest_assert_uint(ubit_lshift((T)0x0F, 4), ==, 0xF0);                                      \
         utest_assert_uint(ubit_rshift(mask, 4), ==, 0x0F);                                         \
-        utest_assert_uint(ubit_two_compl(mask), ==, (T)(~mask + 1U));                              \
+        utest_assert_uint((T)(mask + ubit_two_compl(mask)), ==, 0);                                \
         utest_assert_uint(ubit_overwrite(mask, (T)0x0F, (T)0x0F), ==, 0xFF);                       \
     } while (0)
 
