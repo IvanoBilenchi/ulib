@@ -24,6 +24,7 @@
 #include "udeadline.h"
 #include "udebug.h"
 #include "uevent.h"
+#include "ufutex.h"
 #include "uhash.h"
 #include "uhash_builtin.h"
 #include "uhash_func.h"

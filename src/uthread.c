@@ -127,7 +127,7 @@ UThreadId uthread_id(void) {
 
 #endif // ULIB_CONCURRENCY
 
-// MARK: - Sleep
+// MARK: - Sleep and yield
 
 #if ULIB_OS_IS_ZEPHYR
 
@@ -139,9 +139,14 @@ ulib_ret uthread_sleep(utime_ns t) {
     return ULIB_OK;
 }
 
+void uthread_yield(void) {
+    k_yield();
+}
+
 #elif ULIB_OS_IS_POSIX
 
 #include <errno.h>
+#include <sched.h>
 #include <sys/errno.h>
 #include <time.h>
 
@@ -155,6 +160,10 @@ ulib_ret uthread_sleep(utime_ns t) {
     return ret ? ULIB_ERR : ULIB_OK;
 }
 
+void uthread_yield(void) {
+    sched_yield();
+}
+
 #elif ULIB_OS_IS_WIN
 
 #ifndef _WINDOWS_
@@ -166,12 +175,20 @@ ulib_ret uthread_sleep(utime_ns t) {
     return ULIB_OK;
 }
 
+void uthread_yield(void) {
+    SwitchToThread();
+}
+
 #else
 
 ulib_ret uthread_sleep(utime_ns t) {
     utime_ns start = utime_get_ns();
     while (utime_get_ns() - start < t) uthread_yield_cpu();
     return ULIB_OK;
+}
+
+void uthread_yield(void) {
+    uthread_yield_cpu();
 }
 
 #endif
