@@ -31,12 +31,11 @@
 
 #define FUTEX_FOUND
 
-#include <assert.h>
 #include <errno.h>
 #include <stdbool.h>
 #include <zephyr/kernel.h>
 
-static_assert(sizeof(struct k_futex) == sizeof(uint32_t), "k_futex is not a 32 bit word");
+ulib_static_assert(sizeof(struct k_futex) == sizeof(uint32_t), "k_futex is not a 32 bit word");
 
 static inline ulib_ret futex_wake(UAtomic(uint32_t) *addr, bool all) {
     int const ret = k_futex_wake((struct k_futex *)addr, all);

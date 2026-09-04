@@ -151,6 +151,29 @@
     #error "Thread-local storage is not supported by this compiler"
 #endif
 
+/**
+ * Specifies the alignment of a variable, or of a struct or union member.
+ *
+ * @param n Alignment in bytes. Must be a power of two.
+ *
+ * @def ULIB_ALIGNAS
+ */
+
+#if ULIB_DOCS
+    #define ULIB_ALIGNAS(n)
+#elif ULIB_LANG_IS_CPP || __STDC_VERSION__ >= 202311L
+    #define ULIB_ALIGNAS(n) alignas(n)
+#elif __STDC_VERSION__ >= 201112L
+    #define ULIB_ALIGNAS(n) _Alignas(n)
+#elif ULIB_CC_IS_MSVC
+    #define ULIB_ALIGNAS(n) __declspec(align(n))
+#else
+    #error "Alignment specifiers are not supported by this compiler"
+#endif
+
+/// Aligns a variable, or a struct or union member, to a cache line boundary.
+#define ULIB_CACHE_ALIGNED ULIB_ALIGNAS(ULIB_CPU_CACHE_LINE_SIZE)
+
 /// @}
 
 #endif // UATTRS_H

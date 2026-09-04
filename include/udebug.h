@@ -13,6 +13,7 @@
 #define UDEBUG_H
 
 #include "uattrs.h"
+#include "uplatform.h"
 #include "uutils.h"
 
 ULIB_BEGIN_DECLS
@@ -38,6 +39,19 @@ typedef struct USrcLoc {
 
 /// Initializer for the current source code location.
 #define usrc_loc_init { ULIB_FILE_NAME, __func__, __LINE__ }
+
+/**
+ * Asserts that `exp` is true at compile time. If the assertion fails, compilation is aborted.
+ *
+ * @param exp @ctype{boolean expression} Constant boolean expression.
+ * @param msg @ctype{string literal} Message reported if the assertion fails.
+ * @def ulib_static_assert
+ */
+#if ULIB_LANG_IS_CPP || __STDC_VERSION__ >= 202311L
+#define ulib_static_assert(exp, msg) static_assert(exp, msg)
+#else
+#define ulib_static_assert(exp, msg) _Static_assert(exp, msg)
+#endif
 
 /**
  * Signals that the code is compiled in debug mode.

@@ -12,6 +12,7 @@
 #ifndef UWARNING_H
 #define UWARNING_H
 
+#include "udebug.h" // IWYU pragma: keep, needed for ulib_static_assert
 #include "uplatform.h"
 #include "uutils.h"
 
@@ -43,10 +44,8 @@
  */
 #if ULIB_CC_IS_GNU
     #define ULIB_ERROR(msg) P_ULIB_PRAGMA(GCC error #msg)
-#elif ULIB_LANG_IS_CPP
-    #define ULIB_ERROR(msg) static_assert(false, #msg);
 #else
-    #define ULIB_ERROR(msg) _Static_assert(0, #msg);
+    #define ULIB_ERROR(msg) ulib_static_assert(0, #msg);
 #endif
 
 /**

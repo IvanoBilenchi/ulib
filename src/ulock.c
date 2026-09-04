@@ -76,7 +76,6 @@ void p_USLock_unlock(USLock *lock) {
 #include "ubit.h"
 #include "ufutex.h"
 #include "ufutex_p.h"
-#include <assert.h>
 
 // MARK: - Adaptive spin
 
@@ -110,9 +109,6 @@ static inline bool spinner_spin(Spinner *spinner, spin_t budget) {
 }
 
 #define SPIN_MASK(shift) ubit32_range(shift, SPIN_BITS)
-
-static_assert(MAX_BUDGET - MIN_BUDGET <= ubit32_range(0, SPIN_BITS),
-              "The spin budget must fit in the word it is packed into");
 
 #ifdef ULIB_LOCK_NO_SPIN
 

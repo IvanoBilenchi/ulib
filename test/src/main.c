@@ -5,6 +5,7 @@
  * @copyright SPDX-License-Identifier: ISC
  */
 
+#include "ualloc_tests.h"
 #include "uatomic_tests.h"
 #include "ubarrier_tests.h"
 #include "ubit_tests.h"
@@ -31,6 +32,7 @@
 #include "uversion_tests.h"
 
 utest_main({
+    utest_run("ualloc", UALLOC_TESTS);
     utest_run("unumber", UNUMBER_TESTS);
     utest_run("ubit", UBIT_TESTS);
     utest_run("ustring", USTRING_TESTS);

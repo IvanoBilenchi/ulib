@@ -6,6 +6,7 @@
  */
 
 #include "ulib.h"
+#include <stdalign.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -70,12 +71,10 @@ typedef union AnyLock {
     URWRLock rwr;
 } AnyLock;
 
-ULIB_SUPPRESS_ONE(MSVC, 4324)
 typedef struct LockSlot {
-    _Alignas(ULIB_CPU_CACHE_LINE_SIZE) AnyLock lock;
-    _Alignas(ULIB_CPU_CACHE_LINE_SIZE) uint32_t state;
+    ULIB_CACHE_ALIGNED AnyLock lock;
+    ULIB_CACHE_ALIGNED uint32_t state;
 } LockSlot;
-ULIB_SUPPRESS_END(MSVC)
 
 static LockSlot *slots;
 static unsigned long lock_count;
@@ -294,13 +293,10 @@ static void stop_and_join_loads(UThread *loads, unsigned long count) {
     ulatch_deinit(&load_ready);
 }
 
-static void *alloc_slots(void) {
-    char *const raw = bench_alloc((lock_count * sizeof(*slots)) + ULIB_CPU_CACHE_LINE_SIZE);
-    size_t const pad = (ULIB_CPU_CACHE_LINE_SIZE - ((uintptr_t)raw % ULIB_CPU_CACHE_LINE_SIZE)) %
-                       ULIB_CPU_CACHE_LINE_SIZE;
-    slots = (LockSlot *)(raw + pad);
+static void alloc_slots(void) {
+    slots = (LockSlot *)ulib_aligned_alloc(lock_count * sizeof(*slots), alignof(LockSlot));
+    if (!slots) fail("out of memory");
     for (unsigned long i = 0; i < lock_count; ++i) slots[i].state = 1;
-    return raw;
 }
 
 static void bench_run(Config cfg) {
@@ -310,7 +306,7 @@ static void bench_run(Config cfg) {
               cfg.acquisitions, cfg.locks);
 
     lock_count = cfg.locks;
-    void *const raw_slots = alloc_slots();
+    alloc_slots();
     check(lw_init(lw));
 
     Worker *workers = create_workers(&cfg, lw);
@@ -338,7 +334,7 @@ static void bench_run(Config cfg) {
     ulib_free(loads);
     ulib_free(workers);
     lw_deinit(lw);
-    ulib_free(raw_slots);
+    ulib_aligned_free(slots);
 }
 
 static void bench_pause_cost(void) {

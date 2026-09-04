@@ -1190,7 +1190,7 @@ typedef enum uvec_ret {
 
 /**
  * Initializes a new vector by taking ownership of the specified array,
- * which must have been dynamically allocated.
+ * which must have been allocated via @func{ulib_malloc} or related functions.
  *
  * @param T Vector type.
  * @param array Array.
@@ -1217,6 +1217,8 @@ typedef enum uvec_ret {
  * @note The array will never be resized, and it is assumed it can contain any number of elements.
  *       This is also reflected by @func{uvec_size} returning @val{ULIB_UINT_MAX} for vectors
  *       initialized with this function. It is up to you to avoid overflowing the underlying buffer.
+ * @note As the vector neither allocates nor deallocates the array, its elements may have
+ *       an alignment greater than @val{ULIB_MALLOC_ALIGN}.
  * @alias UVec(T) uvec_wrap(symbol T, T *array, ulib_uint count);
  */
 #define uvec_wrap(T, array, count) ULIB_MACRO_CONCAT(uvec_wrap_, T)(array, count)
