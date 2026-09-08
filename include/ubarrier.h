@@ -16,7 +16,6 @@
 #include "uattrs.h"
 #include "udeadline.h"
 #include "ulib_ret.h"
-#include "ulock.h"
 #include "utime_t.h"
 #include <stdbool.h>
 #include <stdint.h>
@@ -38,10 +37,7 @@ ULIB_BEGIN_DECLS
  */
 typedef struct UBarrier {
     /// @cond
-    ULock _lock;
-    UAtomic(uint32_t) _seq;
-    uint16_t _count;
-    uint16_t _remaining;
+    UAtomic(uint32_t) _state;
     /// @endcond
 } UBarrier;
 
@@ -62,6 +58,7 @@ typedef uint32_t UBarrierPhase;
  * @param count Number of threads that must arrive at the barrier in order for a phase to complete.
  * @return Return code.
  *
+ * @note `count` must be at most 16383.
  * @destructor{ubarrier_deinit}
  */
 ULIB_API
@@ -79,12 +76,12 @@ void ubarrier_deinit(UBarrier *barrier);
  * Arrives at the barrier without blocking the calling thread.
  *
  * @param barrier Barrier to arrive at.
- * @param count Number of arrivals to register, allowing the calling thread to arrive
- *              on behalf of as many threads.
+ * @param count Number of arrivals to register.
  * @return Phase the calling thread arrived at.
  *
  * @note The returned phase can be passed to @func{ubarrier_wait} in order to block
- *       until the phase completes.
+ *       until the phase completes. It remains meaningful until the barrier is 15 phases past it,
+ *       after which waiting on it blocks as though it had not completed yet.
  *
  * @warning `count` must be greater than zero, and it must not exceed the number of threads
  *          that still have to arrive at the current phase.
@@ -93,12 +90,10 @@ ULIB_API
 UBarrierPhase ubarrier_arrive(UBarrier *barrier, uint16_t count);
 
 /**
- * Blocks the calling thread until the specified phase completes.
+ * Equivalent to calling `ubarrier_wait_until(barrier, phase, udeadline_never())`.
  *
  * @param barrier Barrier to wait on.
  * @param phase Phase to wait for, as returned by @func{ubarrier_arrive}.
- *
- * @note If the phase has already completed, this function returns immediately.
  */
 ULIB_API
 void ubarrier_wait(UBarrier *barrier, UBarrierPhase phase);
@@ -120,19 +115,12 @@ ULIB_API
 bool ubarrier_wait_until(UBarrier *barrier, UBarrierPhase phase, UDeadline deadline);
 
 /**
- * Blocks the calling thread until the specified phase completes, for up to the specified
- * time span.
+ * Equivalent to calling `ubarrier_wait_until(barrier, phase, udeadline(timeout))`.
  *
  * @param barrier Barrier to wait on.
  * @param phase Phase to wait for, as returned by @func{ubarrier_arrive}.
- * @param timeout Maximum time to block for. @val{UTIME_NS_MAX} blocks indefinitely,
- *                zero only checks the phase without blocking.
- * @return True if the phase completed, false if the timeout expired.
- *
- * @note The calling thread may stay blocked for longer than `timeout`, never shorter.
- *
- * @warning The arrival stays registered when the timeout expires: the phase still completes
- *          without the calling thread waiting for it.
+ * @param timeout Maximum time to block for. @val{UTIME_NS_MAX} blocks indefinitely.
+ * @return See @func{ubarrier_wait_until}.
  */
 ULIB_INLINE
 bool ubarrier_wait_for(UBarrier *barrier, UBarrierPhase phase, utime_ns timeout) {
@@ -140,9 +128,7 @@ bool ubarrier_wait_for(UBarrier *barrier, UBarrierPhase phase, utime_ns timeout)
 }
 
 /**
- * Arrives at the barrier and blocks the calling thread until the phase completes.
- *
- * Equivalent to passing the phase returned by @func{ubarrier_arrive} to @func{ubarrier_wait}.
+ * Equivalent to calling `ubarrier_arrive_and_wait_until(barrier, udeadline_never())`.
  *
  * @param barrier Barrier to arrive at and wait on.
  */
@@ -166,17 +152,11 @@ ULIB_API
 bool ubarrier_arrive_and_wait_until(UBarrier *barrier, UDeadline deadline);
 
 /**
- * Arrives at the barrier and blocks the calling thread until the phase completes, for up to
- * the specified time span.
- *
- * Equivalent to passing the phase returned by @func{ubarrier_arrive} to @func{ubarrier_wait_for}.
+ * Equivalent to calling `ubarrier_arrive_and_wait_until(barrier, udeadline(timeout))`.
  *
  * @param barrier Barrier to arrive at and wait on.
  * @param timeout Maximum time to block for. @val{UTIME_NS_MAX} blocks indefinitely.
- * @return True if the phase completed, false if the timeout expired.
- *
- * @warning The arrival stays registered when the timeout expires, so the calling thread must not
- *          arrive again if it retries the wait.
+ * @return See @func{ubarrier_arrive_and_wait_until}.
  */
 ULIB_INLINE
 bool ubarrier_arrive_and_wait_for(UBarrier *barrier, utime_ns timeout) {

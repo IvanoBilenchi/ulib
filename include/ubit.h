@@ -280,6 +280,9 @@
     ULIB_CONST ULIB_INLINE T p_ubit_rshift_##S(T mask, unsigned shift) {                           \
         return (T)((W)(mask) >> shift);                                                            \
     }                                                                                              \
+    ULIB_CONST ULIB_INLINE T p_ubit_not_##S(T mask) {                                              \
+        return (T) ~(W)(mask);                                                                     \
+    }                                                                                              \
     ULIB_CONST ULIB_INLINE T p_ubit_and_##S(T mask, T bits) {                                      \
         return (T)(mask & bits);                                                                   \
     }                                                                                              \
@@ -343,6 +346,9 @@ ULIB_END_DECLS
     }                                                                                              \
     ULIB_INLINE T ubit_rshift(T mask, unsigned shift) {                                            \
         return p_ubit_rshift_##S(mask, shift);                                                     \
+    }                                                                                              \
+    ULIB_INLINE T ubit_not(T mask) {                                                               \
+        return p_ubit_not_##S(mask);                                                               \
     }                                                                                              \
     ULIB_INLINE T ubit_and(T mask, T bits) {                                                       \
         return p_ubit_and_##S(mask, bits);                                                         \
@@ -464,6 +470,16 @@ P_UBIT_CPP_DEF(unsigned long long, ullong)
  * @alias UBit(N) ubit_rshift(UBit(N) mask, unsigned shift);
  */
 #define ubit_rshift(mask, shift) p_ubit_generic(rshift, mask)(mask, shift)
+
+/**
+ * Returns the complement of a bitmask.
+ *
+ * @param mask Bitmask.
+ * @return Bitmask with all bits flipped.
+ *
+ * @alias UBit(N) ubit_not(UBit(N) mask);
+ */
+#define ubit_not(mask) p_ubit_generic(not, mask)(mask)
 
 /**
  * Returns the intersection of two bitmasks.

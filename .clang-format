@@ -12,6 +12,8 @@ ForEachMacros:
   - uhash_foreach
   - uistream_with
   - uiter_foreach
+  - ulist_foreach
+  - ulist_foreach_reverse
   - ulock_with
   - uostream_with
   - uvec_foreach
@@ -32,6 +34,8 @@ TypenameMacros:
   - UAtomic
   - UBit
   - UHash
+  - UList
+  - UListCursor
   - UVec
 WhitespaceSensitiveMacros:
   - ULIB_DEPRECATED

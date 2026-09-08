@@ -100,10 +100,24 @@
 // MARK: - Operating system
 
 /**
+ * True if the target OS is Zephyr RTOS.
+ *
+ * @note Detected before every other OS, and excluded from all of them: the native simulator
+ *       builds a host executable, so the toolchain advertises the host OS as well. Zephyr is
+ *       the target in that case, and its API is the one that must be used.
+ * @def ULIB_OS_IS_ZEPHYR
+ */
+#ifdef __ZEPHYR__
+    #define ULIB_OS_IS_ZEPHYR 1
+#else
+    #define ULIB_OS_IS_ZEPHYR 0
+#endif
+
+/**
  * True if the target OS is Windows.
  * @def ULIB_OS_IS_WIN
  */
-#ifdef _WIN32
+#if defined(_WIN32) && !ULIB_OS_IS_ZEPHYR
     #define ULIB_OS_IS_WIN 1
 #else
     #define ULIB_OS_IS_WIN 0
@@ -113,7 +127,7 @@
  * True if the target OS is Cygwin.
  * @def ULIB_OS_IS_CYGWIN
  */
-#ifdef __CYGWIN__
+#if defined(__CYGWIN__) && !ULIB_OS_IS_ZEPHYR
     #define ULIB_OS_IS_CYGWIN 1
 #else
     #define ULIB_OS_IS_CYGWIN 0
@@ -123,7 +137,7 @@
  * True if the target OS is an Apple OS, such as macOS or iOS.
  * @def ULIB_OS_IS_APPLE
  */
-#ifdef __APPLE__
+#if defined(__APPLE__) && !ULIB_OS_IS_ZEPHYR
     #define ULIB_OS_IS_APPLE 1
 #else
     #define ULIB_OS_IS_APPLE 0
@@ -133,7 +147,7 @@
  * True if the target OS is Linux, including Android.
  * @def ULIB_OS_IS_LINUX
  */
-#ifdef __linux__
+#if defined(__linux__) && !ULIB_OS_IS_ZEPHYR
     #define ULIB_OS_IS_LINUX 1
 #else
     #define ULIB_OS_IS_LINUX 0
@@ -143,7 +157,7 @@
  * True if the target OS is Android.
  * @def ULIB_OS_IS_ANDROID
  */
-#ifdef __ANDROID__
+#if defined(__ANDROID__) && !ULIB_OS_IS_ZEPHYR
     #define ULIB_OS_IS_ANDROID 1
 #else
     #define ULIB_OS_IS_ANDROID 0
@@ -153,7 +167,7 @@
  * True if the target OS is FreeBSD.
  * @def ULIB_OS_IS_FREEBSD
  */
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) && !ULIB_OS_IS_ZEPHYR
     #define ULIB_OS_IS_FREEBSD 1
 #else
     #define ULIB_OS_IS_FREEBSD 0
@@ -163,7 +177,7 @@
  * True if the target OS is NetBSD.
  * @def ULIB_OS_IS_NETBSD
  */
-#ifdef __NetBSD__
+#if defined(__NetBSD__) && !ULIB_OS_IS_ZEPHYR
     #define ULIB_OS_IS_NETBSD 1
 #else
     #define ULIB_OS_IS_NETBSD 0
@@ -173,7 +187,7 @@
  * True if the target OS is OpenBSD.
  * @def ULIB_OS_IS_OPENBSD
  */
-#ifdef __OpenBSD__
+#if defined(__OpenBSD__) && !ULIB_OS_IS_ZEPHYR
     #define ULIB_OS_IS_OPENBSD 1
 #else
     #define ULIB_OS_IS_OPENBSD 0
@@ -183,7 +197,7 @@
  * True if the target OS is DragonFly BSD.
  * @def ULIB_OS_IS_DRAGONFLY
  */
-#ifdef __DragonFly__
+#if defined(__DragonFly__) && !ULIB_OS_IS_ZEPHYR
     #define ULIB_OS_IS_DRAGONFLY 1
 #else
     #define ULIB_OS_IS_DRAGONFLY 0
@@ -203,20 +217,10 @@
  * True if the target OS is Solaris or illumos.
  * @def ULIB_OS_IS_SOLARIS
  */
-#ifdef __sun
+#if defined(__sun) && !ULIB_OS_IS_ZEPHYR
     #define ULIB_OS_IS_SOLARIS 1
 #else
     #define ULIB_OS_IS_SOLARIS 0
-#endif
-
-/**
- * True if the target OS is Zephyr RTOS.
- * @def ULIB_OS_IS_ZEPHYR
- */
-#ifdef __ZEPHYR__
-    #define ULIB_OS_IS_ZEPHYR 1
-#else
-    #define ULIB_OS_IS_ZEPHYR 0
 #endif
 
 /**
@@ -233,7 +237,7 @@
  * True if the target OS is a UNIX system or a UNIX derivative.
  * @def ULIB_OS_IS_UNIX
  */
-#if defined(__unix__) || defined(__unix) || ULIB_OS_IS_APPLE
+#if (defined(__unix__) || defined(__unix) || ULIB_OS_IS_APPLE) && !ULIB_OS_IS_ZEPHYR
     #define ULIB_OS_IS_UNIX 1
 #else
     #define ULIB_OS_IS_UNIX 0
@@ -285,7 +289,7 @@
  * True if the target OS provides a native threading API.
  * @def ULIB_OS_HAS_THREADS
  */
-#if ULIB_OS_HAS_PTHREADS || ULIB_OS_IS_WIN
+#if ULIB_OS_HAS_PTHREADS || ULIB_OS_IS_WIN || ULIB_OS_IS_ZEPHYR
     #define ULIB_OS_HAS_THREADS 1
 #else
     #define ULIB_OS_HAS_THREADS 0

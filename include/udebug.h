@@ -100,6 +100,28 @@ typedef struct USrcLoc {
 #define ulib_analyzer_assert(exp) ulib_noop
 #endif
 
+/**
+ * Hints the optimizer that `exp` is true. If it is not, the behavior is undefined,
+ * unless assertions are enabled, in which case execution is aborted.
+ *
+ * @param exp @ctype{boolean expression} Boolean expression.
+ *
+ * @note Must be used as a statement.
+ * @note `exp` is evaluated only if assertions are enabled, so it must not have side effects.
+ * @see @val{ULIB_ASSERT}
+ */
+#if ULIB_ASSERT
+#define ulib_assume(exp) ulib_assert(exp)
+#elif ULIB_CC_IS_MSVC
+#define ulib_assume(exp) __assume(exp)
+#elif ULIB_CC_IS_CLANG && ULIB_CC_HAS_BUILTINS
+#define ulib_assume(exp) __builtin_assume(exp)
+#elif ULIB_CC_IS_GCC && __GNUC__ >= 13
+#define ulib_assume(exp) __attribute__((assume(exp)))
+#else
+#define ulib_assume(exp) ulib_noop
+#endif
+
 /// @}
 
 ULIB_API

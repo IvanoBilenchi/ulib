@@ -1,0 +1,23 @@
+common:
+  tags: ulib
+  timeout: 600
+
+tests:
+  ulib.suite:
+    harness: console
+    harness_config:
+      type: one_line
+      regex:
+        - "All tests passed"
+    platform_allow:
+      - qemu_x86
+      - qemu_x86_64
+    extra_configs:
+      - CONFIG_THREAD_LOCAL_STORAGE=y
+      - CONFIG_COMMON_LIBC_MALLOC_ARENA_SIZE=524288
+      - CONFIG_PICOLIBC_IO_FLOAT=y
+
+  ulib.build:
+    build_only: true
+    platform_allow:
+      - native_sim

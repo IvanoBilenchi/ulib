@@ -10,51 +10,83 @@
 #include "ulib_ret.h"
 #include "uplatform.h"
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 #if ULIB_CONCURRENCY
 
 #include "uatomic.h"
+#include "ubit.h"
 #include "udebug.h"
-#include "ufutex.h"
-#include "ufutex_p.h"
-#include "ulock.h"
+#include "upark.h"
+#include "uwarning.h"
 
-ulib_ret ubarrier(UBarrier *barrier, uint16_t count) {
-    ulock(&barrier->_lock);
-    uatomic(&barrier->_seq, 0);
-    barrier->_count = count;
-    barrier->_remaining = count;
-    return ULIB_OK;
+enum {
+    BARRIER_COUNT_BITS = 14,
+    BARRIER_PHASE_SHIFT = 2 * BARRIER_COUNT_BITS,
+};
+
+#define BARRIER_REMAINING_MASK ubit32_range(0, BARRIER_COUNT_BITS)
+#define BARRIER_COUNT_MASK ubit32_range(BARRIER_COUNT_BITS, BARRIER_COUNT_BITS)
+#define BARRIER_MAX_COUNT BARRIER_REMAINING_MASK
+
+static inline UBarrierPhase state_phase(uint32_t state) {
+    return state >> BARRIER_PHASE_SHIFT;
 }
 
-void ubarrier_deinit(UBarrier *barrier) {
-    ulock_deinit(&barrier->_lock);
+static inline uint32_t state_count(uint32_t state) {
+    return ubit_and(state, BARRIER_COUNT_MASK) >> BARRIER_COUNT_BITS;
+}
+
+static inline uint32_t state_remaining(uint32_t state) {
+    return ubit_and(state, BARRIER_REMAINING_MASK);
+}
+
+static inline uint32_t barrier_pack(UBarrierPhase phase, uint32_t count, uint32_t remaining) {
+    return (phase << BARRIER_PHASE_SHIFT) | (count << BARRIER_COUNT_BITS) | remaining;
 }
 
 static inline UBarrierPhase barrier_phase(UBarrier *barrier, UMemoryOrder order) {
-    return uatomic_load_ex(&barrier->_seq, order);
+    return state_phase(uatomic_load_ex(&barrier->_state, order));
 }
 
-static inline void barrier_next_phase(UBarrier *barrier) {
-    uatomic_faa_ex(&barrier->_seq, 1, UMO_RELEASE);
-    ufutex_wake_all(&barrier->_seq);
+ulib_ret ubarrier(UBarrier *barrier, uint16_t count) {
+    ulib_assert(count && count <= BARRIER_MAX_COUNT);
+    uatomic(&barrier->_state, barrier_pack(0, count, count));
+    return ULIB_OK;
 }
 
-static inline UBarrierPhase barrier_arrive(UBarrier *barrier, uint16_t count) {
-    UBarrierPhase phase = barrier_phase(barrier, UMO_RELAXED);
-    ulib_assert(count && count <= barrier->_remaining);
-    if (!(barrier->_remaining -= count)) {
-        barrier->_remaining = barrier->_count;
-        barrier_next_phase(barrier);
+void ubarrier_deinit(ulib_unused UBarrier *barrier) {}
+
+static UBarrierPhase barrier_arrive(UBarrier *barrier, uint16_t count, bool drop) {
+    uint32_t s = uatomic_load_ex(&barrier->_state, UMO_RELAXED);
+    for (;;) {
+        ulib_assert(count && count <= state_remaining(s));
+        ulib_assert(state_count(s) >= drop);
+        UBarrierPhase const phase = state_phase(s);
+        uint32_t const total = state_count(s) - drop;
+        uint32_t const remaining = state_remaining(s) - count;
+        uint32_t const new_s = remaining ? barrier_pack(phase, total, remaining)
+                                         : barrier_pack(phase + 1, total, total);
+        if (uatomic_wcas_ex(&barrier->_state, &s, new_s, UMO_ACQ_REL, UMO_RELAXED)) {
+            if (!remaining) upark_wake_all(&barrier->_state);
+            return phase;
+        }
     }
-    ulock_unlock(&barrier->_lock);
-    return phase;
 }
 
 UBarrierPhase ubarrier_arrive(UBarrier *barrier, uint16_t count) {
-    ulock_lock(&barrier->_lock);
-    return barrier_arrive(barrier, count);
+    return barrier_arrive(barrier, count, false);
+}
+
+typedef struct BarrierWait {
+    UBarrier *barrier;
+    UBarrierPhase phase;
+} BarrierWait;
+
+static bool barrier_park(void *ctx) {
+    BarrierWait *const wait = ctx;
+    return barrier_phase(wait->barrier, UMO_RELAXED) == wait->phase;
 }
 
 void ubarrier_wait(UBarrier *barrier, UBarrierPhase phase) {
@@ -62,10 +94,11 @@ void ubarrier_wait(UBarrier *barrier, UBarrierPhase phase) {
 }
 
 bool ubarrier_wait_until(UBarrier *barrier, UBarrierPhase phase, UDeadline deadline) {
+    BarrierWait wait = { barrier, phase };
     while (barrier_phase(barrier, UMO_ACQUIRE) == phase) {
-        if (!p_udeadline_wait(&barrier->_seq, phase, deadline)) {
-            return barrier_phase(barrier, UMO_ACQUIRE) != phase;
-        }
+        // Checked after the phase, so that a phase completing as the deadline expires is reported.
+        if (!udeadline_remaining(deadline)) return false;
+        (void)upark(&barrier->_state, barrier_park, NULL, &wait, deadline);
     }
     return true;
 }
@@ -79,9 +112,7 @@ bool ubarrier_arrive_and_wait_until(UBarrier *barrier, UDeadline deadline) {
 }
 
 UBarrierPhase ubarrier_arrive_and_drop(UBarrier *barrier) {
-    ulock_lock(&barrier->_lock);
-    --barrier->_count;
-    return barrier_arrive(barrier, 1);
+    return barrier_arrive(barrier, 1, true);
 }
 
 #else // ULIB_CONCURRENCY

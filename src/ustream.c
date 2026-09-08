@@ -501,7 +501,7 @@ ulib_ret uistream_from_string(UIStream *stream, UString const *string) {
 }
 
 ulib_ret uistream_from_strbuf(UIStream *stream, UStrBuf const *buf) {
-    return uistream_from_buf(stream, ustrbuf_data(buf), ustrbuf_size(buf));
+    return uistream_from_buf(stream, ustrbuf_data(buf), ustrbuf_length(buf));
 }
 
 bool uistream_is_buf(UIStream const *stream) {

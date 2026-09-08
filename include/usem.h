@@ -12,7 +12,6 @@
 #ifndef USEM_H
 #define USEM_H
 
-#include "uatomic.h"
 #include "uattrs.h"
 #include "udeadline.h"
 #include "ulib_ret.h"
@@ -24,23 +23,6 @@
 ULIB_BEGIN_DECLS
 
 /**
- * Selects the semaphore implementation.
- *
- * If the platform supports lock-free 64-bit atomics, the semaphore stores its state in a single
- * 64-bit value. This is the fastest variant. Otherwise, a slower fallback using two separate
- * 32-bit atomics is used.
- *
- * @def USEM_USE_64BIT_ATOMICS
- */
-#ifndef USEM_USE_64BIT_ATOMICS
-#if UATOMIC_LLONG_LOCK_FREE == UATOMIC_LOCK_FREE_ALWAYS
-#define USEM_USE_64BIT_ATOMICS 1
-#else
-#define USEM_USE_64BIT_ATOMICS 0
-#endif
-#endif
-
-/**
  * @defgroup USem_types Semaphore types
  * @{
  */
@@ -50,18 +32,14 @@ typedef struct USem USem;
 
 /// @cond
 // clang-format off
-#if !ULIB_CONCURRENCY
+#if ULIB_CONCURRENCY
+    #include "uatomic.h"
     struct USem {
-        uint32_t _permits;
-    };
-#elif USEM_USE_64BIT_ATOMICS
-    struct USem {
-        UAtomic(uint64_t) _state;
+        UAtomic(uint32_t) _state;
     };
 #else
     struct USem {
-        UAtomic(uint32_t) _permits;
-        UAtomic(uint32_t) _waiters;
+        uint32_t _permits;
     };
 #endif
 // clang-format on
@@ -78,7 +56,7 @@ typedef struct USem USem;
  * Initializes a new semaphore with the given number of permits.
  *
  * @param sem Semaphore to initialize.
- * @param permits Initial number of available permits.
+ * @param permits Initial number of available permits, at most 2147483647.
  * @return Return code.
  *
  * @destructor{usem_deinit}
@@ -95,7 +73,7 @@ ULIB_API
 void usem_deinit(USem *sem);
 
 /**
- * Acquires a permit, blocking the calling thread until one becomes available.
+ * Equivalent to calling `usem_trywait_until(sem, udeadline_never())`.
  *
  * @param sem Semaphore to acquire a permit from.
  *
@@ -106,10 +84,10 @@ ULIB_API
 void usem_wait(USem *sem);
 
 /**
- * Attempts to acquire a permit without blocking.
+ * Equivalent to calling `usem_trywait_until(sem, udeadline(0))`.
  *
  * @param sem Semaphore to acquire a permit from.
- * @return True if a permit was acquired, false if none were available.
+ * @return See @func{usem_trywait_until}.
  */
 ULIB_API
 bool usem_trywait(USem *sem);
@@ -124,25 +102,18 @@ bool usem_trywait(USem *sem);
  * @note The calling thread may stay blocked past `deadline`, never before it.
  *       No permit is consumed when the deadline expires.
  *
- * @note If concurrency is disabled, this function does not block: it behaves like
- *       @func{usem_trywait}, as no other thread could ever post a permit.
+ * @note If concurrency is disabled, this function does not block, as no other thread could ever
+ *       post a permit.
  */
 ULIB_API
 bool usem_trywait_until(USem *sem, UDeadline deadline);
 
 /**
- * Attempts to acquire a permit, blocking the calling thread for up to the specified time span.
+ * Equivalent to calling `usem_trywait_until(sem, udeadline(timeout))`.
  *
  * @param sem Semaphore to acquire a permit from.
- * @param timeout Maximum time to block for. @val{UTIME_NS_MAX} blocks indefinitely,
- *                zero behaves like @func{usem_trywait}.
- * @return True if a permit was acquired, false if the timeout expired.
- *
- * @note The calling thread may stay blocked for longer than `timeout`, never shorter.
- *       No permit is consumed when the timeout expires.
- *
- * @note If concurrency is disabled, this function does not block: it behaves like
- *       @func{usem_trywait}, as no other thread could ever post a permit.
+ * @param timeout Maximum time to block for. @val{UTIME_NS_MAX} blocks indefinitely.
+ * @return See @func{usem_trywait_until}.
  */
 ULIB_INLINE
 bool usem_trywait_for(USem *sem, utime_ns timeout) {
@@ -157,6 +128,8 @@ bool usem_trywait_for(USem *sem, utime_ns timeout) {
  *
  * @param sem Semaphore to release permits to.
  * @param permits Number of permits to release.
+ *
+ * @note The total number of available permits must never exceed 2147483647.
  */
 ULIB_API
 void usem_post(USem *sem, uint32_t permits);

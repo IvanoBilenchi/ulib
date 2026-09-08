@@ -7,8 +7,11 @@
 
 #include "ucond_tests.h"
 #include "ulib.h"
+#include <assert.h>
 #include <stdbool.h>
 #include <stddef.h>
+
+static_assert(sizeof(UCond) == 1, "UCond should be one byte");
 
 enum {
     THREAD_COUNT = 8,
@@ -17,6 +20,8 @@ enum {
 #define SLEEP_TIME utime_span(50, UTIME_MS)
 #define TIMEOUT utime_span(50, UTIME_MS)
 #define LONG_TIMEOUT utime_span(10, UTIME_S)
+#define REQUEUE_TIMEOUT utime_span(300, UTIME_MS)
+#define REQUEUE_HOLD_TIME utime_span(800, UTIME_MS)
 
 typedef struct CondCtx {
     void *lock;
@@ -121,7 +126,7 @@ void ucond_test_broadcast(void) {
     ulock_lock(&lock);
     ready = true;
     ulock_unlock(&lock);
-    ucond_broadcast(&cond);
+    ucond_broadcast(&cond, ulock_read(&lock));
 
     for (unsigned i = 0; i < THREAD_COUNT; ++i) {
         utest_assert_enum(uthread_join(&threads[i]), ==, ULIB_OK);
@@ -143,7 +148,6 @@ void ucond_test_timeout(void) {
     utest_assert_false(ucond_wait_for(&cond, &lock, TIMEOUT));
     utest_assert_uint(utime_get_ns() - start, >=, TIMEOUT);
 
-    // A deadline bounds the whole predicate loop, however many times the wait is reissued.
     UDeadline const deadline = udeadline(TIMEOUT);
     start = utime_get_ns();
     while (ucond_wait_until(&cond, &lock, deadline)) {}
@@ -193,7 +197,91 @@ void ucond_test_timed_wait(void) {
     ulock_lock(&lock);
     ready = true;
     ulock_unlock(&lock);
-    ucond_broadcast(&cond);
+    ucond_broadcast(&cond, &lock);
+
+    for (unsigned i = 0; i < THREAD_COUNT; ++i) {
+        utest_assert_enum(uthread_join(&threads[i]), ==, ULIB_OK);
+    }
+    utest_assert_uint(uatomic_load_ex(&counter, UMO_RELAXED), ==, THREAD_COUNT);
+
+    ucond_deinit(&cond);
+    ulock_deinit(&lock);
+}
+
+void ucond_test_requeue(void) {
+    ULock lock = ulib_zero_init;
+    utest_assert_enum(ulock(&lock), ==, ULIB_OK);
+    UCond cond = ulib_zero_init;
+    utest_assert_enum(ucond(&cond), ==, ULIB_OK);
+
+    bool ready = false;
+    UAtomic(unsigned) counter = 0;
+    CondCtx ctx = {
+        .lock = &lock,
+        .cond = &cond,
+        .ready = &ready,
+        .counter = &counter,
+        .shared = false,
+    };
+
+    UThread threads[THREAD_COUNT];
+    for (unsigned i = 0; i < THREAD_COUNT; ++i) {
+        utest_assert_enum(uthread(&threads[i], ucond_worker, &ctx), ==, ULIB_OK);
+        utest_assert_enum(uthread_start(&threads[i]), ==, ULIB_OK);
+    }
+
+    uthread_sleep(SLEEP_TIME);
+    utest_assert_uint(uatomic_load_ex(&counter, UMO_RELAXED), ==, 0);
+
+    ulock_lock(&lock);
+    ready = true;
+    ucond_broadcast(&cond, &lock);
+    ulock_unlock(&lock);
+
+    for (unsigned i = 0; i < THREAD_COUNT; ++i) {
+        utest_assert_enum(uthread_join(&threads[i]), ==, ULIB_OK);
+    }
+    utest_assert_uint(uatomic_load_ex(&counter, UMO_RELAXED), ==, THREAD_COUNT);
+
+    ucond_deinit(&cond);
+    ulock_deinit(&lock);
+}
+
+static void ucond_requeued_worker(void *arg) {
+    CondCtx *ctx = (CondCtx *)arg;
+    ulock_lock((ULock *)ctx->lock);
+    bool const woken = ucond_wait_for(ctx->cond, (ULock *)ctx->lock, REQUEUE_TIMEOUT);
+    ulock_unlock((ULock *)ctx->lock);
+    if (!woken) uatomic_fetch_add_ex(ctx->counter, 1, UMO_RELAXED);
+}
+
+void ucond_test_requeue_timeout(void) {
+    ULock lock = ulib_zero_init;
+    utest_assert_enum(ulock(&lock), ==, ULIB_OK);
+    UCond cond = ulib_zero_init;
+    utest_assert_enum(ucond(&cond), ==, ULIB_OK);
+
+    bool ready = false;
+    UAtomic(unsigned) counter = 0;
+    CondCtx ctx = {
+        .lock = &lock,
+        .cond = &cond,
+        .ready = &ready,
+        .counter = &counter,
+        .shared = false,
+    };
+
+    UThread threads[THREAD_COUNT];
+    for (unsigned i = 0; i < THREAD_COUNT; ++i) {
+        utest_assert_enum(uthread(&threads[i], ucond_requeued_worker, &ctx), ==, ULIB_OK);
+        utest_assert_enum(uthread_start(&threads[i]), ==, ULIB_OK);
+    }
+
+    uthread_sleep(SLEEP_TIME);
+    ulock_lock(&lock);
+    ucond_broadcast(&cond, &lock);
+    uthread_sleep(REQUEUE_HOLD_TIME);
+    ulock_unlock(&lock);
 
     for (unsigned i = 0; i < THREAD_COUNT; ++i) {
         utest_assert_enum(uthread_join(&threads[i]), ==, ULIB_OK);

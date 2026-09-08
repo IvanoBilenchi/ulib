@@ -7,6 +7,11 @@
 
 #include "uonce_tests.h"
 #include "ulib.h"
+#include <assert.h>
+
+#if UATOMIC_CHAR_LOCK_FREE == UATOMIC_LOCK_FREE_ALWAYS
+static_assert(sizeof(UOnce) == 1, "UOnce should be one byte");
+#endif
 
 enum {
     THREAD_COUNT = 8,

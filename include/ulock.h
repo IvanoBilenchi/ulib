@@ -29,26 +29,44 @@ ULIB_BEGIN_DECLS
     #include "uatomic.h"
 
     struct USLock {
-        uatomic_flag _flag;
+        UAtomic(p_uatomic_byte) _flag;
     };
 
     #ifndef ULIB_PLATFORM_SYNC
         #include "uthread.h"
         #include <stdint.h>
 
+        #if P_UATOMIC_SHORT_IS_LOCK_FREE
+            typedef uint16_t p_urwlock_word;
+        #else
+            typedef uint32_t p_urwlock_word;
+        #endif
+
         struct ULock {
-            UAtomic(uint32_t) _state;
+            UAtomic(p_uatomic_byte) _state;
         };
 
         struct URLock {
             struct ULock _lock;
-            uint32_t _count;
+            uint16_t _count;
             UAtomic(UThreadId) _owner;
         };
 
         struct URWLock {
-            UAtomic(uint32_t) _state;
-            UAtomic(uint32_t) _wnotify;
+            UAtomic(p_urwlock_word) _state;
+            UAtomic(p_uatomic_byte) _rspin;
+            UAtomic(p_uatomic_byte) _wspin;
+        };
+    #elif ULIB_OS_IS_ZEPHYR
+        #include <zephyr/kernel.h> // IWYU pragma: keep, for k_mutex
+        struct ULock {
+            struct k_mutex _h;
+        };
+        struct URLock {
+            struct k_mutex _h;
+        };
+        struct URWLock {
+            struct k_mutex _h;
         };
     #elif ULIB_OS_HAS_PTHREADS
         #include <pthread.h> // IWYU pragma: keep
@@ -68,7 +86,7 @@ ULIB_BEGIN_DECLS
         struct URWLock {
             pthread_rwlock_t _h;
         };
-    #else
+    #elif ULIB_OS_IS_WIN
         #include <windows.h>
         struct ULock {
             SRWLOCK _h;
@@ -193,8 +211,6 @@ ULIB_INLINE void p_ulock_assert(ulib_unused bool acquired) {
 }
 
 ULIB_INLINE bool p_ulock_expire(UDeadline deadline) {
-    // Waiting out a deadline that never expires would deadlock: report failure rather than
-    // never return.
     utime_ns const remaining = udeadline_remaining(deadline);
     if (remaining && remaining != UTIME_NS_MAX) uthread_sleep(remaining);
     return false;
@@ -367,13 +383,10 @@ P_ULOCK_CPP_LOCK_IMPL(URWRLock)
 #define ulock_lock(lock) p_ulock_generic(_lock, lock)(lock)
 
 /**
- * Tries to lock a lock.
- *
- * If the lock is already held, returns `false` instead of blocking.
- * Otherwise, acquires the lock and returns `true`.
+ * Equivalent to calling `ulock_trylock_until(lock, udeadline(0))`.
  *
  * @param lock Lock to try to lock.
- * @return True if the lock was successfully acquired, false otherwise.
+ * @return See @func{ulock_trylock_until}.
  *
  * @alias bool ulock_trylock(UAnyLock *lock);
  */
@@ -393,14 +406,11 @@ P_ULOCK_CPP_LOCK_IMPL(URWRLock)
 #define ulock_trylock_until(lock, deadline) p_ulock_generic(_trylock_until, lock)(lock, deadline)
 
 /**
- * Tries to lock a lock, blocking the calling thread for up to the specified time span.
+ * Equivalent to calling `ulock_trylock_until(lock, udeadline(timeout))`.
  *
  * @param lock Lock to try to lock.
- * @param timeout Maximum time to block for. @val{UTIME_NS_MAX} blocks indefinitely,
- *                zero behaves like @func{ulock_trylock}.
- * @return True if the lock was successfully acquired, false if the timeout expired.
- *
- * @note The calling thread may stay blocked for longer than `timeout`, never shorter.
+ * @param timeout Maximum time to block for. @val{UTIME_NS_MAX} blocks indefinitely.
+ * @return See @func{ulock_trylock_until}.
  *
  * @alias bool ulock_trylock_for(UAnyLock *lock, utime_ns timeout);
  */

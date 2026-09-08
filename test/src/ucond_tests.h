@@ -15,10 +15,20 @@ void ucond_test_broadcast(void);
 void ucond_test_unsupported(void);
 void ucond_test_timeout(void);
 void ucond_test_timed_wait(void);
+void ucond_test_requeue(void);
+void ucond_test_requeue_timeout(void);
 
 #if ULIB_CONCURRENCY
+
+#ifdef ULIB_PLATFORM_SYNC
+#define P_UCOND_REQUEUE_TESTS
+#else
+#define P_UCOND_REQUEUE_TESTS , ucond_test_requeue_timeout
+#endif
+
 #define UCOND_TESTS                                                                                \
-    ucond_test_signal, ucond_test_broadcast, ucond_test_timeout, ucond_test_timed_wait
+    ucond_test_signal, ucond_test_broadcast, ucond_test_timeout, ucond_test_timed_wait,            \
+        ucond_test_requeue P_UCOND_REQUEUE_TESTS
 #else
 #define UCOND_TESTS ucond_test_unsupported
 #endif

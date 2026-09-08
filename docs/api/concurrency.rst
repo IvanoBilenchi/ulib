@@ -80,16 +80,18 @@ Atomics
 .. doxygengroup:: UAtomic_api
    :content-only:
 
-Futexes
--------
-
-.. doxygengroup:: UFutex_api
-   :content-only:
-
 Deadlines
 ---------
 
 .. doxygengroup:: UDeadline_types
    :content-only:
 .. doxygengroup:: UDeadline_api
+   :content-only:
+
+Parking lot
+-----------
+
+.. doxygengroup:: UPark_types
+   :content-only:
+.. doxygengroup:: UPark_api
    :content-only:

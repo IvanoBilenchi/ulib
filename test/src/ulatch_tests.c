@@ -7,7 +7,10 @@
 
 #include "ulatch_tests.h"
 #include "ulib.h"
+#include <assert.h>
 #include <stddef.h>
+
+static_assert(sizeof(ULatch) == 4, "ULatch should be four bytes");
 
 enum {
     THREAD_COUNT = 8,

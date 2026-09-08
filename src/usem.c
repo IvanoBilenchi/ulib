@@ -10,76 +10,72 @@
 #include "ulib_ret.h"
 #include "uplatform.h"
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 #if ULIB_CONCURRENCY
 
 #include "uatomic.h"
-#include "ufutex.h"
-#include "ufutex_p.h"
+#include "uattrs.h"
+#include "ubit.h"
+#include "udebug.h"
+#include "upark.h"
+#include "uwarning.h"
 
-// Each permit can satisfy at most one waiter, but the futex API can only wake one thread or all
-// of them: a batch therefore wakes everyone, and waiters left without a permit re-park.
-static inline void sem_wake(UAtomic(uint32_t) *futex, uint32_t permits) {
-    if (permits > 1) {
-        ufutex_wake_all(futex);
-    } else {
-        ufutex_wake_one(futex);
-    }
-}
+// A semaphore.
+//
+// `_state` is structured as follows:
+//   - low 31 bits = permits available.
+//   - highest bit = waiters are parked on the word.
+//
+// Waiting takes a permit if there is one. Permits live in the low bits, so that is a plain
+// decrement, which leaves the flag untouched. If there are none, the thread parks on the word.
+// Before it does, `upark` has it check `_state` again with the queue locked: that is where it
+// raises the flag, or backs out if a permit has appeared in the meantime.
+//
+// Posting just adds the permits if the flag is clear, since nobody is queued to wake. Otherwise it
+// wakes one waiter per permit, oldest first, and adds the permits with the queue locked. The same
+// update lowers the flag if no waiters are left.
 
-#if USEM_USE_64BIT_ATOMICS
-
-// The state packs the permit count and the number of waiters into the two 32-bit halves of a
-// uint64_t. Because both fields live in the same atomic word, a release/acquire read-modify-write
-// yields a consistent snapshot of the pair: this is what makes the wakeup decision in usem_post()
-// race-free without needing a sequentially consistent fence.
-typedef union SemState {
-    uint64_t whole;
-    uint32_t half[2];
-} SemState;
-
-static inline uint64_t state_pack(uint32_t permits, uint32_t waiters) {
-    SemState state;
-    state.half[0] = permits;
-    state.half[1] = waiters;
-    return state.whole;
-}
-
-// The futex word is the permit count, which is the first half of the state.
-static inline UAtomic(uint32_t) *state_futex(UAtomic(uint64_t) *state) {
-    return (UAtomic(uint32_t) *)state;
-}
-
-static inline uint32_t state_permits(uint64_t const *state) {
-    SemState s;
-    s.whole = *state;
-    return s.half[0];
-}
-
-static inline uint32_t state_waiters(uint64_t const *state) {
-    SemState s;
-    s.whole = *state;
-    return s.half[1];
-}
-
-#define ONE_PERMIT state_pack(1, 0)
-#define ONE_WAITER state_pack(0, 1)
+#define SEM_WAITERS ubit32_bit(31)
+#define SEM_MASK ubit32_range(0, 31)
+#define SEM_MAX_PERMITS SEM_MASK
 
 ulib_ret usem(USem *sem, uint32_t permits) {
-    uatomic(&sem->_state, state_pack(permits, 0));
+    ulib_assert(permits <= SEM_MAX_PERMITS);
+    uatomic(&sem->_state, permits);
     return ULIB_OK;
 }
 
 void usem_deinit(ulib_unused USem *sem) {}
 
 bool usem_trywait(USem *sem) {
-    uint64_t s = uatomic_load_ex(&sem->_state, UMO_RELAXED);
-    while (state_permits(&s)) {
-        uint64_t const new_s = s - ONE_PERMIT;
-        if (uatomic_wcas_ex(&sem->_state, &s, new_s, UMO_ACQUIRE, UMO_RELAXED)) return true;
+    uint32_t s = uatomic_load_ex(&sem->_state, UMO_RELAXED);
+    while (ubit_any(s, SEM_MASK)) {
+        if (uatomic_wcas_ex(&sem->_state, &s, s - 1, UMO_ACQUIRE, UMO_RELAXED)) return true;
     }
     return false;
+}
+
+static bool sem_park(void *ctx) {
+    USem *const sem = ctx;
+    uint32_t s = uatomic_load_ex(&sem->_state, UMO_RELAXED);
+    for (;;) {
+        if (ubit_any(s, SEM_MASK)) return false;
+        if (ubit_any(s, SEM_WAITERS)) return true;
+        uint32_t const new_s = ubit_or(s, SEM_WAITERS);
+        if (uatomic_wcas_ex(&sem->_state, &s, new_s, UMO_RELAXED, UMO_RELAXED)) return true;
+    }
+}
+
+ULIB_NOINLINE static bool sem_wait_contended(USem *sem, UDeadline deadline) {
+    if (!udeadline_remaining(deadline)) return false;
+
+    for (;;) {
+        if (usem_trywait(sem)) return true;
+        if (upark(&sem->_state, sem_park, NULL, sem, deadline) == ULIB_ERR_TIMEOUT) break;
+    }
+    return usem_trywait(sem);
 }
 
 void usem_wait(USem *sem) {
@@ -87,83 +83,36 @@ void usem_wait(USem *sem) {
 }
 
 bool usem_trywait_until(USem *sem, UDeadline deadline) {
-    uint64_t s = uatomic_load_ex(&sem->_state, UMO_RELAXED);
+    return usem_trywait(sem) || sem_wait_contended(sem, deadline);
+}
+
+typedef struct SemPost {
+    USem *sem;
+    uint32_t permits;
+} SemPost;
+
+static void sem_release(UUnpark res, void *ctx) {
+    SemPost *const post = ctx;
+    uint32_t s = uatomic_load_ex(&post->sem->_state, UMO_RELAXED);
     for (;;) {
-        // Fast path: consume a permit if any are available.
-        while (state_permits(&s)) {
-            uint64_t const new_s = s - ONE_PERMIT;
-            if (uatomic_wcas_ex(&sem->_state, &s, new_s, UMO_ACQUIRE, UMO_RELAXED)) return true;
-        }
-
-        // No permits: register as a waiter.
-        s = uatomic_faa_ex(&sem->_state, ONE_WAITER, UMO_ACQUIRE);
-        if (state_permits(&s)) {
-            // A permit was posted just before we registered: unregister and retry to acquire it.
-            s = uatomic_fas_ex(&sem->_state, ONE_WAITER, UMO_RELAXED) - ONE_WAITER;
-            continue;
-        }
-
-        // Park until the permit count changes, then unregister and retry.
-        bool const expired = !p_udeadline_wait(state_futex(&sem->_state), 0, deadline);
-        s = uatomic_fas_ex(&sem->_state, ONE_WAITER, UMO_RELAXED) - ONE_WAITER;
-        if (expired) return usem_trywait(sem);
+        ulib_assert(ubit_and(s, SEM_MASK) <= SEM_MAX_PERMITS - post->permits);
+        uint32_t new_s = s + post->permits;
+        if (!res.more) new_s = ubit_sub(new_s, SEM_WAITERS);
+        if (uatomic_wcas_ex(&post->sem->_state, &s, new_s, UMO_RELEASE, UMO_RELAXED)) return;
     }
 }
 
 void usem_post(USem *sem, uint32_t permits) {
-    uint64_t state = uatomic_faa_ex(&sem->_state, state_pack(permits, 0), UMO_RELEASE);
-    if (state_waiters(&state)) sem_wake(state_futex(&sem->_state), permits);
-}
-
-#else // USEM_USE_64BIT_ATOMICS
-
-// Permit count and waiter count live in separate 32-bit atomics. Since the wakeup decision in
-// usem_post() reads them across two words, both the "register then re-check" step below and the
-// "increment then check waiters" step in usem_post() must be sequentially consistent.
-
-ulib_ret usem(USem *sem, uint32_t permits) {
-    uatomic(&sem->_permits, permits);
-    uatomic(&sem->_waiters, 0);
-    return ULIB_OK;
-}
-
-void usem_deinit(ulib_unused USem *sem) {}
-
-bool usem_trywait(USem *sem) {
-    uint32_t val = uatomic_load_ex(&sem->_permits, UMO_RELAXED);
-    while (val) {
-        if (uatomic_wcas_ex(&sem->_permits, &val, val - 1, UMO_ACQUIRE, UMO_RELAXED)) return true;
+    ulib_assert(permits <= SEM_MAX_PERMITS);
+    uint32_t s = uatomic_load_ex(&sem->_state, UMO_RELAXED);
+    while (!ubit_any(s, SEM_WAITERS)) {
+        ulib_assert(ubit_and(s, SEM_MASK) <= SEM_MAX_PERMITS - permits);
+        uint32_t const new_s = s + permits;
+        if (uatomic_wcas_ex(&sem->_state, &s, new_s, UMO_RELEASE, UMO_RELAXED)) return;
     }
-    return false;
+    SemPost post = { sem, permits };
+    upark_wake_some(&sem->_state, permits, sem_release, &post);
 }
-
-void usem_wait(USem *sem) {
-    usem_trywait_until(sem, udeadline_never());
-}
-
-bool usem_trywait_until(USem *sem, UDeadline deadline) {
-    for (;;) {
-        // Fast path: consume a permit if any are available.
-        uint32_t p = uatomic_load_ex(&sem->_permits, UMO_RELAXED);
-        while (p) {
-            if (uatomic_wcas_ex(&sem->_permits, &p, p - 1, UMO_ACQUIRE, UMO_RELAXED)) return true;
-        }
-
-        // No permits: register as a waiter. Check one last time for permits before parking.
-        uatomic_faa_ex(&sem->_waiters, 1, UMO_SEQ_CST);
-        p = uatomic_load_ex(&sem->_permits, UMO_SEQ_CST);
-        bool const expired = p ? false : !p_udeadline_wait(&sem->_permits, 0, deadline);
-        uatomic_fas_ex(&sem->_waiters, 1, UMO_RELAXED);
-        if (expired) return usem_trywait(sem);
-    }
-}
-
-void usem_post(USem *sem, uint32_t permits) {
-    uatomic_faa_ex(&sem->_permits, permits, UMO_SEQ_CST);
-    if (uatomic_load_ex(&sem->_waiters, UMO_SEQ_CST)) sem_wake(&sem->_permits, permits);
-}
-
-#endif // USEM_USE_64BIT_ATOMICS
 
 #else // ULIB_CONCURRENCY
 

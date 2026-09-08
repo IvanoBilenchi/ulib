@@ -6,16 +6,43 @@
  */
 
 #include "ulib_init.h"
+#include "uatomic.h"
 #include "ulib_ret.h"
+#include "ulock.h"
 #include "ulog_p.h"
 #include "uonce.h"
+#include "upark_p.h"
 #include "ustream_p.h"
 #include "utime_p.h"
 #include "uutils.h"
 #include "uwarning.h"
+#include <stdbool.h>
 #include <stddef.h>
 
 static UOnce init_once = UONCE_INIT;
+static USLock park_lock = ulib_zero_init;
+static UAtomic(bool) park_ready = false;
+
+static ulib_ret park_init(void) {
+    if (uatomic_load_ex(&park_ready, UMO_ACQUIRE)) return ULIB_OK;
+
+    ulib_ret ret = ULIB_OK;
+    ulock_with (&park_lock) {
+        if (!uatomic_load_ex(&park_ready, UMO_RELAXED) && ulib_is_ok(ret = p_upark_init())) {
+            uatomic_store_ex(&park_ready, true, UMO_RELEASE);
+        }
+    }
+    return ret;
+}
+
+static void park_deinit(void) {
+    ulock_with (&park_lock) {
+        if (uatomic_load_ex(&park_ready, UMO_RELAXED)) {
+            uatomic_store_ex(&park_ready, false, UMO_RELAXED);
+            p_upark_deinit();
+        }
+    }
+}
 
 typedef struct Subsys {
     bool initialized;
@@ -62,10 +89,12 @@ err:
 }
 
 ulib_ret ulib_init(void) {
-    return uonce_run(&init_once, init_subsystems, NULL);
+    ulib_ret const ret = park_init();
+    return ulib_is_err(ret) ? ret : uonce_run(&init_once, init_subsystems, NULL);
 }
 
 void ulib_deinit(void) {
     if (!uonce_reset(&init_once)) return;
     deinit_subsystems();
+    park_deinit();
 }

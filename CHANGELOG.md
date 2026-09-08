@@ -9,14 +9,20 @@ uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- Concurrency support: platform-independent threads (`UThread`), atomics (`UAtomic`), mutexes
+  (`ULock`), recursive mutexes (`URLock`), spin locks (`USLock`), read-write locks (`URWLock`),
+  condition variables (`UCond`), semaphores (`USem`), events (`UEvent`), latches (`ULatch`),
+  barriers (`UBarrier`), one-time initialization (`UOnce`), and address keyed wait queues
+  (`upark.h`) to build further primitives on. Timed waits take a `UDeadline`.
+- `UList`, a generic intrusive linked list.
 - `ulib_init` and `ulib_deinit` for explicit library initialization and deinitialization.
 - `uplatform.h`, providing platform, compiler, architecture and language detection macros.
-- `UMetrics` and related API.
+- `UMetrics`, a platform-independent runtime metrics API.
+- `ulib_assume`, an optimizer hint that asserts where assertions are enabled.
 - `ULogPerfData`, `ULogPerfType`, `ulog_perf_data_span` and `ulog_perf_data_metrics`.
 - `ulog_metrics` and `ulog_write_metrics`.
 - `utime_stamp` and `utime_stamp_from`.
 - `UTIME_NS_MAX`, `UTIME_NS_PER_{US,MS,S,MINUTE,HOUR,DAY}`.
-- `ULIB_UID`.
 
 ### Changed
 - Reworked `ubit_*` and `ulib_uint_*` APIs to be generic.

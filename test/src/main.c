@@ -12,16 +12,17 @@
 #include "ucond_tests.h"
 #include "udeadline_tests.h"
 #include "uevent_tests.h"
-#include "ufutex_tests.h"
 #include "uhash_tests.h"
 #include "uiter_tests.h"
 #include "ulatch_tests.h"
 #include "ulib.h"
+#include "ulist_tests.h"
 #include "ulock_tests.h"
 #include "ulog_tests.h"
 #include "umetrics_tests.h"
 #include "unumber_tests.h"
 #include "uonce_tests.h"
+#include "upark_tests.h"
 #include "urand_tests.h"
 #include "usem_tests.h"
 #include "ustream_tests.h"
@@ -38,6 +39,7 @@ utest_main({
     utest_run("ustring", USTRING_TESTS);
     utest_run("uvec", UVEC_TESTS);
     utest_run("uhash", UHASH_TESTS);
+    utest_run("ulist", ULIST_TESTS);
     utest_run("uiter", UITER_TESTS);
     utest_run("ustream", USTREAM_TESTS);
     utest_run("ulog", ULOG_TESTS);
@@ -47,8 +49,8 @@ utest_main({
     utest_run("umetrics", UMETRICS_TESTS);
     utest_run("uthread", UTHREAD_TESTS);
     utest_run("uatomic", UATOMIC_TESTS);
+    utest_run("upark", UPARK_TESTS);
     utest_run("ulock", ULOCK_TESTS);
-    utest_run("ufutex", UFUTEX_TESTS);
     utest_run("uevent", UEVENT_TESTS);
     utest_run("ucond", UCOND_TESTS);
     utest_run("ubarrier", UBARRIER_TESTS);

@@ -39,7 +39,9 @@ typedef void *ulib_ptr;
 #include <stdalign.h>
 #if (ULIB_OS_IS_WIN && ULIB_CPU_PTR_SIZE >= 8) || (ULIB_OS_IS_APPLE && ULIB_CPU_IS_ARM64)
 #define ULIB_MALLOC_ALIGN ((size_t)16U)
-#elif ULIB_OS_IS_WIN
+// Zephyr allocates out of a heap whose chunks are eight bytes wide, which is less than the
+// fundamental alignment its toolchain reports.
+#elif ULIB_OS_IS_WIN || ULIB_OS_IS_ZEPHYR
 #define ULIB_MALLOC_ALIGN ((size_t)8U)
 #else
 #define ULIB_MALLOC_ALIGN alignof(max_align_t)

@@ -58,7 +58,11 @@ option(ULIB_CONCURRENCY "Enable concurrency support" OFF)
 option(ULIB_LOCK_ADAPTIVE_SPIN "Enable adaptive spinning in locks" ${ULIB_CONCURRENCY})
 option(ULIB_LARGE_THREAD_ID "Use 64 bit thread identifiers" OFF)
 option(ULIB_PLATFORM_SYNC "Use platform synchronization primitives" OFF)
+option(ULIB_NATIVE_FUTEX "Use the platform's native futex, where it has one" ON)
 option(ULIB_COLOR "Enable colored output" ON)
+
+int_option(ULIB_EXPECTED_THREADS "Threads expected to be blocked at once" DEFAULT 16 MIN 4 MAX 256)
+int_option(ULIB_THREAD_STACK_SIZE "Stack size for threads uLib allocates itself" DEFAULT 2048 MIN 1)
 
 enum_option(
     ULIB_ASSERTIONS "Enable assertions"
@@ -93,6 +97,10 @@ endforeach()
 # Target settings
 
 set(ULIB_COMPILE_FEATURES c_std_11)
+
+if(ZEPHYR_BASE)
+    set(ULIB_LIBRARY_TYPE OBJECT)
+endif()
 
 if(NOT ULIB_ASSERTIONS STREQUAL "AUTO")
     if(ULIB_ASSERTIONS)
@@ -129,7 +137,10 @@ if(MSVC)
         list(APPEND ULIB_PUBLIC_CFLAGS /experimental:c11atomics)
     endif()
 else()
-    list(APPEND ULIB_PRIVATE_CFLAGS -Wall -Wextra -Wpedantic)
+    list(APPEND ULIB_PRIVATE_CFLAGS -Wall -Wextra)
+    if(NOT ZEPHYR_BASE)
+        list(APPEND ULIB_PRIVATE_CFLAGS -Wpedantic)
+    endif()
 endif()
 
 if(ULIB_LTO)
@@ -155,6 +166,15 @@ endif()
 
 if(ULIB_CONCURRENCY)
     list(APPEND ULIB_PUBLIC_DEFINES ULIB_CONCURRENCY_REQUESTED)
+
+    math(EXPR ULIB_PARK_BUCKETS "${ULIB_EXPECTED_THREADS} * 4")
+    math_log2(${ULIB_PARK_BUCKETS} ULIB_PARK_BUCKET_BITS)
+    message(STATUS "uLib: Using ${ULIB_PARK_BUCKETS} park buckets (${ULIB_PARK_BUCKET_BITS} bits) for ${ULIB_EXPECTED_THREADS} expected threads")
+
+    list(APPEND ULIB_PRIVATE_DEFINES
+         "ULIB_PARK_BUCKET_BITS=${ULIB_PARK_BUCKET_BITS}"
+         "ULIB_PARK_WAKE_BATCH=${ULIB_EXPECTED_THREADS}"
+         "ULIB_THREAD_STACK_SIZE=${ULIB_THREAD_STACK_SIZE}")
 endif()
 
 if(NOT ULIB_LOCK_ADAPTIVE_SPIN)
@@ -167,6 +187,15 @@ endif()
 
 if(ULIB_PLATFORM_SYNC)
     list(APPEND ULIB_PUBLIC_DEFINES ULIB_PLATFORM_SYNC)
+endif()
+
+if(NOT ULIB_NATIVE_FUTEX)
+    list(APPEND ULIB_PRIVATE_DEFINES ULIB_NO_NATIVE_FUTEX)
+endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    # Needed for clock_gettime, localtime_r, syscall, etc. in strict ISO builds.
+    list(APPEND ULIB_PRIVATE_DEFINES _POSIX_C_SOURCE=200809L _DEFAULT_SOURCE)
 endif()
 
 if(ULIB_CLANG_TIDY)
@@ -217,6 +246,10 @@ target_compile_definitions(ulib PUBLIC ${ULIB_PUBLIC_DEFINES} PRIVATE ${ULIB_PRI
 target_force_include(ulib PUBLIC ${ULIB_USER_HEADERS})
 target_add_sanitizers(ulib PUBLIC ${ULIB_SANITIZERS})
 target_link_libraries(ulib PRIVATE ulib-internal)
+
+if(ZEPHYR_BASE)
+    target_link_libraries(ulib PRIVATE zephyr_interface zephyr_generated_headers)
+endif()
 
 if(WIN32)
     target_link_libraries(ulib PRIVATE psapi)

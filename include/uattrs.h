@@ -128,6 +128,19 @@
 #endif
 
 /**
+ * Marks functions whose return value must not be discarded.
+ *
+ * @note Place it before any other specifier or attribute in the declaration.
+ */
+#if ULIB_CC_IS_GNU
+    #define ULIB_NODISCARD __attribute__((__warn_unused_result__))
+#elif __STDC_VERSION__ >= 202311L || __cplusplus >= 201703L || _MSVC_LANG >= 201703L
+    #define ULIB_NODISCARD [[nodiscard]]
+#else
+    #define ULIB_NODISCARD
+#endif
+
+/**
  * Marks variables with thread-local storage duration.
  *
  * @note If concurrency is disabled, this macro expands to nothing.
@@ -137,7 +150,9 @@
 
 #if ULIB_DOCS || !ULIB_CONCURRENCY
     #define ULIB_THREAD_LOCAL
-#elif ULIB_OS_IS_ZEPHYR && !defined(CONFIG_THREAD_LOCAL_STORAGE)
+// The native simulator backs every Zephyr thread with a host thread, so there the toolchain
+// already provides thread-local storage. Other targets need Zephyr's own implementation.
+#elif ULIB_OS_IS_ZEPHYR && !defined(CONFIG_THREAD_LOCAL_STORAGE) && !defined(CONFIG_ARCH_POSIX)
     #error "Thread-local storage requires CONFIG_THREAD_LOCAL_STORAGE"
 #elif ULIB_LANG_IS_CPP || __STDC_VERSION__ >= 202311L
     #define ULIB_THREAD_LOCAL thread_local
