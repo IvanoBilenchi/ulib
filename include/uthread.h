@@ -26,12 +26,21 @@ ULIB_BEGIN_DECLS
 
 // clang-format off
 #if ULIB_CONCURRENCY
-    #if ULIB_OS_HAS_PTHREADS
+    #if ULIB_OS_IS_ZEPHYR
+        #include <zephyr/kernel.h> // IWYU pragma: keep, for k_thread and k_thread_stack_t
+        #define P_UTHREAD_HANDLE_FIELD                                                             \
+            struct k_thread _handle;                                                               \
+            k_thread_stack_t *_stack;                                                              \
+            size_t _stack_size;                                                                    \
+            bool _stack_owned;
+    #elif ULIB_OS_HAS_PTHREADS
         #include <pthread.h> // IWYU pragma: keep, for pthread_t
         #define P_UTHREAD_HANDLE_FIELD pthread_t _handle;
-    #else
+    #elif ULIB_OS_IS_WIN
         #include <windows.h>
         #define P_UTHREAD_HANDLE_FIELD HANDLE _handle;
+    #else
+        #error "No threading backend for this platform"
     #endif
 #else
     #define P_UTHREAD_HANDLE_FIELD
@@ -146,6 +155,22 @@ ULIB_API
 ulib_ret uthread(UThread *thread, void (*func)(void *), void *arg);
 
 /**
+ * Sets the stack the thread will run on.
+ *
+ * @param thread Thread to configure.
+ * @param stack Stack buffer.
+ * @param size Size of the stack buffer, in bytes.
+ * @return Return code.
+ *
+ * @note Must be called before @func{uthread_start}.
+ * @note Only supported on platforms where thread stacks are owned by the caller, in which case
+ *       the buffer must satisfy their alignment requirements. On Zephyr it must be declared
+ *       via `K_THREAD_STACK_DEFINE` or `K_THREAD_STACK_ARRAY_DEFINE`.
+ */
+ULIB_API
+ulib_ret uthread_set_stack(UThread *thread, void *stack, size_t size);
+
+/**
  * Starts the thread.
  *
  * @param thread Thread to start.
@@ -168,6 +193,9 @@ ulib_ret uthread_join(UThread *thread);
  *
  * @param thread Thread to detach.
  * @return Return code.
+ *
+ * @note Not supported on platforms that cannot reclaim the stack of a thread nobody joins,
+ *       such as Zephyr, where @val{ULIB_ERR_UNSUPPORTED} is returned.
  */
 ULIB_API
 ulib_ret uthread_detach(UThread *thread);

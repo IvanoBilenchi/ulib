@@ -12,7 +12,6 @@
 #ifndef USEM_H
 #define USEM_H
 
-#include "uatomic.h"
 #include "uattrs.h"
 #include "udeadline.h"
 #include "ulib_ret.h"
@@ -24,23 +23,6 @@
 ULIB_BEGIN_DECLS
 
 /**
- * Selects the semaphore implementation.
- *
- * If the platform supports lock-free 64-bit atomics, the semaphore stores its state in a single
- * 64-bit value. This is the fastest variant. Otherwise, a slower fallback using two separate
- * 32-bit atomics is used.
- *
- * @def USEM_USE_64BIT_ATOMICS
- */
-#ifndef USEM_USE_64BIT_ATOMICS
-#if UATOMIC_LLONG_LOCK_FREE == UATOMIC_LOCK_FREE_ALWAYS
-#define USEM_USE_64BIT_ATOMICS 1
-#else
-#define USEM_USE_64BIT_ATOMICS 0
-#endif
-#endif
-
-/**
  * @defgroup USem_types Semaphore types
  * @{
  */
@@ -50,18 +32,18 @@ typedef struct USem USem;
 
 /// @cond
 // clang-format off
-#if !ULIB_CONCURRENCY
+#if ULIB_CONCURRENCY
+    #include "uatomic.h"
+
+    // The permit count, alongside a single bit recording whether anyone is parked on it. Counting
+    // the waiters, as an implementation that can only compare a word has to, buys nothing over
+    // knowing that there is at least one.
     struct USem {
-        uint32_t _permits;
-    };
-#elif USEM_USE_64BIT_ATOMICS
-    struct USem {
-        UAtomic(uint64_t) _state;
+        UAtomic(uint32_t) _state;
     };
 #else
     struct USem {
-        UAtomic(uint32_t) _permits;
-        UAtomic(uint32_t) _waiters;
+        uint32_t _permits;
     };
 #endif
 // clang-format on
@@ -78,7 +60,7 @@ typedef struct USem USem;
  * Initializes a new semaphore with the given number of permits.
  *
  * @param sem Semaphore to initialize.
- * @param permits Initial number of available permits.
+ * @param permits Initial number of available permits, at most 2147483647.
  * @return Return code.
  *
  * @destructor{usem_deinit}
@@ -157,6 +139,8 @@ bool usem_trywait_for(USem *sem, utime_ns timeout) {
  *
  * @param sem Semaphore to release permits to.
  * @param permits Number of permits to release.
+ *
+ * @note The total number of available permits must never exceed 2147483647.
  */
 ULIB_API
 void usem_post(USem *sem, uint32_t permits);

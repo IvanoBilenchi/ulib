@@ -10,15 +10,87 @@
 #include "ulib_ret.h"
 #include "uplatform.h"
 #include "utime.h"
+#include "uwarning.h"
+#include <stddef.h>
 
 // MARK: - Threads
 
 #if ULIB_CONCURRENCY
 
-#if ULIB_OS_HAS_PTHREADS
+#if ULIB_OS_IS_ZEPHYR
+
+#include <zephyr/kernel.h>
+
+// Stack size for threads uLib allocates itself, only reachable with CONFIG_DYNAMIC_THREAD.
+#ifndef ULIB_THREAD_STACK_SIZE
+#define ULIB_THREAD_STACK_SIZE 2048
+#endif
+
+static void worker_func(void *arg, ulib_unused void *p2, ulib_unused void *p3) {
+    UThread *t = (UThread *)arg;
+    t->_fun(t->_arg);
+}
+
+ulib_ret uthread(UThread *thread, void (*func)(void *), void *arg) {
+    *thread = (UThread){ ._fun = func, ._arg = arg };
+    return ULIB_OK;
+}
+
+ulib_ret uthread_set_stack(UThread *thread, void *stack, size_t size) {
+    thread->_stack = (k_thread_stack_t *)stack;
+    thread->_stack_size = size;
+    thread->_stack_owned = false;
+    return ULIB_OK;
+}
+
+static ulib_ret acquire_stack(ulib_unused UThread *thread) {
+#ifdef CONFIG_DYNAMIC_THREAD
+    thread->_stack = k_thread_stack_alloc(ULIB_THREAD_STACK_SIZE, 0);
+    if (!thread->_stack) return ULIB_ERR_MEM;
+    thread->_stack_size = ULIB_THREAD_STACK_SIZE;
+    thread->_stack_owned = true;
+    return ULIB_OK;
+#else
+    // Zephyr can only allocate stacks through CONFIG_DYNAMIC_THREAD, so without it the caller
+    // must provide one via uthread_set_stack.
+    return ULIB_ERR_UNSUPPORTED;
+#endif
+}
+
+ulib_ret uthread_start(UThread *thread) {
+    if (!thread->_stack) {
+        ulib_ret const ret = acquire_stack(thread);
+        if (ulib_is_err(ret)) return ret;
+    }
+    // Threads inherit the priority of their creator, as they do with pthreads. A lower priority
+    // would keep them from ever being scheduled by a k_yield in the thread that spawned them.
+    int const priority = k_thread_priority_get(k_current_get());
+    k_thread_create(&thread->_handle, thread->_stack, thread->_stack_size, worker_func, thread,
+                    NULL, NULL, priority, 0, K_NO_WAIT);
+    return ULIB_OK;
+}
+
+ulib_ret uthread_join(UThread *thread) {
+    if (k_thread_join(&thread->_handle, K_FOREVER)) return ULIB_ERR;
+#ifdef CONFIG_DYNAMIC_THREAD
+    if (thread->_stack_owned) {
+        k_thread_stack_free(thread->_stack);
+        thread->_stack = NULL;
+        thread->_stack_owned = false;
+    }
+#endif
+    return ULIB_OK;
+}
+
+// Zephyr has neither a detached thread state nor a thread exit hook, so a stack that nobody
+// joins on cannot be reclaimed.
+ulib_ret uthread_detach(ulib_unused UThread *thread) {
+    return ULIB_ERR_UNSUPPORTED;
+}
+
+#elif ULIB_OS_HAS_PTHREADS
 
 #include <pthread.h>
-#include <stddef.h>
 
 static void *worker_func(void *arg) {
     UThread *t = (UThread *)arg;
@@ -75,8 +147,6 @@ ulib_ret uthread_detach(UThread *thread) {
 
 #else // ULIB_CONCURRENCY
 
-#include "uwarning.h"
-
 ulib_ret uthread(UThread *thread, void (*func)(void *), void *arg) {
     *thread = (UThread){ ._fun = func, ._arg = arg };
     return ULIB_OK;
@@ -96,6 +166,15 @@ ulib_ret uthread_detach(ulib_unused UThread *thread) {
 }
 
 #endif // ULIB_CONCURRENCY
+
+#if !ULIB_CONCURRENCY || !ULIB_OS_IS_ZEPHYR
+
+ulib_ret
+uthread_set_stack(ulib_unused UThread *thread, ulib_unused void *stack, ulib_unused size_t size) {
+    return ULIB_ERR_UNSUPPORTED;
+}
+
+#endif
 
 // MARK: - Thread ID
 

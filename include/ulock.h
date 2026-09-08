@@ -28,27 +28,56 @@ ULIB_BEGIN_DECLS
 #if ULIB_CONCURRENCY
     #include "uatomic.h"
 
+    // A plain byte rather than a uatomic_flag: the flag's representation is up to the standard
+    // library, and MSVC's C and C++ ones do not agree on it, which would give this structure a
+    // layout per language.
     struct USLock {
-        uatomic_flag _flag;
+        UAtomic(p_uatomic_byte) _flag;
     };
 
     #ifndef ULIB_PLATFORM_SYNC
         #include "uthread.h"
         #include <stdint.h>
 
+        // A narrower state halves the lock, but sub-word atomics are not lock-free on every
+        // target; the fallback mirrors what uatomic.h does for p_uatomic_byte.
+        #if P_UATOMIC_SHORT_IS_LOCK_FREE
+            typedef uint16_t p_urwlock_word;
+        #else
+            typedef uint32_t p_urwlock_word;
+        #endif
+
+        // Two flag bits and the adaptive spin budget share one byte. The budget is only a
+        // hint, so it can live in the word threads compare-and-swap, provided every update to
+        // it preserves the flags; what it costs in exchange is a ceiling of 67 spins.
         struct ULock {
-            UAtomic(uint32_t) _state;
+            UAtomic(p_uatomic_byte) _state;
         };
 
         struct URLock {
             struct ULock _lock;
-            uint32_t _count;
+            uint16_t _count;
             UAtomic(UThreadId) _owner;
         };
 
+        // Readers and writers park on their own budget byte, so each waiter class gets a
+        // queue of its own without the lock growing a word to key it on.
         struct URWLock {
-            UAtomic(uint32_t) _state;
-            UAtomic(uint32_t) _wnotify;
+            UAtomic(p_urwlock_word) _state;
+            UAtomic(p_uatomic_byte) _rspin;
+            UAtomic(p_uatomic_byte) _wspin;
+        };
+    #elif ULIB_OS_IS_ZEPHYR
+        #include <zephyr/kernel.h> // IWYU pragma: keep, for k_mutex
+        // Zephyr provides no reader/writer lock, so shared locks degrade to exclusive ones.
+        struct ULock {
+            struct k_mutex _h;
+        };
+        struct URLock {
+            struct k_mutex _h;
+        };
+        struct URWLock {
+            struct k_mutex _h;
         };
     #elif ULIB_OS_HAS_PTHREADS
         #include <pthread.h> // IWYU pragma: keep
@@ -68,7 +97,7 @@ ULIB_BEGIN_DECLS
         struct URWLock {
             pthread_rwlock_t _h;
         };
-    #else
+    #elif ULIB_OS_IS_WIN
         #include <windows.h>
         struct ULock {
             SRWLOCK _h;

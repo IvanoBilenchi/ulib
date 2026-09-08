@@ -1,0 +1,18 @@
+# West manifest, whose only purpose is to give CI a Zephyr workspace to run the test suite in.
+# uLib is not a Zephyr module: applications vendor it and add_subdirectory it, as usual.
+manifest:
+  self:
+    path: ulib
+
+  remotes:
+    - name: zephyrproject-rtos
+      url-base: https://github.com/zephyrproject-rtos
+
+  projects:
+    - name: zephyr
+      remote: zephyrproject-rtos
+      revision: v4.4.2
+      import:
+        name-allowlist:
+          - cmsis
+          - hal_intel

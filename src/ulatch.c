@@ -11,13 +11,13 @@
 #include "uplatform.h"
 #include "uwarning.h"
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 #if ULIB_CONCURRENCY
 
 #include "uatomic.h"
-#include "ufutex.h"
-#include "ufutex_p.h"
+#include "upark.h"
 
 ulib_ret ulatch(ULatch *latch, uint32_t count) {
     uatomic(&latch->_count, count);
@@ -37,17 +37,24 @@ void ulatch_arrive(ULatch *latch, uint32_t count) {
         if (!cur) return;
         next = count < cur ? cur - count : 0;
     } while (!uatomic_wcas_ex(&latch->_count, &cur, next, UMO_ACQ_REL, UMO_RELAXED));
-    if (!next) ufutex_wake_all(&latch->_count);
+    if (!next) upark_wake_all(&latch->_count);
 }
 
 void ulatch_wait(ULatch *latch) {
     ulatch_wait_until(latch, udeadline_never());
 }
 
+static bool latch_park(void *ctx) {
+    ULatch *const latch = ctx;
+    return latch_count(latch, UMO_RELAXED) != 0;
+}
+
 bool ulatch_wait_until(ULatch *latch, UDeadline deadline) {
-    uint32_t count;
-    while ((count = latch_count(latch, UMO_ACQUIRE))) {
-        if (!p_udeadline_wait(&latch->_count, count, deadline)) return ulatch_is_open(latch);
+    while (!ulatch_is_open(latch)) {
+        // Checked after the latch rather than before it, so that a wait whose deadline expired
+        // while it was queued still reports a latch that opened in the meantime.
+        if (!udeadline_remaining(deadline)) return false;
+        (void)upark(&latch->_count, latch_park, NULL, latch, deadline);
     }
     return true;
 }

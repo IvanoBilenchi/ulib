@@ -54,14 +54,24 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu, macos, windows]
-        variant: [normal, tiny, huge, concurrency, platform-sync, shared-tsan, cpp]
+        variant: [normal, tiny, huge, concurrency, platform-sync, pthread-park, strict-iso,
+                  shared-tsan, cpp]
+        exclude:
+          # Windows has no pthreads, so its only parking backend is the native futex.
+          - os: windows
+            variant: pthread-park
+          # Feature test macros are a glibc and Darwin mechanism; MSVC has no equivalent.
+          - os: windows
+            variant: strict-iso
         include:
           - lib_type: STATIC
             types: NORMAL
             concurrency: OFF
             platform_sync: OFF
+            native_futex: ON
             sanitizers: address;undefined
             cpp: OFF
+            c_extensions: ON
           - variant: tiny
             types: TINY
           - variant: huge
@@ -71,6 +81,15 @@ jobs:
           - variant: platform-sync
             concurrency: ON
             platform_sync: ON
+          # The parking backend that every platform with a native futex hides.
+          - variant: pthread-park
+            concurrency: ON
+            native_futex: OFF
+          # uLib is vendored into projects that set CMAKE_C_EXTENSIONS OFF, so the build has to
+          # declare the feature test macros it needs rather than inherit them from GNU mode.
+          - variant: strict-iso
+            concurrency: ON
+            c_extensions: OFF
           - variant: shared-tsan
             lib_type: SHARED
             concurrency: ON
@@ -90,8 +109,10 @@ jobs:
           -DULIB_TYPES=${{matrix.types}}
           -DULIB_CONCURRENCY=${{matrix.concurrency}}
           -DULIB_PLATFORM_SYNC=${{matrix.platform_sync}}
+          -DULIB_NATIVE_FUTEX=${{matrix.native_futex}}
           -DULIB_SANITIZERS="${{matrix.sanitizers}}"
           -DULIB_CPP_TESTS=${{matrix.cpp}}
+          -DCMAKE_C_EXTENSIONS=${{matrix.c_extensions}}
 
       - name: Build
         run: cmake --build --preset build --config ${{env.config}}
@@ -108,6 +129,30 @@ jobs:
 
       - name: Run
         run: ctest --preset test --build-config ${{env.config}}
+
+  zephyr:
+    name: "Test (os: zephyr)"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          path: ulib
+
+      - name: Install 32 bit host toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-multilib g++-multilib
+
+      - name: Set up Zephyr
+        uses: zephyrproject-rtos/action-zephyr-setup@v1
+        with:
+          app-path: ulib
+          toolchains: x86_64-zephyr-elf
+
+      - name: Run
+        working-directory: ulib
+        run: west twister -T test/zephyr --inline-logs
 
   bench:
     name: "Benchmark (os: ${{matrix.os}})"

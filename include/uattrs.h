@@ -137,7 +137,9 @@
 
 #if ULIB_DOCS || !ULIB_CONCURRENCY
     #define ULIB_THREAD_LOCAL
-#elif ULIB_OS_IS_ZEPHYR && !defined(CONFIG_THREAD_LOCAL_STORAGE)
+// The native simulator backs every Zephyr thread with a host thread, so there the toolchain
+// already provides thread-local storage. Other targets need Zephyr's own implementation.
+#elif ULIB_OS_IS_ZEPHYR && !defined(CONFIG_THREAD_LOCAL_STORAGE) && !defined(CONFIG_ARCH_POSIX)
     #error "Thread-local storage requires CONFIG_THREAD_LOCAL_STORAGE"
 #elif ULIB_LANG_IS_CPP || __STDC_VERSION__ >= 202311L
     #define ULIB_THREAD_LOCAL thread_local

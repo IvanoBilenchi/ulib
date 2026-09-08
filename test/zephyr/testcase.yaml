@@ -1,0 +1,24 @@
+# native_sim is only built, never run: it freezes simulated time while a thread busy-spins, so
+# USLock, which spins without entering the kernel, can never make progress there. The QEMU boards
+# have a real timer, hence a realistic scheduler, and cover both word sizes.
+common:
+  tags: ulib
+  timeout: 600
+
+tests:
+  ulib.suite:
+    harness: console
+    harness_config:
+      type: one_line
+      regex:
+        - "All tests passed"
+    platform_allow:
+      - qemu_x86
+      - qemu_x86_64
+    integration_platforms:
+      - qemu_x86
+
+  ulib.build:
+    build_only: true
+    platform_allow:
+      - native_sim

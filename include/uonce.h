@@ -17,7 +17,6 @@
 #include "ulib_ret.h"
 #include "uutils.h" // IWYU pragma: keep, for ulib_zero_init
 #include <stdbool.h>
-#include <stdint.h>
 
 ULIB_BEGIN_DECLS
 
@@ -29,7 +28,7 @@ ULIB_BEGIN_DECLS
 /// A synchronization primitive that runs a function exactly once.
 typedef struct UOnce {
     /// @cond
-    UAtomic(uint32_t) _state;
+    UAtomic(p_uatomic_byte) _state;
     /// @endcond
 } UOnce;
 

@@ -17,6 +17,14 @@ uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `utime_stamp` and `utime_stamp_from`.
 - `UTIME_NS_MAX`, `UTIME_NS_PER_{US,MS,S,MINUTE,HOUR,DAY}`.
 - `ULIB_UID`.
+- `uthread_set_stack`, for platforms where thread stacks are owned by the caller.
+- `ULIB_EXPECTED_THREADS`, the number of threads expected to be blocked at once, from which
+  the parking lot sizes its bucket table and its wakeup buffer.
+- `ULIB_NATIVE_FUTEX`, on by default, which can be turned off to park on POSIX threads even
+  where the platform has a native futex.
+- `ULIB_THREAD_STACK_SIZE`, the size of the stacks uLib allocates for threads that were not
+  given one through `uthread_set_stack`.
+- Native Zephyr threading, allowing concurrency without its POSIX subsystem.
 
 ### Changed
 - Reworked `ubit_*` and `ulib_uint_*` APIs to be generic.
@@ -27,8 +35,67 @@ uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `ulog_perf` is now the `ULOG_PERF` counterpart of `ulog_info` and friends,
   accepting a `ULogPerfData` pointer as its data argument.
 - `ULOG_PERF` events now carry a `ULogPerfData` pointer rather than a `utime_ns` pointer.
+- Blocking primitives now park on an address keyed wait queue, rather than on the value of a
+  32 bit word. Waiters queue a node in their own stack frame, so parking needs no allocator, they
+  decide whether to block with an arbitrary predicate evaluated while the queue is locked, and
+  wakeups reach exactly the threads waiting on the requested address. Platforms without a native
+  futex, which previously polled with exponential backoff, are served by the same queues.
+- `ULock` is now one byte rather than four, `URLock` eight rather than twelve, and `URWLock`
+  four rather than eight, since the lock state no longer has to be as wide as a futex word.
+  A `ULock` holds its adaptive spin budget in the six bits its two state bits leave over, which
+  caps it at 67 spins; the budgets of a `URWLock` keep a byte each, so that updating one neither
+  invalidates the compare-and-swaps of threads contending for the lock nor wakes threads parked
+  on it, and they double as the addresses its readers and writers park on. `URWLock` accordingly
+  supports up to 16382 concurrent readers, rather than 2^30 - 1.
+- `USem` is now four bytes rather than eight, and has one implementation rather than two: the
+  waiter count it had to maintain so that `usem_post` could tell whether waking was worthwhile
+  collapses into a single bit, which the wait queue keeps exact. Blocking waits no longer
+  register and unregister themselves with a pair of atomic updates.
+- `usem_post` now releases its permits to the threads that have waited longest, waking at most as
+  many as it posted, rather than waking every waiter and letting the surplus park again.
+- `UCond`, `UEvent` and `UOnce` are now one byte each rather than four. A condition variable
+  carries no state at all: its sequence counter existed only so that a futex had something whose
+  change proved a signal had happened, and the wait queue is keyed on the object's address
+  instead.
+- `ucond_wait` now queues the calling thread before releasing the lock, rather than after, so a
+  signal sent while holding that same lock can no longer be missed.
+- `ucond_broadcast` now takes the lock its waiters are waiting with, and hands them over to it
+  rather than waking them. Waking a group that has to reacquire the lock one at a time costs a
+  wakeup each to deliver what one of them can use, and leaves the rest to queue for the lock
+  anyway; moving them there directly costs one wakeup at most, and none at all when the caller
+  holds the lock. Measured on a broadcast of 64 waiters: 813 ms to 370 ms, and a run to run
+  spread of 55% to 9%.
+- `UBarrier` is now four bytes rather than twelve, and holds no lock. Its phase counter was a word
+  of its own only because a futex needed one whose every change meant a phase had completed; keyed
+  on the barrier's address instead, the phase shares a word with the participant count and the
+  arrivals still outstanding, which makes registering an arrival, completing a phase and dropping
+  out of one a single compare-and-swap. A barrier accordingly supports up to 16383 participants,
+  and a phase can be waited on until the barrier is 15 phases past it, rather than indefinitely.
+- Threads parked on a wait queue are now woken once it is unlocked, rather than while it is held,
+  so that releasing a group no longer makes each of its threads wait in turn for the lock its
+  waker is still holding. What a thread is woken through accordingly lives in thread-local
+  storage, since one living in the stack frame of the call that parked it can be gone by the time
+  the wakeup is delivered.
+- `ULIB_OS_IS_ZEPHYR` is now detected before every other operating system, and excludes all of
+  them: a native simulator build advertises the host OS as well, and Zephyr is the target.
+
+### Fixed
+- `ULIB_MALLOC_ALIGN` now reports the alignment Zephyr's heap actually guarantees, rather than
+  the larger fundamental alignment its toolchain advertises.
+- Timed waits in the parking lot are measured against the monotonic clock where the platform
+  can select one, so that a wall clock adjustment no longer cuts them short or stretches them.
+- Unlocking a `ULock` or a `URWLock` no longer wakes an empty wait queue: whether anyone is still
+  parked is now settled while that queue is locked, so the flag cannot go stale.
+- Readers and writers of a `URWLock` now park on queues of their own, so a reader adjusting its
+  spin budget no longer wakes every parked writer.
+- A `URWLock` reader no longer has to queue behind readers that are already waiting, so a wait
+  flag left behind by a timed acquisition that expired cannot shut later readers out of a lock
+  nobody holds.
+- `ULIB_LOCK_NO_SPIN` builds again.
 
 ### Removed
+- `USEM_USE_64BIT_ATOMICS`, which selected between the two `USem` implementations. Only one
+  remains, so there is nothing left to select.
 - `ULIB_LITTLE_ENDIAN`, superseded by `ULIB_CPU_BYTE_ORDER`.
 - `ulog_ns`, superseded by `ulog_perf` and `ulog_perf_data_span`.
 - `ulib_float_prev` and `ulib_float_next` (use standard `<tgmath.h>` functions).

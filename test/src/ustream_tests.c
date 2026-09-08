@@ -21,6 +21,12 @@ static char test_data[TEST_DATA_SIZE + 1] = { 0 };
 static char const test_data_file[] = "ustream_test_data.txt";
 static char const test_output_file[] = "ustream_output.txt";
 
+// Path based streams go through fopen, which needs a C library backed by a filesystem.
+// Zephyr provides none by default, so those cases have nothing to run against there.
+static bool stream_has_filesystem(void) {
+    return !ULIB_OS_IS_ZEPHYR;
+}
+
 static void generate_test_data_buf(void) {
     for (size_t i = 0; i < TEST_DATA_SIZE; ++i) {
         test_data[i] = (char)('0' + (i % 10));
@@ -93,6 +99,7 @@ end:
 }
 
 void uistream_path_test(void) {
+    if (!stream_has_filesystem()) return;
     UIStream stream;
     utest_assert_ok(uistream_from_path(&stream, test_data_file));
     istream_test(&stream);
@@ -107,7 +114,7 @@ void uistream_buf_test(void) {
 void uistream_buffered_test(void) {
     UIStream stream;
 
-    utest_assert_ok(uistream_from_path(&stream, test_data_file));
+    utest_assert_ok(uistream_from_buf(&stream, test_data, TEST_DATA_SIZE));
     utest_assert_ok(uistream_buf(&stream, 4));
     istream_test(&stream);
 
@@ -143,6 +150,7 @@ void uostream_null_test(void) {
 }
 
 void uostream_path_test(void) {
+    if (!stream_has_filesystem()) return;
     UOStream stream;
     utest_assert_ok(uostream_to_path(&stream, test_output_file));
 
@@ -202,13 +210,14 @@ void uostream_buf_test(void) {
 }
 
 void uostream_multi_test(void) {
-    char buf[TEST_DATA_SIZE];
-    size_t const buf_size = sizeof(buf);
+    char buf_a[TEST_DATA_SIZE];
+    char buf_b[TEST_DATA_SIZE];
+    size_t const buf_size = sizeof(buf_a);
 
     UOStream stream_a;
-    utest_assert_ok(uostream_to_buf(&stream_a, buf, buf_size));
+    utest_assert_ok(uostream_to_buf(&stream_a, buf_a, buf_size));
     UOStream stream_b;
-    utest_assert_ok(uostream_to_path(&stream_b, test_output_file));
+    utest_assert_ok(uostream_to_buf(&stream_b, buf_b, buf_size));
     UOStream stream;
     utest_assert_ok(uostream_to_multi(&stream));
     utest_assert_ok(uostream_add_substream(&stream, &stream_a));
@@ -218,18 +227,14 @@ void uostream_multi_test(void) {
     utest_assert_ok(uostream_write_literal(&stream, test_data, &size));
     utest_assert_uint(size, ==, TEST_DATA_SIZE);
     utest_assert_ok(uostream_deinit(&stream));
-    utest_assert_buf(buf, ==, test_data, TEST_DATA_SIZE);
-
-    char *contents = get_file_contents(test_output_file, &size);
-    utest_assert_not_null(contents);
-    utest_assert_uint(size, ==, TEST_DATA_SIZE);
-    utest_assert_buf(contents, ==, test_data, TEST_DATA_SIZE);
-    ulib_free(contents);
+    utest_assert_buf(buf_a, ==, test_data, TEST_DATA_SIZE);
+    utest_assert_buf(buf_b, ==, test_data, TEST_DATA_SIZE);
 }
 
 void uostream_buffered_test(void) {
+    char buf[TEST_DATA_SIZE];
     UOStream stream;
-    utest_assert_ok(uostream_to_path(&stream, test_output_file));
+    utest_assert_ok(uostream_to_buf(&stream, buf, sizeof(buf)));
     utest_assert_ok(uostream_buf(&stream, 4));
 
     for (size_t i = 0; i < TEST_DATA_SIZE;) {
@@ -243,14 +248,7 @@ void uostream_buffered_test(void) {
     }
 
     utest_assert_ok(uostream_flush(&stream));
-
-    size_t size;
-    char *contents = get_file_contents(test_output_file, &size);
-    utest_assert_not_null(contents);
-    utest_assert_uint(size, ==, TEST_DATA_SIZE);
-    utest_assert_buf(contents, ==, test_data, TEST_DATA_SIZE);
-    ulib_free(contents);
-
+    utest_assert_buf(buf, ==, test_data, TEST_DATA_SIZE);
     utest_assert_ok(uostream_deinit(&stream));
 }
 

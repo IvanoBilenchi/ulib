@@ -7,8 +7,12 @@
 
 #include "usem_tests.h"
 #include "ulib.h"
+#include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
+
+// A semaphore should be cheap enough to embed liberally, so guard its layout.
+static_assert(sizeof(USem) == 4, "USem should be four bytes");
 
 enum {
     THREAD_COUNT = 8,
@@ -73,6 +77,40 @@ void usem_test_wait_post(void) {
 
     usem_post(&sem, THREAD_COUNT);
 
+    for (unsigned i = 0; i < THREAD_COUNT; ++i) {
+        utest_assert_enum(uthread_join(&threads[i]), ==, ULIB_OK);
+    }
+    utest_assert_uint(counter, ==, THREAD_COUNT);
+
+    usem_deinit(&sem);
+}
+
+// A batch post releases fewer permits than there are waiters, so exactly that many threads must
+// come through and the rest must stay blocked. This is what tells a bounded wakeup apart from one
+// that wakes everyone and lets the surplus sort itself out.
+void usem_test_partial_post(void) {
+    USem sem = ulib_zero_init;
+    utest_assert_enum(usem(&sem, 0), ==, ULIB_OK);
+
+    UAtomic(unsigned) counter = 0;
+    SemCtx ctx = { .sem = &sem, .counter = &counter, .timeout = 0 };
+
+    UThread threads[THREAD_COUNT];
+    for (unsigned i = 0; i < THREAD_COUNT; ++i) {
+        utest_assert_enum(uthread(&threads[i], usem_wait_worker, &ctx), ==, ULIB_OK);
+        utest_assert_enum(uthread_start(&threads[i]), ==, ULIB_OK);
+    }
+
+    uthread_sleep(SLEEP_TIME);
+    utest_assert_uint(uatomic_load_ex(&counter, UMO_RELAXED), ==, 0);
+
+    unsigned const released = THREAD_COUNT / 2;
+    usem_post(&sem, released);
+    uthread_sleep(SLEEP_TIME);
+    utest_assert_uint(uatomic_load_ex(&counter, UMO_RELAXED), ==, released);
+    utest_assert_false(usem_trywait(&sem));
+
+    usem_post(&sem, THREAD_COUNT - released);
     for (unsigned i = 0; i < THREAD_COUNT; ++i) {
         utest_assert_enum(uthread_join(&threads[i]), ==, ULIB_OK);
     }

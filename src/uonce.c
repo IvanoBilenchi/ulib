@@ -10,32 +10,40 @@
 #include "ulib_ret_t.h"
 #include "uplatform.h"
 #include <stdbool.h>
+#include <stddef.h>
 
 enum { ONCE_IDLE, ONCE_RUNNING, ONCE_DONE };
 
 #if ULIB_CONCURRENCY
 
 #include "uatomic.h"
-#include "ufutex.h"
-#include <stdint.h>
+#include "udeadline.h"
+#include "upark.h"
 
+// The wake happens once per initialization, so a flag recording whether anyone is queued would
+// save at most one empty round trip and is not worth the extra state.
 static inline ulib_ret once_run_and_wake(UOnce *once, ulib_ret (*func)(void *), void *arg) {
     ulib_ret const ret = func(arg);
     uatomic_store_ex(&once->_state, ulib_is_ok(ret) ? ONCE_DONE : ONCE_IDLE, UMO_RELEASE);
-    ufutex_wake_all(&once->_state);
+    upark_wake_all(&once->_state);
     return ret;
+}
+
+static bool once_park(void *ctx) {
+    UOnce *const once = ctx;
+    return uatomic_load_ex(&once->_state, UMO_RELAXED) == ONCE_RUNNING;
 }
 
 ulib_ret uonce_run(UOnce *once, ulib_ret (*func)(void *), void *arg) {
     if (uatomic_load_ex(&once->_state, UMO_ACQUIRE) == ONCE_DONE) return ULIB_OK;
 
     for (;;) {
-        uint32_t state = ONCE_IDLE;
+        p_uatomic_byte state = ONCE_IDLE;
         if (uatomic_cas_ex(&once->_state, &state, ONCE_RUNNING, UMO_ACQUIRE, UMO_ACQUIRE)) {
             return once_run_and_wake(once, func, arg);
         }
         if (state == ONCE_DONE) return ULIB_OK;
-        ufutex_wait(&once->_state, ONCE_RUNNING);
+        upark(&once->_state, once_park, NULL, once, udeadline_never());
     }
 }
 

@@ -70,6 +70,52 @@ to their respective documentations. A relatively headache-free way to integrate 
 involves compiling it and then linking against the built library, making sure
 the build system or compiler is aware of uLib's headers.
 
+Zephyr
+------
+
+uLib builds for `Zephyr`_ as it does anywhere else, so vendor it and add it to your
+application's *CMakeLists.txt*, configuring it through the usual CMake options. It picks up
+Zephyr's toolchain on its own:
+
+.. code-block:: cmake
+
+    set(ULIB_CONCURRENCY ON)
+    add_subdirectory("lib/ulib")
+    target_link_libraries(app PRIVATE ulib)
+
+Concurrency is backed by Zephyr's own kernel objects, so it does not require the POSIX
+subsystem. Five things are worth knowing before enabling it:
+
+- **Thread-local storage must be enabled.** Thread identifiers and the random number
+  generator rely on it, so set ``CONFIG_THREAD_LOCAL_STORAGE=y`` on any target whose
+  architecture supports it. The native simulator is not one of them: there the host
+  toolchain provides it.
+
+- **Thread stacks belong to the caller.** Zephyr can only allocate them when
+  ``CONFIG_DYNAMIC_THREAD`` is set, which is experimental and pulls in thread monitoring.
+  Their size is that of ``ULIB_THREAD_STACK_SIZE``. Without it, hand each thread a stack
+  of its own:
+
+  .. code-block:: c
+
+     K_THREAD_STACK_DEFINE(worker_stack, 2048);
+
+     UThread thread;
+     uthread(&thread, worker, NULL);
+     uthread_set_stack(&thread, worker_stack, K_THREAD_STACK_SIZEOF(worker_stack));
+     uthread_start(&thread);
+
+- **Threads must be joined.** Zephyr has neither a detached thread state nor a thread exit
+  hook, so a stack that nobody joins on cannot be reclaimed. :func:`uthread_detach` returns
+  ``ULIB_ERR_UNSUPPORTED``.
+
+- **Spinning locks need the timeslicer.** :type:`USLock` spins without entering the kernel,
+  so on a single CPU a preempted holder is only rescheduled if ``CONFIG_TIMESLICING`` is
+  enabled with a nonzero ``CONFIG_TIMESLICE_SIZE``. Prefer :type:`ULock` otherwise.
+
+- **Do not synchronize from an ISR.** Blocking primitives are built on Zephyr mutexes and
+  condition variables, which cannot be waited on from interrupt context.
+
 ========
 Examples
 ========
@@ -84,3 +130,4 @@ For usage examples, refer to the unit tests.
 .. _MSVC: https://visualstudio.microsoft.com
 .. _Read The Docs Theme: https://sphinx-rtd-theme.readthedocs.io
 .. _Sphinx: http://sphinx-doc.org
+.. _Zephyr: https://zephyrproject.org

@@ -17,11 +17,12 @@ void ubarrier_test_drop(void);
 void ubarrier_test_unsupported(void);
 void ubarrier_test_timeout(void);
 void ubarrier_test_timed_wait(void);
+void ubarrier_test_phase_wrap(void);
 
 #if ULIB_CONCURRENCY
 #define UBARRIER_TESTS                                                                             \
     ubarrier_test_base, ubarrier_test_reuse, ubarrier_test_arrive, ubarrier_test_drop,             \
-        ubarrier_test_timeout, ubarrier_test_timed_wait
+        ubarrier_test_timeout, ubarrier_test_timed_wait, ubarrier_test_phase_wrap
 #else
 #define UBARRIER_TESTS ubarrier_test_unsupported
 #endif

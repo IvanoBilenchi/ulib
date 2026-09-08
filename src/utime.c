@@ -36,7 +36,10 @@ enum {
 #define SECONDS_PER_HOUR (SECONDS_PER_MINUTE * MINUTES_PER_HOUR)
 #define SECONDS_PER_DAY (SECONDS_PER_HOUR * HOURS_PER_DAY)
 
-#if ULIB_OS_IS_POSIX
+// Zephyr claims a POSIX environment, since its native simulator picks up the host's <unistd.h>,
+// but builds in a strict ISO C mode in which its C library does not declare localtime_r, and does
+// not take the feature test macros above. It uses the locked fallback below instead.
+#if ULIB_OS_IS_POSIX && !ULIB_OS_IS_ZEPHYR
 
 static bool local_time(time_t const *ts, struct tm *out) {
     return localtime_r(ts, out) != NULL;

@@ -15,6 +15,7 @@ enum {
     ITERATIONS = 10,
     MAX_SLEEP_MS = 64,
     ID_THREADS = 8,
+    STACK_SIZE = 4096,
 };
 
 #define YIELD_TIMEOUT utime_span(10, UTIME_S)
@@ -100,6 +101,37 @@ void uthread_test_id(void) {
             utest_assert_uint(ids[i][0], !=, ids[j][0]);
         }
     }
+#endif
+}
+
+// MARK: - Caller-supplied stacks
+
+#if ULIB_CONCURRENCY && ULIB_OS_IS_ZEPHYR
+
+#include <zephyr/kernel.h>
+
+K_THREAD_STACK_DEFINE(worker_stack, STACK_SIZE);
+
+#endif
+
+static void stack_worker(void *v) {
+    *(unsigned *)v += 1;
+}
+
+void uthread_test_stack(void) {
+    UThread thread;
+    unsigned state = 0;
+    utest_assert_enum(uthread(&thread, stack_worker, &state), ==, ULIB_OK);
+
+#if ULIB_CONCURRENCY && ULIB_OS_IS_ZEPHYR
+    utest_assert_enum(uthread_set_stack(&thread, worker_stack, K_THREAD_STACK_SIZEOF(worker_stack)),
+                      ==, ULIB_OK);
+    utest_assert_enum(uthread_start(&thread), ==, ULIB_OK);
+    utest_assert_enum(uthread_join(&thread), ==, ULIB_OK);
+    utest_assert_uint(state, ==, 1);
+#else
+    // Every other platform owns its thread stacks, so the setter is rejected.
+    utest_assert_enum(uthread_set_stack(&thread, NULL, 0), ==, ULIB_ERR_UNSUPPORTED);
 #endif
 }
 

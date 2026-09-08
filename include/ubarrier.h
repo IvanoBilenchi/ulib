@@ -16,7 +16,6 @@
 #include "uattrs.h"
 #include "udeadline.h"
 #include "ulib_ret.h"
-#include "ulock.h"
 #include "utime_t.h"
 #include <stdbool.h>
 #include <stdint.h>
@@ -38,10 +37,11 @@ ULIB_BEGIN_DECLS
  */
 typedef struct UBarrier {
     /// @cond
-    ULock _lock;
-    UAtomic(uint32_t) _seq;
-    uint16_t _count;
-    uint16_t _remaining;
+    // The phase, the number of participants and how many of them have yet to arrive, packed into
+    // one word: an arrival must read the phase it belongs to and register itself in a single step,
+    // and the arrival that completes a phase must reset the counter and move the barrier on in
+    // that same step.
+    UAtomic(uint32_t) _state;
     /// @endcond
 } UBarrier;
 
@@ -59,7 +59,8 @@ typedef uint32_t UBarrierPhase;
  * Initializes a new barrier.
  *
  * @param barrier Barrier to initialize.
- * @param count Number of threads that must arrive at the barrier in order for a phase to complete.
+ * @param count Number of threads that must arrive at the barrier in order for a phase to complete,
+ *              at most 16383.
  * @return Return code.
  *
  * @destructor{ubarrier_deinit}
@@ -84,7 +85,8 @@ void ubarrier_deinit(UBarrier *barrier);
  * @return Phase the calling thread arrived at.
  *
  * @note The returned phase can be passed to @func{ubarrier_wait} in order to block
- *       until the phase completes.
+ *       until the phase completes. It remains meaningful until the barrier is 15 phases past it,
+ *       after which waiting on it blocks as though it had not completed yet.
  *
  * @warning `count` must be greater than zero, and it must not exceed the number of threads
  *          that still have to arrive at the current phase.

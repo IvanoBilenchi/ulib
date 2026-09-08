@@ -18,7 +18,6 @@
 #include "ulib_ret.h"
 #include "utime_t.h"
 #include <stdbool.h>
-#include <stdint.h>
 
 ULIB_BEGIN_DECLS
 
@@ -30,7 +29,7 @@ ULIB_BEGIN_DECLS
 /// A synchronization primitive that blocks threads until it is signaled.
 typedef struct UEvent {
     /// @cond
-    UAtomic(uint32_t) _flag;
+    UAtomic(p_uatomic_byte) _flag;
     /// @endcond
 } UEvent;
 

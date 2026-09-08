@@ -44,6 +44,36 @@ set(ULIB_UTILS_DIR "${ULIB_PROJECT_DIR}/utils")
 list(APPEND CMAKE_MODULE_PATH "${ULIB_UTILS_DIR}/cmake")
 include(CMakeUtils)
 
+# Functions
+
+# Derives the parking lot's compile time sizes from the number of threads the application expects
+# to have blocked at once.
+function(ulib_park_sizes THREADS BITS_VAR BATCH_VAR)
+    if(NOT THREADS MATCHES "^[1-9][0-9]*$")
+        message(FATAL_ERROR "Expected thread count must be a positive integer, got \"${THREADS}\"")
+    endif()
+
+    # Buckets are a small multiple of the thread count rounded up to a power of two, between
+    # parking_lot's 3 per thread and WebKit's 6. The cap keeps the static table addressable.
+    math(EXPR ULIB_PARK_MIN_BUCKETS "${THREADS} * 4")
+    set(ULIB_PARK_BITS 1)
+    set(ULIB_PARK_BUCKETS 2)
+    while(ULIB_PARK_BUCKETS LESS ULIB_PARK_MIN_BUCKETS AND ULIB_PARK_BITS LESS 16)
+        math(EXPR ULIB_PARK_BUCKETS "${ULIB_PARK_BUCKETS} * 2")
+        math(EXPR ULIB_PARK_BITS "${ULIB_PARK_BITS} + 1")
+    endwhile()
+
+    # A broadcast has no more waiters to defer than there are threads, and the buffer is stack
+    # allocated, so the count is the size until that stops being reasonable.
+    set(ULIB_PARK_BATCH "${THREADS}")
+    if(ULIB_PARK_BATCH GREATER 256)
+        set(ULIB_PARK_BATCH 256)
+    endif()
+
+    set("${BITS_VAR}" "${ULIB_PARK_BITS}" PARENT_SCOPE)
+    set("${BATCH_VAR}" "${ULIB_PARK_BATCH}" PARENT_SCOPE)
+endfunction()
+
 # Cache variables
 
 option(ULIB_DOCS "Enable the documentation targets" OFF)
@@ -55,9 +85,12 @@ option(ULIB_OPTIMIZE_FOR_HOST "Enable host CPU optimizations (keep OFF for distr
 option(ULIB_CLANG_TIDY "Enable clang-tidy, if available" OFF)
 option(ULIB_LEAKS "Enable debugging of memory leaks" OFF)
 option(ULIB_CONCURRENCY "Enable concurrency support" OFF)
+string_option(ULIB_EXPECTED_THREADS "Threads expected to be blocked at once" DEFAULT 16)
+string_option(ULIB_THREAD_STACK_SIZE "Stack size for threads uLib allocates itself" DEFAULT 2048)
 option(ULIB_LOCK_ADAPTIVE_SPIN "Enable adaptive spinning in locks" ${ULIB_CONCURRENCY})
 option(ULIB_LARGE_THREAD_ID "Use 64 bit thread identifiers" OFF)
 option(ULIB_PLATFORM_SYNC "Use platform synchronization primitives" OFF)
+option(ULIB_NATIVE_FUTEX "Use the platform's native futex, where it has one" ON)
 option(ULIB_COLOR "Enable colored output" ON)
 
 enum_option(
@@ -94,6 +127,13 @@ endforeach()
 
 set(ULIB_COMPILE_FEATURES c_std_11)
 
+# Zephyr scans the kernel archives before any library the application links on its own, hence too
+# early to resolve calls made from one. Compiling into the application's own objects sidesteps the
+# ordering, and is the only arrangement that links, so the library type is not a choice here.
+if(ZEPHYR_BASE)
+    set(ULIB_LIBRARY_TYPE OBJECT)
+endif()
+
 if(NOT ULIB_ASSERTIONS STREQUAL "AUTO")
     if(ULIB_ASSERTIONS)
         list(APPEND ULIB_PRIVATE_DEFINES "ULIB_ASSERT=1")
@@ -129,7 +169,12 @@ if(MSVC)
         list(APPEND ULIB_PUBLIC_CFLAGS /experimental:c11atomics)
     endif()
 else()
-    list(APPEND ULIB_PRIVATE_CFLAGS -Wall -Wextra -Wpedantic)
+    list(APPEND ULIB_PRIVATE_CFLAGS -Wall -Wextra)
+    # Zephyr's headers are not ISO conforming: they rely on braced groups, include_next and
+    # variadic macros with no arguments, all of which are reported against our own sources.
+    if(NOT ZEPHYR_BASE)
+        list(APPEND ULIB_PRIVATE_CFLAGS -Wpedantic)
+    endif()
 endif()
 
 if(ULIB_LTO)
@@ -155,6 +200,12 @@ endif()
 
 if(ULIB_CONCURRENCY)
     list(APPEND ULIB_PUBLIC_DEFINES ULIB_CONCURRENCY_REQUESTED)
+    # Sizes the parking lot only, so it stays private: no public structure is laid out on it.
+    ulib_park_sizes("${ULIB_EXPECTED_THREADS}" ULIB_PARK_BUCKET_BITS ULIB_PARK_WAKE_BATCH)
+    list(APPEND ULIB_PRIVATE_DEFINES
+         "ULIB_PARK_BUCKET_BITS=${ULIB_PARK_BUCKET_BITS}"
+         "ULIB_PARK_WAKE_BATCH=${ULIB_PARK_WAKE_BATCH}"
+         "ULIB_THREAD_STACK_SIZE=${ULIB_THREAD_STACK_SIZE}")
 endif()
 
 if(NOT ULIB_LOCK_ADAPTIVE_SPIN)
@@ -167,6 +218,22 @@ endif()
 
 if(ULIB_PLATFORM_SYNC)
     list(APPEND ULIB_PUBLIC_DEFINES ULIB_PLATFORM_SYNC)
+endif()
+
+# Selects the parking lot's pthreads backend on a platform that has a native futex, which is the
+# only way to build it: the platforms that select it for real are the ones with no CI. It stays
+# private, since no public structure is laid out on which backend the lot uses.
+if(NOT ULIB_NATIVE_FUTEX)
+    list(APPEND ULIB_PRIVATE_DEFINES ULIB_NO_NATIVE_FUTEX)
+endif()
+
+# Feature test macros for the APIs the sources need on Linux: clock_gettime and CLOCK_MONOTONIC,
+# localtime_r, nanosleep, and syscall, the last of which is a glibc extension rather than POSIX.
+# They cannot be defined in the sources, as glibc fixes its configuration on the first system
+# header, and user headers are force included ahead of them. Not on Apple, where _POSIX_C_SOURCE
+# lowers __DARWIN_C_LEVEL and hides the _np and os_sync APIs the futex is built on.
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    list(APPEND ULIB_PRIVATE_DEFINES _POSIX_C_SOURCE=200809L _DEFAULT_SOURCE)
 endif()
 
 if(ULIB_CLANG_TIDY)
@@ -217,6 +284,12 @@ target_compile_definitions(ulib PUBLIC ${ULIB_PUBLIC_DEFINES} PRIVATE ${ULIB_PRI
 target_force_include(ulib PUBLIC ${ULIB_USER_HEADERS})
 target_add_sanitizers(ulib PUBLIC ${ULIB_SANITIZERS})
 target_link_libraries(ulib PRIVATE ulib-internal)
+
+# Zephyr owns the toolchain, so a vendored build must inherit its flags, sysroot and generated
+# headers, all of which come with zephyr_interface.
+if(ZEPHYR_BASE)
+    target_link_libraries(ulib PRIVATE zephyr_interface)
+endif()
 
 if(WIN32)
     target_link_libraries(ulib PRIVATE psapi)

@@ -7,11 +7,18 @@
 
 #include "ubarrier_tests.h"
 #include "ulib.h"
+#include <assert.h>
 #include <stddef.h>
+
+// A barrier should be cheap enough to embed liberally, so guard its layout.
+static_assert(sizeof(UBarrier) == 4, "UBarrier should be four bytes");
 
 enum {
     THREAD_COUNT = 8,
     ROUNDS = 5,
+    // The phase a barrier reports is a wrapping counter, so a token stops naming a distinct phase
+    // once the barrier has gone all the way around.
+    PHASE_COUNT = 16,
 };
 
 #define SLEEP_TIME utime_span(50, UTIME_MS)
@@ -198,6 +205,22 @@ void ubarrier_test_timed_wait(void) {
         utest_assert_enum(uthread_join(&threads[i]), ==, ULIB_OK);
     }
     utest_assert_uint(uatomic_load_ex(&counter, UMO_RELAXED), ==, THREAD_COUNT);
+
+    ubarrier_deinit(&barrier);
+}
+
+void ubarrier_test_phase_wrap(void) {
+    UBarrier barrier = ulib_zero_init;
+    utest_assert_enum(ubarrier(&barrier, 1), ==, ULIB_OK);
+
+    // A lone participant completes a phase per arrival, so this walks the phase counter back to
+    // where the first token left it, without needing another thread.
+    UBarrierPhase const phase = ubarrier_arrive(&barrier, 1);
+    for (unsigned i = 1; i < PHASE_COUNT; ++i) {
+        utest_assert(ubarrier_wait_for(&barrier, phase, 0));
+        ubarrier_arrive(&barrier, 1);
+    }
+    utest_assert_false(ubarrier_wait_for(&barrier, phase, 0));
 
     ubarrier_deinit(&barrier);
 }

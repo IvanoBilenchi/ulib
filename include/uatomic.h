@@ -12,7 +12,12 @@
 #ifndef UATOMIC_H
 #define UATOMIC_H
 
+#include "uattrs.h"
+#include "udeadline.h"
+#include "ulib_ret_t.h"
 #include "uplatform.h"
+#include <stddef.h>
+#include <stdint.h>
 
 /**
  * @defgroup UAtomic_types Atomic types
@@ -461,7 +466,6 @@ typedef enum UMemoryOrder {
 
 #else
 
-#include "uattrs.h"
 #include <stdbool.h>
 
 /// @cond
@@ -693,6 +697,35 @@ P_UATOMIC_FUNCS_GEN_BASE(void *, ptr)
 
 #endif // ULIB_CONCURRENCY
 
+/// @cond
+// clang-format off
+
+// Whether sub-word atomics are lock-free, which decides the width of the types below and, with
+// them, the layout of every public structure built on them. Asked of the implementation, except
+// on MSVC, whose two answers disagree: <stdatomic.h> reports "sometimes", <atomic> "always",
+// which would give those structures one layout in C and another in C++. Both compile to
+// interlocked instructions on every target MSVC supports, so "always" is the answer that holds
+// for either language.
+#ifdef _MSC_VER
+    #define P_UATOMIC_CHAR_IS_LOCK_FREE 1
+    #define P_UATOMIC_SHORT_IS_LOCK_FREE 1
+#else
+    #define P_UATOMIC_CHAR_IS_LOCK_FREE (UATOMIC_CHAR_LOCK_FREE == UATOMIC_LOCK_FREE_ALWAYS)
+    #define P_UATOMIC_SHORT_IS_LOCK_FREE (UATOMIC_SHORT_LOCK_FREE == UATOMIC_LOCK_FREE_ALWAYS)
+#endif
+
+// Byte wide atomics keep synchronization primitives small, but are not lock-free on every
+// target, where they instead reach a runtime support library that freestanding targets do not
+// link. Widening them there trades the size back for the guarantee.
+#if P_UATOMIC_CHAR_IS_LOCK_FREE
+    typedef uint8_t p_uatomic_byte;
+#else
+    typedef uint32_t p_uatomic_byte;
+#endif
+
+// clang-format on
+/// @endcond
+
 /**
  * @addtogroup UAtomic_api
  * @{
@@ -797,6 +830,200 @@ P_UATOMIC_FUNCS_GEN_BASE(void *, ptr)
  * @alias T uatomic_fxor_ex(UAtomic(T) *obj, T value, UMemoryOrder order);
  */
 #define uatomic_fxor_ex(obj, value, order) uatomic_fetch_xor_ex(obj, value, order)
+
+ULIB_BEGIN_DECLS
+
+// MSVC counts _Atomic among the qualifiers a pointer conversion may not drop (C4090), so the
+// conversion of an atomic object to the opaque address these take is spelled out.
+#define p_uatomic_addr(obj) ((void const *)(obj))
+
+ULIB_API
+ulib_ret p_uatomic_wait(void const *obj, uint64_t expected, size_t size, UDeadline deadline,
+                        UMemoryOrder order);
+
+ULIB_API
+void p_uatomic_notify_one(void const *obj);
+
+ULIB_API
+void p_uatomic_notify_all(void const *obj);
+
+ULIB_END_DECLS
+
+/**
+ * Blocks the calling thread until the value of an atomic object differs from `expected`.
+ *
+ * The object must be an integer, one, two, four or eight bytes wide, and no wider than a
+ * pointer: a wider load may be emitted out of line, into a runtime support library that
+ * freestanding targets do not link.
+ *
+ * @param obj The atomic object.
+ * @param expected The value to wait for a change from.
+ * @return - @val{ULIB_OK} if the value changed.
+ *         - @val{ULIB_ERR_UNSUPPORTED} if the object is wider than a pointer.
+ *         - @val{ULIB_ERR} if the thread could not be blocked.
+ *
+ * @note Returns only once the value has actually changed, so there is no need to loop.
+ *
+ * @note If concurrency is disabled, this function reports success if the value already differs,
+ *       and @val{ULIB_ERR_UNSUPPORTED} otherwise, since no other thread could ever change it.
+ *
+ * @alias ulib_ret uatomic_wait(UAtomic(T) *obj, T expected);
+ */
+#define uatomic_wait(obj, expected) uatomic_wait_ex(obj, expected, UMO_SEQ_CST)
+
+/**
+ * Blocks the calling thread until the value of an atomic object differs from `expected`.
+ *
+ * The object must be an integer, one, two, four or eight bytes wide, and no wider than a
+ * pointer: a wider load may be emitted out of line, into a runtime support library that
+ * freestanding targets do not link.
+ *
+ * @param obj The atomic object.
+ * @param expected The value to wait for a change from.
+ * @param order Memory order of the loads performed while comparing.
+ * @return - @val{ULIB_OK} if the value changed.
+ *         - @val{ULIB_ERR_UNSUPPORTED} if the object is wider than a pointer.
+ *         - @val{ULIB_ERR} if the thread could not be blocked.
+ *
+ * @note Returns only once the value has actually changed, so there is no need to loop.
+ *
+ * @note If concurrency is disabled, this function reports success if the value already differs,
+ *       and @val{ULIB_ERR_UNSUPPORTED} otherwise, since no other thread could ever change it.
+ *
+ * @alias ulib_ret uatomic_wait_ex(UAtomic(T) *obj, T expected, UMemoryOrder order);
+ */
+#define uatomic_wait_ex(obj, expected, order)                                                      \
+    uatomic_wait_until_ex(obj, expected, udeadline_never(), order)
+
+/**
+ * Blocks the calling thread until the value of an atomic object differs from `expected`,
+ * for up to the specified time span.
+ *
+ * The object must be an integer, one, two, four or eight bytes wide, and no wider than a
+ * pointer: a wider load may be emitted out of line, into a runtime support library that
+ * freestanding targets do not link.
+ *
+ * @param obj The atomic object.
+ * @param expected The value to wait for a change from.
+ * @param timeout Maximum time to block for. @val{UTIME_NS_MAX} blocks indefinitely.
+ * @return - @val{ULIB_OK} if the value changed.
+ *         - @val{ULIB_ERR_TIMEOUT} if the timeout expired.
+ *         - @val{ULIB_ERR_UNSUPPORTED} if the object is wider than a pointer.
+ *         - @val{ULIB_ERR} if the thread could not be blocked.
+ *
+ * @note Returns only once the value has actually changed, so there is no need to loop.
+ *
+ * @note If concurrency is disabled, this function reports success if the value already differs,
+ *       and @val{ULIB_ERR_TIMEOUT} otherwise, since no other thread could ever change it.
+ *
+ * @alias ulib_ret uatomic_wait_for(UAtomic(T) *obj, T expected, utime_ns timeout);
+ */
+#define uatomic_wait_for(obj, expected, timeout)                                                   \
+    uatomic_wait_for_ex(obj, expected, timeout, UMO_SEQ_CST)
+
+/**
+ * Blocks the calling thread until the value of an atomic object differs from `expected`,
+ * for up to the specified time span.
+ *
+ * The object must be an integer, one, two, four or eight bytes wide, and no wider than a
+ * pointer: a wider load may be emitted out of line, into a runtime support library that
+ * freestanding targets do not link.
+ *
+ * @param obj The atomic object.
+ * @param expected The value to wait for a change from.
+ * @param timeout Maximum time to block for. @val{UTIME_NS_MAX} blocks indefinitely.
+ * @param order Memory order of the loads performed while comparing.
+ * @return - @val{ULIB_OK} if the value changed.
+ *         - @val{ULIB_ERR_TIMEOUT} if the timeout expired.
+ *         - @val{ULIB_ERR_UNSUPPORTED} if the object is wider than a pointer.
+ *         - @val{ULIB_ERR} if the thread could not be blocked.
+ *
+ * @note Returns only once the value has actually changed, so there is no need to loop.
+ *
+ * @note If concurrency is disabled, this function reports success if the value already differs,
+ *       and @val{ULIB_ERR_TIMEOUT} otherwise, since no other thread could ever change it.
+ *
+ * @alias ulib_ret uatomic_wait_for_ex(UAtomic(T) *obj, T expected, utime_ns timeout,
+ *                                     UMemoryOrder order);
+ */
+#define uatomic_wait_for_ex(obj, expected, timeout, order)                                         \
+    uatomic_wait_until_ex(obj, expected, udeadline(timeout), order)
+
+/**
+ * Blocks the calling thread until the value of an atomic object differs from `expected`,
+ * or until the specified deadline.
+ *
+ * The object must be an integer, one, two, four or eight bytes wide, and no wider than a
+ * pointer: a wider load may be emitted out of line, into a runtime support library that
+ * freestanding targets do not link.
+ *
+ * @param obj The atomic object.
+ * @param expected The value to wait for a change from.
+ * @param deadline Instant past which the thread stops blocking.
+ * @return - @val{ULIB_OK} if the value changed.
+ *         - @val{ULIB_ERR_TIMEOUT} if the deadline expired.
+ *         - @val{ULIB_ERR_UNSUPPORTED} if the object is wider than a pointer.
+ *         - @val{ULIB_ERR} if the thread could not be blocked.
+ *
+ * @note Returns only once the value has actually changed, so there is no need to loop.
+ *
+ * @note If concurrency is disabled, this function reports success if the value already differs,
+ *       and @val{ULIB_ERR_TIMEOUT} otherwise, since no other thread could ever change it.
+ *
+ * @alias ulib_ret uatomic_wait_until(UAtomic(T) *obj, T expected, UDeadline deadline);
+ */
+#define uatomic_wait_until(obj, expected, deadline)                                                \
+    uatomic_wait_until_ex(obj, expected, deadline, UMO_SEQ_CST)
+
+/**
+ * Blocks the calling thread until the value of an atomic object differs from `expected`,
+ * or until the specified deadline.
+ *
+ * The object must be an integer, one, two, four or eight bytes wide, and no wider than a
+ * pointer: a wider load may be emitted out of line, into a runtime support library that
+ * freestanding targets do not link.
+ *
+ * @param obj The atomic object.
+ * @param expected The value to wait for a change from.
+ * @param deadline Instant past which the thread stops blocking.
+ * @param order Memory order of the loads performed while comparing.
+ * @return - @val{ULIB_OK} if the value changed.
+ *         - @val{ULIB_ERR_TIMEOUT} if the deadline expired.
+ *         - @val{ULIB_ERR_UNSUPPORTED} if the object is wider than a pointer.
+ *         - @val{ULIB_ERR} if the thread could not be blocked.
+ *
+ * @note Returns only once the value has actually changed, so there is no need to loop.
+ *
+ * @note If concurrency is disabled, this function reports success if the value already differs,
+ *       and @val{ULIB_ERR_TIMEOUT} otherwise, since no other thread could ever change it.
+ *
+ * @alias ulib_ret uatomic_wait_until_ex(UAtomic(T) *obj, T expected, UDeadline deadline,
+ *                                       UMemoryOrder order);
+ */
+#define uatomic_wait_until_ex(obj, expected, deadline, order)                                      \
+    p_uatomic_wait(p_uatomic_addr(obj), (uint64_t)(expected), sizeof(*(obj)), deadline, order)
+
+/**
+ * Wakes up one thread waiting on an atomic object.
+ *
+ * @param obj The atomic object.
+ *
+ * @note If concurrency is disabled, this function does nothing.
+ *
+ * @alias void uatomic_notify_one(UAtomic(T) *obj);
+ */
+#define uatomic_notify_one(obj) p_uatomic_notify_one(p_uatomic_addr(obj))
+
+/**
+ * Wakes up all threads waiting on an atomic object.
+ *
+ * @param obj The atomic object.
+ *
+ * @note If concurrency is disabled, this function does nothing.
+ *
+ * @alias void uatomic_notify_all(UAtomic(T) *obj);
+ */
+#define uatomic_notify_all(obj) p_uatomic_notify_all(p_uatomic_addr(obj))
 
 /// @}
 

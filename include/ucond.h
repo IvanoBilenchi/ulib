@@ -12,14 +12,12 @@
 #ifndef UCOND_H
 #define UCOND_H
 
-#include "uatomic.h"
 #include "uattrs.h"
 #include "udeadline.h"
 #include "ulib_ret.h"
 #include "ulock.h"
 #include "uplatform.h"
 #include <stdbool.h>
-#include <stdint.h>
 
 ULIB_BEGIN_DECLS
 
@@ -31,7 +29,9 @@ ULIB_BEGIN_DECLS
 /// A synchronization primitive that allows threads to wait for a condition to become true.
 typedef struct UCond {
     /// @cond
-    UAtomic(uint32_t) _seq;
+    // A condition variable has no state of its own: the predicate belongs to the caller, and the
+    // wait queue is keyed on this object's address.
+    char _dummy;
     /// @endcond
 } UCond;
 
@@ -69,14 +69,6 @@ void ucond_deinit(UCond *cond);
 ULIB_API
 void ucond_signal(UCond *cond);
 
-/**
- * Wakes up all the threads waiting on the condition variable, if any.
- *
- * @param cond Condition variable to signal.
- */
-ULIB_API
-void ucond_broadcast(UCond *cond);
-
 /// @}
 
 ULIB_API void p_ucond_wait_ULock(UCond *cond, ULock *lock);
@@ -91,6 +83,12 @@ ULIB_API bool p_ucond_wait_until_USLock(UCond *cond, USLock *lock, UDeadline dea
 ULIB_API bool p_ucond_wait_until_URWLock(UCond *cond, URWLock *lock, UDeadline deadline);
 ULIB_API bool p_ucond_wait_until_URWRLock(UCond *cond, URWRLock *lock, UDeadline deadline);
 
+ULIB_API void p_ucond_broadcast_ULock(UCond *cond, ULock *lock);
+ULIB_API void p_ucond_broadcast_URLock(UCond *cond, URLock *lock);
+ULIB_API void p_ucond_broadcast_USLock(UCond *cond, USLock *lock);
+ULIB_API void p_ucond_broadcast_URWLock(UCond *cond, URWLock *lock);
+ULIB_API void p_ucond_broadcast_URWRLock(UCond *cond, URWRLock *lock);
+
 ULIB_END_DECLS
 
 // Generic API
@@ -104,7 +102,8 @@ ULIB_END_DECLS
     ULIB_INLINE bool ucond_wait_until(UCond *cond, T *lock, UDeadline d)                           \
         { return p_ucond_wait_until_##T(cond, lock, d); }                                          \
     ULIB_INLINE bool ucond_wait_for(UCond *cond, T *lock, utime_ns t)                              \
-        { return ucond_wait_until(cond, lock, udeadline(t)); }
+        { return ucond_wait_until(cond, lock, udeadline(t)); }                                     \
+    ULIB_INLINE void ucond_broadcast(UCond *cond, T *lock) { p_ucond_broadcast_##T(cond, lock); }
 
 P_UCOND_CPP_IMPL(ULock)
 P_UCOND_CPP_IMPL(URLock)
@@ -198,6 +197,28 @@ P_UCOND_CPP_IMPL(URWRLock)
  * @alias bool ucond_wait_for(UCond *cond, UAnyLock *lock, utime_ns timeout);
  */
 #define ucond_wait_for(cond, lock, timeout) ucond_wait_until(cond, lock, udeadline(timeout))
+
+/**
+ * Wakes up all the threads waiting on the condition variable, if any.
+ *
+ * @param cond Condition variable to signal.
+ * @param lock Lock the waiters are waiting with.
+ *
+ * @note Waiters are handed over to `lock` rather than woken, since they have to reacquire it one
+ *       at a time regardless. At most one is woken, and only if `lock` is free.
+ *
+ * @warning Every waiter must be waiting with `lock`, as waiters given the wrong lock would queue
+ *          for one nobody is going to release.
+ *
+ * @alias void ucond_broadcast(UCond *cond, UAnyLock *lock);
+ */
+#define ucond_broadcast(cond, lock)                                                                \
+    _Generic((lock),                                                                               \
+        ULock *: p_ucond_broadcast_ULock,                                                          \
+        URLock *: p_ucond_broadcast_URLock,                                                        \
+        USLock *: p_ucond_broadcast_USLock,                                                        \
+        URWLock *: p_ucond_broadcast_URWLock,                                                      \
+        URWRLock *: p_ucond_broadcast_URWRLock)(cond, lock)
 
 /// @}
 

@@ -7,8 +7,18 @@
 
 #include "ulock_tests.h"
 #include "ulib.h"
+#include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
+
+#if ULIB_CONCURRENCY && !defined(ULIB_PLATFORM_SYNC) && P_UATOMIC_CHAR_IS_LOCK_FREE &&             \
+    P_UATOMIC_SHORT_IS_LOCK_FREE
+// Locks are meant to be cheap enough to embed liberally, so guard their layout.
+static_assert(sizeof(ULock) == sizeof(p_uatomic_byte), "ULock should be one word of state");
+static_assert(sizeof(URLock) == 2 * sizeof(UThreadId), "URLock should not outgrow its owner id");
+static_assert(sizeof(URWLock) == 4, "URWLock should be four bytes");
+static_assert(sizeof(USLock) == sizeof(p_uatomic_byte), "USLock should be one word of state");
+#endif
 
 enum {
     THREAD_COUNT = 16,
