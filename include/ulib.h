@@ -33,6 +33,7 @@
 #include "ulib_init.h"
 #include "ulib_ret.h"
 #include "ulib_ret_t.h"
+#include "ulist.h"
 #include "ulock.h"
 #include "ulog.h"
 #include "umeta.h"

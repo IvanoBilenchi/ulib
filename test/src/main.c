@@ -16,6 +16,7 @@
 #include "uiter_tests.h"
 #include "ulatch_tests.h"
 #include "ulib.h"
+#include "ulist_tests.h"
 #include "ulock_tests.h"
 #include "ulog_tests.h"
 #include "umetrics_tests.h"
@@ -38,6 +39,7 @@ utest_main({
     utest_run("ustring", USTRING_TESTS);
     utest_run("uvec", UVEC_TESTS);
     utest_run("uhash", UHASH_TESTS);
+    utest_run("ulist", ULIST_TESTS);
     utest_run("uiter", UITER_TESTS);
     utest_run("ustream", USTREAM_TESTS);
     utest_run("ulog", ULOG_TESTS);

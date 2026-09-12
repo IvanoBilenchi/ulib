@@ -25,6 +25,8 @@ uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `ULIB_THREAD_STACK_SIZE`, the size of the stacks uLib allocates for threads that were not
   given one through `uthread_set_stack`.
 - Native Zephyr threading, allowing concurrency without its POSIX subsystem.
+- `UList`, an intrusive linked list whose links are reached through accessors provided at
+  instantiation, so that they can be stored as pointers, pool indices or tagged pointers.
 
 ### Changed
 - Reworked `ubit_*` and `ulib_uint_*` APIs to be generic.

@@ -6,3 +6,4 @@ Collections
 
    collection_vector
    collection_hash
+   collection_list
