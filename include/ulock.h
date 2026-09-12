@@ -28,9 +28,6 @@ ULIB_BEGIN_DECLS
 #if ULIB_CONCURRENCY
     #include "uatomic.h"
 
-    // A plain byte rather than a uatomic_flag: the flag's representation is up to the standard
-    // library, and MSVC's C and C++ ones do not agree on it, which would give this structure a
-    // layout per language.
     struct USLock {
         UAtomic(p_uatomic_byte) _flag;
     };
@@ -39,17 +36,12 @@ ULIB_BEGIN_DECLS
         #include "uthread.h"
         #include <stdint.h>
 
-        // A narrower state halves the lock, but sub-word atomics are not lock-free on every
-        // target; the fallback mirrors what uatomic.h does for p_uatomic_byte.
         #if P_UATOMIC_SHORT_IS_LOCK_FREE
             typedef uint16_t p_urwlock_word;
         #else
             typedef uint32_t p_urwlock_word;
         #endif
 
-        // Two flag bits and the adaptive spin budget share one byte. The budget is only a
-        // hint, so it can live in the word threads compare-and-swap, provided every update to
-        // it preserves the flags; what it costs in exchange is a ceiling of 67 spins.
         struct ULock {
             UAtomic(p_uatomic_byte) _state;
         };
@@ -60,8 +52,6 @@ ULIB_BEGIN_DECLS
             UAtomic(UThreadId) _owner;
         };
 
-        // Readers and writers park on their own budget byte, so each waiter class gets a
-        // queue of its own without the lock growing a word to key it on.
         struct URWLock {
             UAtomic(p_urwlock_word) _state;
             UAtomic(p_uatomic_byte) _rspin;
@@ -69,7 +59,6 @@ ULIB_BEGIN_DECLS
         };
     #elif ULIB_OS_IS_ZEPHYR
         #include <zephyr/kernel.h> // IWYU pragma: keep, for k_mutex
-        // Zephyr provides no reader/writer lock, so shared locks degrade to exclusive ones.
         struct ULock {
             struct k_mutex _h;
         };
@@ -222,8 +211,6 @@ ULIB_INLINE void p_ulock_assert(ulib_unused bool acquired) {
 }
 
 ULIB_INLINE bool p_ulock_expire(UDeadline deadline) {
-    // Waiting out a deadline that never expires would deadlock: report failure rather than
-    // never return.
     utime_ns const remaining = udeadline_remaining(deadline);
     if (remaining && remaining != UTIME_NS_MAX) uthread_sleep(remaining);
     return false;
@@ -396,13 +383,10 @@ P_ULOCK_CPP_LOCK_IMPL(URWRLock)
 #define ulock_lock(lock) p_ulock_generic(_lock, lock)(lock)
 
 /**
- * Tries to lock a lock.
- *
- * If the lock is already held, returns `false` instead of blocking.
- * Otherwise, acquires the lock and returns `true`.
+ * Equivalent to calling `ulock_trylock_until(lock, udeadline(0))`.
  *
  * @param lock Lock to try to lock.
- * @return True if the lock was successfully acquired, false otherwise.
+ * @return See @func{ulock_trylock_until}.
  *
  * @alias bool ulock_trylock(UAnyLock *lock);
  */
@@ -422,14 +406,11 @@ P_ULOCK_CPP_LOCK_IMPL(URWRLock)
 #define ulock_trylock_until(lock, deadline) p_ulock_generic(_trylock_until, lock)(lock, deadline)
 
 /**
- * Tries to lock a lock, blocking the calling thread for up to the specified time span.
+ * Equivalent to calling `ulock_trylock_until(lock, udeadline(timeout))`.
  *
  * @param lock Lock to try to lock.
- * @param timeout Maximum time to block for. @val{UTIME_NS_MAX} blocks indefinitely,
- *                zero behaves like @func{ulock_trylock}.
- * @return True if the lock was successfully acquired, false if the timeout expired.
- *
- * @note The calling thread may stay blocked for longer than `timeout`, never shorter.
+ * @param timeout Maximum time to block for. @val{UTIME_NS_MAX} blocks indefinitely.
+ * @return See @func{ulock_trylock_until}.
  *
  * @alias bool ulock_trylock_for(UAnyLock *lock, utime_ns timeout);
  */

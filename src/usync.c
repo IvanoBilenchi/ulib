@@ -18,8 +18,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-// Bounds the tick and timespec conversions below, whose ranges are narrower than utime_ns. A
-// waiter that hits it is still queued, and simply blocks again.
 #define SYNC_MAX_TIMEOUT (UTIME_NS_PER_MINUTE * 60)
 
 #if P_UFUTEX_NATIVE
@@ -41,7 +39,6 @@ enum {
     PARKER_SIGNALLED,
 };
 
-// Nothing process wide to set up: a futex is the kernel's own queue.
 ulib_ret p_usync_init(void) {
     return ULIB_OK;
 }
@@ -59,9 +56,6 @@ static inline bool mutex_tryacquire(UPMutex *mutex) {
     return uatomic_cas_ex(mutex, &state, MUTEX_HELD, UMO_ACQUIRE, UMO_RELAXED);
 }
 
-// Waiting out a holder only beats descheduling for it where another core can be running that
-// holder, which is the very thing a build without adaptive spinning has declared it cannot count
-// on. Spinning here would then burn the quantum of the thread the spinner is waiting on.
 #ifdef ULIB_LOCK_NO_SPIN
 
 static inline bool mutex_spin(ulib_unused UPMutex *mutex) {
@@ -74,9 +68,6 @@ static inline bool mutex_spin(ulib_unused UPMutex *mutex) {
 
 enum { MUTEX_SPINS = 40 };
 
-// A queue is held for a handful of instructions, so waiting one out costs far less than
-// descheduling for it. Tested before every attempt, so that spinners do not take the line away
-// from the holder they are waiting on.
 static bool mutex_spin(UPMutex *mutex) {
     for (unsigned i = 0; i < MUTEX_SPINS; ++i) {
         uthread_yield_cpu();
@@ -127,31 +118,29 @@ bool upparker_timed_out(UPParker *parker) {
     return uatomic_load_ex(parker, UMO_ACQUIRE) == PARKER_BLOCKED;
 }
 
-UPParker *upparker_unpark_lock(UPParker *parker) {
+UPUnparkHandle upparker_unpark_begin(UPParker *parker) {
     uatomic_store_ex(parker, PARKER_SIGNALLED, UMO_RELEASE);
-    return parker;
+    return (UPUnparkHandle){ parker };
 }
 
-void upparker_unpark(UPParker *parker) {
-    // Nothing keeps the parker alive here, and nothing needs to: the wake takes the address as a
-    // key and never reads it, so a thread that has already left, or even exited, costs at worst a
-    // wake nobody is waiting for.
-    (void)ufutex_wake_one(parker);
+void upparker_unpark_end(UPUnparkHandle handle) {
+    // The parker may be gone by now, since its thread can return as soon as it sees the signal,
+    // and even exit. That is fine: the wake uses the address only as a key and never
+    // dereferences it, so the worst case is a wake that nobody is waiting for.
+    (void)ufutex_wake_one(handle.parker);
 }
 
 #else // P_UFUTEX_NATIVE
 
 // MARK: - Mutex + condvar
 
-// The parker is assembled at the bottom of this file from the platform's mutex and condition
-// variable, so each platform only has to supply these.
 static bool upcond_init(UPCond *cond);
 static void upcond_wait(UPCond *cond, UPMutex *mutex);
 static void upcond_wait_for(UPCond *cond, UPMutex *mutex, utime_ns timeout);
 static void upcond_signal(UPCond *cond);
 
 // Thread-local storage has no destructor in C, so a platform whose primitives must be released
-// when their thread exits hooks one here, on the parker that thread has just built.
+// when their thread exits may register one here.
 static void upparker_register(UPParker *parker);
 
 #if ULIB_OS_IS_ZEPHYR
@@ -198,7 +187,6 @@ static void upcond_signal(UPCond *cond) {
     k_condvar_signal(cond);
 }
 
-// k_mutex and k_condvar own nothing that has to be given back.
 static void upparker_register(ulib_unused UPParker *parker) {}
 
 #elif ULIB_OS_HAS_PTHREADS
@@ -208,8 +196,6 @@ static void upparker_register(ulib_unused UPParker *parker) {}
 #include <pthread.h>
 #include <time.h>
 
-// Waits are timed against the same clock as the rest of the library where the platform allows
-// selecting one, so that a wall clock adjustment cannot cut them short or stretch them.
 #if defined(_POSIX_CLOCK_SELECTION) && _POSIX_CLOCK_SELECTION > 0 && defined(CLOCK_MONOTONIC)
 #define SYNC_CLOCK CLOCK_MONOTONIC
 #define SYNC_HAS_CONDATTR 1
@@ -238,7 +224,6 @@ ulib_ret p_usync_init(void) {
     }
     sync_condattr_ptr = &sync_condattr;
 #endif
-    // A missing key costs each thread its destructor, not correctness, so it does not fail init.
     parker_key_ready = !pthread_key_create(&parker_key, parker_destroy);
     return ULIB_OK;
 }
@@ -343,9 +328,6 @@ bool upparker_park(UPParker *parker, UDeadline deadline) {
     return unparked;
 }
 
-// Taking the mutex is not only how the flag is read safely: it is what waits out a waker that has
-// already taken this parker but not yet signalled it, since that half runs with the queue
-// unlocked. Without it a thread could leave, and exit, with its own wakeup still in flight.
 bool upparker_timed_out(UPParker *parker) {
     upmutex_lock(&parker->mutex);
     bool const should_park = parker->should_park;
@@ -353,17 +335,17 @@ bool upparker_timed_out(UPParker *parker) {
     return should_park;
 }
 
-UPParker *upparker_unpark_lock(UPParker *parker) {
+UPUnparkHandle upparker_unpark_begin(UPParker *parker) {
     upmutex_lock(&parker->mutex);
     parker->should_park = false;
-    return parker;
+    return (UPUnparkHandle){ parker };
 }
 
-void upparker_unpark(UPParker *parker) {
-    // Signalled while the parker is still held, since letting go first would let the thread leave
-    // and exit, taking the condition variable with it.
-    upcond_signal(&parker->cond);
-    upmutex_unlock(&parker->mutex);
+void upparker_unpark_end(UPUnparkHandle handle) {
+    // Signal before unlocking the parker's mutex: once it is released, the thread can return and
+    // exit, destroying the condition variable before the signal reaches it.
+    upcond_signal(&handle.parker->cond);
+    upmutex_unlock(&handle.parker->mutex);
 }
 
 #endif // P_UFUTEX_NATIVE

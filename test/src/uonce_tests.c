@@ -10,7 +10,6 @@
 #include <assert.h>
 
 #if UATOMIC_CHAR_LOCK_FREE == UATOMIC_LOCK_FREE_ALWAYS
-// Three states fit in one byte.
 static_assert(sizeof(UOnce) == 1, "UOnce should be one byte");
 #endif
 

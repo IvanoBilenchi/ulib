@@ -21,15 +21,6 @@
 #include "utime_t.h"
 #endif
 
-// A wait is a park whose predicate compares the value at the address it parks on, which is what
-// the lot was built to express. Only the width has to be recovered at runtime, since the macro
-// that gets here has already widened the value the caller passed.
-
-// A load wider than the platform's own word can be emitted out of line, into a runtime support
-// library that freestanding targets do not link and that some toolchains do not even ship. The
-// type still reports itself as lock-free there, because it is: whether the operation is inlined
-// is a separate question, decided by flags this code cannot see. Where the word is that wide the
-// load is a plain one and the question cannot arise, so that is where the widest wait is offered.
 #if UINTPTR_MAX > UINT32_MAX
 #define P_UATOMIC_WAIT_MAX_SIZE 8
 #else
@@ -43,7 +34,6 @@ typedef struct AtomicCmp {
     UMemoryOrder order;
 } AtomicCmp;
 
-// The order is dropped along with the atomics themselves when concurrency is off.
 static uint64_t atomic_load_sized(void const *obj, size_t size, ulib_unused UMemoryOrder order) {
     switch (size) {
         case 1: return uatomic_load_ex((UAtomic(uint8_t) const *)obj, order);
@@ -55,8 +45,6 @@ static uint64_t atomic_load_sized(void const *obj, size_t size, ulib_unused UMem
     }
 }
 
-// Narrower than the value the caller widened, and possibly signed, so only the bytes the object
-// actually has can take part in the comparison.
 static uint64_t atomic_mask(uint64_t value, size_t size) {
     return size < sizeof(uint64_t) ? value & ((UINT64_C(1) << (size * CHAR_BIT)) - 1) : value;
 }
@@ -67,7 +55,6 @@ static bool atomic_differs(AtomicCmp const *cmp) {
 
 #if ULIB_CONCURRENCY
 
-// Only the lot needs the comparison in predicate form.
 static bool atomic_validate(void *ctx) {
     return !atomic_differs((AtomicCmp const *)ctx);
 }
@@ -85,8 +72,6 @@ ulib_ret p_uatomic_wait(void const *obj, uint64_t expected, size_t size, UDeadli
 
 #if ULIB_CONCURRENCY
     for (;;) {
-        // The comparison this owes the caller on every wakeup is the predicate the lot evaluates
-        // when the loop parks again, so there is nothing left for the loop body to do.
         ulib_ret const ret = upark(obj, atomic_validate, NULL, &cmp, deadline);
         if (ret == ULIB_NO) return ULIB_OK; // Refused to park: the value already differs.
         if (ret != ULIB_OK) return ret;

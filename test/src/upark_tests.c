@@ -29,8 +29,6 @@ static bool park_while_zero(void *arg) {
     return uatomic_load_ex(ctx->word, UMO_RELAXED) == 0;
 }
 
-// Runs once the caller is queued, which is what lets a test wake a thread it knows is parked
-// rather than one it hopes is.
 static void park_queued(void *arg) {
     ParkCtx *ctx = (ParkCtx *)arg;
     uatomic_fetch_add_ex(ctx->queued, 1, UMO_RELEASE);
@@ -71,7 +69,6 @@ void upark_test_validate(void) {
 
     utest_assert_enum(upark(&word, park_while_zero, park_queued, &ctx, udeadline_never()), ==,
                       ULIB_NO);
-    // A predicate that refuses parks nothing, so there is nothing to run before sleeping either.
     utest_assert_uint(uatomic_load(&queued), ==, 0);
 }
 
@@ -172,7 +169,6 @@ void upark_test_wake_some(void) {
     utest_assert(result.unparked);
     utest_assert(result.more);
 
-    // The whole group is taken in a single pass, so the callback sees the queue once, settled.
     utest_assert_uint(wake.calls, ==, 1);
     utest_assert(wake.last.more);
     utest_assert_uint(park_drain(&word), ==, THREAD_COUNT - 2);
@@ -191,7 +187,6 @@ void upark_test_wake_some_all(void) {
     park_start(threads, THREAD_COUNT, &ctx);
     uatomic_store_ex(&word, 1, UMO_RELEASE);
 
-    // Asking for more than are queued wakes everyone, and leaves nobody behind to report.
     UUnpark const result = upark_wake_some(&word, THREAD_COUNT + 1, NULL, NULL);
     utest_assert(result.unparked);
     utest_assert_false(result.more);
@@ -225,7 +220,6 @@ void upark_test_requeue_all(void) {
     uatomic_store_ex(&word, 1, UMO_RELEASE);
     upark_requeue(&word, &target, requeue_all, NULL);
 
-    // Everyone moved, and nobody was woken on the way, so the target holds all of them.
     utest_assert_false(upark_wake_all(&word));
     utest_assert_uint(park_drain(&target), ==, THREAD_COUNT);
 
@@ -246,7 +240,6 @@ void upark_test_requeue_wake_one(void) {
     upark_requeue(&word, &target, requeue_wake_one, NULL);
 
     utest_assert_false(upark_wake_all(&word));
-    // One was woken by the requeue itself, so the target received one fewer than it was given.
     utest_assert_uint(park_drain(&target), ==, THREAD_COUNT - 1);
 
     park_join(threads, THREAD_COUNT);

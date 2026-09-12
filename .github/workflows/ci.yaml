@@ -12,6 +12,7 @@ defaults:
 
 env:
   config: Debug
+  llvm: 23
 
 jobs:
   analyze:
@@ -26,6 +27,16 @@ jobs:
           - types: NORMAL
             concurrency: ON
     steps:
+      - name: Install LLVM
+        run: |
+          dist=$(lsb_release -cs)
+          curl -fsSL https://apt.llvm.org/llvm-snapshot.gpg.key |
+            sudo tee /etc/apt/trusted.gpg.d/llvm.asc > /dev/null
+          echo "deb https://apt.llvm.org/${dist}/ llvm-toolchain-${dist}-${{env.llvm}} main" |
+            sudo tee /etc/apt/sources.list.d/llvm.list > /dev/null
+          sudo apt-get update
+          sudo apt-get install -y clang-${{env.llvm}} clang-tidy-${{env.llvm}}
+
       - name: Checkout
         uses: actions/checkout@v6
         with:
@@ -41,6 +52,9 @@ jobs:
       - name: Configure
         run: >
           cmake --preset ci-analyze
+          -DCMAKE_C_COMPILER=clang-${{env.llvm}}
+          -DCMAKE_CXX_COMPILER=clang++-${{env.llvm}}
+          -DCLANG_TIDY_EXECUTABLE=clang-tidy-${{env.llvm}}
           -DULIB_TYPES=${{matrix.types}}
           -DULIB_CONCURRENCY=${{matrix.concurrency}}
 
@@ -57,10 +71,8 @@ jobs:
         variant: [normal, tiny, huge, concurrency, platform-sync, pthread-park, strict-iso,
                   shared-tsan, cpp]
         exclude:
-          # Windows has no pthreads, so its only parking backend is the native futex.
           - os: windows
             variant: pthread-park
-          # Feature test macros are a glibc and Darwin mechanism; MSVC has no equivalent.
           - os: windows
             variant: strict-iso
         include:
@@ -81,12 +93,9 @@ jobs:
           - variant: platform-sync
             concurrency: ON
             platform_sync: ON
-          # The parking backend that every platform with a native futex hides.
           - variant: pthread-park
             concurrency: ON
             native_futex: OFF
-          # uLib is vendored into projects that set CMAKE_C_EXTENSIONS OFF, so the build has to
-          # declare the feature test macros it needs rather than inherit them from GNU mode.
           - variant: strict-iso
             concurrency: ON
             c_extensions: OFF

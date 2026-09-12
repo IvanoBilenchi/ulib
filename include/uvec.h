@@ -317,6 +317,7 @@ typedef enum uvec_ret {
         ulib_uint count = uvec_count(T, vec);                                                      \
         ulib_analyzer_assert(idx < count);                                                         \
         T *const data = uvec_data(T, vec);                                                         \
+        ulib_analyzer_assert(count <= uvec_size(T, vec));                                          \
         data[idx] = data[--count];                                                                 \
         p_uvec_set_count_##T(vec, count);                                                          \
     }                                                                                              \
@@ -674,6 +675,8 @@ typedef enum uvec_ret {
                                                                                                    \
         T *data = uvec_data(T, vec);                                                               \
         T *o_data = uvec_data(T, other);                                                           \
+        ulib_analyzer_assert(count <= uvec_size(T, vec));                                          \
+        ulib_analyzer_assert(count <= uvec_size(T, other));                                        \
                                                                                                    \
         for (ulib_uint i = 0; i < count; ++i) {                                                    \
             if (!equal_func(data[i], o_data[i])) return false;                                     \
@@ -880,8 +883,9 @@ typedef enum uvec_ret {
     ULIB_INLINE void p_uvec_##TYPE##_heapq_down_##T(T *heap, ulib_uint len, ulib_uint i) {         \
         while (true) {                                                                             \
             ulib_uint l = (i << 1) + 1;                                                            \
+            if (l >= len) break;                                                                   \
             ulib_uint r = l + 1;                                                                   \
-            ulib_uint swap = (l < len && compare_func(heap[l], heap[i])) ? l : i;                  \
+            ulib_uint swap = compare_func(heap[l], heap[i]) ? l : i;                               \
             if (r < len && compare_func(heap[r], heap[swap])) swap = r;                            \
             if (swap == i) break;                                                                  \
             ulib_swap(T, heap[i], heap[swap]);                                                     \

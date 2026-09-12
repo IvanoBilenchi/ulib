@@ -18,14 +18,12 @@
 
 ULIB_BEGIN_DECLS
 
-// The address a lock's waiters queue on, and a way to record that someone is queued there without
-// queueing. Together they let a condition variable hand its waiters over to the lock they have to
-// reacquire, rather than waking them all to fight over it.
+// Let condition variables hand their waiters over to the lock they must reacquire, rather than
+// waking them all to fight over it.
 //
-// Marking always records that someone is queued, and reports whether the lock was held. A lock
-// that was free has to have one of its new waiters woken, since nothing else is going to release
-// it; one that was held will wake them itself, and cannot slip past the mark, because releasing a
-// marked lock has to take the very queue the marking is done under.
+//   park_addr:   Returns the address the lock's waiters park on.
+//   mark_parked: Flags the lock as having parked waiters, with its queue locked, and returns
+//                whether it was held: if not, the caller must wake one waiter, as no unlock will.
 
 #define P_ULOCK_DECL_PARK(T)                                                                       \
     void const *p_##T##_park_addr(T *lock);                                                        \

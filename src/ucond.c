@@ -39,13 +39,8 @@ void ucond_signal(UCond *cond) {
 
 #include "ulock_p.h" // IWYU pragma: keep, for p_*_mark_parked and p_*_park_addr
 
-// Handing the waiters over rather than waking them is the difference between one wakeup and one
-// per waiter: they have to reacquire the lock one at a time whatever happens, so every wakeup but
-// the first buys nothing except a trip back to the queue it came from.
 #define UCOND_BROADCAST_IMPL(T)                                                                    \
     static UParkRequeueOp cond_requeue_##T(void *ctx) {                                            \
-        /* Waiters handed to a lock nobody holds would be waiting on a release that never comes,   \
-           so one is woken to take it and the rest queue behind whoever wins it. */                \
         return p_##T##_mark_parked(ctx) ? UPARK_REQUEUE_ALL : UPARK_REQUEUE_WAKE_ONE;              \
     }                                                                                              \
                                                                                                    \
@@ -55,7 +50,6 @@ void ucond_signal(UCond *cond) {
 
 #else // ULIB_PLATFORM_SYNC
 
-// Platform locks keep their waiters where this library cannot reach them.
 #define UCOND_BROADCAST_IMPL UCOND_BROADCAST_WAKE_IMPL
 
 #endif // ULIB_PLATFORM_SYNC
@@ -66,16 +60,14 @@ UCOND_BROADCAST_WAKE_IMPL(USLock)
 UCOND_BROADCAST_IMPL(URWLock)
 UCOND_BROADCAST_IMPL(URWRLock)
 
-// Whether waiting is warranted is the caller's business, checked under the lock it is about to
-// release, so the queue has nothing of its own to validate.
 static bool cond_park(ulib_unused void *ctx) {
     return true;
 }
 
-// The lock is released once the caller is queued rather than before, which is what removes the
-// window a sequence counter used to cover: a signal cannot arrive between the two, since it must
-// take the very queue lock the enqueue held. Releasing it from the validation predicate instead
-// would deadlock outright whenever the condition variable and the lock hash to the same bucket.
+// The lock is released in before_sleep, after the caller is queued, so a signal sent once the lock
+// is free always finds the caller waiting. It can't be released in the predicate instead, since
+// that runs with the queue locked, and unlocking may need to wake the lock's own waiters, which
+// deadlocks if the lock and the condition variable hash to the same bucket.
 #define UCOND_WAIT_IMPL(T)                                                                         \
     typedef struct CondWait_##T {                                                                  \
         T *lock;                                                                                   \
@@ -95,7 +87,6 @@ static bool cond_park(ulib_unused void *ctx) {
     bool p_ucond_wait_until_##T(UCond *cond, T *lock, UDeadline deadline) {                        \
         CondWait_##T wait = { lock, false };                                                       \
         ulib_ret const ret = upark(cond, cond_park, cond_release_##T, &wait, deadline);            \
-        /* Never queued, so the lock was never released and must not be taken again. */            \
         if (!wait.released) return false;                                                          \
         ulock_lock(lock);                                                                          \
         return ret == ULIB_OK;                                                                     \

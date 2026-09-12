@@ -29,8 +29,6 @@ ULIB_BEGIN_DECLS
 /// A synchronization primitive that allows threads to wait for a condition to become true.
 typedef struct UCond {
     /// @cond
-    // A condition variable has no state of its own: the predicate belongs to the caller, and the
-    // wait queue is keyed on this object's address.
     char _dummy;
     /// @endcond
 } UCond;
@@ -121,21 +119,10 @@ P_UCOND_CPP_IMPL(URWRLock)
  */
 
 /**
- * Atomically unlocks `lock` and blocks the calling thread on `cond`, then locks `lock` again
- * before returning.
+ * Equivalent to calling `ucond_wait_until(cond, lock, udeadline_never())`.
  *
  * @param cond Condition variable to wait on.
  * @param lock Lock associated with the condition. Must be held by the calling thread.
- *
- * @note This function may return spuriously, i.e. without a corresponding call to
- *       @func{ucond_signal} or @func{ucond_broadcast}. Callers should always re-check their
- *       predicate in a loop.
- *
- * @note When waiting on a @type{URWRLock}, wake the waiters via @func{ucond_broadcast}:
- *       @func{ucond_signal} only wakes one of the readers blocked on the predicate.
- *
- * @warning A @type{URLock} must be held exactly once by the calling thread, as only one
- *          level of recursion is released.
  *
  * @alias void ucond_wait(UCond *cond, UAnyLock *lock);
  */
@@ -165,6 +152,12 @@ P_UCOND_CPP_IMPL(URWRLock)
  * @note If concurrency is disabled, this function does nothing and reports success, since no
  *       other thread could ever make the predicate true.
  *
+ * @note When waiting on a @type{URWRLock}, wake the waiters via @func{ucond_broadcast}:
+ *       @func{ucond_signal} only wakes one of the readers blocked on the predicate.
+ *
+ * @warning A @type{URLock} must be held exactly once by the calling thread, as only one
+ *          level of recursion is released.
+ *
  * @alias bool ucond_wait_until(UCond *cond, UAnyLock *lock, UDeadline deadline);
  */
 #define ucond_wait_until(cond, lock, deadline)                                                     \
@@ -176,39 +169,24 @@ P_UCOND_CPP_IMPL(URWRLock)
         URWRLock *: p_ucond_wait_until_URWRLock)(cond, lock, deadline)
 
 /**
- * Atomically unlocks `lock` and blocks the calling thread on `cond` for up to the specified
- * time span, then locks `lock` again before returning.
+ * Equivalent to calling `ucond_wait_until(cond, lock, udeadline(timeout))`.
  *
  * @param cond Condition variable to wait on.
  * @param lock Lock associated with the condition. Must be held by the calling thread.
  * @param timeout Maximum time to block for. @val{UTIME_NS_MAX} blocks indefinitely.
- * @return False if the timeout expired, true otherwise.
- *
- * @note This function may return spuriously, i.e. without a corresponding call to
- *       @func{ucond_signal} or @func{ucond_broadcast}. Callers should always re-check their
- *       predicate in a loop, and use @func{ucond_wait_until} to keep the total wait bounded
- *       while doing so.
- *
- * @note `lock` is acquired again in either case, and reacquiring it is not bound by `timeout`.
- *
- * @note If concurrency is disabled, this function does nothing and reports success, since no
- *       other thread could ever make the predicate true.
+ * @return See @func{ucond_wait_until}.
  *
  * @alias bool ucond_wait_for(UCond *cond, UAnyLock *lock, utime_ns timeout);
  */
 #define ucond_wait_for(cond, lock, timeout) ucond_wait_until(cond, lock, udeadline(timeout))
 
 /**
- * Wakes up all the threads waiting on the condition variable, if any.
+ * Releases all the threads waiting on the condition variable, if any, to reacquire `lock` in turn.
  *
  * @param cond Condition variable to signal.
  * @param lock Lock the waiters are waiting with.
  *
- * @note Waiters are handed over to `lock` rather than woken, since they have to reacquire it one
- *       at a time regardless. At most one is woken, and only if `lock` is free.
- *
- * @warning Every waiter must be waiting with `lock`, as waiters given the wrong lock would queue
- *          for one nobody is going to release.
+ * @warning Every waiter must be waiting with `lock`, otherwise it may never return.
  *
  * @alias void ucond_broadcast(UCond *cond, UAnyLock *lock);
  */

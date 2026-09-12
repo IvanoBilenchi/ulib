@@ -21,11 +21,6 @@
 #include "upark.h"
 #include "uwarning.h"
 
-// Packing the phase alongside the counters is what lets the barrier do without a lock: registering
-// an arrival, reporting the phase it belongs to and, for the arrival that completes a phase,
-// resetting the counter and moving the barrier on are a single compare-and-swap. An implementation
-// whose waiters can only watch one word cannot do this, as every arrival would then be a change to
-// the word they are watching.
 enum {
     BARRIER_COUNT_BITS = 14,
     BARRIER_PHASE_SHIFT = 2 * BARRIER_COUNT_BITS,
@@ -47,8 +42,6 @@ static inline uint32_t state_remaining(uint32_t state) {
     return ubit_and(state, BARRIER_REMAINING_MASK);
 }
 
-// The phase is a wrapping counter: it only has to differ from the one a waiter is holding, which
-// it does until the barrier is 15 phases past it.
 static inline uint32_t barrier_pack(UBarrierPhase phase, uint32_t count, uint32_t remaining) {
     return (phase << BARRIER_PHASE_SHIFT) | (count << BARRIER_COUNT_BITS) | remaining;
 }
@@ -65,10 +58,6 @@ ulib_ret ubarrier(UBarrier *barrier, uint16_t count) {
 
 void ubarrier_deinit(ulib_unused UBarrier *barrier) {}
 
-// Dropping is an arrival that also spends a participant, and sharing a word with the counter is
-// what makes it atomic against the reset: were the participant count kept apart, a thread dropping
-// out could decrement it just after the previous phase reset the counter from it, leaving one
-// arrival too many outstanding.
 static UBarrierPhase barrier_arrive(UBarrier *barrier, uint16_t count, bool drop) {
     uint32_t s = uatomic_load_ex(&barrier->_state, UMO_RELAXED);
     for (;;) {
@@ -77,12 +66,8 @@ static UBarrierPhase barrier_arrive(UBarrier *barrier, uint16_t count, bool drop
         UBarrierPhase const phase = state_phase(s);
         uint32_t const total = state_count(s) - drop;
         uint32_t const remaining = state_remaining(s) - count;
-        // Registering the last arrival is what opens the next phase.
         uint32_t const new_s = remaining ? barrier_pack(phase, total, remaining)
                                          : barrier_pack(phase + 1, total, total);
-        // Releasing on every arrival, rather than only on the one that completes the phase, is
-        // what the lock used to provide: each arrival publishes its work into the same chain of
-        // updates, so acquiring the phase acquires all of them.
         if (uatomic_wcas_ex(&barrier->_state, &s, new_s, UMO_ACQ_REL, UMO_RELAXED)) {
             if (!remaining) upark_wake_all(&barrier->_state);
             return phase;
@@ -111,8 +96,7 @@ void ubarrier_wait(UBarrier *barrier, UBarrierPhase phase) {
 bool ubarrier_wait_until(UBarrier *barrier, UBarrierPhase phase, UDeadline deadline) {
     BarrierWait wait = { barrier, phase };
     while (barrier_phase(barrier, UMO_ACQUIRE) == phase) {
-        // Checked after the phase rather than before it, so that a wait whose deadline expired
-        // while it was queued still reports a phase that completed in the meantime.
+        // Checked after the phase, so that a phase completing as the deadline expires is reported.
         if (!udeadline_remaining(deadline)) return false;
         (void)upark(&barrier->_state, barrier_park, NULL, &wait, deadline);
     }

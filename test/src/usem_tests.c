@@ -11,7 +11,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-// A semaphore should be cheap enough to embed liberally, so guard its layout.
 static_assert(sizeof(USem) == 4, "USem should be four bytes");
 
 enum {
@@ -85,9 +84,6 @@ void usem_test_wait_post(void) {
     usem_deinit(&sem);
 }
 
-// A batch post releases fewer permits than there are waiters, so exactly that many threads must
-// come through and the rest must stay blocked. This is what tells a bounded wakeup apart from one
-// that wakes everyone and lets the surplus sort itself out.
 void usem_test_partial_post(void) {
     USem sem = ulib_zero_init;
     utest_assert_enum(usem(&sem, 0), ==, ULIB_OK);

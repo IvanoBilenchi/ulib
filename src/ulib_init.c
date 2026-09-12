@@ -20,10 +20,6 @@
 #include <stddef.h>
 
 static UOnce init_once = UONCE_INIT;
-
-// The parking lot cannot be one of the subsystems below: UOnce parks and wakes on it, so it has
-// to be live before it runs. A spinlock is enough to serialize it, as it needs no initialization
-// of its own and is contended only by threads racing the very first ulib_init.
 static USLock park_lock = ulib_zero_init;
 static UAtomic(bool) park_ready = false;
 

@@ -7,7 +7,66 @@ include_guard(GLOBAL)
 
 include(CheckCCompilerFlag)
 
-# MARK: - Cache variables
+# MARK: - Math
+
+function(math_log2 INPUT_VAL RESULT_VAR)
+    set(LOG_VALUE 0)
+    while(INPUT_VAL GREATER 1)
+        math(EXPR INPUT_VAL "${INPUT_VAL} >> 1")
+        math(EXPR LOG_VALUE "${LOG_VALUE} + 1")
+    endwhile()
+    set("${RESULT_VAR}" "${LOG_VALUE}" PARENT_SCOPE)
+endfunction()
+
+# MARK: - Cache
+
+function(int_option INT_VAR INT_DOCSTRING)
+    # Parse function arguments.
+    list(LENGTH ARGN INDEX)
+    math(EXPR INDEX "${ARGC} - ${INDEX}")
+    cmake_parse_arguments(PARSE_ARGV "${INDEX}" INT "" "DEFAULT;MIN;MAX" "")
+
+    # Set zero as default if not specified.
+    if(NOT DEFINED INT_DEFAULT)
+        set(INT_DEFAULT 0)
+    endif()
+
+    # Describe the admitted range, if any.
+    if(DEFINED INT_MIN)
+        list(APPEND INT_RANGE ">=${INT_MIN}")
+    endif()
+    if(DEFINED INT_MAX)
+        list(APPEND INT_RANGE "<=${INT_MAX}")
+    endif()
+    list(JOIN INT_RANGE ", " INT_RANGE)
+
+    if(INT_RANGE)
+        set(INT_DOCSTRING "${INT_DOCSTRING} (${INT_RANGE})")
+    endif()
+
+    # Create the cache variable.
+    set("${INT_VAR}" "${INT_DEFAULT}" CACHE STRING "${INT_DOCSTRING}")
+    set(INT_VALUE "${${INT_VAR}}")
+
+    # Check that the value is an integer.
+    if(NOT INT_VALUE MATCHES "^[+-]?[0-9]+$")
+        string(CONCAT ERR_MSG
+            "Invalid value \"${INT_VALUE}\" for variable ${INT_VAR}. "
+            "It must be an integer."
+        )
+        message(FATAL_ERROR "${ERR_MSG}")
+    endif()
+
+    # Check that the value falls within the admitted range.
+    if((DEFINED INT_MIN AND INT_VALUE LESS INT_MIN) OR
+       (DEFINED INT_MAX AND INT_VALUE GREATER INT_MAX))
+        string(CONCAT ERR_MSG
+            "Out of range value \"${INT_VALUE}\" for variable ${INT_VAR}. "
+            "Admitted range: ${INT_RANGE}"
+        )
+        message(FATAL_ERROR "${ERR_MSG}")
+    endif()
+endfunction()
 
 function(enum_option ENUM_VAR ENUM_DOCSTRING)
     # Parse function arguments.

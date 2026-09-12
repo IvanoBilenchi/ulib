@@ -22,9 +22,21 @@
 #include "upark.h"
 #include "uwarning.h"
 
-// The permit count shares its word with a single bit saying whether anyone is parked on the
-// semaphore. That bit is exact, being raised from the park predicate and lowered once the queue
-// is seen empty, so a post that finds it clear knows it has nobody to wake and can skip the queue.
+// A semaphore.
+//
+// `_state` is structured as follows:
+//   - low 31 bits = permits available.
+//   - highest bit = waiters are parked on the word.
+//
+// Waiting takes a permit if there is one. Permits live in the low bits, so that is a plain
+// decrement, which leaves the flag untouched. If there are none, the thread parks on the word.
+// Before it does, `upark` has it check `_state` again with the queue locked: that is where it
+// raises the flag, or backs out if a permit has appeared in the meantime.
+//
+// Posting just adds the permits if the flag is clear, since nobody is queued to wake. Otherwise it
+// wakes one waiter per permit, oldest first, and adds the permits with the queue locked. The same
+// update lowers the flag if no waiters are left.
+
 #define SEM_WAITERS ubit32_bit(31)
 #define SEM_MASK ubit32_range(0, 31)
 #define SEM_MAX_PERMITS SEM_MASK
@@ -37,8 +49,6 @@ ulib_ret usem(USem *sem, uint32_t permits) {
 
 void usem_deinit(ulib_unused USem *sem) {}
 
-// Consuming a permit must leave the flag alone, since whoever raised it is queued, not gone.
-// Keeping the count in the low bits is what lets a plain decrement do that.
 bool usem_trywait(USem *sem) {
     uint32_t s = uatomic_load_ex(&sem->_state, UMO_RELAXED);
     while (ubit_any(s, SEM_MASK)) {
@@ -47,10 +57,6 @@ bool usem_trywait(USem *sem) {
     return false;
 }
 
-// Runs while the queue is locked, which is what lets one bit replace the waiter count an
-// implementation that can only compare a word has to maintain: the flag is raised only by a
-// thread that goes on to enqueue in the same breath, so it can never outlive a park that never
-// happened, and registering as a waiter no longer costs an increment and a decrement of its own.
 static bool sem_park(void *ctx) {
     USem *const sem = ctx;
     uint32_t s = uatomic_load_ex(&sem->_state, UMO_RELAXED);
@@ -62,12 +68,7 @@ static bool sem_park(void *ctx) {
     }
 }
 
-// A waiter that gives up can leave the flag standing over an empty queue, and unlike the writer
-// flag of a read-write lock that strands nobody: permits are consumed without regard to it, and
-// the predicate above refuses to park while any are available. It costs the next post one wasted
-// queue round trip, which is also what scrubs it.
 ULIB_NOINLINE static bool sem_wait_contended(USem *sem, UDeadline deadline) {
-    // Parking is pointless once the deadline has passed, and the permits were just checked.
     if (!udeadline_remaining(deadline)) return false;
 
     for (;;) {
@@ -85,24 +86,32 @@ bool usem_trywait_until(USem *sem, UDeadline deadline) {
     return usem_trywait(sem) || sem_wait_contended(sem, deadline);
 }
 
-static void sem_clear_waiters(UUnpark res, void *ctx) {
-    if (res.more) return;
-    USem *const sem = ctx;
-    uatomic_fetch_and_ex(&sem->_state, ubit_sub(ubit32_all(), SEM_WAITERS), UMO_RELAXED);
+typedef struct SemPost {
+    USem *sem;
+    uint32_t permits;
+} SemPost;
+
+static void sem_release(UUnpark res, void *ctx) {
+    SemPost *const post = ctx;
+    uint32_t s = uatomic_load_ex(&post->sem->_state, UMO_RELAXED);
+    for (;;) {
+        ulib_assert(ubit_and(s, SEM_MASK) <= SEM_MAX_PERMITS - post->permits);
+        uint32_t new_s = s + post->permits;
+        if (!res.more) new_s = ubit_sub(new_s, SEM_WAITERS);
+        if (uatomic_wcas_ex(&post->sem->_state, &s, new_s, UMO_RELEASE, UMO_RELAXED)) return;
+    }
 }
 
 void usem_post(USem *sem, uint32_t permits) {
     ulib_assert(permits <= SEM_MAX_PERMITS);
-    // Reading the flag out of the post's own read-modify-write is what makes the decision to wake
-    // race free without a sequentially consistent fence: it and the predicate's compare-and-swap
-    // act on one word, so either this sees the flag, or the predicate sees these permits and
-    // declines to park.
-    uint32_t const s = uatomic_faa_ex(&sem->_state, permits, UMO_RELEASE);
-    ulib_assert(ubit_and(s, SEM_MASK) <= SEM_MAX_PERMITS - permits);
-    // Each permit can satisfy at most one waiter, so wake as many as were posted, oldest first.
-    // Waking everyone instead would discard the arrival order the queue exists to maintain, handing
-    // the permits to whoever wins the race for them rather than to whoever has waited longest.
-    if (ubit_any(s, SEM_WAITERS)) upark_wake_some(&sem->_state, permits, sem_clear_waiters, sem);
+    uint32_t s = uatomic_load_ex(&sem->_state, UMO_RELAXED);
+    while (!ubit_any(s, SEM_WAITERS)) {
+        ulib_assert(ubit_and(s, SEM_MASK) <= SEM_MAX_PERMITS - permits);
+        uint32_t const new_s = s + permits;
+        if (uatomic_wcas_ex(&sem->_state, &s, new_s, UMO_RELEASE, UMO_RELAXED)) return;
+    }
+    SemPost post = { sem, permits };
+    upark_wake_some(&sem->_state, permits, sem_release, &post);
 }
 
 #else // ULIB_CONCURRENCY

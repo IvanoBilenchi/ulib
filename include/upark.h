@@ -66,8 +66,6 @@ typedef UParkRequeueOp (*UParkRequeueValidate)(void *ctx);
 
 /// @cond
 
-// MSVC counts _Atomic among the qualifiers a pointer conversion may not drop (C4090), and every
-// address the lot is keyed on is that of an atomic object, so the conversion is spelled out.
 #define p_upark_addr(addr) ((void const *)(addr))
 
 ULIB_API
@@ -96,21 +94,19 @@ void p_upark_requeue(void const *from, void const *to, UParkRequeueValidate vali
 /**
  * Parks the calling thread on the specified address.
  *
- * The address is a key, never dereferenced: what makes parking worthwhile is up to `validate`,
- * which is evaluated while the queue is locked, so that a waker cannot slip between the check
- * and the enqueue and have its wakeup lost.
- *
- * `before_sleep` runs once the caller is queued, with the queue unlocked so that it may itself
- * park or wake: a waker arriving in that window finds the node and its wakeup is recorded. It is
- * skipped if the predicate refuses, or if the thread could not be parked at all.
+ * The address is never dereferenced. Whether the caller still needs to wait is decided by
+ * `validate`, which runs while the queue is locked, so no wakeup can be missed between that check
+ * and queueing. `before_sleep` runs once the caller is queued, with the queue unlocked.
  *
  * @param addr Address to park on.
  * @param validate Predicate deciding whether to park.
  * @param before_sleep Invoked after queueing, before blocking, may be NULL.
  * @param ctx Context passed to the predicate and to `before_sleep`.
  * @param deadline Instant past which the calling thread stops blocking.
- * @return ULIB_OK if woken, ULIB_NO if the predicate refused, ULIB_ERR_TIMEOUT if the deadline
- *         expired, ULIB_ERR if the thread could not be parked.
+ * @return - ULIB_OK if woken.
+ *         - ULIB_NO if the predicate refused.
+ *         - ULIB_ERR_TIMEOUT if the deadline expired.
+ *         - ULIB_ERR if the thread could not be parked.
  *
  * @note `validate` runs while the queue is locked, so it must not itself park or wake.
  *
@@ -158,11 +154,9 @@ void p_upark_requeue(void const *from, void const *to, UParkRequeueValidate vali
  * @param addr Address the threads are parked on.
  * @return True if at least one thread was woken, false otherwise.
  *
- * @note Every thread queued when the call begins is taken in one pass, so a caller keeping a
- *       flag that records whether anyone is parked may clear it before calling rather than from
- *       a callback: a thread that raises it afterwards does so while enqueueing, under the very
- *       queue lock this call has yet to take, and is therefore owed a wakeup by whoever made it
- *       park rather than by this one.
+ * @note A flag recording whether any thread is parked can be safely cleared before calling
+ *       this function: threads that set it again are either woken by this call, or parked
+ *       after it.
  *
  * @alias bool upark_wake_all(void const *addr);
  */
@@ -171,10 +165,10 @@ void p_upark_requeue(void const *from, void const *to, UParkRequeueValidate vali
 /**
  * Hands the threads parked on one address over to another, waking at most one of them.
  *
- * Waking a group that must immediately queue somewhere else costs a wakeup each to deliver what
- * one thread at a time can use: moving them instead costs a wakeup at most, and the queue they
- * land on releases them as it drains. Whoever owns that queue is responsible for draining it,
- * which is what `validate` is asked to establish while both queues are locked.
+ * Waking threads that would immediately block again on another queue costs one wakeup each, even
+ * though only one of them can make progress. Moving them there instead costs at most one wakeup,
+ * and they are released one by one as that queue drains. Something must drain it, though:
+ * `validate` runs while both queues are locked, so that the caller can make sure it will.
  *
  * @param from Address the threads are parked on.
  * @param to Address to move them to, which must differ from `from`.

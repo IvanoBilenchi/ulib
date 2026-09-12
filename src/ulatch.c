@@ -51,8 +51,7 @@ static bool latch_park(void *ctx) {
 
 bool ulatch_wait_until(ULatch *latch, UDeadline deadline) {
     while (!ulatch_is_open(latch)) {
-        // Checked after the latch rather than before it, so that a wait whose deadline expired
-        // while it was queued still reports a latch that opened in the meantime.
+        // Checked after the latch, so that a latch opening as the deadline expires is reported.
         if (!udeadline_remaining(deadline)) return false;
         (void)upark(&latch->_count, latch_park, NULL, latch, deadline);
     }

@@ -16,6 +16,8 @@
 #include <stdint.h>
 #include <string.h>
 
+// MARK: - Base
+
 UIter uiter(void const *data, void *(*next)(UIter *self), void (*free)(UIter *self)) {
     return (UIter){
         ._next = next,
@@ -54,7 +56,7 @@ static inline void *inline_data(UIter *iter) {
     return (void *)iter->_inline_data;
 }
 
-// Empty iterator
+// MARK: - Empty
 
 static void *empty_next(ulib_unused UIter *self) {
     return NULL;
@@ -75,7 +77,7 @@ static inline bool is_empty(UIter const *iter) {
     return iter->_next == empty_next;
 }
 
-// Buffer iterator
+// MARK: - Buffer
 
 struct BufData {
     size_t elem_size;
@@ -104,7 +106,7 @@ UIter uiter_buf(void const *buf, size_t count, size_t elem_size) {
     return iter;
 }
 
-// Enumeration iterator
+// MARK: - Enumeration
 
 #define SOME_SIZE _util[0]
 #define SOME_CUR _util[1]
@@ -147,7 +149,7 @@ UIter uiter_enum(size_t count, void const **elems) {
     return size <= P_UITER_INLINE_SIZE ? enum_inline(elems, size) : enum_alloc(elems, size);
 }
 
-// Hash table iterator
+// MARK: - Hash table
 
 P_UHASH_DEF_TYPE(IterHashData, ulib_byte, ulib_byte)
 
@@ -179,7 +181,7 @@ UIter p_uiter_hash(void *h, ulib_uint size, size_t key_size) {
     return iter;
 }
 
-// Joined iterator
+// MARK: - Joined
 
 struct JoinData {
     ulib_uint cur;
@@ -259,7 +261,7 @@ ulib_ret uiter_join(UIter *iter, UIter *other) {
     return ULIB_OK;
 }
 
-// Mapped iterator
+// MARK: - Mapped
 
 struct MapData {
     UIter *iter;

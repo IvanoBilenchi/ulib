@@ -130,7 +130,6 @@ void uthread_test_stack(void) {
     utest_assert_enum(uthread_join(&thread), ==, ULIB_OK);
     utest_assert_uint(state, ==, 1);
 #else
-    // Every other platform owns its thread stacks, so the setter is rejected.
     utest_assert_enum(uthread_set_stack(&thread, NULL, 0), ==, ULIB_ERR_UNSUPPORTED);
 #endif
 }

@@ -20,8 +20,6 @@ enum { ONCE_IDLE, ONCE_RUNNING, ONCE_DONE };
 #include "udeadline.h"
 #include "upark.h"
 
-// The wake happens once per initialization, so a flag recording whether anyone is queued would
-// save at most one empty round trip and is not worth the extra state.
 static inline ulib_ret once_run_and_wake(UOnce *once, ulib_ret (*func)(void *), void *arg) {
     ulib_ret const ret = func(arg);
     uatomic_store_ex(&once->_state, ulib_is_ok(ret) ? ONCE_DONE : ONCE_IDLE, UMO_RELEASE);

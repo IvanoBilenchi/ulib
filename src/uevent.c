@@ -13,12 +13,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-// One bit for the flag itself, one recording whether anyone is parked on it, so that setting an
-// event nobody waits on never reaches the queue.
-enum {
-    EVENT_SET = 1U << 0U,
-    EVENT_WAITERS = 1U << 1U,
-};
+#define EVENT_SET ((p_uatomic_byte)(1U << 0U))
+#define EVENT_WAITERS ((p_uatomic_byte)(1U << 1U))
 
 #if ULIB_CONCURRENCY
 
@@ -34,18 +30,16 @@ ulib_ret uevent(UEvent *event) {
 void uevent_deinit(ulib_unused UEvent *event) {}
 
 bool uevent_is_set(UEvent *event) {
-    return ubit_any(uatomic_load_ex(&event->_flag, UMO_ACQUIRE), (p_uatomic_byte)EVENT_SET);
+    return ubit_any(uatomic_load_ex(&event->_flag, UMO_ACQUIRE), EVENT_SET);
 }
 
-// Runs while the queue is locked, in the same breath as the enqueue, so the flag it raises is
-// exact: an event that finds it clear knows it has nobody to wake.
 static bool event_park(void *ctx) {
     UEvent *const event = ctx;
     p_uatomic_byte s = uatomic_load_ex(&event->_flag, UMO_RELAXED);
     for (;;) {
-        if (ubit_any(s, (p_uatomic_byte)EVENT_SET)) return false;
-        if (ubit_any(s, (p_uatomic_byte)EVENT_WAITERS)) return true;
-        p_uatomic_byte const new_s = ubit_or(s, (p_uatomic_byte)EVENT_WAITERS);
+        if (ubit_any(s, EVENT_SET)) return false;
+        if (ubit_any(s, EVENT_WAITERS)) return true;
+        p_uatomic_byte const new_s = ubit_or(s, EVENT_WAITERS);
         if (uatomic_wcas_ex(&event->_flag, &s, new_s, UMO_RELAXED, UMO_RELAXED)) return true;
     }
 }
@@ -64,16 +58,13 @@ bool uevent_wait_until(UEvent *event, UDeadline deadline) {
 }
 
 void uevent_set(UEvent *event) {
-    p_uatomic_byte const s = uatomic_fetch_or_ex(&event->_flag, EVENT_SET, UMO_RELEASE);
-    if (!ubit_any(s, (p_uatomic_byte)EVENT_WAITERS)) return;
-    // Safe to clear before the wake rather than from a callback: see upark_wake_all.
-    uatomic_fetch_and_ex(&event->_flag, (p_uatomic_byte) ~(p_uatomic_byte)EVENT_WAITERS,
-                         UMO_RELAXED);
-    upark_wake_all(&event->_flag);
+    // Clearing the waiters flag before the wake is safe: see upark_wake_all.
+    p_uatomic_byte const s = uatomic_swp_ex(&event->_flag, EVENT_SET, UMO_RELEASE);
+    if (ubit_any(s, EVENT_WAITERS)) upark_wake_all(&event->_flag);
 }
 
 void uevent_clear(UEvent *event) {
-    uatomic_fetch_and_ex(&event->_flag, (p_uatomic_byte) ~(p_uatomic_byte)EVENT_SET, UMO_RELAXED);
+    uatomic_fetch_and_ex(&event->_flag, ubit_not(EVENT_SET), UMO_RELAXED);
 }
 
 #else // ULIB_CONCURRENCY

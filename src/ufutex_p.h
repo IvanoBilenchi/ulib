@@ -12,12 +12,8 @@
 #include "uplatform.h"
 #include "utime_t.h"
 
-// Platforms whose kernel owns the wait queues. Must list exactly the backends implemented in
-// ufutex.c, which fails to compile if it cannot find one.
-//
-// Overridable so that the parking lot's pthreads backend can be built where a native futex is
-// available. Every platform that selects that backend for real is one neither the CI nor a
-// development machine can build, so without this it is compiled by nobody, and it rotted.
+// Platforms with native futex support. Must list exactly the backends implemented in ufutex.c,
+// which fails to compile if it cannot find one.
 #if ULIB_CONCURRENCY && !defined(ULIB_NO_NATIVE_FUTEX) &&                                          \
     (ULIB_OS_IS_APPLE || ULIB_OS_IS_LINUX || ULIB_OS_IS_FREEBSD || ULIB_OS_IS_OPENBSD ||           \
      ULIB_OS_IS_NETBSD || ULIB_OS_IS_WIN)
@@ -36,14 +32,10 @@
 
 ULIB_BEGIN_DECLS
 
-// The clock timed waits are measured against, which on platforms whose kernel takes an absolute
-// deadline must be the one it expects. Defined everywhere, since deadlines outlive the futex.
+// The clock timed waits are measured against.
 utime_ns p_ufutex_now(void);
 
 #if P_UFUTEX_NATIVE
-
-// The kernel's wait queues, exposed only to the parking lot backend built on them. Everything
-// else queues on the lot itself, which is keyed by address rather than by the value at one.
 
 // Blocks while the value at `addr` equals `val`. Returns ULIB_ERR_AGAIN if the caller should
 // retry, ULIB_ERR otherwise.

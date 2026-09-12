@@ -18,42 +18,32 @@
 #include "ufutex_p.h"
 #include <stdbool.h>
 
-// The platform's own synchronization, which is the one thing in the library that cannot be built
-// on the parking lot, since the lot is built on it. Everything else parks.
+// The platform synchronization primitives the parking lot is built on.
 //
-// A port supplies two types. UPMutex is a plain mutex, with no trylock because the lot never
-// wants one. UPParker blocks a thread until another hands it a token, and is the harder half, so
-// a platform that has a condition variable gets it for free: it implements UPCond instead, and
-// usync.c assembles the parker from a mutex, a condition variable and a flag.
+// A port provides UPMutex, a mutex, and UPParker, a per-thread object that blocks until it is
+// unparked. A platform with condition variables can provide UPCond instead of UPParker, and use
+// the generic parker built on top of it.
 //
-// A parker is one per thread and outlives any single park, since a waker signals it after letting
-// go of the queue. The parking side runs:
+// Parking side:
 //
-//   upparker_prepare      arms the parker, with the queue locked
-//   upparker_park         blocks until unparked or the deadline passes
-//   upparker_timed_out    settles the race the deadline opens
+//   upparker_prepare       arms the parker, with the queue locked
+//   upparker_park          blocks until unparked or the deadline passes
+//   upparker_timed_out     tells whether the park really timed out, or a waker got in first
 //
-// and the waking side is split in two, so that no thread is signalled while the queue is held:
+// Waking side:
 //
-//   upparker_unpark_lock  claims the parker, with the queue locked
-//   upparker_unpark       signals it and lets go, with the queue free
+//   upparker_unpark_begin  claims the parker, with the queue locked
+//   upparker_unpark_end    signals it, with the queue unlocked
 //
-// The contract that is easy to miss: upparker_timed_out must not report a timeout while an unpark
-// claimed by upparker_unpark_lock is still in flight. The parking thread is free to return and
-// exit the moment it does, and the waker would then signal storage that no longer exists. A
-// condvar backend gets this by taking the same mutex the waker holds across the two calls; a
-// futex backend gets it because its wake takes an address as a key and never reads it.
+// Between upparker_unpark_begin and upparker_unpark_end, upparker_timed_out must not report a
+// timeout: the parking thread could return and exit before the waker gets to signal it.
 
 #if P_UFUTEX_NATIVE
 
 #include "uatomic.h"
 #include <stdint.h>
 
-// Held for a handful of instructions, so it is a plain three state mutex: zero means free, which
-// is also what static storage already provides.
 typedef UAtomic(uint32_t) UPMutex;
-
-// Woken through a futex on a word of its own.
 typedef UAtomic(uint32_t) UPParker;
 
 #else
@@ -76,9 +66,6 @@ typedef pthread_cond_t UPCond;
 #error "No synchronization primitives for this platform"
 #endif
 
-// Assembled by usync.c, and spelled out here only because a parker lives in thread-local storage
-// and so needs a size. UPCond is in the header for the same reason: nothing outside usync.c waits
-// on one directly.
 typedef struct UPParker {
     UPMutex mutex;
     UPCond cond;
@@ -86,6 +73,10 @@ typedef struct UPParker {
 } UPParker;
 
 #endif // P_UFUTEX_NATIVE
+
+typedef struct UPUnparkHandle {
+    UPParker *parker;
+} UPUnparkHandle;
 
 #endif // ULIB_CONCURRENCY
 
@@ -101,8 +92,6 @@ void upmutex_deinit(UPMutex *mutex);
 void upmutex_lock(UPMutex *mutex);
 void upmutex_unlock(UPMutex *mutex);
 
-// Built on first use by the thread it belongs to, since a thread that does not exist yet cannot
-// be reached from ulib_init.
 bool upparker_init(UPParker *parker);
 void upparker_prepare(UPParker *parker);
 
@@ -110,10 +99,9 @@ void upparker_prepare(UPParker *parker);
 bool upparker_park(UPParker *parker, UDeadline deadline);
 bool upparker_timed_out(UPParker *parker);
 
-// Returns the parker it was handed, so that a caller can take it while walking a queue it is
-// about to let go of.
-UPParker *upparker_unpark_lock(UPParker *parker);
-void upparker_unpark(UPParker *parker);
+// The handle must be passed to upparker_unpark_end.
+ULIB_NODISCARD UPUnparkHandle upparker_unpark_begin(UPParker *parker);
+void upparker_unpark_end(UPUnparkHandle handle);
 
 #endif // ULIB_CONCURRENCY
 

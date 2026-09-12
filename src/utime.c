@@ -257,31 +257,31 @@ bool utime_from_string(UTime *time, UString const *string) {
     char *newptr;
     char const *const endptr = ptr + ustring_length(*string);
 
-    // Parse year
+    // Year
     long long y = strtoll(ptr, &newptr, 0);
     if (newptr == endptr || newptr == ptr) return false;
 
-    // Parse month
+    // Month
     ptr = newptr + 1;
     unsigned long m = strtoul(ptr, &newptr, 0);
     if (newptr == endptr || newptr == ptr || m > MONTHS_PER_YEAR) return false;
 
-    // Parse day
+    // Day
     ptr = newptr + 1;
     unsigned long d = strtoul(ptr, &newptr, 0);
     if (newptr == endptr || newptr == ptr || d > utime_days_in_month(y, m)) return false;
 
-    // Parse hour
+    // Hour
     ptr = newptr + 1;
     unsigned long h = strtoul(ptr, &newptr, 0);
     if (newptr == endptr || newptr == ptr || h >= HOURS_PER_DAY) return false;
 
-    // Parse minute
+    // Minute
     ptr = newptr + 1;
     unsigned long min = strtoul(ptr, &newptr, 0);
     if (newptr == endptr || newptr == ptr || min >= MINUTES_PER_HOUR) return false;
 
-    // Parse second
+    // Second
     ptr = newptr + 1;
     unsigned long s = strtoul(ptr, &newptr, 0);
     if (newptr == ptr || s >= SECONDS_PER_MINUTE) return false;
@@ -296,7 +296,7 @@ bool utime_from_string(UTime *time, UString const *string) {
     ptr = newptr;
 
     if (ptr < endptr) {
-        // Parse timezone
+        // Timezone
         if (ptr == endptr - 1) return *ptr == 'Z' || *ptr == 'z';
 
         newptr = NULL;

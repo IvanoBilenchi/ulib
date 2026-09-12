@@ -12,7 +12,6 @@
 #include <stdint.h>
 
 #if UATOMIC_CHAR_LOCK_FREE == UATOMIC_LOCK_FREE_ALWAYS
-// Both the flag and the record of who waits on it fit in one byte.
 static_assert(sizeof(UEvent) == 1, "UEvent should be one byte");
 #endif
 

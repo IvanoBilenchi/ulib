@@ -10,14 +10,11 @@
 #include <assert.h>
 #include <stddef.h>
 
-// A barrier should be cheap enough to embed liberally, so guard its layout.
 static_assert(sizeof(UBarrier) == 4, "UBarrier should be four bytes");
 
 enum {
     THREAD_COUNT = 8,
     ROUNDS = 5,
-    // The phase a barrier reports is a wrapping counter, so a token stops naming a distinct phase
-    // once the barrier has gone all the way around.
     PHASE_COUNT = 16,
 };
 
@@ -213,8 +210,6 @@ void ubarrier_test_phase_wrap(void) {
     UBarrier barrier = ulib_zero_init;
     utest_assert_enum(ubarrier(&barrier, 1), ==, ULIB_OK);
 
-    // A lone participant completes a phase per arrival, so this walks the phase counter back to
-    // where the first token left it, without needing another thread.
     UBarrierPhase const phase = ubarrier_arrive(&barrier, 1);
     for (unsigned i = 1; i < PHASE_COUNT; ++i) {
         utest_assert(ubarrier_wait_for(&barrier, phase, 0));

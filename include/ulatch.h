@@ -71,9 +71,6 @@ void ulatch_deinit(ULatch *latch);
  * Registers the specified number of arrivals without blocking the calling thread, waking up all
  * the threads waiting on the latch if it opens.
  *
- * A single call registers `count` arrivals, so that the calling thread can arrive on behalf
- * of as many work units as it completed.
- *
  * @param latch Latch to arrive at.
  * @param count Number of arrivals to register.
  *
@@ -83,9 +80,7 @@ ULIB_API
 void ulatch_arrive(ULatch *latch, uint32_t count);
 
 /**
- * Blocks the calling thread until the latch opens.
- *
- * If the latch is already open, returns immediately.
+ * Equivalent to calling `ulatch_wait_until(latch, udeadline_never())`.
  *
  * @param latch Latch to wait on.
  *
@@ -111,17 +106,11 @@ ULIB_API
 bool ulatch_wait_until(ULatch *latch, UDeadline deadline);
 
 /**
- * Blocks the calling thread until the latch opens, for up to the specified time span.
+ * Equivalent to calling `ulatch_wait_until(latch, udeadline(timeout))`.
  *
  * @param latch Latch to wait on.
- * @param timeout Maximum time to block for. @val{UTIME_NS_MAX} blocks indefinitely,
- *                zero only checks the latch without blocking.
- * @return True if the latch is open, false if the timeout expired.
- *
- * @note The calling thread may stay blocked for longer than `timeout`, never shorter.
- *
- * @note If concurrency is disabled, this function does not block: it reports whether the latch
- *       is open, as no other thread could ever make it open.
+ * @param timeout Maximum time to block for. @val{UTIME_NS_MAX} blocks indefinitely.
+ * @return See @func{ulatch_wait_until}.
  */
 ULIB_INLINE
 bool ulatch_wait_for(ULatch *latch, utime_ns timeout) {
@@ -138,8 +127,6 @@ ULIB_API
 bool ulatch_is_open(ULatch *latch);
 
 /**
- * Registers the specified number of arrivals, then blocks the calling thread until the latch opens.
- *
  * Equivalent to calling @func{ulatch_arrive} followed by @func{ulatch_wait}.
  *
  * @param latch Latch to arrive at and wait on.
@@ -166,18 +153,12 @@ ULIB_API
 bool ulatch_arrive_and_wait_until(ULatch *latch, uint32_t count, UDeadline deadline);
 
 /**
- * Registers the specified number of arrivals, then blocks the calling thread until the latch
- * opens, for up to the specified time span.
- *
- * Equivalent to calling @func{ulatch_arrive} followed by @func{ulatch_wait_for}.
+ * Equivalent to calling `ulatch_arrive_and_wait_until(latch, count, udeadline(timeout))`.
  *
  * @param latch Latch to arrive at and wait on.
  * @param count Number of arrivals to register.
  * @param timeout Maximum time to block for. @val{UTIME_NS_MAX} blocks indefinitely.
- * @return True if the latch is open, false if the timeout expired.
- *
- * @warning The arrivals stay registered when the timeout expires, so the calling thread must not
- *          arrive again if it retries the wait.
+ * @return See @func{ulatch_arrive_and_wait_until}.
  */
 ULIB_INLINE
 bool ulatch_arrive_and_wait_for(ULatch *latch, uint32_t count, utime_ns timeout) {

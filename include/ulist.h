@@ -37,11 +37,9 @@ ULIB_BEGIN_DECLS
  * setter supplied at instantiation. That indirection lets a link be anything, as long as
  * the accessors honor the following:
  *
- * - The getter must return NULL for the last element, as every termination test relies on it.
- *   An encoding that has no spare value must reserve one.
+ * - The getter must return NULL for the last element.
  * - Its result is a value, so it must not be assigned to, and its address must not be taken.
- * - Both accessors must be given a `T *`: a bare NULL literal is not enough for a setter that
- *   computes an offset from it.
+ * - Both accessors must be accept a `T *`.
  * - Neither may be passed an argument with side effects, as it may be evaluated more than once.
  *
  * @note This is a placeholder for documentation purposes. You should use the
@@ -60,7 +58,8 @@ ULIB_BEGIN_DECLS
  * Generic list cursor type.
  *
  * A cursor denotes a position in a list, and is the only way to insert or remove
- * at an arbitrary point. It is obtained via @func{ulist_begin} and advanced via @func{ulist_next}.
+ * at an arbitrary point. It is obtained via @func{ulist_begin} or @func{ulist_cursor_at},
+ * and advanced via @func{ulist_next}.
  *
  * @note This is a placeholder for documentation purposes. You should use the
  *       @func{UListCursor(T)} macro to reference the cursor of a specific list type.
@@ -165,8 +164,6 @@ ULIB_BEGIN_DECLS
     ATTRS void ulist_concat_##T(UList(T) *dst, UList(T) *src);                                     \
     ATTRS void ulist_splice_##T(UList(T) *dst, UListCursor(T) *cur, UList(T) *src);                \
     ATTRS void ulist_split_##T(UList(T) *list, UListCursor(T) *cur, UList(T) *out);                \
-    ATTRS ULIB_PURE bool ulist_contains_##T(UList(T) const *list, T const *node);                  \
-    ATTRS T *ulist_find_##T(UList(T) const *list, bool (*pred)(T *, void *), void *ctx);           \
     ATTRS void ulist_reverse_##T(UList(T) *list);                                                  \
     /** @endcond */
 
@@ -262,9 +259,9 @@ ULIB_BEGIN_DECLS
                                                                                                    \
     ATTRS void ulist_concat_##T(UList(T) *dst, UList(T) *src) {                                    \
         ulib_assert(dst != src);                                                                   \
-        if (!src->_head) return;                                                                   \
+        if (ulist_is_empty_##T(src)) return;                                                       \
         p_ulist_link_##T(dst->_tail, src->_head);                                                  \
-        if (!dst->_head) dst->_head = src->_head;                                                  \
+        if (ulist_is_empty_##T(dst)) dst->_head = src->_head;                                      \
         dst->_tail = src->_tail;                                                                   \
         p_ulist_count_join_##T(dst, src);                                                          \
         src->_head = NULL;                                                                         \
@@ -274,7 +271,7 @@ ULIB_BEGIN_DECLS
                                                                                                    \
     ATTRS void ulist_splice_##T(UList(T) *dst, UListCursor(T) *cur, UList(T) *src) {               \
         ulib_assert(dst != src);                                                                   \
-        if (!src->_head) return;                                                                   \
+        if (ulist_is_empty_##T(src)) return;                                                       \
         T *const prev = p_ulist_cursor_prev_##T(dst, cur);                                         \
         T *const at = cur->_node;                                                                  \
         p_ulist_link_##T(prev, src->_head);                                                        \
@@ -290,7 +287,7 @@ ULIB_BEGIN_DECLS
                                                                                                    \
     ATTRS void ulist_split_##T(UList(T) *list, UListCursor(T) *cur, UList(T) *out) {               \
         ulib_assert(list != out);                                                                  \
-        ulib_assert(!out->_head);                                                                  \
+        ulib_assert(ulist_is_empty_##T(out));                                                      \
         T *const at = cur->_node;                                                                  \
         if (!at) return;                                                                           \
         T *const prev = p_ulist_cursor_prev_##T(list, cur);                                        \
@@ -302,20 +299,6 @@ ULIB_BEGIN_DECLS
         p_ulist_link_##T(NULL, at);                                                                \
         out->_head = at;                                                                           \
         out->_tail = tail;                                                                         \
-    }                                                                                              \
-                                                                                                   \
-    ATTRS bool ulist_contains_##T(UList(T) const *list, T const *node) {                           \
-        for (T *cur = list->_head; cur; cur = next_get(cur)) {                                     \
-            if (cur == node) return true;                                                          \
-        }                                                                                          \
-        return false;                                                                              \
-    }                                                                                              \
-                                                                                                   \
-    ATTRS T *ulist_find_##T(UList(T) const *list, bool (*pred)(T *, void *), void *ctx) {          \
-        for (T *cur = list->_head; cur; cur = next_get(cur)) {                                     \
-            if (pred(cur, ctx)) return cur;                                                        \
-        }                                                                                          \
-        return NULL;                                                                               \
     }                                                                                              \
                                                                                                    \
     ATTRS void ulist_reverse_##T(UList(T) *list) {                                                 \
@@ -363,6 +346,16 @@ ULIB_BEGIN_DECLS
         UListCursor(T) cur = { prev, node };                                                       \
         return cur;                                                                                \
     }                                                                                              \
+                                                                                                   \
+    ATTRS ULIB_PURE ULIB_INLINE UListCursor(T) ulist_cursor_at_##T(UList(T) const *list,           \
+                                                                   T *node) {                      \
+        T *prev = NULL;                                                                            \
+        for (T *cur = list->_head; cur != node; cur = next_get(cur)) {                             \
+            ulib_assert(cur);                                                                      \
+            prev = cur;                                                                            \
+        }                                                                                          \
+        return p_ulist_cursor_make_##T(prev, node);                                                \
+    }                                                                                              \
     /** @endcond */
 
 /*
@@ -394,7 +387,10 @@ ULIB_BEGIN_DECLS
                                                                                                    \
     ATTRS ULIB_PURE ULIB_INLINE T *p_ulist_cursor_prev_##T(UList(T) const *list,                   \
                                                            UListCursor(T) const *cur) {            \
-        return cur->_node ? prev_get(cur->_node) : list->_tail;                                    \
+        T *const prev = cur->_node ? prev_get(cur->_node) : list->_tail;                           \
+        /* The head has no predecessor. */                                                         \
+        ulib_assume(cur->_node != list->_head || !prev);                                           \
+        return prev;                                                                               \
     }                                                                                              \
                                                                                                    \
     ATTRS ULIB_INLINE void p_ulist_cursor_set_prev_##T(ulib_unused UListCursor(T) *cur,            \
@@ -404,6 +400,11 @@ ULIB_BEGIN_DECLS
                                                                         T *node) {                 \
         UListCursor(T) cur = { node };                                                             \
         return cur;                                                                                \
+    }                                                                                              \
+                                                                                                   \
+    ATTRS ULIB_CONST ULIB_INLINE UListCursor(T) ulist_cursor_at_##T(                               \
+        ulib_unused UList(T) const *list, T *node) {                                               \
+        return p_ulist_cursor_make_##T(NULL, node);                                                \
     }                                                                                              \
                                                                                                    \
     ATTRS ULIB_PURE ULIB_INLINE UListCursor(T) ulist_rbegin_##T(UList(T) const *list) {            \
@@ -431,7 +432,7 @@ ULIB_BEGIN_DECLS
                                                                                                    \
     ATTRS ULIB_INLINE UIter ulist_iter_reverse_##T(UList(T) const *list) {                         \
         UIter iter = uiter(NULL, p_ulist_iter_next_reverse_##T, NULL);                             \
-        T **const cur = (T **)uiter_alloc_data(&iter, sizeof(*cur));                               \
+        T **const cur = (T **)uiter_alloc_data(&iter, sizeof(T *));                                \
         ulib_assert(cur);                                                                          \
         *cur = list->_tail;                                                                        \
         return iter;                                                                               \
@@ -472,8 +473,6 @@ ULIB_BEGIN_DECLS
         dst->_count += src->_count;                                                                \
     }                                                                                              \
                                                                                                    \
-    /* Takes the range rather than a precomputed size, so that the walk it costs lives here */     \
-    /* and disappears entirely on an uncounted list. */                                            \
     ATTRS ULIB_INLINE void p_ulist_count_move_##T(UList(T) *dst, UList(T) *src, T *first,          \
                                                   T const *last) {                                 \
         ulib_uint n = 0;                                                                           \
@@ -569,22 +568,6 @@ ULIB_BEGIN_DECLS
         p_ulist_count_add_##T(list, 1);                                                            \
     }                                                                                              \
                                                                                                    \
-    ATTRS ULIB_INLINE T *ulist_pop_front_##T(UList(T) *list) {                                     \
-        T *const node = list->_head;                                                               \
-        if (!node) return NULL;                                                                    \
-        T *const next = next_get(node);                                                            \
-        list->_head = next;                                                                        \
-        if (next) {                                                                                \
-            p_ulist_link_##T(NULL, next);                                                          \
-        } else {                                                                                   \
-            list->_tail = NULL;                                                                    \
-        }                                                                                          \
-        p_ulist_link_##T(NULL, node);                                                              \
-        p_ulist_link_##T(node, NULL);                                                              \
-        p_ulist_count_sub_##T(list, 1);                                                            \
-        return node;                                                                               \
-    }                                                                                              \
-                                                                                                   \
     ATTRS ULIB_PURE ULIB_INLINE UListCursor(T) ulist_begin_##T(UList(T) const *list) {             \
         return p_ulist_cursor_make_##T(NULL, list->_head);                                         \
     }                                                                                              \
@@ -596,6 +579,22 @@ ULIB_BEGIN_DECLS
     ATTRS ULIB_INLINE void ulist_next_##T(UListCursor(T) *cur) {                                   \
         ulib_assert(cur->_node);                                                                   \
         *cur = p_ulist_cursor_make_##T(cur->_node, next_get(cur->_node));                          \
+    }                                                                                              \
+                                                                                                   \
+    ATTRS ULIB_INLINE T *ulist_find_##T(UListCursor(T) *cur, bool (*pred)(T *, void *),            \
+                                        void *ctx) {                                               \
+        while (cur->_node && !pred(cur->_node, ctx)) ulist_next_##T(cur);                          \
+        return cur->_node;                                                                         \
+    }                                                                                              \
+                                                                                                   \
+    ATTRS ULIB_INLINE T *ulist_find_node_##T(UListCursor(T) *cur, T const *node) {                 \
+        while (cur->_node && cur->_node != node) ulist_next_##T(cur);                              \
+        return cur->_node;                                                                         \
+    }                                                                                              \
+                                                                                                   \
+    ATTRS ULIB_PURE ULIB_INLINE bool ulist_contains_##T(UList(T) const *list, T const *node) {     \
+        UListCursor(T) cur = ulist_begin_##T(list);                                                \
+        return ulist_find_node_##T(&cur, node) != NULL;                                            \
     }                                                                                              \
                                                                                                    \
     ATTRS ULIB_INLINE void ulist_insert_before_##T(UList(T) *list, UListCursor(T) *cur, T *node) { \
@@ -634,6 +633,16 @@ ULIB_BEGIN_DECLS
         return node;                                                                               \
     }                                                                                              \
                                                                                                    \
+    ATTRS ULIB_INLINE T *ulist_remove_node_##T(UList(T) *list, T *node) {                          \
+        UListCursor(T) cur = ulist_cursor_at_##T(list, node);                                      \
+        return ulist_remove_##T(list, &cur);                                                       \
+    }                                                                                              \
+                                                                                                   \
+    ATTRS ULIB_INLINE T *ulist_pop_front_##T(UList(T) *list) {                                     \
+        UListCursor(T) cur = ulist_begin_##T(list);                                                \
+        return ulist_remove_##T(list, &cur);                                                       \
+    }                                                                                              \
+                                                                                                   \
     ATTRS ULIB_PURE ULIB_INLINE UList_Loop_##T p_ulist_loop_##T(UList(T) const *list) {            \
         UList_Loop_##T loop = { NULL, list->_head };                                               \
         return loop;                                                                               \
@@ -655,7 +664,7 @@ ULIB_BEGIN_DECLS
                                                                                                    \
     ATTRS ULIB_INLINE UIter ulist_iter_##T(UList(T) const *list) {                                 \
         UIter iter = uiter(NULL, p_ulist_iter_next_##T, NULL);                                     \
-        T **const cur = (T **)uiter_alloc_data(&iter, sizeof(*cur));                               \
+        T **const cur = (T **)uiter_alloc_data(&iter, sizeof(T *));                                \
         ulib_assert(cur);                                                                          \
         *cur = list->_head;                                                                        \
         return iter;                                                                               \
@@ -678,22 +687,14 @@ ULIB_BEGIN_DECLS
 /*
  * Generates the additive inline function definitions of a bidirectional list type.
  *
- * Emitted after P_ULIST_DEF_INLINE, since both definitions delegate to ulist_remove.
- *
  * @param T @ctype{symbol} List type.
  * @param ATTRS @ctype{attributes} Attributes of the definitions.
  */
 #define P_ULIST_DEF_INLINE_BI(T, ATTRS)                                                            \
     /** @cond */                                                                                   \
-    ATTRS ULIB_INLINE T *ulist_remove_node_##T(UList(T) *list, T *node) {                          \
-        UListCursor(T) cur = p_ulist_cursor_make_##T(NULL, node);                                  \
-        return ulist_remove_##T(list, &cur);                                                       \
-    }                                                                                              \
-                                                                                                   \
     ATTRS ULIB_INLINE T *ulist_pop_back_##T(UList(T) *list) {                                      \
-        T *const node = list->_tail;                                                               \
-        if (!node) return NULL;                                                                    \
-        return ulist_remove_node_##T(list, node);                                                  \
+        UListCursor(T) cur = ulist_rbegin_##T(list);                                               \
+        return ulist_remove_##T(list, &cur);                                                       \
     }                                                                                              \
     /** @endcond */
 
@@ -1071,6 +1072,20 @@ ULIB_BEGIN_DECLS
 #define ulist_begin(T, list) ULIB_MACRO_CONCAT(ulist_begin_, T)(list)
 
 /**
+ * Returns a cursor pointing at the specified element.
+ *
+ * @param T List type.
+ * @param list List instance.
+ * @param node Element.
+ * @return Cursor.
+ *
+ * @note The element must be a member of the list.
+ * @note O(1) on bidirectional lists, O(n) on singly linked ones.
+ * @alias UListCursor(T) ulist_cursor_at(symbol T, UList(T) const *list, T *node);
+ */
+#define ulist_cursor_at(T, list, node) ULIB_MACRO_CONCAT(ulist_cursor_at_, T)(list, node)
+
+/**
  * Returns the element the cursor points at.
  *
  * @param T List type.
@@ -1134,6 +1149,21 @@ ULIB_BEGIN_DECLS
 #define ulist_remove(T, list, cur) ULIB_MACRO_CONCAT(ulist_remove_, T)(list, cur)
 
 /**
+ * Removes the specified element from the list.
+ *
+ * @param T List type.
+ * @param list List instance.
+ * @param node Element to remove.
+ * @return Removed element.
+ *
+ * @note The element must be a member of the list.
+ * @note The links of the removed element are cleared.
+ * @note O(1) on bidirectional lists, O(n) on singly linked ones.
+ * @alias T *ulist_remove_node(symbol T, UList(T) *list, T *node);
+ */
+#define ulist_remove_node(T, list, node) ULIB_MACRO_CONCAT(ulist_remove_node_, T)(list, node)
+
+/**
  * Returns a cursor pointing at the last element of the list.
  *
  * @param T List type.
@@ -1156,20 +1186,6 @@ ULIB_BEGIN_DECLS
  * @alias void ulist_prev(symbol T, UListCursor(T) *cur);
  */
 #define ulist_prev(T, cur) ULIB_MACRO_CONCAT(ulist_prev_, T)(cur)
-
-/**
- * Removes the specified element from the list.
- *
- * @param T List type.
- * @param list List instance.
- * @param node Element to remove.
- * @return Removed element.
- *
- * @note Only available on bidirectional lists.
- * @note The element must be a member of the list.
- * @alias T *ulist_remove_node(symbol T, UList(T) *list, T *node);
- */
-#define ulist_remove_node(T, list, node) ULIB_MACRO_CONCAT(ulist_remove_node_, T)(list, node)
 
 /**
  * Removes and returns the last element of the list.
@@ -1226,18 +1242,34 @@ ULIB_BEGIN_DECLS
 #define ulist_contains(T, list, node) ULIB_MACRO_CONCAT(ulist_contains_, T)(list, node)
 
 /**
- * Returns the first element satisfying the specified predicate.
+ * Advances the cursor to the first element satisfying the specified predicate.
  *
  * @param T List type.
- * @param list List instance.
+ * @param cur Cursor.
  * @param pred Predicate.
  * @param ctx User data passed to the predicate.
- * @return First matching element, or NULL if no element matches.
+ * @return Matching element, or NULL if no element matches.
  *
- * @alias T *ulist_find(symbol T, UList(T) const *list, bool (*pred)(T *node, void *ctx),
+ * @note The search starts at the element the cursor points at.
+ * @note If no element matches, the cursor is left past the end of the list.
+ * @alias T *ulist_find(symbol T, UListCursor(T) *cur, bool (*pred)(T *node, void *ctx),
  *                      void *ctx);
  */
-#define ulist_find(T, list, pred, ctx) ULIB_MACRO_CONCAT(ulist_find_, T)(list, pred, ctx)
+#define ulist_find(T, cur, pred, ctx) ULIB_MACRO_CONCAT(ulist_find_, T)(cur, pred, ctx)
+
+/**
+ * Advances the cursor to the specified element.
+ *
+ * @param T List type.
+ * @param cur Cursor.
+ * @param node Element to look for.
+ * @return The element, or NULL if it does not follow the cursor.
+ *
+ * @note The search starts at the element the cursor points at.
+ * @note If the element is not found, the cursor is left past the end of the list.
+ * @alias T *ulist_find_node(symbol T, UListCursor(T) *cur, T const *node);
+ */
+#define ulist_find_node(T, cur, node) ULIB_MACRO_CONCAT(ulist_find_node_, T)(cur, node)
 
 /**
  * Reverses the order of the elements in the list.

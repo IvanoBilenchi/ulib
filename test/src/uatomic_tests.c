@@ -54,7 +54,6 @@ void uatomic_test_base(void) {
 #define TIMEOUT utime_span(50, UTIME_MS)
 #define LONG_TIMEOUT utime_span(10, UTIME_S)
 
-// A value that already differs is the wakeup the caller was waiting for, at every supported width.
 void uatomic_test_wait_mismatch(void) {
     UAtomic(uint8_t) a8 = 1;
     UAtomic(uint16_t) a16 = 1;
@@ -64,7 +63,6 @@ void uatomic_test_wait_mismatch(void) {
     utest_assert_enum(uatomic_wait(&a8, 0), ==, ULIB_OK);
     utest_assert_enum(uatomic_wait(&a16, 0), ==, ULIB_OK);
     utest_assert_enum(uatomic_wait(&a32, 0), ==, ULIB_OK);
-    // An object wider than a pointer is the one width a target may decline to support.
 #if UINTPTR_MAX > UINT32_MAX
     utest_assert_enum(uatomic_wait(&a64, 0), ==, ULIB_OK);
 #else
@@ -103,8 +101,6 @@ static void wait_join(UThread *threads, unsigned count) {
     }
 }
 
-// A narrow signed value widens to all ones, so only masking it back to the object's own width
-// makes the comparison agree with what is stored.
 void uatomic_test_wait_signed(void) {
     UAtomic(int8_t) a = -1;
     utest_assert_enum(uatomic_wait_for(&a, -1, TIMEOUT), ==, ULIB_ERR_TIMEOUT);
@@ -148,8 +144,6 @@ void uatomic_test_wait_notify_all(void) {
     utest_assert_uint(uatomic_load(&woken), ==, 4);
 }
 
-// The wait owes the caller a changed value, not merely a wakeup, so notifications that leave the
-// value alone must not end it.
 void uatomic_test_wait_no_spurious(void) {
     UAtomic(uint32_t) word = 0;
     UAtomic(unsigned) woken = 0;
@@ -181,7 +175,6 @@ void uatomic_test_wait_notify_one(void) {}
 void uatomic_test_wait_notify_all(void) {}
 void uatomic_test_wait_no_spurious(void) {}
 
-// Single threaded, a wait that would block has no outcome but the one its deadline dictates.
 void uatomic_test_wait_unsupported(void) {
     UAtomic(uint32_t) word = 0;
 

@@ -200,9 +200,9 @@ void ulist_test_bidirectional_links(void) {
     utest_assert_null(vb.prev);
 }
 
-// The acceptance criterion for the cursor abstraction: this body must pass unchanged against a
-// singly linked and a bidirectional instantiation alike. Elements are parameters rather than
-// locals, since an encoding may constrain where they live.
+// This body must pass unchanged against both a singly linked and a bidirectional instantiation,
+// which is the point of the cursor abstraction. Elements are passed in rather than declared as
+// locals, since some link encodings restrict where elements can live.
 #define ulist_cursor_test_body(T, next_get, a, b, c, d)                                            \
     do {                                                                                           \
         UList(T) list = ulist(T);                                                                  \
@@ -253,6 +253,29 @@ void ulist_test_bidirectional_links(void) {
         ulist_insert_after(T, &list, &it, a);                                                      \
         ulist_assert_order(T, next_get, &list, d, b, c, a);                                        \
                                                                                                    \
+        /* Finding an element by identity leaves the cursor ready to remove it. */                 \
+        it = ulist_begin(T, &list);                                                                \
+        utest_assert_ptr(ulist_find_node(T, &it, b), ==, b);                                       \
+        utest_assert_ptr(ulist_remove(T, &list, &it), ==, b);                                      \
+        ulist_assert_order(T, next_get, &list, d, c, a);                                           \
+                                                                                                   \
+        /* Searching for an element that is not ahead of the cursor exhausts it. */                \
+        utest_assert_null(ulist_find_node(T, &it, b));                                             \
+        utest_assert_null(ulist_node(T, &it));                                                     \
+                                                                                                   \
+        /* A cursor created at a known element also knows its predecessor. */                      \
+        it = ulist_cursor_at(T, &list, c);                                                         \
+        ulist_insert_before(T, &list, &it, b);                                                     \
+        ulist_assert_order(T, next_get, &list, d, b, c, a);                                        \
+                                                                                                   \
+        /* Removing by element must fix up whichever end it sits at. */                            \
+        utest_assert_ptr(ulist_remove_node(T, &list, b), ==, b);                                   \
+        ulist_assert_order(T, next_get, &list, d, c, a);                                           \
+        utest_assert_ptr(ulist_remove_node(T, &list, d), ==, d);                                   \
+        ulist_assert_order(T, next_get, &list, c, a);                                              \
+        utest_assert_ptr(ulist_remove_node(T, &list, a), ==, a);                                   \
+        ulist_assert_order(T, next_get, &list, c);                                                 \
+                                                                                                   \
         /* Draining through the cursor must empty the list exactly. */                             \
         it = ulist_begin(T, &list);                                                                \
         while (ulist_node(T, &it)) utest_assert_not_null(ulist_remove(T, &list, &it));             \
@@ -285,7 +308,7 @@ static void ulist_cursor_test_bi_uncounted(void) {
 }
 
 static void ulist_cursor_test_indexed(void) {
-    // Index encoded links only resolve for nodes that live in the pool, so these come from it.
+    // Index-encoded links only work for nodes in the pool, so the elements are taken from it.
     for (unsigned i = 0; i < POOL_SIZE; ++i) pool[i].next_idx = 0;
     ulist_cursor_test_body(INode, inode_next_get, pool + 1, pool + 2, pool + 3, pool + 4);
 }
@@ -344,9 +367,9 @@ void ulist_test_bidirectional_only(void) {
     utest_assert_null(vb.prev);
 }
 
-// Destroying each element's link from inside the body must not derail the walk, since the
-// successor is captured before the body runs. This is the guarantee that makes it safe to free
-// or recycle elements while iterating.
+// Overwriting each element's link inside the loop body must not break the walk, since the
+// successor is read before the body runs. That is what makes it safe to free or recycle elements
+// while iterating.
 #define ulist_foreach_test_body(T, next_set, a, b, c)                                              \
     do {                                                                                           \
         UList(T) list = ulist(T);                                                                  \
@@ -536,15 +559,39 @@ void ulist_test_search(void) {
     UList(SNode) empty = ulist(SNode);
     utest_assert_false(ulist_contains(SNode, &empty, &a));
 
+    SNode d = ulib_zero_init;
+    d.val = 20;
+    ulist_push_back(SNode, &list, &d);
+
     int wanted = 20;
-    utest_assert_ptr(ulist_find(SNode, &list, snode_has_val, &wanted), ==, &b);
+    UListCursor(SNode) it = ulist_begin(SNode, &list);
+    utest_assert_ptr(ulist_find(SNode, &it, snode_has_val, &wanted), ==, &b);
+    utest_assert_ptr(ulist_node(SNode, &it), ==, &b);
 
+    // The search includes the element the cursor points at, so a match does not move it.
+    utest_assert_ptr(ulist_find(SNode, &it, snode_has_val, &wanted), ==, &b);
+
+    // Advancing past a match resumes the search from there.
+    ulist_next(SNode, &it);
+    utest_assert_ptr(ulist_find(SNode, &it, snode_has_val, &wanted), ==, &d);
+
+    // Removing at a match moves the cursor to the next element, which has not been searched yet.
+    it = ulist_begin(SNode, &list);
     wanted = 10;
-    utest_assert_ptr(ulist_find(SNode, &list, snode_has_val, &wanted), ==, &a);
+    utest_assert_ptr(ulist_find(SNode, &it, snode_has_val, &wanted), ==, &a);
+    utest_assert_ptr(ulist_remove(SNode, &list, &it), ==, &a);
+    utest_assert_ptr(ulist_node(SNode, &it), ==, &b);
 
+    // A miss exhausts the cursor, after which finding and removing are both no-ops.
     wanted = 99;
-    utest_assert_null(ulist_find(SNode, &list, snode_has_val, &wanted));
-    utest_assert_null(ulist_find(SNode, &empty, snode_has_val, &wanted));
+    utest_assert_null(ulist_find(SNode, &it, snode_has_val, &wanted));
+    utest_assert_null(ulist_node(SNode, &it));
+    utest_assert_null(ulist_find(SNode, &it, snode_has_val, &wanted));
+    utest_assert_null(ulist_remove(SNode, &list, &it));
+    ulist_assert_order(SNode, lnext_get, &list, &b, &c, &d);
+
+    it = ulist_begin(SNode, &empty);
+    utest_assert_null(ulist_find(SNode, &it, snode_has_val, &wanted));
 }
 
 void ulist_test_reverse(void) {
@@ -627,7 +674,7 @@ void ulist_test_concat(void) {
     ulist_assert_order(SNode, lnext_get, &empty, &a, &b, &c, &d);
     ulist_assert_empty(SNode, &dst);
 
-    // On a bidirectional list the seam must be linked in both directions.
+    // On a bidirectional list, the point where the two lists join must be linked both ways.
     BNode ba = ulib_zero_init;
     BNode bb = ulib_zero_init;
     BNode bc = ulib_zero_init;
@@ -737,13 +784,6 @@ void ulist_test_split(void) {
     ulist_assert_order(UNode, lnext_get, &uout, &ub);
 }
 
-// Advances a cursor to the element with the given value, so ranges can be named by content.
-#define ulist_cursor_to(T, list, it, target)                                                       \
-    do {                                                                                           \
-        it = ulist_begin(T, list);                                                                 \
-        while (ulist_node(T, &it) && ulist_node(T, &it) != (target)) ulist_next(T, &it);           \
-    } while (0)
-
 void ulist_test_splice_range(void) {
     SNode a = ulib_zero_init;
     SNode b = ulib_zero_init;
@@ -762,21 +802,18 @@ void ulist_test_splice_range(void) {
     ulist_push_back(SNode, &dst, &y);
 
     // Move [b, d) out of the middle of the source, inserting before y.
-    UListCursor(SNode) first = ulist_begin(SNode, &src);
-    UListCursor(SNode) last = ulist_begin(SNode, &src);
-    UListCursor(SNode) at = ulist_begin(SNode, &dst);
-    ulist_cursor_to(SNode, &src, first, &b);
-    ulist_cursor_to(SNode, &src, last, &d);
-    ulist_cursor_to(SNode, &dst, at, &y);
+    UListCursor(SNode) first = ulist_cursor_at(SNode, &src, &b);
+    UListCursor(SNode) last = ulist_cursor_at(SNode, &src, &d);
+    UListCursor(SNode) at = ulist_cursor_at(SNode, &dst, &y);
 
     ulist_splice_range(SNode, &dst, &at, &src, &first, &last);
     ulist_assert_order(SNode, lnext_get, &src, &a, &d);
     ulist_assert_order(SNode, lnext_get, &dst, &x, &b, &c, &y);
 
     // An empty range is a no-op.
-    ulist_cursor_to(SNode, &src, first, &a);
-    ulist_cursor_to(SNode, &src, last, &a);
-    ulist_cursor_to(SNode, &dst, at, &x);
+    first = ulist_cursor_at(SNode, &src, &a);
+    last = ulist_cursor_at(SNode, &src, &a);
+    at = ulist_cursor_at(SNode, &dst, &x);
     ulist_splice_range(SNode, &dst, &at, &src, &first, &last);
     ulist_assert_order(SNode, lnext_get, &src, &a, &d);
     ulist_assert_order(SNode, lnext_get, &dst, &x, &b, &c, &y);
@@ -799,7 +836,7 @@ void ulist_test_splice_range(void) {
     ulist_push_back(SNode, &one, &n);
     ulist_push_back(SNode, &one, &o);
 
-    ulist_cursor_to(SNode, &one, first, &o);
+    first = ulist_cursor_at(SNode, &one, &o);
     last = ulist_begin(SNode, &one);
     while (ulist_node(SNode, &last)) ulist_next(SNode, &last);
     at = ulist_begin(SNode, &one);
@@ -816,10 +853,9 @@ void ulist_test_splice_range(void) {
     ulist_push_back(BNode, &bsrc, &bb);
     ulist_push_back(BNode, &bsrc, &bc);
 
-    UListCursor(BNode) bfirst = ulist_begin(BNode, &bsrc);
+    UListCursor(BNode) bfirst = ulist_cursor_at(BNode, &bsrc, &bb);
     UListCursor(BNode) blast = ulist_begin(BNode, &bsrc);
     UListCursor(BNode) bat = ulist_begin(BNode, &bdst);
-    ulist_cursor_to(BNode, &bsrc, bfirst, &bb);
     while (ulist_node(BNode, &blast)) ulist_next(BNode, &blast);
 
     ulist_splice_range(BNode, &bdst, &bat, &bsrc, &bfirst, &blast);
@@ -843,7 +879,7 @@ static bool inode_precedes(INode *a, INode *b) {
 }
 
 void ulist_test_sort(void) {
-    // Deliberately not a power of two, so that the final run of each pass comes up short.
+    // Deliberately not a power of two, so that the last run in each pass is shorter than the rest.
     enum { SORT_COUNT = 63 };
 
     // Empty and single element lists must be left alone.

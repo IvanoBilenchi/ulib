@@ -62,9 +62,7 @@ ULIB_API
 void uevent_deinit(UEvent *event);
 
 /**
- * Blocks the calling thread until the event is set.
- *
- * If the event is already set, returns immediately.
+ * Equivalent to calling `uevent_wait_until(event, udeadline_never())`.
  *
  * @param event Event to wait on.
  *
@@ -90,17 +88,11 @@ ULIB_API
 bool uevent_wait_until(UEvent *event, UDeadline deadline);
 
 /**
- * Blocks the calling thread until the event is set, for up to the specified time span.
+ * Equivalent to calling `uevent_wait_until(event, udeadline(timeout))`.
  *
  * @param event Event to wait on.
- * @param timeout Maximum time to block for. @val{UTIME_NS_MAX} blocks indefinitely,
- *                zero only checks the event without blocking.
- * @return True if the event is set, false if the timeout expired.
- *
- * @note The calling thread may stay blocked for longer than `timeout`, never shorter.
- *
- * @note If concurrency is disabled, this function does not block: it reports whether the event
- *       is set, as no other thread could ever set it.
+ * @param timeout Maximum time to block for. @val{UTIME_NS_MAX} blocks indefinitely.
+ * @return See @func{uevent_wait_until}.
  */
 ULIB_INLINE
 bool uevent_wait_for(UEvent *event, utime_ns timeout) {

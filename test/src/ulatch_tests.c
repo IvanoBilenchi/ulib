@@ -10,7 +10,6 @@
 #include <assert.h>
 #include <stddef.h>
 
-// A latch should be cheap enough to embed liberally, so guard its layout.
 static_assert(sizeof(ULatch) == 4, "ULatch should be four bytes");
 
 enum {

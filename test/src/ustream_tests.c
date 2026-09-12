@@ -21,8 +21,6 @@ static char test_data[TEST_DATA_SIZE + 1] = { 0 };
 static char const test_data_file[] = "ustream_test_data.txt";
 static char const test_output_file[] = "ustream_output.txt";
 
-// Path based streams go through fopen, which needs a C library backed by a filesystem.
-// Zephyr provides none by default, so those cases have nothing to run against there.
 static bool stream_has_filesystem(void) {
     return !ULIB_OS_IS_ZEPHYR;
 }

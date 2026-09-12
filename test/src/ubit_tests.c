@@ -73,6 +73,9 @@
         mask = ubit_sub(mask, ubit_ctor(N, _bit)(1));                                              \
         utest_assert_false(ubit_test(mask, 1));                                                    \
                                                                                                    \
+        utest_assert_uint(ubit_not(mask), ==, ubit_sub(ubit_ctor(N, _all)(), mask));               \
+        utest_assert_uint(ubit_not(ubit_not(mask)), ==, mask);                                     \
+                                                                                                   \
         mask = ubit_set(mask, 1);                                                                  \
         utest_assert(ubit_test(mask, 1));                                                          \
         mask = ubit_clear(mask, 1);                                                                \
@@ -126,6 +129,8 @@
         utest_assert_uint(ubit_or(mask, (T)0x01), ==, 0xF1);                                       \
         utest_assert_uint(ubit_xor(mask, (T)0x0F), ==, 0xFF);                                      \
         utest_assert_uint(ubit_sub(mask, (T)0x10), ==, 0xE0);                                      \
+        utest_assert_uint(ubit_not(mask), ==, (T) ~(T)0xF0);                                       \
+        utest_assert_uint(sizeof(ubit_not(mask)), ==, sizeof(T));                                  \
         utest_assert_uint(ubit_lshift((T)0x0F, 4), ==, 0xF0);                                      \
         utest_assert_uint(ubit_rshift(mask, 4), ==, 0x0F);                                         \
         utest_assert_uint((T)(mask + ubit_two_compl(mask)), ==, 0);                                \

@@ -13,7 +13,6 @@
 
 #if ULIB_CONCURRENCY && !defined(ULIB_PLATFORM_SYNC) && P_UATOMIC_CHAR_IS_LOCK_FREE &&             \
     P_UATOMIC_SHORT_IS_LOCK_FREE
-// Locks are meant to be cheap enough to embed liberally, so guard their layout.
 static_assert(sizeof(ULock) == sizeof(p_uatomic_byte), "ULock should be one word of state");
 static_assert(sizeof(URLock) == 2 * sizeof(UThreadId), "URLock should not outgrow its owner id");
 static_assert(sizeof(URWLock) == 4, "URWLock should be four bytes");

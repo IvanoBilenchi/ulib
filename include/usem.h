@@ -34,10 +34,6 @@ typedef struct USem USem;
 // clang-format off
 #if ULIB_CONCURRENCY
     #include "uatomic.h"
-
-    // The permit count, alongside a single bit recording whether anyone is parked on it. Counting
-    // the waiters, as an implementation that can only compare a word has to, buys nothing over
-    // knowing that there is at least one.
     struct USem {
         UAtomic(uint32_t) _state;
     };
@@ -77,7 +73,7 @@ ULIB_API
 void usem_deinit(USem *sem);
 
 /**
- * Acquires a permit, blocking the calling thread until one becomes available.
+ * Equivalent to calling `usem_trywait_until(sem, udeadline_never())`.
  *
  * @param sem Semaphore to acquire a permit from.
  *
@@ -88,10 +84,10 @@ ULIB_API
 void usem_wait(USem *sem);
 
 /**
- * Attempts to acquire a permit without blocking.
+ * Equivalent to calling `usem_trywait_until(sem, udeadline(0))`.
  *
  * @param sem Semaphore to acquire a permit from.
- * @return True if a permit was acquired, false if none were available.
+ * @return See @func{usem_trywait_until}.
  */
 ULIB_API
 bool usem_trywait(USem *sem);
@@ -106,25 +102,18 @@ bool usem_trywait(USem *sem);
  * @note The calling thread may stay blocked past `deadline`, never before it.
  *       No permit is consumed when the deadline expires.
  *
- * @note If concurrency is disabled, this function does not block: it behaves like
- *       @func{usem_trywait}, as no other thread could ever post a permit.
+ * @note If concurrency is disabled, this function does not block, as no other thread could ever
+ *       post a permit.
  */
 ULIB_API
 bool usem_trywait_until(USem *sem, UDeadline deadline);
 
 /**
- * Attempts to acquire a permit, blocking the calling thread for up to the specified time span.
+ * Equivalent to calling `usem_trywait_until(sem, udeadline(timeout))`.
  *
  * @param sem Semaphore to acquire a permit from.
- * @param timeout Maximum time to block for. @val{UTIME_NS_MAX} blocks indefinitely,
- *                zero behaves like @func{usem_trywait}.
- * @return True if a permit was acquired, false if the timeout expired.
- *
- * @note The calling thread may stay blocked for longer than `timeout`, never shorter.
- *       No permit is consumed when the timeout expires.
- *
- * @note If concurrency is disabled, this function does not block: it behaves like
- *       @func{usem_trywait}, as no other thread could ever post a permit.
+ * @param timeout Maximum time to block for. @val{UTIME_NS_MAX} blocks indefinitely.
+ * @return See @func{usem_trywait_until}.
  */
 ULIB_INLINE
 bool usem_trywait_for(USem *sem, utime_ns timeout) {

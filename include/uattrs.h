@@ -128,6 +128,19 @@
 #endif
 
 /**
+ * Marks functions whose return value must not be discarded.
+ *
+ * @note Place it before any other specifier or attribute in the declaration.
+ */
+#if ULIB_CC_IS_GNU
+    #define ULIB_NODISCARD __attribute__((__warn_unused_result__))
+#elif __STDC_VERSION__ >= 202311L || __cplusplus >= 201703L || _MSVC_LANG >= 201703L
+    #define ULIB_NODISCARD [[nodiscard]]
+#else
+    #define ULIB_NODISCARD
+#endif
+
+/**
  * Marks variables with thread-local storage duration.
  *
  * @note If concurrency is disabled, this macro expands to nothing.

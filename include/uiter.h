@@ -16,7 +16,6 @@
 #include "ulib_ret.h"
 #include "unumber.h"
 #include "uutils.h"
-#include "uwarning.h"
 #include <stddef.h>
 #include <stdint.h>
 
@@ -275,17 +274,12 @@ void *uiter_data(UIter const *iter) {
  *
  * @param iter @type{UIter *} Iterator.
  */
-// clang-format off
 #define uiter_break(iter)                                                                          \
-    ULIB_SUPPRESS_ONE(GNUC, "-Wdangling-else")                                                     \
-    /* NOLINTBEGIN */                                                                              \
-    if (1) {                                                                                       \
+    {                                                                                              \
         uiter_deinit(iter);                                                                        \
         break;                                                                                     \
-    } else ((void)0)                                                                               \
-    /* NOLINTEND */                                                                                \
-    ULIB_SUPPRESS_END(GNUC)
-// clang-format on
+    }                                                                                              \
+    ((void)0)
 
 /**
  * Continues to the next iteration of a @func{uiter_foreach} loop.
