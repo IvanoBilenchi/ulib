@@ -13,6 +13,7 @@
 #define USTRING_RAW_H
 
 #include "uattrs.h"
+#include "ulib_ret_t.h"
 #include "unumber.h"
 #include "uutils.h"
 #include <stdarg.h>
@@ -199,69 +200,45 @@ void ulib_str_reverse(char *string, size_t length) {
  * Converts the given string into an integer.
  *
  * @param src Source string.
- * @param[out] end End pointer.
+ * @param[out] out Converted value.
  * @param base Numeric base.
- * @return Integer.
+ * @param[out] end Pointer to the first character after the number.
+ * @return Return code, @val{ULIB_ERR} if the string does not start with a number,
+ *         @val{ULIB_ERR_BOUNDS} if the value does not fit its type.
  *
- * @note Size-appropriate wrapper for @cfunc{strtol} and @cfunc{strtoll}.
- *       Refer to their documentation for extended information (e.g. error handling).
+ * @note Accepts the same syntax as @cfunc{strtoll}.
  */
-ULIB_INLINE
-ulib_int ulib_str_to_int(char const *src, char **end, unsigned base) {
-    char *endptr;
-#ifdef ULIB_HUGE
-    long long ret = strtoll(src, &endptr, (int)base);
-#else
-    long ret = strtol(src, &endptr, (int)base);
-#endif
-    if (end) *end = endptr;
-    return (ulib_int)ret;
-}
+ULIB_API
+ulib_ret ulib_str_to_int(char const *src, ulib_int *out, unsigned base, char const **end);
 
 /**
  * Converts the given string into an unsigned integer.
  *
  * @param src Source string.
- * @param[out] end End pointer.
+ * @param[out] out Converted value.
  * @param base Numeric base.
- * @return Unsigned integer.
+ * @param[out] end Pointer to the first character after the number.
+ * @return Return code, @val{ULIB_ERR} if the string does not start with a number,
+ *         @val{ULIB_ERR_BOUNDS} if the value is negative or does not fit its type.
  *
- * @note Size-appropriate wrapper for @cfunc{strtoul} and @cfunc{strtoull}.
- *       Refer to their documentation for extended information (e.g. error handling).
+ * @note Accepts the same syntax as @cfunc{strtoull}.
  */
-ULIB_INLINE
-ulib_uint ulib_str_to_uint(char const *src, char **end, unsigned base) {
-    char *endptr;
-#ifdef ULIB_HUGE
-    unsigned long long ret = strtoull(src, &endptr, (int)base);
-#else
-    unsigned long ret = strtoul(src, &endptr, (int)base);
-#endif
-    if (end) *end = endptr;
-    return (ulib_uint)ret;
-}
+ULIB_API
+ulib_ret ulib_str_to_uint(char const *src, ulib_uint *out, unsigned base, char const **end);
 
 /**
  * Converts the given string into a float.
  *
  * @param src Source string.
- * @param[out] end End pointer.
- * @return Float.
+ * @param[out] out Converted value.
+ * @param[out] end Pointer to the first character after the number.
+ * @return Return code, @val{ULIB_ERR} if the string does not start with a number,
+ *         @val{ULIB_ERR_BOUNDS} if the value overflows its type.
  *
- * @note Size-appropriate wrapper for @cfunc{strtof} and @cfunc{strtod}.
- *       Refer to their documentation for extended information (e.g. error handling).
+ * @note Accepts the same syntax as @cfunc{strtod}. Underflow is not an error.
  */
-ULIB_INLINE
-ulib_float ulib_str_to_float(char const *src, char **end) {
-    char *endptr;
-#ifdef ULIB_TINY
-    float ret = strtof(src, &endptr);
-#else
-    double ret = strtod(src, &endptr);
-#endif
-    if (end) *end = endptr;
-    return (ulib_float)ret;
-}
+ULIB_API
+ulib_ret ulib_str_to_float(char const *src, ulib_float *out, char const **end);
 
 /**
  * Finds the last occurrence of a character.

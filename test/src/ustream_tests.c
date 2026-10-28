@@ -7,6 +7,7 @@
 
 #include "ustream_tests.h"
 #include "ulib.h"
+#include <limits.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -17,6 +18,9 @@ enum {
     STREAM_THREAD_COUNT = 8,
     STREAM_WRITE_COUNT = 500,
     TEST_DATA_SIZE = 1024,
+    VARINT_BITS = sizeof(ulib_varint) * CHAR_BIT,
+    VARINT_MAX_BYTES = (VARINT_BITS + 6) / 7,
+    VARINT_LAST_BYTE_BITS = VARINT_BITS - (7 * (VARINT_MAX_BYTES - 1)),
 };
 
 static char test_data[TEST_DATA_SIZE + 1] = { 0 };
@@ -301,7 +305,7 @@ void ustream_varint_test(void) {
     ulib_varint const max_value = ulib_min(boundary, 1000000);
     ulib_varint const increment = 999;
     ulib_varint value = 0;
-    ulib_byte buffer[sizeof(value) + 1] = ulib_zero_init;
+    ulib_byte buffer[VARINT_MAX_BYTES] = ulib_zero_init;
     size_t written = 0;
     size_t read = 0;
 
@@ -324,6 +328,19 @@ void ustream_varint_test(void) {
     utest_assert_uint(value, ==, boundary);
     utest_assert_uint(written, ==, read);
 
+    // Bit 0 plus the first bit past the type's width: truncation would read back as 1.
+    memset(buffer, 0x80, sizeof(buffer));
+    buffer[0] = 0x81;
+    buffer[VARINT_MAX_BYTES - 1] = (ulib_byte)(1U << (unsigned)VARINT_LAST_BYTE_BITS);
+    uistream_reset(&istream);
+    utest_assert_ret(uistream_read_varint(&istream, &value, &read), ULIB_ERR_BOUNDS);
+    utest_assert_uint(read, ==, VARINT_MAX_BYTES);
+
+    memset(buffer, 0x80, sizeof(buffer));
+    uistream_reset(&istream);
+    utest_assert_ret(uistream_read_varint(&istream, &value, &read), ULIB_ERR);
+    utest_assert_uint(read, ==, VARINT_MAX_BYTES);
+
     uistream_deinit(&istream);
     uostream_deinit(&ostream);
 }
@@ -333,7 +350,7 @@ void ustream_svarint_test(void) {
     ulib_svarint const max_value = ulib_min(boundary, 500000);
     ulib_svarint const increment = 999;
     ulib_svarint value = 0;
-    ulib_byte buffer[sizeof(value) + 1] = ulib_zero_init;
+    ulib_byte buffer[VARINT_MAX_BYTES] = ulib_zero_init;
     size_t written = 0;
     size_t read = 0;
 
@@ -354,6 +371,10 @@ void ustream_svarint_test(void) {
     utest_assert_ok(uostream_write_svarint(&ostream, boundary, &written));
     utest_assert_ok(uistream_read_svarint(&istream, &value, &read));
     utest_assert_int(value, ==, boundary);
+    utest_assert_uint(written, ==, read);
+
+    uistream_reset(&istream);
+    utest_assert_ok(uistream_read_svarint(&istream, NULL, &read));
     utest_assert_uint(written, ==, read);
 
     uistream_deinit(&istream);

@@ -64,7 +64,7 @@ typedef ULIB_SVARINT_TYPE ulib_svarint;
  * @param stream Input stream.
  * @param[out] value Decoded value.
  * @param[out] read Number of bytes read.
- * @return Return code.
+ * @return Return code, @val{ULIB_ERR_BOUNDS} if the value does not fit its type.
  */
 ULIB_API
 ulib_ret uistream_read_varint(UIStream *stream, ulib_varint *value, size_t *read);
@@ -75,7 +75,7 @@ ulib_ret uistream_read_varint(UIStream *stream, ulib_varint *value, size_t *read
  * @param stream Input stream.
  * @param[out] value Decoded value.
  * @param[out] read Number of bytes read.
- * @return Return code.
+ * @return Return code, @val{ULIB_ERR_BOUNDS} if the value does not fit its type.
  */
 ULIB_API
 ulib_ret uistream_read_svarint(UIStream *stream, ulib_svarint *value, size_t *read);

@@ -568,7 +568,7 @@ ulib_uint ustring_hash(UString string);
  * @param string String.
  * @param[out] out Converted value.
  * @param base Numeric base.
- * @return Return code.
+ * @return Return code, @val{ULIB_ERR_BOUNDS} if the value does not fit its type.
  */
 ULIB_API
 ulib_ret ustring_to_int(UString string, ulib_int *out, unsigned base);
@@ -579,7 +579,7 @@ ulib_ret ustring_to_int(UString string, ulib_int *out, unsigned base);
  * @param string String.
  * @param[out] out Converted value.
  * @param base Numeric base.
- * @return Return code.
+ * @return Return code, @val{ULIB_ERR_BOUNDS} if the value does not fit its type.
  */
 ULIB_API
 ulib_ret ustring_to_uint(UString string, ulib_uint *out, unsigned base);
@@ -589,7 +589,7 @@ ulib_ret ustring_to_uint(UString string, ulib_uint *out, unsigned base);
  *
  * @param string String.
  * @param[out] out Converted value.
- * @return Return code.
+ * @return Return code, @val{ULIB_ERR_BOUNDS} if the value overflows its type.
  */
 ULIB_API
 ulib_ret ustring_to_float(UString string, ulib_float *out);

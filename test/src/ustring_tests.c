@@ -229,6 +229,60 @@ void ustring_test_convert(void) {
     utest_assert_ret(ustring_to_int(a, &int_out, 10), ULIB_ERR);
     utest_assert_ret(ustring_to_uint(a, &uint_out, 10), ULIB_ERR);
     utest_assert_ret(ustring_to_float(a, &float_out), ULIB_ERR);
+
+    a = ustring_with_format("%lld", (long long)ULIB_INT_MIN);
+    utest_assert_ok(ustring_to_int(a, &int_out, 10));
+    utest_assert_int(int_out, ==, ULIB_INT_MIN);
+    ustring_deinit(&a);
+
+    a = ustring_with_format("%llu", (unsigned long long)ULIB_UINT_MAX);
+    utest_assert_ok(ustring_to_uint(a, &uint_out, 10));
+    utest_assert_uint(uint_out, ==, ULIB_UINT_MAX);
+    ustring_deinit(&a);
+
+    a = ustring_with_format("%lld0", (long long)ULIB_INT_MAX);
+    utest_assert_ret(ustring_to_int(a, &int_out, 10), ULIB_ERR_BOUNDS);
+    ustring_deinit(&a);
+
+    a = ustring_with_format("%lld0", (long long)ULIB_INT_MIN);
+    utest_assert_ret(ustring_to_int(a, &int_out, 10), ULIB_ERR_BOUNDS);
+    ustring_deinit(&a);
+
+    a = ustring_with_format("%llu0", (unsigned long long)ULIB_UINT_MAX);
+    utest_assert_ret(ustring_to_uint(a, &uint_out, 10), ULIB_ERR_BOUNDS);
+    ustring_deinit(&a);
+
+    utest_assert_ret(ustring_to_float(ustring_literal("1e99999"), &float_out), ULIB_ERR_BOUNDS);
+    utest_assert_ret(ustring_to_float(ustring_literal("-1e99999"), &float_out), ULIB_ERR_BOUNDS);
+    utest_assert_ok(ustring_to_float(ustring_literal("inf"), &float_out));
+    utest_assert_ok(ustring_to_float(ustring_literal("1e-99999"), &float_out));
+
+    utest_assert_ret(ustring_to_int(ustring_empty, &int_out, 10), ULIB_ERR);
+    utest_assert_ret(ustring_to_uint(ustring_empty, &uint_out, 10), ULIB_ERR);
+    utest_assert_ret(ustring_to_float(ustring_empty, &float_out), ULIB_ERR);
+
+    utest_assert_ret(ustring_to_uint(ustring_literal("-1"), &uint_out, 10), ULIB_ERR_BOUNDS);
+    utest_assert_ok(ustring_to_uint(ustring_literal("-0"), &uint_out, 10));
+    utest_assert_uint(uint_out, ==, 0);
+
+    char const *src = " 42abc";
+    char const *end = NULL;
+    utest_assert_ok(ulib_str_to_int(src, &int_out, 10, &end));
+    utest_assert_int(int_out, ==, 42);
+    utest_assert_ptr(end, ==, src + 3);
+
+    src = "1.5x";
+    utest_assert_ok(ulib_str_to_float(src, &float_out, &end));
+    utest_assert_float(float_out, ==, 1.5);
+    utest_assert_ptr(end, ==, src + 3);
+
+    src = " -5x";
+    utest_assert_ret(ulib_str_to_uint(src, &uint_out, 10, &end), ULIB_ERR_BOUNDS);
+    utest_assert_ptr(end, ==, src + 3);
+
+    src = "abc";
+    utest_assert_ret(ulib_str_to_int(src, &int_out, 10, &end), ULIB_ERR);
+    utest_assert_ptr(end, ==, src);
 }
 
 void ustring_test_sso(void) {

@@ -33,11 +33,21 @@ uLib adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `ulog_perf` is now the `ULOG_PERF` counterpart of `ulog_info` and friends,
   accepting a `ULogPerfData` pointer as its data argument.
 - `ULOG_PERF` events now carry a `ULogPerfData` pointer rather than a `utime_ns` pointer.
+- `ulib_str_to_int`, `ulib_str_to_uint` and `ulib_str_to_float` now return a `ulib_ret` and
+  output the converted value through a pointer, rather than following `strto*` conventions.
+  Negative inputs to `ulib_str_to_uint` are now rejected.
+- `uistream_read_varint`, `uistream_read_svarint`, `ustring_to_int`, `ustring_to_uint` and
+  `ustring_to_float` now return `ULIB_ERR_BOUNDS` if the value does not fit its type.
 
 ### Removed
 - `ULIB_LITTLE_ENDIAN`, superseded by `ULIB_CPU_BYTE_ORDER`.
 - `ulog_ns`, superseded by `ulog_perf` and `ulog_perf_data_span`.
 - `ulib_float_prev` and `ulib_float_next` (use standard `<tgmath.h>` functions).
+
+### Fixed
+- Integer conversions silently truncating out of range values.
+- `ustring_to_*` accepting the empty string.
+- Miscellaneous varint encoding/decoding issues.
 
 
 ## [0.3.2] - 2026-06-08
